@@ -140,6 +140,7 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
 - `golangci-lint run` passes with zero errors
 - `go test ./internal/domain/... -race -cover` >= 90%
 - `make validate-openapi` passes
+- `make test-e2e` Newman/Postman E2E tests pass (when API exists)
 - Pre-commit hooks installed and verified
 
 **Manual**:
@@ -147,6 +148,7 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
 - Domain entities follow CLAUDE.md DDD patterns
 - No business logic in value object constructors
 - All domain errors properly wrapped
+- Newman/Postman collection updated for new endpoints
 
 ### Deliverables
 
@@ -223,6 +225,7 @@ const (
 - Table-driven tests with `t.Parallel()`
 - Test all value object constructors
 - Test aggregate invariants
+- **Newman/Postman E2E tests**: Required for every API endpoint (regression testing)
 
 ### Security Checklist
 - [ ] No hardcoded secrets in codebase
@@ -376,7 +379,8 @@ goimg:ratelimit:{scope}:{key}    # Rate limiting
 - [ ] senior-go-architect: Code review approval (handler patterns, no business logic in HTTP layer)
 - [ ] senior-secops-engineer: Security checklist verified (account enumeration, lockout, session regeneration)
 - [ ] backend-test-architect: Coverage thresholds met, race detector clean
-- [ ] test-strategist: Postman/Newman E2E tests passing
+- [ ] test-strategist: Newman/Postman E2E tests passing (auth flow coverage 100%)
+- [ ] test-strategist: Postman collection updated with all new endpoints
 
 ### Quality Gates
 
@@ -1184,6 +1188,15 @@ Use this for each sprint:
 - [ ] Documentation updated
 - [ ] CLAUDE.md files updated if needed
 
+### E2E Testing (Newman/Postman) - MANDATORY
+- [ ] Postman collection updated with all new API endpoints
+- [ ] Test scripts validate response status codes
+- [ ] Test scripts validate response body structure
+- [ ] Error scenarios covered (4xx/5xx with RFC 7807)
+- [ ] Auth flows tested (if applicable)
+- [ ] `make test-e2e` passes locally
+- [ ] CI Newman job passes
+
 ### Quality
 - [ ] Code review completed
 - [ ] Linting passes
@@ -1201,3 +1214,37 @@ Use this for each sprint:
 - [ ] Technical debt documented
 - [ ] Next sprint dependencies identified
 ```
+
+## Appendix: Newman/Postman E2E Test Requirements
+
+**Every new API feature MUST include E2E tests**. This is non-negotiable for regression testing.
+
+### Required Test Coverage Per Feature
+
+| Feature Type | Required Tests |
+|--------------|----------------|
+| Auth endpoints | Login, register, refresh, logout, error cases |
+| CRUD endpoints | Create, read, update, delete, list, pagination |
+| Search endpoints | Query variations, filters, sorting, edge cases |
+| Protected endpoints | Auth required, forbidden for wrong roles |
+| File uploads | Success, validation errors, malware rejection |
+
+### E2E Test Structure
+
+```
+tests/e2e/postman/
+├── goimg-api.postman_collection.json  # Main collection
+├── ci.postman_environment.json         # CI environment
+├── local.postman_environment.json      # Local dev environment
+└── fixtures/                            # Test data files
+    ├── test-image.jpg
+    └── test-malware.txt (EICAR)
+```
+
+### CI Integration
+
+Newman E2E tests run automatically in GitHub Actions:
+- **Trigger**: After successful build
+- **Services**: PostgreSQL, Redis (shared containers - no duplication)
+- **Reports**: HTML and JUnit XML uploaded as artifacts
+- **Failure**: Blocks merge to main/develop branches

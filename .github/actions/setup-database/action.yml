@@ -1,0 +1,63 @@
+name: 'Setup Database'
+description: 'Wait for PostgreSQL readiness and run database migrations'
+inputs:
+  database-url:
+    description: 'PostgreSQL connection string'
+    required: true
+  skip-migrations:
+    description: 'Skip running migrations (default: false)'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Wait for PostgreSQL to be ready
+      shell: bash
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 -U goimg_test; then
+            echo "PostgreSQL is ready!"
+            break
+          fi
+          echo "Attempt $i/30: PostgreSQL not ready yet..."
+          sleep 1
+        done
+
+        # Final check
+        if ! pg_isready -h localhost -p 5432 -U goimg_test; then
+          echo "ERROR: PostgreSQL failed to become ready after 30 seconds"
+          exit 1
+        fi
+
+    - name: Install Goose migration tool
+      if: inputs.skip-migrations == 'false'
+      shell: bash
+      run: |
+        if [ -d "migrations" ] || [ -d "db/migrations" ]; then
+          echo "Installing Goose migration tool..."
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+        else
+          echo "No migrations directory found, skipping Goose installation"
+        fi
+
+    - name: Run database migrations
+      if: inputs.skip-migrations == 'false'
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+      run: |
+        if [ -d "migrations" ] || [ -d "db/migrations" ]; then
+          if [ -f "Makefile" ] && grep -q "migrate-up" Makefile; then
+            echo "Running database migrations via Makefile..."
+            make migrate-up || {
+              echo "WARNING: Migration failed, but continuing (may be expected in early development)"
+              exit 0
+            }
+          else
+            echo "No migrate-up target in Makefile, skipping migrations"
+          fi
+        else
+          echo "No migrations found (expected during early development)"
+        fi

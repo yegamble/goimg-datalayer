@@ -1,0 +1,931 @@
+{
+  "info": {
+    "_postman_id": "goimg-api-e2e-tests",
+    "name": "GoImg API E2E Tests",
+    "description": "End-to-end API tests for the GoImg image gallery platform.\n\nThese tests validate the complete API functionality including authentication, user management, image operations, albums, and moderation workflows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{BASE_URL}}"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health - Liveness",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has status field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('ok');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            }
+          }
+        },
+        {
+          "name": "Health - Readiness",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All services are ready', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('ok');",
+                  "    pm.expect(jsonData).to.have.property('services');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('email');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.collectionVariables.set('testUserId', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "pm.collectionVariables.set('testEmail', `e2e-test-${timestamp}@example.com`);",
+                  "pm.collectionVariables.set('testUsername', `e2euser${timestamp}`);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"SecureP@ssw0rd123!\",\n  \"displayName\": \"E2E Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    pm.expect(jsonData).to.have.property('expiresIn');",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"SecureP@ssw0rd123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has new tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user profile', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('email');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('testEmail'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile (Public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Response has public profile fields', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('id');",
+                  "        pm.expect(jsonData).to.have.property('username');",
+                  "        pm.expect(jsonData).to.have.property('displayName');",
+                  "        pm.expect(jsonData).to.not.have.property('email');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{testUserId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Profile is updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.displayName).to.eql('Updated E2E User');",
+                  "    pm.expect(jsonData.bio).to.eql('Updated bio from E2E tests');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Updated E2E User\",\n  \"bio\": \"Updated bio from E2E tests\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "item": [
+        {
+          "name": "Upload Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has image data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('filename');",
+                  "    pm.expect(jsonData).to.have.property('urls');",
+                  "    pm.collectionVariables.set('testImageId', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "{{testImagePath}}"
+                },
+                {
+                  "key": "title",
+                  "value": "E2E Test Image",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Image uploaded during E2E testing",
+                  "type": "text"
+                },
+                {
+                  "key": "visibility",
+                  "value": "public",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["images"]
+            }
+          }
+        },
+        {
+          "name": "Get Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has image details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('urls');",
+                  "    pm.expect(jsonData).to.have.property('metadata');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/images/{{testImageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["images", "{{testImageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Image is updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title).to.eql('Updated E2E Image');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated E2E Image\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/images/{{testImageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["images", "{{testImageId}}"]
+            }
+          }
+        },
+        {
+          "name": "List User Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('pageSize');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/images?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "images"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/images/{{testImageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["images", "{{testImageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Albums",
+      "item": [
+        {
+          "name": "Create Album",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has album data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('name');",
+                  "    pm.expect(jsonData.name).to.eql('E2E Test Album');",
+                  "    pm.collectionVariables.set('testAlbumId', jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"E2E Test Album\",\n  \"description\": \"Album created during E2E testing\",\n  \"visibility\": \"public\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/albums",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums"]
+            }
+          }
+        },
+        {
+          "name": "Get Album",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has album details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('name');",
+                  "    pm.expect(jsonData).to.have.property('images');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{testAlbumId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{testAlbumId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Album",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{testAlbumId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{testAlbumId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explore",
+      "item": [
+        {
+          "name": "Get Recent Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/explore/recent?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["explore", "recent"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has search results', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "    pm.expect(jsonData).to.have.property('query');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/explore/search?q=test&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["explore", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "test"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Handling",
+      "item": [
+        {
+          "name": "401 - Unauthorized Access",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "404 - Resource Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["images", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "422 - Validation Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 with validation details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid-email\",\n  \"username\": \"ab\",\n  \"password\": \"weak\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

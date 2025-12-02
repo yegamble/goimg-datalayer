@@ -1,6 +1,8 @@
 # golangci-lint configuration for goimg-datalayer
 # Run: golangci-lint run --config=.golangci.yml
 
+version: 2
+
 run:
   # Timeout for analysis
   timeout: 5m
@@ -29,8 +31,7 @@ run:
 # Output configuration
 output:
   # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
-  formats:
-    - format: colored-line-number
+  format: colored-line-number
 
   # Print lines of code with issue
   print-issued-lines: true
@@ -48,15 +49,14 @@ output:
 linters:
   # Enable specific linters
   enable:
-    # Enabled by default
+    # Core linters (enabled by default)
     - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
     - govet         # Reports suspicious constructs
     - ineffassign   # Detect ineffectual assignments
     - staticcheck   # Advanced Go linter
     - unused        # Check for unused constants, variables, functions and types
 
-    # Additional recommended linters
+    # Additional recommended linters compatible with v2.x
     - asasalint     # Check for pass []any as any in variadic func(...any)
     - asciicheck    # Check for non-ASCII identifiers
     - bidichk       # Check for dangerous unicode character sequences
@@ -69,7 +69,6 @@ linters:
     - errname       # Check that sentinel errors are prefixed with Err
     - errorlint     # Find code that will cause problems with Go 1.13+ error wrapping
     - exhaustive    # Check exhaustiveness of enum switch statements
-    - exportloopref # Check for pointers to enclosing loop variables
     - forbidigo     # Forbid specific identifiers
     - funlen        # Detect long functions
     - gochecknoinits # Check that no init functions are present
@@ -78,11 +77,7 @@ linters:
     - gocritic      # Highly extensible Go linter
     - gocyclo       # Compute and check cyclomatic complexity
     - godot         # Check if comments end in a period
-    - gofmt         # Check whether code was gofmt-ed
-    - gofumpt       # Stricter gofmt
     - goheader      # Check file headers
-    - goimports     # Check import statements are formatted according to goimport
-    - gomnd         # Detect magic numbers
     - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - gomodguard    # Allow and block lists for direct Go module dependencies
     - goprintffuncname # Check that printf-like functions are named with f at the end
@@ -95,7 +90,9 @@ linters:
     - loggercheck   # Check key-value pairs for common logger libraries
     - maintidx      # Measure maintainability index
     - makezero      # Find slice declarations with non-zero initial length
+    - mirror        # Reports wrong mirror patterns of bytes/strings usage
     - misspell      # Find commonly misspelled English words
+    - mnd           # Detect magic numbers (replaces gomnd)
     - musttag       # Enforce field tags in (un)marshaled structs
     - nakedret      # Find naked returns in functions greater than a specified length
     - nestif        # Report deeply nested if statements
@@ -109,12 +106,10 @@ linters:
     - promlinter    # Check Prometheus metrics naming
     - reassign      # Check that package variables are not reassigned
     - revive        # Fast, configurable, extensible, flexible, and beautiful linter for Go
-    - sloglint      # Ensure consistent code style when using log/slog
     - rowserrcheck  # Check whether Err of rows is checked successfully
+    - sloglint      # Ensure consistent code style when using log/slog
     - sqlclosecheck # Check that sql.Rows and sql.Stmt are closed
-    - stylecheck    # Stylecheck is a replacement for golint
     - tagalign      # Check that struct tags are well aligned
-    - tenv          # Detect using os.Setenv instead of t.Setenv
     - testableexamples # Check if examples are testable
     - testifylint   # Checks usage of github.com/stretchr/testify
     - testpackage   # Make you use a separate _test package
@@ -129,27 +124,21 @@ linters:
 
   # Disable specific linters (with reasons)
   disable:
-    - deadcode      # Deprecated: replaced by unused
-    - exhaustivestruct # Deprecated: replaced by exhaustruct
-    - golint        # Deprecated: replaced by revive
-    - ifshort       # Deprecated
-    - interfacer    # Deprecated
-    - maligned      # Deprecated: replaced by govet 'fieldalignment'
-    - nosnakecase   # Deprecated: replaced by revive 'var-naming'
-    - scopelint     # Deprecated: replaced by exportloopref
-    - structcheck   # Deprecated: replaced by unused
-    - varcheck      # Deprecated: replaced by unused
     - depguard      # Too restrictive for this project
-    - execinquery   # Not applicable
     - exhaustruct   # Too strict for initialization
     - forcetypeassert # Handled by linting error checks
-    - gci           # Conflicts with goimports
     - godox         # TODOs are acceptable in development
-    - goerr113      # Too strict for custom errors
     - paralleltest  # Not all tests can be parallel
     - tagliatelle   # Tag naming is project-specific
     - varnamelen    # Short variable names are acceptable
     - wsl           # Whitespace linter is too opinionated
+
+# Formatters configuration
+formatters:
+  enable:
+    - gofmt         # Check whether code was gofmt-ed
+    - gofumpt       # Stricter gofmt
+    - goimports     # Check import statements are formatted according to goimport
 
 # Linter-specific settings
 linters-settings:
@@ -201,28 +190,26 @@ linters-settings:
     min-occurrences: 3
     ignore-tests: true
 
-  # gomnd: magic numbers
-  gomnd:
-    settings:
-      mnd:
-        checks:
-          - argument
-          - case
-          - condition
-          - operation
-          - return
-          - assign
-        ignored-functions:
-          - 'strconv.*'
-          - 'math.*'
-          - 'http.StatusText'
-        ignored-numbers:
-          - '0'
-          - '1'
-          - '2'
-          - '10'
-          - '100'
-          - '1000'
+  # mnd: magic numbers (replaces gomnd)
+  mnd:
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+      - assign
+    ignored-functions:
+      - 'strconv.*'
+      - 'math.*'
+      - 'http.StatusText'
+    ignored-numbers:
+      - '0'
+      - '1'
+      - '2'
+      - '10'
+      - '100'
+      - '1000'
 
   # revive: configurable linter
   revive:
@@ -257,14 +244,6 @@ linters-settings:
         arguments: [20]
       - name: function-length
         arguments: [50, 100]
-
-  # stylecheck: style checker
-  stylecheck:
-    checks: ["all", "-ST1000", "-ST1003"]
-    dot-import-whitelist:
-      - fmt
-    initialisms: ["ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS", "IPFS", "CID"]
-    http-status-code-whitelist: ["200", "400", "404", "500"]
 
   # gocritic: comprehensive linter
   gocritic:
@@ -429,7 +408,7 @@ issues:
     # Exclude magic number checks in tests
     - path: _test\.go
       linters:
-        - gomnd
+        - mnd
 
     # Exclude function length checks in main.go
     - path: cmd/.*/main\.go
@@ -464,17 +443,3 @@ issues:
 
   # Show statistics per linter
   exclude-dirs-use-default: true
-
-severity:
-  # Set default severity for issues
-  default-severity: error
-
-  # Severity rules
-  rules:
-    - linters:
-        - dupl
-      severity: info
-    - linters:
-        - gomnd
-        - goconst
-      severity: warning
