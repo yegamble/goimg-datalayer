@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean
 
 # Default target
 help:
@@ -11,6 +11,7 @@ help:
 	@echo "  test-domain       - Run domain layer tests with 90% threshold"
 	@echo "  test-unit         - Run unit tests only"
 	@echo "  test-integration  - Run integration tests only"
+	@echo "  test-e2e          - Run Newman/Postman E2E tests"
 	@echo "  coverage-domain   - Generate HTML coverage report for domain layer"
 	@echo "  lint              - Run golangci-lint"
 	@echo "  generate          - Run code generation (oapi-codegen)"
@@ -81,6 +82,23 @@ test-unit:
 test-integration:
 	@echo "Running integration tests..."
 	@go test -race -tags=integration -v ./...
+
+# E2E tests (Newman/Postman)
+test-e2e:
+	@echo "Running Newman E2E tests..."
+	@if [ ! -f tests/e2e/postman/goimg-api.postman_collection.json ]; then \
+		echo "Postman collection not found: tests/e2e/postman/goimg-api.postman_collection.json"; \
+		exit 1; \
+	fi
+	@if ! command -v newman &> /dev/null; then \
+		echo "Newman not installed. Install with: npm install -g newman newman-reporter-htmlextra"; \
+		exit 1; \
+	fi
+	@newman run tests/e2e/postman/goimg-api.postman_collection.json \
+		--environment tests/e2e/postman/ci.postman_environment.json \
+		--reporters cli,htmlextra \
+		--reporter-htmlextra-export newman-report.html
+	@echo "E2E test report: newman-report.html"
 
 # Linting
 lint:

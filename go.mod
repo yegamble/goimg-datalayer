@@ -1,6 +1,6 @@
 module github.com/yegamble/goimg-datalayer
 
-go 1.22
+go 1.25
 
 require (
 	github.com/google/uuid v1.5.0

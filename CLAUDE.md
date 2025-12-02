@@ -24,7 +24,7 @@ make lint && make test && make validate-openapi
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.22+ |
+| Language | Go 1.25+ |
 | Database | PostgreSQL 16+, Redis 7+ |
 | Migrations | Goose |
 | Image Processing | bimg (libvips) |
@@ -62,6 +62,36 @@ make lint && make test && make validate-openapi
 3. **No business logic in handlers**: Handlers delegate to application layer
 4. **Wrap errors**: Always use `fmt.Errorf("context: %w", err)`
 5. **Test coverage**: Minimum 80% overall; 90% for domain layer
+6. **E2E tests required**: Every new API feature MUST have Newman/Postman E2E tests for regression testing
+
+## E2E Testing Requirements
+
+**Newman/Postman is mandatory** for all API endpoints:
+
+- **Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
+- **Environment**: `tests/e2e/postman/ci.postman_environment.json`
+- **CI Integration**: E2E tests run automatically in GitHub Actions after build
+
+### When Adding New Features
+
+1. Add Postman requests for all new endpoints in the collection
+2. Include test scripts that validate:
+   - Response status codes
+   - Response body structure (JSON schema)
+   - Business logic (e.g., created resources exist)
+   - Error handling (4xx/5xx responses follow RFC 7807)
+3. Update CI environment variables if needed
+4. Run `make test-e2e` locally before committing
+
+### E2E Test Categories
+
+| Category | Purpose |
+|----------|---------|
+| Happy path | Verify normal operation |
+| Error handling | Verify RFC 7807 error responses |
+| Authentication | Verify auth flows and token handling |
+| Authorization | Verify RBAC and ownership checks |
+| Regression | Catch breaking changes |
 
 ## Project Structure (Key Paths)
 
@@ -86,6 +116,7 @@ docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 go fmt ./... && go vet ./... && golangci-lint run
 go test -race ./...
 make validate-openapi
+make test-e2e  # Run Newman E2E tests (requires API server running)
 ```
 
 See `claude/agent_checklist.md` for the full verification checklist.
