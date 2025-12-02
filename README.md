@@ -5,6 +5,8 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 ## Features
 
 - Image upload, processing, and multi-provider storage
+- **IPFS support** for decentralized, content-addressed storage
+- Dual-storage mode: primary storage (S3/Local) + IPFS pinning
 - User authentication (JWT + OAuth2)
 - Role-Based Access Control (Admin, Moderator, User)
 - Content moderation workflows
@@ -22,6 +24,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 | Image Processing | bimg (libvips) |
 | Security | ClamAV, JWT, OAuth2 |
 | Storage | Local FS / S3 / DO Spaces / Backblaze B2 |
+| Decentralized Storage | IPFS (Kubo) with remote pinning support |
 | API Docs | OpenAPI 3.1 |
 | Observability | zerolog, Prometheus, OpenTelemetry |
 
@@ -138,6 +141,8 @@ Coverage targets:
 
 Environment variables or config file:
 
+### Core Settings
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | - |
@@ -145,6 +150,33 @@ Environment variables or config file:
 | `JWT_SECRET` | JWT signing secret | - |
 | `STORAGE_PROVIDER` | `local`, `s3`, `spaces`, `b2` | `local` |
 | `CLAMAV_HOST` | ClamAV daemon address | `localhost:3310` |
+
+### IPFS Settings
+
+IPFS can be enabled **alongside** any primary storage provider for decentralized backup and content-addressed retrieval.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `IPFS_ENABLED` | Enable IPFS storage | `false` |
+| `IPFS_API_ENDPOINT` | IPFS node HTTP API | `http://localhost:5001` |
+| `IPFS_GATEWAY_ENDPOINT` | Public gateway for URLs | `https://ipfs.io` |
+| `IPFS_PIN_BY_DEFAULT` | Auto-pin uploaded content | `true` |
+| `IPFS_ASYNC_UPLOAD` | Non-blocking IPFS uploads | `true` |
+| `IPFS_REQUIRE_PIN` | Fail upload if pinning fails | `false` |
+
+#### Remote Pinning Services (Optional)
+
+For production reliability, configure additional pinning services:
+
+| Variable | Description |
+|----------|-------------|
+| `IPFS_PINATA_ENABLED` | Enable Pinata pinning |
+| `IPFS_PINATA_JWT` | Pinata API JWT token |
+| `IPFS_INFURA_ENABLED` | Enable Infura pinning |
+| `IPFS_INFURA_PROJECT_ID` | Infura project ID |
+| `IPFS_INFURA_PROJECT_SECRET` | Infura project secret |
+
+See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integration documentation.
 
 ## Contributing
 
@@ -165,6 +197,7 @@ This repository includes structured guides for AI coding assistants in the `clau
 | [coding.md](claude/coding.md) | Go standards and tooling |
 | [api_security.md](claude/api_security.md) | HTTP and security |
 | [testing_ci.md](claude/testing_ci.md) | Testing and CI/CD |
+| [ipfs_storage.md](claude/ipfs_storage.md) | IPFS integration and P2P storage |
 | [agent_checklist.md](claude/agent_checklist.md) | Pre-commit checklist |
 
 ## License
