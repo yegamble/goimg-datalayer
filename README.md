@@ -2,16 +2,55 @@
 
 Go backend for an image gallery web application (Flickr/Chevereto-style). Provides secure image hosting, user management, and content moderation.
 
-## Features
+## Status
 
-- Image upload, processing, and multi-provider storage
-- **IPFS support** for decentralized, content-addressed storage
-- Dual-storage mode: primary storage (S3/Local) + IPFS pinning
-- User authentication (JWT + OAuth2)
+**Current Phase**: Greenfield development — architecture documented, implementation starting.
+
+See [claude/sprint_plan.md](claude/sprint_plan.md) for the 8-9 sprint roadmap.
+
+## MVP Features
+
+Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
+
+**User Management**
+- Email/password registration with secure password policy (Argon2id)
+- JWT authentication (15min access + 7-day refresh tokens)
+- User profiles with image galleries
 - Role-Based Access Control (Admin, Moderator, User)
-- Content moderation workflows
-- Rate limiting and malware scanning (ClamAV)
-- OpenAPI 3.1 specification
+
+**Image Management**
+- Drag-drop upload (single & bulk)
+- Supported formats: JPEG, PNG, GIF, WebP
+- Auto-generated variants: thumbnail, small, medium, large, original
+- ClamAV malware scanning on all uploads
+- EXIF metadata extraction and optional stripping
+
+**Organization**
+- Albums (single-level)
+- User-defined tags
+- Basic search (tags, titles)
+- Privacy settings (public, private, unlisted)
+
+**Social Features**
+- Likes/favorites on images
+- Comments
+- Public gallery/explore page
+
+**Content Moderation**
+- Abuse reporting system
+- Admin moderation queue
+- Content flags (Safe/NSFW)
+- User bans (temporary & permanent)
+
+**Storage Options**
+- Local filesystem (development)
+- S3-compatible (AWS, DigitalOcean Spaces, Backblaze B2)
+- **IPFS support** (Phase 2) for decentralized, content-addressed storage
+
+**API**
+- RESTful API with OpenAPI 3.1 spec
+- Rate limiting (100 req/min global, 300 authenticated)
+- RFC 7807 Problem Details error responses
 
 ## Tech Stack
 
@@ -178,6 +217,23 @@ For production reliability, configure additional pinning services:
 
 See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integration documentation.
 
+## Roadmap
+
+| Sprint | Focus | Duration |
+|--------|-------|----------|
+| 1-2 | Foundation & Domain Layer | 4 weeks |
+| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks |
+| 4 | Application & HTTP - Auth | 2 weeks |
+| 5 | Domain & Infrastructure - Gallery | 2 weeks |
+| 6 | Application & HTTP - Gallery | 2 weeks |
+| 7 | Moderation & Social Features | 2 weeks |
+| 8 | Integration, Testing & Security | 2 weeks |
+| 9 | MVP Polish & Launch | 2 weeks |
+
+**Phase 2** (post-MVP): OAuth providers, user follows, activity feeds, email notifications, IPFS storage
+
+See [sprint_plan.md](claude/sprint_plan.md) for detailed breakdown.
+
 ## Contributing
 
 1. Follow the coding standards in [claude/coding.md](claude/coding.md)
@@ -193,11 +249,14 @@ This repository includes structured guides for AI coding assistants in the `clau
 | Guide | Purpose |
 |-------|---------|
 | [CLAUDE.md](CLAUDE.md) | Entry point and navigation |
+| [sprint_plan.md](claude/sprint_plan.md) | **Development roadmap (8-9 sprints)** |
+| [mvp_features.md](claude/mvp_features.md) | **Feature specifications and API design** |
 | [architecture.md](claude/architecture.md) | DDD patterns and structure |
 | [coding.md](claude/coding.md) | Go standards and tooling |
 | [api_security.md](claude/api_security.md) | HTTP and security |
 | [testing_ci.md](claude/testing_ci.md) | Testing and CI/CD |
 | [ipfs_storage.md](claude/ipfs_storage.md) | IPFS integration and P2P storage |
+| [notifications.md](claude/notifications.md) | Email and notification system |
 | [agent_checklist.md](claude/agent_checklist.md) | Pre-commit checklist |
 
 ## License
