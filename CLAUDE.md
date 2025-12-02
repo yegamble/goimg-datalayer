@@ -30,6 +30,7 @@ make lint && make test && make validate-openapi
 | Image Processing | bimg (libvips) |
 | Security | ClamAV, JWT, OAuth2 |
 | Object Storage | Local/S3/DO Spaces/B2 |
+| Decentralized Storage | IPFS (Kubo) + Pinata/Infura |
 | API Spec | OpenAPI 3.1 |
 | Observability | zerolog, Prometheus, OpenTelemetry |
 
@@ -41,6 +42,7 @@ make lint && make test && make validate-openapi
 | Coding standards | `claude/coding.md` | Writing/reviewing Go code |
 | API & security | `claude/api_security.md` | HTTP handlers, auth, endpoints |
 | Testing & CI | `claude/testing_ci.md` | Writing tests, CI issues |
+| IPFS & P2P storage | `claude/ipfs_storage.md` | Implementing IPFS, pinning, decentralized storage |
 | Agent checklist | `claude/agent_checklist.md` | Before committing changes |
 | Scoped guide placement | `claude/placement.md` | Adding folder-local guides |
 
@@ -60,10 +62,15 @@ make lint && make test && make validate-openapi
 internal/
 ├── domain/           # Entities, value objects, aggregates, repo interfaces
 ├── application/      # Commands, queries, application services
-├── infrastructure/   # Postgres, Redis, storage, external services
+├── infrastructure/
+│   ├── persistence/  # Postgres, Redis repositories
+│   ├── storage/      # Local, S3, IPFS providers (see CLAUDE.md inside)
+│   ├── security/     # JWT, OAuth, ClamAV
+│   └── messaging/    # Event publishing
 └── interfaces/http/  # Handlers, middleware, DTOs
 api/openapi/          # OpenAPI 3.1 spec (source of truth)
 tests/                # Unit, integration, e2e, contract tests
+docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 ```
 
 ## Before Every Commit

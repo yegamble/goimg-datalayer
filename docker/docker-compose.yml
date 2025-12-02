@@ -1,0 +1,114 @@
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: goimg-postgres
+    environment:
+      POSTGRES_USER: goimg
+      POSTGRES_PASSWORD: goimg_dev_password
+      POSTGRES_DB: goimg
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goimg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache/Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: goimg-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ClamAV Antivirus Scanner
+  clamav:
+    image: clamav/clamav:stable
+    container_name: goimg-clamav
+    ports:
+      - "3310:3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # IPFS Node (Kubo)
+  # Provides decentralized, content-addressed storage
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: goimg-ipfs
+    environment:
+      # Server profile optimizes for running as a service
+      - IPFS_PROFILE=server
+    ports:
+      # Swarm - P2P communication with other IPFS nodes
+      - "4001:4001"
+      - "4001:4001/udp"
+      # API - HTTP API for programmatic access
+      - "5001:5001"
+      # Gateway - HTTP gateway for content retrieval
+      - "8080:8080"
+    volumes:
+      # Persistent IPFS data (blocks, config, keys)
+      - ipfs_data:/data/ipfs
+      # Staging area for imports
+      - ipfs_staging:/export
+    command: ["daemon", "--migrate=true", "--enable-gc"]
+    healthcheck:
+      test: ["CMD-SHELL", "ipfs id || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # MinIO - S3-compatible object storage (for local S3 development)
+  minio:
+    image: minio/minio:latest
+    container_name: goimg-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  clamav_data:
+  ipfs_data:
+  ipfs_staging:
+  minio_data:
+
+networks:
+  default:
+    name: goimg-network
