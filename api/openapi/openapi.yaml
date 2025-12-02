@@ -1,0 +1,2300 @@
+openapi: 3.1.0
+info:
+  title: goimg-datalayer API
+  version: 1.0.0
+  description: |
+    A self-hosted image gallery backend inspired by Flickr and Chevereto.
+
+    Features:
+    - User management with JWT authentication
+    - Image upload with automatic variant generation
+    - Albums, tags, and social features (likes, comments)
+    - Content moderation and abuse reporting
+    - RESTful API with RFC 7807 error responses
+
+  contact:
+    name: goimg-datalayer API Team
+    url: https://github.com/yegamble/goimg-datalayer
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.goimg.com/v1
+    description: Production server (example)
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: auth
+    description: Authentication and authorization endpoints
+  - name: users
+    description: User profile management
+  - name: images
+    description: Image upload, retrieval, and management
+  - name: albums
+    description: Album creation and management
+  - name: tags
+    description: Tag operations and image tagging
+  - name: social
+    description: Social features (likes, comments)
+  - name: moderation
+    description: Content moderation and abuse reporting
+  - name: explore
+    description: Discovery and exploration features
+  - name: health
+    description: Health check endpoints
+
+paths:
+  # ==================== Authentication ====================
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new user
+      description: |
+        Create a new user account with email, username, and password.
+
+        Validation:
+        - Email must be unique and not from disposable provider
+        - Username must be unique, 3-32 chars, alphanumeric
+        - Password must be 12-128 chars with complexity requirements
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: user@example.com
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                  pattern: '^[a-zA-Z0-9_-]+$'
+                  example: johndoe
+                password:
+                  type: string
+                  format: password
+                  minLength: 12
+                  maxLength: 128
+                  example: MySecureP@ssw0rd123
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
+                  username:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/validation-error
+                title: Validation Error
+                status: 400
+                detail: Request validation failed
+                traceId: abc123-def456
+                errors:
+                  - field: password
+                    message: password must be at least 12 characters
+        '409':
+          description: Email or username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/conflict
+                title: Conflict
+                status: 409
+                detail: Email or username already exists
+                traceId: abc123-def456
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: User login
+      description: |
+        Authenticate with email and password to receive JWT tokens.
+
+        Security:
+        - Rate limit: 5 attempts per minute per IP
+        - Account lockout after 5 failed attempts (15 min)
+        - Generic error messages to prevent account enumeration
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: MySecureP@ssw0rd123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: Invalid email or password
+                traceId: abc123-def456
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Refresh access token
+      description: |
+        Exchange a refresh token for a new access token and refresh token.
+
+        Security:
+        - Refresh token rotation (old token invalidated)
+        - Replay attack detection (token reuse revokes entire family)
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: User logout
+      description: Invalidate the current refresh token
+      operationId: logoutUser
+      responses:
+        '204':
+          description: Logout successful
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Users ====================
+  /users/{id}:
+    get:
+      tags: [users]
+      summary: Get user profile
+      description: Retrieve public profile information for a user
+      operationId: getUser
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags: [users]
+      summary: Update user profile
+      description: |
+        Update own user profile. Users can only update their own profile.
+
+        Updatable fields:
+        - display_name
+        - bio
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                  maxLength: 100
+                  example: John Doe
+                bio:
+                  type: string
+                  maxLength: 500
+                  example: Photographer and nature enthusiast
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot update another user's profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [users]
+      summary: Delete user account
+      description: |
+        Delete own user account permanently. This action cannot be undone.
+        All user images and albums will be deleted.
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '204':
+          description: User account deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete another user's account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Images ====================
+  /images:
+    post:
+      tags: [images]
+      summary: Upload image
+      description: |
+        Upload a new image with optional metadata.
+
+        Processing:
+        - ClamAV malware scan (required)
+        - EXIF metadata extraction
+        - EXIF stripping (GPS data removed by default)
+        - Generate 4 variants: thumbnail (150px), small (320px), medium (800px), large (1600px)
+        - Store original
+        - Re-encode through libvips for security
+
+        Rate limit: 50 uploads per hour per user
+      operationId: uploadImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, GIF, WebP)
+                title:
+                  type: string
+                  maxLength: 255
+                  example: Sunset over mountains
+                description:
+                  type: string
+                  maxLength: 2000
+                  example: Beautiful sunset captured in Rocky Mountains
+                visibility:
+                  type: string
+                  enum: [public, private, unlisted]
+                  default: private
+                album_id:
+                  type: string
+                  format: uuid
+                  description: Add image to album (optional)
+                tags:
+                  type: string
+                  description: Comma-separated tags (max 20)
+                  example: sunset,mountains,nature,landscape
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '413':
+          description: File too large (max 10MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: Malware detected or processing failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '429':
+          description: Upload rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [images]
+      summary: List images
+      description: |
+        List images with optional filtering and pagination.
+
+        Returns only images the authenticated user has permission to view:
+        - Own images (all visibility levels)
+        - Public images from other users
+      operationId: listImages
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: owner_id
+          in: query
+          description: Filter by image owner
+          schema:
+            type: string
+            format: uuid
+        - name: album_id
+          in: query
+          description: Filter by album
+          schema:
+            type: string
+            format: uuid
+        - name: visibility
+          in: query
+          description: Filter by visibility (only for own images)
+          schema:
+            type: string
+            enum: [public, private, unlisted]
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated, AND logic)
+          schema:
+            type: string
+            example: sunset,nature
+        - name: q
+          in: query
+          description: Search query (title, description)
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [created_at, view_count, like_count]
+            default: created_at
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Images retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /images/{id}:
+    get:
+      tags: [images]
+      summary: Get image details
+      description: Retrieve detailed information about a specific image
+      operationId: getImage
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: Image retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '404':
+          description: Image not found or not accessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags: [images]
+      summary: Update image metadata
+      description: |
+        Update image metadata. Only the image owner can update their images.
+        Admins can update any image.
+      operationId: updateImage
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                description:
+                  type: string
+                  maxLength: 2000
+                visibility:
+                  type: string
+                  enum: [public, private, unlisted]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 20
+                  example: [sunset, mountains, nature]
+      responses:
+        '200':
+          description: Image updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot update another user's image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [images]
+      summary: Delete image
+      description: |
+        Delete an image permanently. Only the image owner can delete their images.
+        Moderators and admins can delete any image.
+      operationId: deleteImage
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '204':
+          description: Image deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete another user's image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /images/{id}/variants/{size}:
+    get:
+      tags: [images]
+      summary: Get image variant
+      description: |
+        Retrieve a specific image variant (resized version).
+
+        Available sizes:
+        - thumbnail: 150x150px (JPEG, quality 80)
+        - small: 320x320px (JPEG, quality 85)
+        - medium: 800x800px (JPEG, quality 85)
+        - large: 1600x1600px (JPEG, quality 90)
+        - original: unchanged (original format and quality)
+
+        Aspect ratio is preserved (contain, not crop).
+      operationId: getImageVariant
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+        - name: size
+          in: path
+          required: true
+          description: Variant size
+          schema:
+            type: string
+            enum: [thumbnail, small, medium, large, original]
+      responses:
+        '200':
+          description: Image variant retrieved successfully
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/gif:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Image or variant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Albums ====================
+  /albums:
+    post:
+      tags: [albums]
+      summary: Create album
+      description: Create a new album to organize images
+      operationId: createAlbum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                  example: Summer Vacation 2024
+                description:
+                  type: string
+                  maxLength: 2000
+                  example: Photos from our trip to the mountains
+                visibility:
+                  type: string
+                  enum: [public, private, unlisted]
+                  default: private
+                cover_image_id:
+                  type: string
+                  format: uuid
+                  description: Album cover image (defaults to first image)
+      responses:
+        '201':
+          description: Album created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [albums]
+      summary: List user's albums
+      description: List albums for the authenticated user or a specific user
+      operationId: listAlbums
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: owner_id
+          in: query
+          description: Filter by album owner (defaults to authenticated user)
+          schema:
+            type: string
+            format: uuid
+        - name: visibility
+          in: query
+          description: Filter by visibility (only for own albums)
+          schema:
+            type: string
+            enum: [public, private, unlisted]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Albums retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Album'
+
+  /albums/{id}:
+    get:
+      tags: [albums]
+      summary: Get album with images
+      description: Retrieve album details including all images in the album
+      operationId: getAlbum
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Album retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Album'
+                  - type: object
+                    properties:
+                      images:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '404':
+          description: Album not found or not accessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags: [albums]
+      summary: Update album
+      description: Update album metadata. Only the album owner can update their albums.
+      operationId: updateAlbum
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                description:
+                  type: string
+                  maxLength: 2000
+                visibility:
+                  type: string
+                  enum: [public, private, unlisted]
+                cover_image_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Album updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot update another user's album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [albums]
+      summary: Delete album
+      description: |
+        Delete an album permanently. Images in the album are not deleted.
+        Only the album owner can delete their albums.
+      operationId: deleteAlbum
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      responses:
+        '204':
+          description: Album deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete another user's album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/images:
+    post:
+      tags: [albums]
+      summary: Add images to album
+      description: |
+        Add one or more images to an album. Images can belong to multiple albums.
+        Only the album owner can add images.
+      operationId: addImagesToAlbum
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_ids]
+              properties:
+                image_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  maxItems: 100
+                  example: [123e4567-e89b-12d3-a456-426614174000, 123e4567-e89b-12d3-a456-426614174001]
+      responses:
+        '200':
+          description: Images added to album successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  added_count:
+                    type: integer
+                    example: 2
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot modify another user's album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/images/{imageId}:
+    delete:
+      tags: [albums]
+      summary: Remove image from album
+      description: |
+        Remove an image from an album. The image itself is not deleted.
+        Only the album owner can remove images.
+      operationId: removeImageFromAlbum
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+        - name: imageId
+          in: path
+          required: true
+          description: Image ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Image removed from album successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot modify another user's album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album or image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Tags ====================
+  /tags:
+    get:
+      tags: [tags]
+      summary: List popular tags
+      description: Retrieve a list of popular tags with usage counts
+      operationId: listPopularTags
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Number of tags to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+  /tags/search:
+    get:
+      tags: [tags]
+      summary: Search tags
+      description: Search for tags by prefix (for autocomplete)
+      operationId: searchTags
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (tag prefix)
+          schema:
+            type: string
+            minLength: 2
+            example: sun
+        - name: limit
+          in: query
+          description: Number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+  /tags/{tag}/images:
+    get:
+      tags: [tags]
+      summary: List images by tag
+      description: Retrieve all public images with a specific tag
+      operationId: listImagesByTag
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: tag
+          in: path
+          required: true
+          description: Tag name
+          schema:
+            type: string
+            example: sunset
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Images retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+
+  # ==================== Social (Likes) ====================
+  /images/{id}/like:
+    post:
+      tags: [social]
+      summary: Like image
+      description: Like an image. This operation is idempotent.
+      operationId: likeImage
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: Image liked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+                    example: true
+                  like_count:
+                    type: integer
+                    example: 42
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [social]
+      summary: Unlike image
+      description: Remove like from an image
+      operationId: unlikeImage
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: Image unliked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+                    example: false
+                  like_count:
+                    type: integer
+                    example: 41
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /images/{id}/likes:
+    get:
+      tags: [social]
+      summary: List users who liked image
+      description: Retrieve a list of users who liked this image
+      operationId: listImageLikes
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Likes retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Like'
+
+  # ==================== Social (Comments) ====================
+  /images/{id}/comments:
+    post:
+      tags: [social]
+      summary: Add comment
+      description: Add a comment to an image
+      operationId: addComment
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  example: Beautiful photo! Love the colors.
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [social]
+      summary: List comments
+      description: Retrieve all comments for an image
+      operationId: listComments
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Comment'
+
+  /comments/{id}:
+    delete:
+      tags: [social]
+      summary: Delete comment
+      description: |
+        Delete a comment. Can be deleted by:
+        - Comment author
+        - Image owner
+        - Moderator/Admin
+      operationId: deleteComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Comment ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete this comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Moderation ====================
+  /reports:
+    post:
+      tags: [moderation]
+      summary: Create abuse report
+      description: |
+        Report an image for abuse, spam, copyright violation, etc.
+
+        Rate limit: 10 reports per hour per user
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_id, reason]
+              properties:
+                image_id:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+                  enum: [spam, inappropriate, copyright, harassment, other]
+                  example: inappropriate
+                description:
+                  type: string
+                  maxLength: 1000
+                  example: This image contains inappropriate content
+      responses:
+        '201':
+          description: Report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Cannot report own images
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/reports:
+    get:
+      tags: [moderation]
+      summary: List reports
+      description: List all reports (admin/moderator only)
+      operationId: listReports
+      parameters:
+        - name: status
+          in: query
+          description: Filter by report status
+          schema:
+            type: string
+            enum: [pending, reviewing, resolved, dismissed]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Reports retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Report'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin or moderator role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/reports/{id}:
+    get:
+      tags: [moderation]
+      summary: Get report details
+      description: Retrieve detailed information about a specific report (admin/moderator only)
+      operationId: getReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Report ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin or moderator role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/reports/{id}/resolve:
+    post:
+      tags: [moderation]
+      summary: Resolve report
+      description: Resolve a report with an action (admin/moderator only)
+      operationId: resolveReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Report ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [dismiss, warn, remove, ban]
+                  example: remove
+                resolution:
+                  type: string
+                  maxLength: 1000
+                  example: Image removed for violating content policy
+      responses:
+        '200':
+          description: Report resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin or moderator role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /users/{id}/ban:
+    post:
+      tags: [moderation]
+      summary: Ban user
+      description: Ban a user from the platform (admin only)
+      operationId: banUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 1000
+                  example: Multiple content policy violations
+                expires_at:
+                  type: string
+                  format: date-time
+                  description: Ban expiration (null for permanent)
+                  example: 2024-12-31T23:59:59Z
+      responses:
+        '200':
+          description: User banned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  banned:
+                    type: boolean
+                    example: true
+                  reason:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [moderation]
+      summary: Unban user
+      description: Remove ban from a user (admin only)
+      operationId: unbanUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          description: User unbanned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  banned:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Explore ====================
+  /explore/recent:
+    get:
+      tags: [explore]
+      summary: Recent public images
+      description: Retrieve recently uploaded public images
+      operationId: exploreRecent
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Recent images retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+
+  /explore/popular:
+    get:
+      tags: [explore]
+      summary: Popular images
+      description: Retrieve popular images sorted by views or likes
+      operationId: explorePopular
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Time period for popularity calculation
+          schema:
+            type: string
+            enum: [day, week, month, all]
+            default: week
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Popular images retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+
+  # ==================== Health ====================
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness check
+      description: Check if the service is running
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /health/ready:
+    get:
+      tags: [health]
+      summary: Readiness check
+      description: Check if the service is ready to accept traffic
+      operationId: readinessCheck
+      security: []
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+# ==================== Components ====================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Bearer authentication. Include the access token in the Authorization header:
+
+        ```
+        Authorization: Bearer <access_token>
+        ```
+
+        Access tokens expire after 15 minutes. Use the refresh endpoint to obtain a new token.
+
+  parameters:
+    UserIdParam:
+      name: id
+      in: path
+      required: true
+      description: User ID
+      schema:
+        type: string
+        format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+
+    ImageIdParam:
+      name: id
+      in: path
+      required: true
+      description: Image ID
+      schema:
+        type: string
+        format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+
+    AlbumIdParam:
+      name: id
+      in: path
+      required: true
+      description: Album ID
+      schema:
+        type: string
+        format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+
+    PageParam:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+
+    PerPageParam:
+      name: per_page
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 20
+
+  schemas:
+    # ==================== Core Entities ====================
+    User:
+      type: object
+      required: [id, email, username, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: johndoe
+        display_name:
+          type: string
+          nullable: true
+          example: John Doe
+        bio:
+          type: string
+          nullable: true
+          example: Photographer and nature enthusiast
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          example: https://cdn.goimg.com/avatars/123e4567.jpg
+        image_count:
+          type: integer
+          description: Number of public images
+          example: 42
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+
+    Image:
+      type: object
+      required: [id, owner_id, owner, visibility, mime_type, width, height, variants, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        owner_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        owner:
+          type: object
+          required: [id, username]
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+            display_name:
+              type: string
+              nullable: true
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174001
+            username: johndoe
+            display_name: John Doe
+        title:
+          type: string
+          nullable: true
+          example: Sunset over mountains
+        description:
+          type: string
+          nullable: true
+          example: Beautiful sunset captured in Rocky Mountains
+        visibility:
+          type: string
+          enum: [public, private, unlisted]
+          example: public
+        mime_type:
+          type: string
+          example: image/jpeg
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 2048576
+        width:
+          type: integer
+          description: Image width in pixels
+          example: 4000
+        height:
+          type: integer
+          description: Image height in pixels
+          example: 3000
+        variants:
+          type: object
+          properties:
+            thumbnail:
+              $ref: '#/components/schemas/ImageVariant'
+            small:
+              $ref: '#/components/schemas/ImageVariant'
+            medium:
+              $ref: '#/components/schemas/ImageVariant'
+            large:
+              $ref: '#/components/schemas/ImageVariant'
+            original:
+              $ref: '#/components/schemas/ImageVariant'
+        tags:
+          type: array
+          items:
+            type: string
+          example: [sunset, mountains, nature, landscape]
+        view_count:
+          type: integer
+          example: 150
+        like_count:
+          type: integer
+          example: 42
+        comment_count:
+          type: integer
+          example: 8
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T11:00:00Z
+
+    ImageVariant:
+      type: object
+      required: [url, width, height]
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://cdn.goimg.com/images/123e4567/medium.jpg
+        width:
+          type: integer
+          example: 800
+        height:
+          type: integer
+          example: 600
+
+    Album:
+      type: object
+      required: [id, owner_id, title, visibility, image_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        owner_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        title:
+          type: string
+          example: Summer Vacation 2024
+        description:
+          type: string
+          nullable: true
+          example: Photos from our trip to the mountains
+        visibility:
+          type: string
+          enum: [public, private, unlisted]
+          example: public
+        cover_image_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: 123e4567-e89b-12d3-a456-426614174002
+        cover_image:
+          allOf:
+            - $ref: '#/components/schemas/Image'
+            - nullable: true
+        image_count:
+          type: integer
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T11:00:00Z
+
+    Tag:
+      type: object
+      required: [name, slug, usage_count]
+      properties:
+        name:
+          type: string
+          example: sunset
+        slug:
+          type: string
+          example: sunset
+        usage_count:
+          type: integer
+          description: Number of images with this tag
+          example: 1234
+
+    Comment:
+      type: object
+      required: [id, user_id, user, image_id, content, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        user_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        user:
+          type: object
+          required: [id, username]
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+            display_name:
+              type: string
+              nullable: true
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174001
+            username: johndoe
+            display_name: John Doe
+        image_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        content:
+          type: string
+          example: Beautiful photo! Love the colors.
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+
+    Like:
+      type: object
+      required: [user_id, user, image_id, created_at]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        user:
+          type: object
+          required: [id, username]
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+            display_name:
+              type: string
+              nullable: true
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174001
+            username: johndoe
+            display_name: John Doe
+        image_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+
+    Report:
+      type: object
+      required: [id, reporter_id, reporter, image_id, image, reason, status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        reporter_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        reporter:
+          type: object
+          required: [id, username]
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174001
+            username: johndoe
+        image_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        image:
+          type: object
+          required: [id, owner_id, title]
+          properties:
+            id:
+              type: string
+              format: uuid
+            owner_id:
+              type: string
+              format: uuid
+            title:
+              type: string
+              nullable: true
+            thumbnail_url:
+              type: string
+              format: uri
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174002
+            owner_id: 123e4567-e89b-12d3-a456-426614174003
+            title: Inappropriate image
+            thumbnail_url: https://cdn.goimg.com/images/123e4567/thumbnail.jpg
+        reason:
+          type: string
+          enum: [spam, inappropriate, copyright, harassment, other]
+          example: inappropriate
+        description:
+          type: string
+          nullable: true
+          example: This image contains inappropriate content
+        status:
+          type: string
+          enum: [pending, reviewing, resolved, dismissed]
+          example: pending
+        resolved_by:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2024-01-15T12:00:00Z
+        resolution:
+          type: string
+          nullable: true
+          example: Image removed for violating content policy
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+
+    # ==================== Authentication ====================
+    TokenResponse:
+      type: object
+      required: [access_token, refresh_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds
+          example: 900
+
+    # ==================== Pagination ====================
+    PaginatedResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items: {}
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      required: [total, page, per_page, total_pages]
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          example: 150
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        per_page:
+          type: integer
+          description: Items per page
+          example: 20
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 8
+
+    # ==================== Error Responses (RFC 7807) ====================
+    ProblemDetail:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: A URI reference that identifies the problem type
+          example: https://api.goimg.com/problems/validation-error
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type
+          example: Validation Error
+        status:
+          type: integer
+          description: The HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence
+          example: Request validation failed
+        instance:
+          type: string
+          format: uri
+          description: A URI reference that identifies the specific occurrence
+          example: /api/v1/images
+        traceId:
+          type: string
+          description: A unique identifier for tracing the request
+          example: abc123-def456
+        errors:
+          type: array
+          description: Detailed validation errors (for 400 responses)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: title
+              message:
+                type: string
+                example: must not exceed 255 characters
+
+    # ==================== Health ====================
+    HealthStatus:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+          example: ok
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [up, down]
+              example: up
+            redis:
+              type: string
+              enum: [up, down]
+              example: up
+            storage:
+              type: string
+              enum: [up, down]
+              example: up
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
