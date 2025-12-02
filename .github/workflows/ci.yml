@@ -1,0 +1,415 @@
+name: CI
+
+# Trigger on push to main/develop branches and all pull requests
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - "**"
+
+# Cancel in-progress runs on new commits to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.22.x"  # Use latest patch version of Go 1.22
+  GOLANGCI_LINT_VERSION: "v1.61"
+
+jobs:
+  # ============================================================================
+  # Linting - Code quality and style checks
+  # ============================================================================
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --timeout=5m --config=.golangci.yml
+          # Only show new issues on PRs
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: Run go fmt check
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "The following files are not formatted:"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Run go vet
+        run: go vet ./...
+
+  # ============================================================================
+  # Unit Tests - Fast, isolated tests with race detection
+  # ============================================================================
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Run unit tests with race detection
+        run: |
+          go test -race -short -coverprofile=coverage-unit.out -covermode=atomic \
+            -timeout 10m -parallel=4 -tags='!integration' ./...
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: coverage-unit
+          path: coverage-unit.out
+          retention-days: 7
+
+  # ============================================================================
+  # Integration Tests - Database and service integration tests
+  # ============================================================================
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Service containers for integration tests
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: goimg_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: goimg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://goimg_test:test_password@localhost:5432/goimg_test?sslmode=disable
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U goimg_test && break
+            echo "Waiting for PostgreSQL..."
+            sleep 1
+          done
+
+      - name: Run database migrations
+        run: |
+          # Install goose if migrations exist
+          if [ -d "migrations" ] || [ -d "db/migrations" ]; then
+            go install github.com/pressly/goose/v3/cmd/goose@latest
+            # Run migrations - adjust path as needed
+            if [ -f "Makefile" ]; then
+              make migrate-up || echo "No migrate-up target"
+            fi
+          fi
+
+      - name: Run integration tests
+        run: |
+          go test -race -coverprofile=coverage-integration.out -covermode=atomic \
+            -timeout 15m -parallel=2 -tags=integration ./...
+
+      - name: Upload integration test coverage
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: coverage-integration
+          path: coverage-integration.out
+          retention-days: 7
+
+  # ============================================================================
+  # Coverage Analysis - Enforce minimum coverage thresholds
+  # ============================================================================
+  coverage:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Download unit test coverage
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: coverage-unit
+
+      - name: Download integration test coverage
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: coverage-integration
+
+      - name: Merge coverage reports
+        run: |
+          # Install gocovmerge to combine coverage files
+          go install github.com/wadey/gocovmerge@latest
+          gocovmerge coverage-unit.out coverage-integration.out > coverage-merged.out
+
+      - name: Calculate coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(go tool cover -func=coverage-merged.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: ${COVERAGE}%"
+          echo "coverage=${COVERAGE}" >> $GITHUB_OUTPUT
+
+      - name: Enforce 80% coverage threshold
+        run: |
+          COVERAGE=${{ steps.coverage.outputs.coverage }}
+          THRESHOLD=80.0
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "ERROR: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            exit 1
+          fi
+          echo "SUCCESS: Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+
+      - name: Generate coverage HTML report
+        run: go tool cover -html=coverage-merged.out -o coverage.html
+
+      - name: Upload merged coverage report
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: coverage-report
+          path: |
+            coverage-merged.out
+            coverage.html
+          retention-days: 30
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        with:
+          header: coverage
+          message: |
+            ## Coverage Report
+
+            **Total Coverage:** ${{ steps.coverage.outputs.coverage }}%
+            **Threshold:** 80%
+
+            Status: ${{ steps.coverage.outputs.coverage >= 80 && '✅ PASS' || '❌ FAIL' }}
+
+  # ============================================================================
+  # OpenAPI Validation - Ensure API spec is valid
+  # ============================================================================
+  openapi-validation:
+    name: OpenAPI Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Validate OpenAPI spec
+        uses: char0n/swagger-editor-validate@d16c61ab5afd355c4f8fafe8d92d438e177e3a2e # v1.3.2
+        with:
+          definition-file: api/openapi/openapi.yaml
+
+      - name: Check for OpenAPI spec drift
+        if: hashFiles('api/openapi/openapi.yaml') != ''
+        run: |
+          # Verify that generated code matches OpenAPI spec
+          # This prevents manual edits to generated files
+          if [ -f "Makefile" ]; then
+            if grep -q "generate" Makefile; then
+              echo "Checking for OpenAPI drift..."
+              make generate || echo "No generate target or generation not required"
+
+              # Check if any files were modified
+              if ! git diff --quiet; then
+                echo "ERROR: Generated code is out of sync with OpenAPI spec"
+                echo "Modified files:"
+                git diff --name-only
+                echo ""
+                echo "Run 'make generate' locally and commit the changes"
+                exit 1
+              fi
+              echo "SUCCESS: Generated code is in sync with OpenAPI spec"
+            fi
+          fi
+
+  # ============================================================================
+  # Security Scanning - Basic security checks (detailed in security.yml)
+  # ============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run gosec security scanner
+        uses: securego/gosec@26e57d6b340778c2983cd61775bc7e8bb41d002a # v2.21.4
+        with:
+          args: '-fmt sarif -out gosec-results.sarif ./...'
+
+      - name: Upload gosec results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec-results.sarif
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
+  # ============================================================================
+  # Build Verification - Ensure the project builds successfully
+  # ============================================================================
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Build project
+        run: |
+          # Build all commands in cmd/ with optimization flags
+          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+          BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+          # Build flags for size optimization and reproducible builds
+          LDFLAGS="-s -w -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}"
+
+          for dir in cmd/*; do
+            if [ -d "$dir" ]; then
+              echo "Building $dir..."
+              go build -v -trimpath -ldflags="${LDFLAGS}" "./$dir"
+            fi
+          done
+
+      - name: Verify no uncommitted changes
+        run: |
+          if ! git diff --quiet; then
+            echo "ERROR: Build process modified files"
+            git diff
+            exit 1
+          fi
+
+  # ============================================================================
+  # Final Status Check - All critical jobs must pass
+  # ============================================================================
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - test-unit
+      - test-integration
+      - coverage
+      - openapi-validation
+      - security-scan
+      - build
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more CI jobs were cancelled"
+            exit 1
+          fi
+          echo "All CI jobs passed successfully!"

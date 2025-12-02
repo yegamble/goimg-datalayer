@@ -109,6 +109,45 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
 **Duration**: 4 weeks
 **Focus**: Project setup, OpenAPI spec, domain entities
 
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: backend-test-architect, cicd-guardian
+- **Supporting**: image-gallery-expert (domain review), scrum-master
+
+### Agent Checkpoints
+
+#### Pre-Sprint (Week 1, Day 1)
+- [ ] senior-go-architect: Review DDD architecture and directory structure approach
+- [ ] backend-test-architect: Validate test framework selection and coverage tooling
+- [ ] cicd-guardian: Review CI/CD workflow design (linting, testing, OpenAPI validation)
+- [ ] scrum-master: Confirm sprint capacity and dependency resolution
+
+#### Mid-Sprint (Week 2, Day 3)
+- [ ] senior-go-architect: Review OpenAPI spec completeness and Go patterns
+- [ ] backend-test-architect: Review test structure for domain entities
+- [ ] cicd-guardian: Verify CI pipeline integration status
+- [ ] image-gallery-expert: Review domain models for Image/Album/Tag entities
+
+#### Pre-Merge (Week 4, End)
+- [ ] senior-go-architect: Code review approval (DDD principles, Go idioms)
+- [ ] backend-test-architect: Domain layer coverage >= 90%, table-driven tests verified
+- [ ] cicd-guardian: CI pipeline green (lint, test, OpenAPI validation passing)
+- [ ] senior-secops-engineer: Password hashing implementation review (Argon2id)
+
+### Quality Gates
+
+**Automated**:
+- `golangci-lint run` passes with zero errors
+- `go test ./internal/domain/... -race -cover` >= 90%
+- `make validate-openapi` passes
+- Pre-commit hooks installed and verified
+
+**Manual**:
+- OpenAPI spec covers all MVP endpoints
+- Domain entities follow CLAUDE.md DDD patterns
+- No business logic in value object constructors
+- All domain errors properly wrapped
+
 ### Deliverables
 
 #### Week 1: Project Foundation
@@ -198,6 +237,43 @@ const (
 **Duration**: 2 weeks
 **Focus**: Database, Redis, JWT implementation
 
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, backend-test-architect
+- **Supporting**: cicd-guardian
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] senior-go-architect: Review infrastructure patterns and repository implementations
+- [ ] senior-secops-engineer: Review JWT architecture (RS256, token rotation, replay detection)
+- [ ] backend-test-architect: Plan integration test strategy with testcontainers
+
+#### Mid-Sprint (Day 7)
+- [ ] senior-secops-engineer: Review session management and refresh token security
+- [ ] senior-go-architect: Review database migration structure and repository implementations
+- [ ] backend-test-architect: Coverage trajectory check (infrastructure layer >= 70%)
+
+#### Pre-Merge
+- [ ] senior-go-architect: Code review approval (connection pooling, error handling)
+- [ ] senior-secops-engineer: Security controls verified (token hashing, constant-time comparison, Redis key patterns)
+- [ ] backend-test-architect: Integration tests passing with testcontainers
+- [ ] cicd-guardian: Migration rollback tested
+
+### Quality Gates
+
+**Automated**:
+- Migration up/down tested successfully
+- Integration tests with PostgreSQL/Redis containers passing
+- `gosec ./...` security scan clean
+- JWT signing/verification tests passing
+
+**Manual**:
+- JWT private key >= 4096-bit
+- Refresh tokens stored hashed (SHA-256 minimum)
+- Token replay attack detection verified
+- Database SSL connection enforced
+
 ### Deliverables
 
 #### Database Migrations
@@ -279,6 +355,43 @@ goimg:ratelimit:{scope}:{key}    # Rate limiting
 **Duration**: 2 weeks
 **Focus**: Auth use cases, HTTP handlers, middleware
 
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, backend-test-architect
+- **Supporting**: cicd-guardian, test-strategist
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] senior-go-architect: Review CQRS command/query handler patterns
+- [ ] senior-secops-engineer: Review middleware security (rate limiting, CORS, headers)
+- [ ] test-strategist: Plan E2E test scenarios for authentication flows
+
+#### Mid-Sprint (Day 7)
+- [ ] senior-secops-engineer: Review authentication middleware and account lockout logic
+- [ ] senior-go-architect: Review error mapping to RFC 7807 Problem Details
+- [ ] backend-test-architect: Application layer coverage >= 85%
+
+#### Pre-Merge
+- [ ] senior-go-architect: Code review approval (handler patterns, no business logic in HTTP layer)
+- [ ] senior-secops-engineer: Security checklist verified (account enumeration, lockout, session regeneration)
+- [ ] backend-test-architect: Coverage thresholds met, race detector clean
+- [ ] test-strategist: Postman/Newman E2E tests passing
+
+### Quality Gates
+
+**Automated**:
+- Rate limiting tests passing (login: 5/min, global: 100/min)
+- Security headers middleware verified
+- Auth E2E tests with Newman passing
+- `go test -race ./internal/application/...` clean
+
+**Manual**:
+- Account enumeration prevention verified
+- Generic error messages for failed auth
+- Audit logging captures all auth events
+- No sensitive data in logs (passwords, tokens)
+
 ### Deliverables
 
 #### Application Layer
@@ -342,6 +455,43 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 **Duration**: 2 weeks
 **Focus**: Image processing, storage providers, ClamAV
+
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: image-gallery-expert, senior-secops-engineer
+- **Supporting**: backend-test-architect
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] image-gallery-expert: Review image processing pipeline (bimg, variants, EXIF stripping)
+- [ ] senior-secops-engineer: Review image validation pipeline and ClamAV integration
+- [ ] senior-go-architect: Review storage provider interface design
+
+#### Mid-Sprint (Day 7)
+- [ ] image-gallery-expert: Verify variant generation quality and performance
+- [ ] senior-secops-engineer: Review malware scanning integration and polyglot prevention
+- [ ] backend-test-architect: Coverage check for gallery domain/infrastructure
+
+#### Pre-Merge
+- [ ] senior-go-architect: Code review approval (storage abstraction, error handling)
+- [ ] image-gallery-expert: Image quality validation (variant sizes, formats, EXIF removal)
+- [ ] senior-secops-engineer: Security validation pipeline verified (6-step process)
+- [ ] backend-test-architect: Integration tests with ClamAV container passing
+
+### Quality Gates
+
+**Automated**:
+- Image processing tests with sample images (JPEG, PNG, GIF, WebP)
+- ClamAV malware detection test with EICAR file
+- Storage provider tests (local, S3-compatible)
+- Performance: 10MB image processed in < 30 seconds
+
+**Manual**:
+- EXIF metadata fully stripped
+- Re-encoding prevents polyglot files
+- S3 bucket policies reviewed (block public access)
+- libvips memory usage within limits
 
 ### Deliverables
 
@@ -438,6 +588,43 @@ require (
 **Duration**: 2 weeks
 **Focus**: Upload flow, albums, tags, search, social features
 
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: image-gallery-expert, backend-test-architect
+- **Supporting**: senior-secops-engineer, test-strategist
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] image-gallery-expert: Review upload flow UX and background job design
+- [ ] senior-go-architect: Review asynq job queue integration
+- [ ] backend-test-architect: Plan testing strategy for async processing
+
+#### Mid-Sprint (Day 7)
+- [ ] image-gallery-expert: Verify search functionality and pagination
+- [ ] senior-go-architect: Review ownership/permission middleware implementation
+- [ ] backend-test-architect: Application layer coverage >= 85%
+
+#### Pre-Merge
+- [ ] senior-go-architect: Code review approval (CQRS patterns, job queue usage)
+- [ ] image-gallery-expert: Feature completeness verified (upload, albums, tags, search, likes, comments)
+- [ ] backend-test-architect: Coverage thresholds met, async job tests passing
+- [ ] senior-secops-engineer: IDOR prevention verified, ownership checks validated
+
+### Quality Gates
+
+**Automated**:
+- Upload rate limiting tests (50/hour)
+- Background job processing tests
+- Search query tests (PostgreSQL full-text)
+- Pagination tests (cursor-based and offset)
+
+**Manual**:
+- Ownership validation on all mutations
+- Comment input sanitization verified
+- Album organization functionality tested
+- Tag filtering accuracy validated
+
 ### Deliverables
 
 #### Application Layer
@@ -512,6 +699,43 @@ Queue jobs:
 **Duration**: 2 weeks
 **Focus**: Content moderation, reporting, admin tools
 
+### Agent Assignments
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, image-gallery-expert
+- **Supporting**: backend-test-architect, test-strategist
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] senior-secops-engineer: Review RBAC design and audit logging architecture
+- [ ] senior-go-architect: Review moderation domain model
+- [ ] image-gallery-expert: Review moderation workflow UX
+
+#### Mid-Sprint (Day 7)
+- [ ] senior-secops-engineer: Review privilege escalation prevention measures
+- [ ] senior-go-architect: Review audit log implementation
+- [ ] backend-test-architect: Coverage check for moderation context
+
+#### Pre-Merge
+- [ ] senior-go-architect: Code review approval (RBAC middleware, audit service)
+- [ ] senior-secops-engineer: Security verification (no privilege escalation, audit completeness, admin authentication)
+- [ ] backend-test-architect: RBAC tests passing for all roles
+- [ ] test-strategist: E2E moderation workflow tests passing
+
+### Quality Gates
+
+**Automated**:
+- RBAC tests for user/moderator/admin roles
+- Audit log creation for all moderation actions
+- Report abuse rate limiting tests
+- Privilege escalation prevention tests
+
+**Manual**:
+- Admin actions require elevated authentication
+- All moderation actions logged with metadata
+- Ban functionality prevents user actions
+- Report resolution workflow complete
+
 ### Deliverables
 
 #### Database Migrations
@@ -585,6 +809,48 @@ CREATE TABLE audit_logs (
 **Duration**: 2 weeks
 **Focus**: Comprehensive testing, security hardening, performance
 
+### Agent Assignments
+- **Lead**: backend-test-architect
+- **Critical**: senior-secops-engineer, test-strategist, cicd-guardian
+- **Supporting**: senior-go-architect
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] backend-test-architect: Create comprehensive test plan (unit, integration, E2E, security)
+- [ ] senior-secops-engineer: Plan penetration testing and security scan integration
+- [ ] test-strategist: Design load testing scenarios
+- [ ] cicd-guardian: Plan security tooling integration (gosec, trivy, nancy)
+
+#### Mid-Sprint (Day 7)
+- [ ] backend-test-architect: Coverage metrics review across all layers
+- [ ] senior-secops-engineer: Security scanning results review
+- [ ] test-strategist: E2E test suite completion status
+- [ ] cicd-guardian: Security tools integrated in CI pipeline
+
+#### Pre-Merge
+- [ ] backend-test-architect: All coverage targets met (overall: 80%, domain: 90%, application: 85%)
+- [ ] senior-secops-engineer: Zero critical vulnerabilities, penetration test complete
+- [ ] test-strategist: E2E and load tests passing
+- [ ] cicd-guardian: All security scans green in CI
+- [ ] senior-go-architect: Performance benchmarks verified
+
+### Quality Gates
+
+**Automated**:
+- Coverage: Domain 90%, Application 85%, Overall 80%
+- `gosec ./...` zero critical/high findings
+- `trivy fs .` zero critical vulnerabilities
+- Contract tests: 100% OpenAPI compliance
+- Load tests: P95 < 200ms (excluding uploads)
+
+**Manual**:
+- Security test suite complete (auth, authz, injection, upload)
+- Rate limiting validated under load
+- Token revocation verification complete
+- Database query optimization reviewed
+- Audit log integrity verified
+
 ### Deliverables
 
 #### Testing
@@ -654,6 +920,49 @@ CREATE TABLE audit_logs (
 
 **Duration**: 2 weeks
 **Focus**: Documentation, deployment, monitoring, launch readiness
+
+### Agent Assignments
+- **Lead**: scrum-master
+- **Critical**: senior-secops-engineer, cicd-guardian
+- **Supporting**: backend-test-architect, senior-go-architect, image-gallery-expert
+
+### Agent Checkpoints
+
+#### Pre-Sprint
+- [ ] scrum-master: Create launch checklist and coordinate agent deliverables
+- [ ] senior-secops-engineer: Review incident response plan and security runbook
+- [ ] cicd-guardian: Plan production deployment pipeline
+
+#### Mid-Sprint (Day 7)
+- [ ] scrum-master: Track documentation completion across all areas
+- [ ] senior-secops-engineer: Review monitoring/alerting setup
+- [ ] cicd-guardian: Production environment configuration review
+- [ ] backend-test-architect: Validate backup/restore procedures
+
+#### Pre-Launch
+- [ ] scrum-master: All launch checklist items verified
+- [ ] senior-secops-engineer: Security audit complete, vulnerability disclosure process active
+- [ ] cicd-guardian: Production deployment tested, rollback plan verified
+- [ ] backend-test-architect: Load testing passed, monitoring validated
+- [ ] senior-go-architect: Performance benchmarks met
+- [ ] image-gallery-expert: Feature completeness validated against MVP requirements
+
+### Quality Gates
+
+**Automated**:
+- Health check endpoints responding (`/health`, `/health/ready`)
+- Prometheus metrics scraped successfully
+- Grafana dashboards rendering
+- Error tracking reporting (Sentry)
+- Backup automation tested
+
+**Manual**:
+- All critical security issues resolved
+- Performance benchmarks met (P95 < 200ms, 99.9% uptime)
+- Documentation complete (API, deployment, security)
+- Incident response plan tested
+- Third-party security audit reviewed (if applicable)
+- Launch go/no-go decision
 
 ### Deliverables
 
@@ -760,6 +1069,99 @@ CREATE TABLE audit_logs (
 - Zero P0/P1 bugs at launch
 - OpenAPI spec 100% accurate
 - Documentation complete
+
+---
+
+## Agent Coordination Guidelines
+
+### Agent Responsibilities Overview
+
+| Agent | Primary Focus | Key Deliverables |
+|-------|---------------|------------------|
+| **senior-go-architect** | Go architecture, DDD patterns, code quality | Architecture reviews, code approval, performance validation |
+| **backend-test-architect** | Test strategy, coverage, quality metrics | Test plans, coverage reports, integration test design |
+| **senior-secops-engineer** | Security controls, auth, vulnerabilities | Security reviews, penetration tests, audit validation |
+| **cicd-guardian** | CI/CD pipelines, automation, tooling | Pipeline setup, security scanning integration, deployment automation |
+| **image-gallery-expert** | Feature planning, image processing, UX | Feature validation, image pipeline review, domain model input |
+| **test-strategist** | E2E testing, load testing, Postman | E2E test suites, load test scenarios, contract testing |
+| **scrum-master** | Sprint coordination, delivery, reporting | Sprint reports, risk management, launch coordination |
+
+### Checkpoint Execution Protocol
+
+#### Pre-Sprint Checkpoints (Sprint Planning)
+**Timing**: First day of sprint, before implementation begins
+**Duration**: 1-2 hours
+**Attendees**: Lead agent + critical agents
+
+**Agenda**:
+1. Review sprint goals and technical approach
+2. Identify risks and dependencies
+3. Validate agent assignments and capacity
+4. Align on quality gates and acceptance criteria
+5. Document any architecture decisions
+
+**Output**: Sprint kickoff summary with agent commitments
+
+#### Mid-Sprint Checkpoints (Progress Review)
+**Timing**: Day 7 of 14-day sprint (Day 14 for 4-week Sprint 1-2)
+**Duration**: 30-60 minutes
+**Attendees**: Lead agent reviews with critical agents
+
+**Agenda**:
+1. Review WIP against sprint goal
+2. Check coverage trajectory
+3. Identify blockers requiring escalation
+4. Adjust assignments if needed
+5. Validate quality gate feasibility
+
+**Output**: Burndown status, risk report, corrective actions
+
+#### Pre-Merge Checkpoints (Quality Gate)
+**Timing**: Before merging sprint branch to main
+**Duration**: 1-2 hours
+**Attendees**: All agents with Pre-Merge checklist items
+
+**Agenda**:
+1. Execute all automated quality gates
+2. Complete manual verification checklist
+3. Review agent-specific approvals
+4. Verify OpenAPI spec alignment (if HTTP changes)
+5. Confirm agent_checklist.md compliance
+
+**Output**: Merge approval or list of blockers
+
+### Escalation Path
+
+**Level 1 - Agent Resolution** (0-2 days):
+- Lead agent works with critical agents to resolve
+- Document in sprint notes
+
+**Level 2 - Scrum Master Coordination** (2-4 days):
+- Scrum-master facilitates cross-agent discussion
+- May require re-prioritization or scope adjustment
+
+**Level 3 - Sprint Adjustment** (4+ days):
+- Formal sprint scope change
+- Update sprint plan documentation
+- Communicate to all agents
+
+### Multi-Agent Workflows
+
+#### Example: Image Upload Feature (Sprint 6)
+
+1. **image-gallery-expert** designs upload flow and processing pipeline
+2. **senior-go-architect** reviews and approves implementation approach
+3. **backend-test-architect** creates test strategy for async processing
+4. **senior-secops-engineer** validates security controls (ClamAV, rate limiting)
+5. **cicd-guardian** ensures background job infrastructure in place
+6. **test-strategist** creates E2E upload tests with various file types
+7. **scrum-master** tracks progress and coordinates handoffs
+
+**Handoff Points**:
+- Design → Implementation: image-gallery-expert → senior-go-architect
+- Implementation → Security: senior-go-architect → senior-secops-engineer
+- Security → Testing: senior-secops-engineer → backend-test-architect
+- Testing → E2E: backend-test-architect → test-strategist
 
 ---
 

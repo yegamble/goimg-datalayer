@@ -81,12 +81,93 @@ make validate-openapi
 - [ ] Domain code coverage >= 90%
 - [ ] Tests are parallelized where possible
 
-### Security
+### Security Review (CRITICAL)
 
-- [ ] No SQL injection vulnerabilities
-- [ ] Input validation at boundaries
-- [ ] Errors don't leak internal details
-- [ ] JWT/RBAC changes tested
+**Authentication & Authorization:**
+- [ ] JWT tokens use RS256 (asymmetric) algorithm only
+- [ ] Access tokens expire within 15 minutes
+- [ ] Refresh tokens are hashed (SHA-256) before storage
+- [ ] Token rotation implemented with replay detection
+- [ ] Session invalidation on logout clears Redis state
+- [ ] Password hashing uses Argon2id (not bcrypt)
+  - Time: 2, Memory: 64MB, Threads: 4, KeyLen: 32
+- [ ] RBAC permissions verified at handler and application layer
+- [ ] No privilege escalation paths exist
+- [ ] Admin actions require authentication re-verification
+
+**Input Validation & Injection Prevention:**
+- [ ] All user inputs validated at boundaries (handlers/commands)
+- [ ] SQL queries use parameterized statements (no string concatenation)
+- [ ] Search queries sanitized for SQL injection
+- [ ] Path traversal prevention on file operations
+  - Use `filepath.Clean()` and validate against base directory
+- [ ] Command injection prevention (avoid `os/exec` with user input)
+- [ ] JSON/XML parsers have size limits configured
+- [ ] No reflected user input in responses without encoding
+
+**Image Security:**
+- [ ] File size limit enforced (10MB max) before processing
+- [ ] MIME type validated via content sniffing, not extension
+- [ ] Image dimensions validated (max 8192x8192)
+- [ ] Pixel count limit enforced (max 100M pixels)
+- [ ] ClamAV malware scanning on all uploads
+  - Verify signatures are up-to-date
+- [ ] Images re-encoded through libvips (prevents polyglot files)
+- [ ] EXIF metadata stripped before storage
+- [ ] Upload rate limiting enabled (50/hour per user)
+- [ ] Filename sanitization (no path separators)
+
+**Data Protection:**
+- [ ] No hardcoded secrets, API keys, or credentials
+- [ ] Passwords never logged (even hashed)
+- [ ] PII not logged (email, IP addresses redacted in logs)
+- [ ] Database connections use TLS/SSL
+- [ ] Error messages don't leak implementation details
+- [ ] Stack traces not exposed to clients
+- [ ] Sensitive data encrypted at rest (if applicable)
+- [ ] Redis connections authenticated with password
+
+**Session & Token Security:**
+- [ ] Session IDs are cryptographically random (UUID v4)
+- [ ] Session fixation prevention (regenerate on login)
+- [ ] Concurrent session limits enforced
+- [ ] Token blacklist checked on revocation
+- [ ] JWT "kid" header validated to prevent key confusion
+- [ ] Token audience ("aud") claim validated
+
+**HTTP Security:**
+- [ ] Security headers applied to all responses:
+  - X-Content-Type-Options: nosniff
+  - X-Frame-Options: DENY
+  - X-XSS-Protection: 1; mode=block
+  - Content-Security-Policy: default-src 'self'
+  - Strict-Transport-Security (production only)
+- [ ] CORS configuration restricts origins (not "*" in production)
+- [ ] Rate limiting configured per endpoint sensitivity
+- [ ] Request size limits enforced (prevent DoS)
+- [ ] Timeout configured on all HTTP clients
+
+**Authorization Checks (IDOR Prevention):**
+- [ ] Resource ownership verified before read/write/delete
+- [ ] User cannot access other users' private resources
+- [ ] Album/image visibility rules enforced
+- [ ] Moderator actions logged to audit trail
+- [ ] Admin panel endpoints require admin role
+
+**Audit & Logging:**
+- [ ] Authentication events logged (login, logout, failure)
+- [ ] Authorization failures logged
+- [ ] Moderation actions logged with actor ID
+- [ ] File upload events logged
+- [ ] No sensitive data in logs (passwords, tokens)
+- [ ] Request IDs present for tracing
+
+**Third-Party Dependencies:**
+- [ ] No known vulnerabilities in dependencies
+  - Run: `go list -json -m all | nancy sleuth`
+  - Run: `trivy fs --security-checks vuln .`
+- [ ] Dependencies pinned to specific versions
+- [ ] Minimal attack surface (fewest dependencies necessary)
 
 ---
 
