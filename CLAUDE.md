@@ -43,6 +43,7 @@ make lint && make test && make validate-openapi
 | API & security | `claude/api_security.md` | HTTP handlers, auth, endpoints |
 | Testing & CI | `claude/testing_ci.md` | Writing tests, CI issues |
 | IPFS & P2P storage | `claude/ipfs_storage.md` | Implementing IPFS, pinning, decentralized storage |
+| Notifications & email | `claude/notifications.md` | User follows, email (SMTP), notification preferences |
 | Agent checklist | `claude/agent_checklist.md` | Before committing changes |
 | Scoped guide placement | `claude/placement.md` | Adding folder-local guides |
 
