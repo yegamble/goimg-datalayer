@@ -1,0 +1,63 @@
+# yamllint configuration for goimg-datalayer
+
+extends: default
+
+rules:
+  # Line length - allow longer lines for readability
+  line-length:
+    max: 120
+    level: warning
+
+  # Document start - don't require '---' at the beginning
+  document-start: disable
+
+  # Indentation - 2 spaces
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Comments - allow comments without space after '#'
+  comments:
+    min-spaces-from-content: 1
+
+  # Truthy values - allow 'yes'/'no' and 'on'/'off'
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: false
+
+  # Braces - allow single line flow mappings
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+
+  # Brackets - allow single line flow sequences
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+
+  # Empty values - allow empty values in mappings
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Key duplicates - error on duplicate keys
+  key-duplicates: enable
+
+  # Octal values - forbid implicit octal values
+  octal-values:
+    forbid-implicit-octal: true
+
+  # Quoted strings - allow both single and double quotes
+  quoted-strings:
+    quote-type: any
+    required: false
+
+# Ignore specific files
+ignore: |
+  vendor/
+  .venv/
+  node_modules/

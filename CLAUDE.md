@@ -40,10 +40,14 @@ make lint && make test && make validate-openapi
 | --- | --- | --- |
 | **Sprint Plan** | `claude/sprint_plan.md` | Planning work, understanding roadmap |
 | **MVP Features** | `claude/mvp_features.md` | Feature requirements, API specs |
+| **Agent Workflow** | `claude/agent_workflow.md` | Multi-agent coordination, task assignments, quality gates |
 | Architecture & DDD | `claude/architecture.md` | Domain modeling, bounded contexts |
 | Coding standards | `claude/coding.md` | Writing/reviewing Go code |
 | API & security | `claude/api_security.md` | HTTP handlers, auth, endpoints |
-| Testing & CI | `claude/testing_ci.md` | Writing tests, CI issues |
+| **Security Gates** | `claude/security_gates.md` | Sprint security reviews, gate approvals |
+| **Security Testing** | `claude/security_testing.md` | Security test requirements, tools, SAST/DAST |
+| **Test Strategy** | `claude/test_strategy.md` | Designing test suites, comprehensive patterns |
+| Testing & CI quick ref | `claude/testing_ci.md` | Quick test patterns, CI troubleshooting |
 | IPFS & P2P storage | `claude/ipfs_storage.md` | Implementing IPFS, pinning, decentralized storage |
 | Notifications & email | `claude/notifications.md` | User follows, email (SMTP), notification preferences |
 | Agent checklist | `claude/agent_checklist.md` | Before committing changes |

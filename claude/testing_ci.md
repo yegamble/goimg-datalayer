@@ -1,6 +1,24 @@
-# Testing Strategy & CI/CD
+# Testing Strategy & CI/CD - Quick Reference
 
-> Load this guide when writing tests, debugging CI failures, or adding new test coverage.
+> Quick reference for testing in goimg-datalayer. For comprehensive strategy, see `test_strategy.md`.
+
+## Documentation Hierarchy
+
+📚 **Comprehensive Strategy**: [`test_strategy.md`](/home/user/goimg-datalayer/claude/test_strategy.md)
+- Complete test patterns for all layers
+- Security test requirements (OWASP)
+- Sprint-by-sprint test execution matrix
+- Agent collaboration model
+
+📖 **Practical Guide**: [`tests/README.md`](/home/user/goimg-datalayer/tests/README.md)
+- Day-to-day test commands
+- Debugging tips
+- Testcontainers setup
+- Best practices
+
+📋 **This Guide**: Quick reference for common patterns
+
+---
 
 ## Test Pyramid
 
@@ -23,7 +41,7 @@
 
 | Layer | Minimum | Rationale |
 |-------|---------|-----------|
-| **Overall** | 80% | Project baseline |
+| **Overall** | 80% | Project baseline (CI enforced) |
 | **Domain** | 90% | Core business logic |
 | **Application** | 85% | Use case coverage |
 | **Infrastructure** | 70% | External integrations |
@@ -313,3 +331,25 @@ tests/fixtures/
 2. **Integration failures**: Ensure containers are healthy before tests run
 3. **Coverage drops**: Run `go tool cover -html=coverage.out` to find gaps
 4. **Contract mismatches**: Regenerate with `make generate` and check diff
+
+---
+
+## Agent Workflow
+
+| When to Use | Which Agent | What to Load |
+|-------------|-------------|--------------|
+| Designing test suite | `backend-test-architect` | `test_strategy.md` |
+| Writing unit/integration tests | `backend-test-architect` | `test_strategy.md` + this guide |
+| Writing E2E tests | `test-strategist` | `test_strategy.md` (E2E section) |
+| Debugging test failures | Any agent | `tests/README.md` (Troubleshooting) |
+| Setting up testcontainers | `backend-test-architect` | `tests/README.md` (Testcontainers) |
+| Reviewing coverage | `senior-go-architect` | This guide (Coverage Requirements) |
+
+---
+
+## Related Documentation
+
+- **Comprehensive Test Strategy**: [`claude/test_strategy.md`](/home/user/goimg-datalayer/claude/test_strategy.md)
+- **Practical Testing Guide**: [`tests/README.md`](/home/user/goimg-datalayer/tests/README.md)
+- **Sprint Plan**: [`claude/sprint_plan.md`](/home/user/goimg-datalayer/claude/sprint_plan.md) - Test deliverables per sprint
+- **Agent Checklist**: [`claude/agent_checklist.md`](/home/user/goimg-datalayer/claude/agent_checklist.md) - Pre-commit test verification

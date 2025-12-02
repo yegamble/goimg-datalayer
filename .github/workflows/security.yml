@@ -1,0 +1,331 @@
+name: Security Scanning
+
+# Run security scans on pushes, PRs, and weekly schedule
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - "**"
+  schedule:
+    # Run weekly on Mondays at 00:00 UTC to catch new vulnerabilities
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+# Ensure only one security scan runs at a time per branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.22.x"  # Use latest patch version of Go 1.22
+
+jobs:
+  # ============================================================================
+  # GoSec - Go Security Analysis
+  # Scans for common security issues in Go code
+  # ============================================================================
+  gosec:
+    name: GoSec Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Required for uploading SARIF results to GitHub Security tab
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run gosec security scanner
+        uses: securego/gosec@26e57d6b340778c2983cd61775bc7e8bb41d002a # v2.21.4
+        with:
+          # Generate SARIF output for GitHub Security tab integration
+          args: >-
+            -fmt sarif
+            -out gosec-results.sarif
+            -exclude-dir=tests
+            -severity=medium
+            ./...
+
+      - name: Upload gosec results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec-results.sarif
+          category: gosec
+
+      - name: Upload gosec results as artifact
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always()
+        with:
+          name: gosec-results
+          path: gosec-results.sarif
+          retention-days: 30
+
+  # ============================================================================
+  # Trivy - Comprehensive Vulnerability Scanner
+  # Scans for vulnerabilities in dependencies, filesystem, and configuration
+  # ============================================================================
+  trivy:
+    name: Trivy Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      contents: read
+
+    strategy:
+      matrix:
+        scan-type:
+          - fs        # Filesystem scan for dependencies
+          - config    # Configuration file scan (Docker, K8s, etc.)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Run Trivy ${{ matrix.scan-type }} scanner
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          scan-type: ${{ matrix.scan-type }}
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-${{ matrix.scan-type }}-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          # Skip unfixed vulnerabilities to reduce noise
+          ignore-unfixed: true
+          # Scan private dependencies
+          scanners: 'vuln,secret,config'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-${{ matrix.scan-type }}-results.sarif'
+          category: trivy-${{ matrix.scan-type }}
+
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always()
+        with:
+          name: trivy-${{ matrix.scan-type }}-results
+          path: 'trivy-${{ matrix.scan-type }}-results.sarif'
+          retention-days: 30
+
+  # ============================================================================
+  # Govulncheck - Official Go Vulnerability Scanner
+  # Scans Go code and dependencies for known vulnerabilities using the Go vulnerability database
+  # ============================================================================
+  govulncheck:
+    name: Go Vulnerability Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run govulncheck
+        run: |
+          govulncheck -format json ./... > govulncheck-results.json 2>&1 || true
+
+      - name: Display vulnerabilities
+        run: |
+          if [ -s govulncheck-results.json ]; then
+            echo "Running govulncheck in text mode for readable output:"
+            govulncheck ./...
+          fi
+
+      - name: Upload govulncheck results
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always()
+        with:
+          name: govulncheck-results
+          path: govulncheck-results.json
+          retention-days: 30
+
+  # ============================================================================
+  # Secret Scanning - Detect accidentally committed secrets
+  # ============================================================================
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          # Fetch full history for better secret detection
+          fetch-depth: 0
+
+      - name: Run Gitleaks secret scanner
+        uses: gitleaks/gitleaks-action@1f2d10fb689bc07a5f56f48d6db61f4400116ee8 # v2.3.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional: for Gitleaks Pro
+
+      - name: Upload Gitleaks results
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: failure()
+        with:
+          name: gitleaks-results
+          path: results.sarif
+          retention-days: 30
+
+  # ============================================================================
+  # Dependency Review - Check for malicious or vulnerable dependencies
+  # Only runs on pull requests
+  # ============================================================================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@72eb03d02c7872a771aacd928f3123ac62ad6d3a # v4.3.3
+        with:
+          # Fail on high or critical vulnerabilities
+          fail-on-severity: high
+          # Deny malicious packages
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  # ============================================================================
+  # SBOM Generation - Software Bill of Materials
+  # Generates a comprehensive list of all dependencies
+  # ============================================================================
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@d94f46e13c6c62f59525ac9a1e147a99dc0b9bf5 # v0.17.0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: sbom
+          path: sbom.spdx.json
+          retention-days: 90
+
+      - name: Scan SBOM with Grype
+        uses: anchore/scan-action@d43cc1dfea6a99ed123bf8f3133f1797c9b44492 # v4.1.2
+        with:
+          sbom: sbom.spdx.json
+          fail-build: true
+          severity-cutoff: high
+
+  # ============================================================================
+  # CodeQL Analysis - Advanced semantic code analysis
+  # ============================================================================
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          # Run extended query suite for deeper analysis
+          queries: +security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"
+
+  # ============================================================================
+  # Security Summary - Aggregate results and post summary
+  # ============================================================================
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [gosec, trivy, govulncheck, secret-scan, sbom, codeql]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Check security scan results
+        run: |
+          echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scanner | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| GoSec | ${{ needs.gosec.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy | ${{ needs.trivy.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Govulncheck | ${{ needs.govulncheck.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Scan | ${{ needs.secret-scan.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM | ${{ needs.sbom.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL | ${{ needs.codeql.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ One or more security scans failed. Review the results in the Security tab." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All security scans passed successfully!" >> $GITHUB_STEP_SUMMARY
