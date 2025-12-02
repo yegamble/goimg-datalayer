@@ -1,17 +1,18 @@
-package identity
+package identity_test
 
 import (
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestNewUserID(t *testing.T) {
 	t.Parallel()
 
-	id := NewUserID()
+	id := identity.NewUserID()
 
 	assert.False(t, id.IsZero())
 	assert.NotEmpty(t, id.String())
@@ -53,7 +54,7 @@ func TestParseUserID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			id, err := ParseUserID(tt.input)
+			id, err := identity.ParseUserID(tt.input)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -70,7 +71,7 @@ func TestUserID_String(t *testing.T) {
 	t.Parallel()
 
 	expectedUUID := "550e8400-e29b-41d4-a716-446655440000"
-	id, err := ParseUserID(expectedUUID)
+	id, err := identity.ParseUserID(expectedUUID)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedUUID, id.String())
@@ -82,21 +83,21 @@ func TestUserID_IsZero(t *testing.T) {
 	t.Run("zero value is zero", func(t *testing.T) {
 		t.Parallel()
 
-		var id UserID
+		var id identity.UserID
 		assert.True(t, id.IsZero())
 	})
 
 	t.Run("nil UUID is zero", func(t *testing.T) {
 		t.Parallel()
 
-		id := UserID{value: uuid.Nil}
+		id, _ := identity.ParseUserID("00000000-0000-0000-0000-000000000000")
 		assert.True(t, id.IsZero())
 	})
 
 	t.Run("generated ID is not zero", func(t *testing.T) {
 		t.Parallel()
 
-		id := NewUserID()
+		id := identity.NewUserID()
 		assert.False(t, id.IsZero())
 	})
 }
@@ -107,9 +108,9 @@ func TestUserID_Equals(t *testing.T) {
 	t.Run("same IDs are equal", func(t *testing.T) {
 		t.Parallel()
 
-		id1, err := ParseUserID("550e8400-e29b-41d4-a716-446655440000")
+		id1, err := identity.ParseUserID("550e8400-e29b-41d4-a716-446655440000")
 		require.NoError(t, err)
-		id2, err := ParseUserID("550e8400-e29b-41d4-a716-446655440000")
+		id2, err := identity.ParseUserID("550e8400-e29b-41d4-a716-446655440000")
 		require.NoError(t, err)
 
 		assert.True(t, id1.Equals(id2))
@@ -119,8 +120,8 @@ func TestUserID_Equals(t *testing.T) {
 	t.Run("different IDs are not equal", func(t *testing.T) {
 		t.Parallel()
 
-		id1 := NewUserID()
-		id2 := NewUserID()
+		id1 := identity.NewUserID()
+		id2 := identity.NewUserID()
 
 		assert.False(t, id1.Equals(id2))
 	})
@@ -128,7 +129,7 @@ func TestUserID_Equals(t *testing.T) {
 	t.Run("zero values are equal", func(t *testing.T) {
 		t.Parallel()
 
-		var id1, id2 UserID
+		var id1, id2 identity.UserID
 		assert.True(t, id1.Equals(id2))
 	})
 }

@@ -84,7 +84,7 @@ func TestAlbum_Getters(t *testing.T) {
 
 	assert.False(t, album.ID().IsZero())
 	assert.Equal(t, ownerID, album.OwnerID())
-	assert.Equal(t, "", album.Description())
+	assert.Empty(t, album.Description())
 	assert.False(t, album.CreatedAt().IsZero())
 	assert.False(t, album.UpdatedAt().IsZero())
 	assert.NotNil(t, album.Events())
@@ -145,5 +145,5 @@ func TestAlbum_ClearEvents(t *testing.T) {
 	assert.Len(t, album.Events(), 1)
 
 	album.ClearEvents()
-	assert.Len(t, album.Events(), 0)
+	assert.Empty(t, album.Events())
 }

@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"testing"
@@ -6,26 +6,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestNewUser(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("creates user with valid inputs", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 
 		require.NoError(t, err)
 		assert.False(t, user.ID().IsZero())
 		assert.Equal(t, email, user.Email())
 		assert.Equal(t, username, user.Username())
-		assert.Equal(t, RoleUser, user.Role())
-		assert.Equal(t, StatusPending, user.Status())
+		assert.Equal(t, identity.RoleUser, user.Role())
+		assert.Equal(t, identity.StatusPending, user.Status())
 		assert.Equal(t, username.String(), user.DisplayName())
 		assert.Empty(t, user.Bio())
 		assert.False(t, user.CreatedAt().IsZero())
@@ -36,13 +38,13 @@ func TestNewUser(t *testing.T) {
 	t.Run("emits UserCreated event", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
 		events := user.Events()
 		require.Len(t, events, 1)
 
-		event, ok := events[0].(UserCreated)
+		event, ok := events[0].(identity.UserCreated)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.created", event.EventType())
 		assert.Equal(t, user.ID(), event.UserID)
@@ -53,8 +55,8 @@ func TestNewUser(t *testing.T) {
 	t.Run("fails with empty email", func(t *testing.T) {
 		t.Parallel()
 
-		var emptyEmail Email
-		_, err := NewUser(emptyEmail, username, passwordHash)
+		var emptyEmail identity.Email
+		_, err := identity.NewUser(emptyEmail, username, passwordHash)
 
 		require.Error(t, err)
 	})
@@ -62,8 +64,8 @@ func TestNewUser(t *testing.T) {
 	t.Run("fails with empty username", func(t *testing.T) {
 		t.Parallel()
 
-		var emptyUsername Username
-		_, err := NewUser(email, emptyUsername, passwordHash)
+		var emptyUsername identity.Username
+		_, err := identity.NewUser(email, emptyUsername, passwordHash)
 
 		require.Error(t, err)
 	})
@@ -71,8 +73,8 @@ func TestNewUser(t *testing.T) {
 	t.Run("fails with empty password hash", func(t *testing.T) {
 		t.Parallel()
 
-		var emptyHash PasswordHash
-		_, err := NewUser(email, username, emptyHash)
+		var emptyHash identity.PasswordHash
+		_, err := identity.NewUser(email, username, emptyHash)
 
 		require.Error(t, err)
 	})
@@ -81,18 +83,18 @@ func TestNewUser(t *testing.T) {
 func TestReconstructUser(t *testing.T) {
 	t.Parallel()
 
-	id := NewUserID()
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
-	role := RoleAdmin
-	status := StatusActive
+	id := identity.NewUserID()
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	role := identity.RoleAdmin
+	status := identity.StatusActive
 	displayName := "Test User"
 	bio := "This is a test bio"
 	createdAt := time.Now().UTC().Add(-24 * time.Hour)
 	updatedAt := time.Now().UTC()
 
-	user := ReconstructUser(id, email, username, passwordHash, role, status, displayName, bio, createdAt, updatedAt)
+	user := identity.ReconstructUser(id, email, username, passwordHash, role, status, displayName, bio, createdAt, updatedAt)
 
 	assert.Equal(t, id, user.ID())
 	assert.Equal(t, email, user.Email())
@@ -109,14 +111,14 @@ func TestReconstructUser(t *testing.T) {
 func TestUser_UpdateProfile(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("updates profile successfully", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
@@ -127,7 +129,7 @@ func TestUser_UpdateProfile(t *testing.T) {
 		assert.Equal(t, "New bio", user.Bio())
 		assert.Len(t, user.Events(), 1)
 
-		event, ok := user.Events()[0].(UserProfileUpdated)
+		event, ok := user.Events()[0].(identity.UserProfileUpdated)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.profile_updated", event.EventType())
 	})
@@ -135,7 +137,7 @@ func TestUser_UpdateProfile(t *testing.T) {
 	t.Run("fails with display name too long", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
 		longName := string(make([]byte, 101))
@@ -147,7 +149,7 @@ func TestUser_UpdateProfile(t *testing.T) {
 	t.Run("fails with bio too long", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
 		longBio := string(make([]byte, 501))
@@ -160,38 +162,38 @@ func TestUser_UpdateProfile(t *testing.T) {
 func TestUser_ChangeRole(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("changes role successfully", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
-		err = user.ChangeRole(RoleAdmin)
+		err = user.ChangeRole(identity.RoleAdmin)
 		require.NoError(t, err)
 
-		assert.Equal(t, RoleAdmin, user.Role())
+		assert.Equal(t, identity.RoleAdmin, user.Role())
 		assert.Len(t, user.Events(), 1)
 
-		event, ok := user.Events()[0].(UserRoleChanged)
+		event, ok := user.Events()[0].(identity.UserRoleChanged)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.role_changed", event.EventType())
-		assert.Equal(t, RoleUser, event.OldRole)
-		assert.Equal(t, RoleAdmin, event.NewRole)
+		assert.Equal(t, identity.RoleUser, event.OldRole)
+		assert.Equal(t, identity.RoleAdmin, event.NewRole)
 	})
 
 	t.Run("no-op when role is the same", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
-		err = user.ChangeRole(RoleUser)
+		err = user.ChangeRole(identity.RoleUser)
 		require.NoError(t, err)
 
 		assert.Len(t, user.Events(), 0)
@@ -200,10 +202,10 @@ func TestUser_ChangeRole(t *testing.T) {
 	t.Run("fails with invalid role", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
-		err = user.ChangeRole(Role("invalid"))
+		err = user.ChangeRole(identity.Role("invalid"))
 		require.Error(t, err)
 	})
 }
@@ -211,24 +213,24 @@ func TestUser_ChangeRole(t *testing.T) {
 func TestUser_Suspend(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("suspends user successfully", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
 		err = user.Suspend("Violation of terms")
 		require.NoError(t, err)
 
-		assert.Equal(t, StatusSuspended, user.Status())
+		assert.Equal(t, identity.StatusSuspended, user.Status())
 		assert.Len(t, user.Events(), 1)
 
-		event, ok := user.Events()[0].(UserSuspended)
+		event, ok := user.Events()[0].(identity.UserSuspended)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.suspended", event.EventType())
 		assert.Equal(t, "Violation of terms", event.Reason)
@@ -237,7 +239,7 @@ func TestUser_Suspend(t *testing.T) {
 	t.Run("no-op when already suspended", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		err = user.Suspend("First suspension")
 		require.NoError(t, err)
@@ -252,37 +254,37 @@ func TestUser_Suspend(t *testing.T) {
 	t.Run("fails when user is deleted", func(t *testing.T) {
 		t.Parallel()
 
-		user := ReconstructUser(
-			NewUserID(), email, username, passwordHash,
-			RoleUser, StatusDeleted, "Test", "", time.Now(), time.Now(),
+		user := identity.ReconstructUser(
+			identity.NewUserID(), email, username, passwordHash,
+			identity.RoleUser, identity.StatusDeleted, "Test", "", time.Now(), time.Now(),
 		)
 
 		err := user.Suspend("Reason")
-		require.ErrorIs(t, err, ErrUserDeleted)
+		require.ErrorIs(t, err, identity.ErrUserDeleted)
 	})
 }
 
 func TestUser_Activate(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("activates user successfully", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
 		err = user.Activate()
 		require.NoError(t, err)
 
-		assert.Equal(t, StatusActive, user.Status())
+		assert.Equal(t, identity.StatusActive, user.Status())
 		assert.Len(t, user.Events(), 1)
 
-		event, ok := user.Events()[0].(UserActivated)
+		event, ok := user.Events()[0].(identity.UserActivated)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.activated", event.EventType())
 	})
@@ -290,9 +292,9 @@ func TestUser_Activate(t *testing.T) {
 	t.Run("no-op when already active", func(t *testing.T) {
 		t.Parallel()
 
-		user := ReconstructUser(
-			NewUserID(), email, username, passwordHash,
-			RoleUser, StatusActive, "Test", "", time.Now(), time.Now(),
+		user := identity.ReconstructUser(
+			identity.NewUserID(), email, username, passwordHash,
+			identity.RoleUser, identity.StatusActive, "Test", "", time.Now(), time.Now(),
 		)
 		user.ClearEvents()
 
@@ -305,28 +307,28 @@ func TestUser_Activate(t *testing.T) {
 	t.Run("fails when user is deleted", func(t *testing.T) {
 		t.Parallel()
 
-		user := ReconstructUser(
-			NewUserID(), email, username, passwordHash,
-			RoleUser, StatusDeleted, "Test", "", time.Now(), time.Now(),
+		user := identity.ReconstructUser(
+			identity.NewUserID(), email, username, passwordHash,
+			identity.RoleUser, identity.StatusDeleted, "Test", "", time.Now(), time.Now(),
 		)
 
 		err := user.Activate()
-		require.ErrorIs(t, err, ErrUserDeleted)
+		require.ErrorIs(t, err, identity.ErrUserDeleted)
 	})
 }
 
 func TestUser_VerifyPassword(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
 	password := "SecureP@ssw0rd123"
-	passwordHash, _ := NewPasswordHash(password)
+	passwordHash, _ := identity.NewPasswordHash(password)
 
 	t.Run("verifies correct password", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
 		err = user.VerifyPassword(password)
@@ -336,42 +338,42 @@ func TestUser_VerifyPassword(t *testing.T) {
 	t.Run("fails with incorrect password", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
 		err = user.VerifyPassword("WrongPassword123")
-		require.ErrorIs(t, err, ErrPasswordMismatch)
+		require.ErrorIs(t, err, identity.ErrPasswordMismatch)
 	})
 }
 
 func TestUser_ChangePassword(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	t.Run("changes password successfully", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 		user.ClearEvents()
 
-		newHash, _ := NewPasswordHash("NewSecureP@ssw0rd456")
+		newHash, _ := identity.NewPasswordHash("NewSecureP@ssw0rd456")
 		err = user.ChangePassword(newHash)
 		require.NoError(t, err)
 
 		// Verify old password no longer works
 		err = user.VerifyPassword("SecureP@ssw0rd123")
-		require.ErrorIs(t, err, ErrPasswordMismatch)
+		require.ErrorIs(t, err, identity.ErrPasswordMismatch)
 
 		// Verify new password works
 		err = user.VerifyPassword("NewSecureP@ssw0rd456")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Len(t, user.Events(), 1)
-		event, ok := user.Events()[0].(UserPasswordChanged)
+		event, ok := user.Events()[0].(identity.UserPasswordChanged)
 		require.True(t, ok)
 		assert.Equal(t, "identity.user.password_changed", event.EventType())
 	})
@@ -379,10 +381,10 @@ func TestUser_ChangePassword(t *testing.T) {
 	t.Run("fails with empty password hash", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := NewUser(email, username, passwordHash)
+		user, err := identity.NewUser(email, username, passwordHash)
 		require.NoError(t, err)
 
-		var emptyHash PasswordHash
+		var emptyHash identity.PasswordHash
 		err = user.ChangePassword(emptyHash)
 		require.Error(t, err)
 	})
@@ -391,33 +393,33 @@ func TestUser_ChangePassword(t *testing.T) {
 func TestUser_CanLogin(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
 	tests := []struct {
 		name   string
-		status UserStatus
+		status identity.UserStatus
 		want   bool
 	}{
 		{
 			name:   "active user can login",
-			status: StatusActive,
+			status: identity.StatusActive,
 			want:   true,
 		},
 		{
 			name:   "pending user cannot login",
-			status: StatusPending,
+			status: identity.StatusPending,
 			want:   false,
 		},
 		{
 			name:   "suspended user cannot login",
-			status: StatusSuspended,
+			status: identity.StatusSuspended,
 			want:   false,
 		},
 		{
 			name:   "deleted user cannot login",
-			status: StatusDeleted,
+			status: identity.StatusDeleted,
 			want:   false,
 		},
 	}
@@ -427,9 +429,9 @@ func TestUser_CanLogin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			user := ReconstructUser(
-				NewUserID(), email, username, passwordHash,
-				RoleUser, tt.status, "Test", "", time.Now(), time.Now(),
+			user := identity.ReconstructUser(
+				identity.NewUserID(), email, username, passwordHash,
+				identity.RoleUser, tt.status, "Test", "", time.Now(), time.Now(),
 			)
 
 			assert.Equal(t, tt.want, user.CanLogin())
@@ -440,11 +442,11 @@ func TestUser_CanLogin(t *testing.T) {
 func TestUser_ClearEvents(t *testing.T) {
 	t.Parallel()
 
-	email, _ := NewEmail("test@example.com")
-	username, _ := NewUsername("testuser")
-	passwordHash, _ := NewPasswordHash("SecureP@ssw0rd123")
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
 
-	user, err := NewUser(email, username, passwordHash)
+	user, err := identity.NewUser(email, username, passwordHash)
 	require.NoError(t, err)
 
 	assert.Len(t, user.Events(), 1)

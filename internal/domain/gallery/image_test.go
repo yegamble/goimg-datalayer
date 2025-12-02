@@ -189,7 +189,7 @@ func TestImage_RemoveTag(t *testing.T) {
 		err := img.RemoveTag(tag)
 
 		require.NoError(t, err)
-		assert.Len(t, img.Tags(), 0)
+		assert.Empty(t, img.Tags())
 	})
 
 	t.Run("remove non-existing tag is idempotent", func(t *testing.T) {
@@ -460,7 +460,7 @@ func TestImage_EventManagement(t *testing.T) {
 	assert.Len(t, img.Events(), 1)
 
 	img.ClearEvents()
-	assert.Len(t, img.Events(), 0)
+	assert.Empty(t, img.Events())
 }
 
 func TestImage_SetLikeCount_Negative(t *testing.T) {

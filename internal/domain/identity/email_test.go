@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"strings"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestNewEmail(t *testing.T) {
@@ -56,42 +58,42 @@ func TestNewEmail(t *testing.T) {
 		{
 			name:    "empty string",
 			input:   "",
-			wantErr: ErrEmailEmpty,
+			wantErr: identity.ErrEmailEmpty,
 		},
 		{
 			name:    "whitespace only",
 			input:   "   ",
-			wantErr: ErrEmailEmpty,
+			wantErr: identity.ErrEmailEmpty,
 		},
 		{
 			name:    "missing @",
 			input:   "notanemail",
-			wantErr: ErrEmailInvalid,
+			wantErr: identity.ErrEmailInvalid,
 		},
 		{
 			name:    "missing local part",
 			input:   "@example.com",
-			wantErr: ErrEmailInvalid,
+			wantErr: identity.ErrEmailInvalid,
 		},
 		{
 			name:    "missing domain",
 			input:   "user@",
-			wantErr: ErrEmailInvalid,
+			wantErr: identity.ErrEmailInvalid,
 		},
 		{
 			name:    "missing TLD",
 			input:   "user@example",
-			wantErr: ErrEmailInvalid,
+			wantErr: identity.ErrEmailInvalid,
 		},
 		{
 			name:    "invalid characters",
 			input:   "user name@example.com",
-			wantErr: ErrEmailInvalid,
+			wantErr: identity.ErrEmailInvalid,
 		},
 		{
 			name:    "too long",
 			input:   strings.Repeat("a", 250) + "@test.com",
-			wantErr: ErrEmailTooLong,
+			wantErr: identity.ErrEmailTooLong,
 		},
 		{
 			name:    "exactly 255 characters",
@@ -102,17 +104,17 @@ func TestNewEmail(t *testing.T) {
 		{
 			name:    "disposable email - mailinator",
 			input:   "user@mailinator.com",
-			wantErr: ErrEmailDisposable,
+			wantErr: identity.ErrEmailDisposable,
 		},
 		{
 			name:    "disposable email - tempmail",
 			input:   "user@tempmail.com",
-			wantErr: ErrEmailDisposable,
+			wantErr: identity.ErrEmailDisposable,
 		},
 		{
 			name:    "disposable email - guerrillamail",
 			input:   "user@guerrillamail.com",
-			wantErr: ErrEmailDisposable,
+			wantErr: identity.ErrEmailDisposable,
 		},
 	}
 
@@ -121,7 +123,7 @@ func TestNewEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			email, err := NewEmail(tt.input)
+			email, err := identity.NewEmail(tt.input)
 
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -165,7 +167,7 @@ func TestEmail_Domain(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			email, err := NewEmail(tt.email)
+			email, err := identity.NewEmail(tt.email)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want, email.Domain())
@@ -179,14 +181,14 @@ func TestEmail_IsEmpty(t *testing.T) {
 	t.Run("zero value is empty", func(t *testing.T) {
 		t.Parallel()
 
-		var email Email
+		var email identity.Email
 		assert.True(t, email.IsEmpty())
 	})
 
 	t.Run("valid email is not empty", func(t *testing.T) {
 		t.Parallel()
 
-		email, err := NewEmail("user@example.com")
+		email, err := identity.NewEmail("user@example.com")
 		require.NoError(t, err)
 
 		assert.False(t, email.IsEmpty())
@@ -199,9 +201,9 @@ func TestEmail_Equals(t *testing.T) {
 	t.Run("same emails are equal", func(t *testing.T) {
 		t.Parallel()
 
-		email1, err := NewEmail("user@example.com")
+		email1, err := identity.NewEmail("user@example.com")
 		require.NoError(t, err)
-		email2, err := NewEmail("user@example.com")
+		email2, err := identity.NewEmail("user@example.com")
 		require.NoError(t, err)
 
 		assert.True(t, email1.Equals(email2))
@@ -211,9 +213,9 @@ func TestEmail_Equals(t *testing.T) {
 	t.Run("different emails are not equal", func(t *testing.T) {
 		t.Parallel()
 
-		email1, err := NewEmail("user1@example.com")
+		email1, err := identity.NewEmail("user1@example.com")
 		require.NoError(t, err)
-		email2, err := NewEmail("user2@example.com")
+		email2, err := identity.NewEmail("user2@example.com")
 		require.NoError(t, err)
 
 		assert.False(t, email1.Equals(email2))
@@ -222,9 +224,9 @@ func TestEmail_Equals(t *testing.T) {
 	t.Run("normalized emails are equal", func(t *testing.T) {
 		t.Parallel()
 
-		email1, err := NewEmail("User@Example.COM")
+		email1, err := identity.NewEmail("User@Example.COM")
 		require.NoError(t, err)
-		email2, err := NewEmail("user@example.com")
+		email2, err := identity.NewEmail("user@example.com")
 		require.NoError(t, err)
 
 		assert.True(t, email1.Equals(email2))
@@ -233,7 +235,7 @@ func TestEmail_Equals(t *testing.T) {
 	t.Run("zero values are equal", func(t *testing.T) {
 		t.Parallel()
 
-		var email1, email2 Email
+		var email1, email2 identity.Email
 		assert.True(t, email1.Equals(email2))
 	})
 }
@@ -241,7 +243,7 @@ func TestEmail_Equals(t *testing.T) {
 func TestEmail_String(t *testing.T) {
 	t.Parallel()
 
-	email, err := NewEmail("user@example.com")
+	email, err := identity.NewEmail("user@example.com")
 	require.NoError(t, err)
 
 	assert.Equal(t, "user@example.com", email.String())

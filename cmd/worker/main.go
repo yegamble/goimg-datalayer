@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "log"
 
 func main() {
-	fmt.Println("goimg-datalayer background worker")
+	log.Println("goimg-datalayer background worker")
 }

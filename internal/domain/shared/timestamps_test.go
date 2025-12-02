@@ -28,103 +28,49 @@ func TestNow(t *testing.T) {
 func TestParseISO8601(t *testing.T) {
 	t.Parallel()
 
+	t.Run("valid formats", func(t *testing.T) {
+		t.Parallel()
+		testParseISO8601ValidCases(t)
+	})
+
+	t.Run("invalid formats", func(t *testing.T) {
+		t.Parallel()
+		testParseISO8601InvalidCases(t)
+	})
+}
+
+func testParseISO8601ValidCases(t *testing.T) {
+	t.Helper()
+
 	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
-		verify  func(t *testing.T, result time.Time)
+		name     string
+		input    string
+		expected time.Time
 	}{
 		{
-			name:    "RFC3339 format",
-			input:   "2023-12-01T15:04:05Z",
-			wantErr: false,
-			verify: func(t *testing.T, result time.Time) {
-				t.Helper()
-				expected := time.Date(2023, 12, 1, 15, 4, 5, 0, time.UTC)
-				if !result.Equal(expected) {
-					t.Errorf("result = %v, want %v", result, expected)
-				}
-			},
+			name:     "RFC3339 format",
+			input:    "2023-12-01T15:04:05Z",
+			expected: time.Date(2023, 12, 1, 15, 4, 5, 0, time.UTC),
 		},
 		{
-			name:    "RFC3339 with timezone offset",
-			input:   "2023-12-01T15:04:05+05:00",
-			wantErr: false,
-			verify: func(t *testing.T, result time.Time) {
-				t.Helper()
-				// Should be converted to UTC (10:04:05 UTC)
-				expected := time.Date(2023, 12, 1, 10, 4, 5, 0, time.UTC)
-				if !result.Equal(expected) {
-					t.Errorf("result = %v, want %v", result, expected)
-				}
-				if result.Location() != time.UTC {
-					t.Errorf("location = %v, want UTC", result.Location())
-				}
-			},
+			name:     "RFC3339 with timezone offset",
+			input:    "2023-12-01T15:04:05+05:00",
+			expected: time.Date(2023, 12, 1, 10, 4, 5, 0, time.UTC),
 		},
 		{
-			name:    "RFC3339 with negative timezone offset",
-			input:   "2023-12-01T15:04:05-05:00",
-			wantErr: false,
-			verify: func(t *testing.T, result time.Time) {
-				t.Helper()
-				// Should be converted to UTC (20:04:05 UTC)
-				expected := time.Date(2023, 12, 1, 20, 4, 5, 0, time.UTC)
-				if !result.Equal(expected) {
-					t.Errorf("result = %v, want %v", result, expected)
-				}
-				if result.Location() != time.UTC {
-					t.Errorf("location = %v, want UTC", result.Location())
-				}
-			},
+			name:     "RFC3339 with negative timezone offset",
+			input:    "2023-12-01T15:04:05-05:00",
+			expected: time.Date(2023, 12, 1, 20, 4, 5, 0, time.UTC),
 		},
 		{
-			name:    "RFC3339Nano format",
-			input:   "2023-12-01T15:04:05.123456789Z",
-			wantErr: false,
-			verify: func(t *testing.T, result time.Time) {
-				t.Helper()
-				expected := time.Date(2023, 12, 1, 15, 4, 5, 123456789, time.UTC)
-				if !result.Equal(expected) {
-					t.Errorf("result = %v, want %v", result, expected)
-				}
-			},
+			name:     "RFC3339Nano format",
+			input:    "2023-12-01T15:04:05.123456789Z",
+			expected: time.Date(2023, 12, 1, 15, 4, 5, 123456789, time.UTC),
 		},
 		{
-			name:    "RFC3339Nano with timezone",
-			input:   "2023-12-01T15:04:05.123456789+02:00",
-			wantErr: false,
-			verify: func(t *testing.T, result time.Time) {
-				t.Helper()
-				// Should be converted to UTC (13:04:05.123456789 UTC)
-				expected := time.Date(2023, 12, 1, 13, 4, 5, 123456789, time.UTC)
-				if !result.Equal(expected) {
-					t.Errorf("result = %v, want %v", result, expected)
-				}
-				if result.Location() != time.UTC {
-					t.Errorf("location = %v, want UTC", result.Location())
-				}
-			},
-		},
-		{
-			name:    "invalid format",
-			input:   "2023-12-01 15:04:05",
-			wantErr: true,
-		},
-		{
-			name:    "empty string",
-			input:   "",
-			wantErr: true,
-		},
-		{
-			name:    "invalid date",
-			input:   "not-a-date",
-			wantErr: true,
-		},
-		{
-			name:    "partial date",
-			input:   "2023-12-01",
-			wantErr: true,
+			name:     "RFC3339Nano with timezone",
+			input:    "2023-12-01T15:04:05.123456789+02:00",
+			expected: time.Date(2023, 12, 1, 13, 4, 5, 123456789, time.UTC),
 		},
 	}
 
@@ -133,21 +79,41 @@ func TestParseISO8601(t *testing.T) {
 			t.Parallel()
 
 			result, err := shared.ParseISO8601(tt.input)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Error("ParseISO8601() expected error, got nil")
-				}
-				return
-			}
-
 			if err != nil {
-				t.Errorf("ParseISO8601() unexpected error = %v", err)
-				return
+				t.Fatalf("ParseISO8601() unexpected error = %v", err)
 			}
 
-			if tt.verify != nil {
-				tt.verify(t, result)
+			if !result.Equal(tt.expected) {
+				t.Errorf("result = %v, want %v", result, tt.expected)
+			}
+
+			if result.Location() != time.UTC {
+				t.Errorf("location = %v, want UTC", result.Location())
+			}
+		})
+	}
+}
+
+func testParseISO8601InvalidCases(t *testing.T) {
+	t.Helper()
+
+	invalidInputs := []struct {
+		name  string
+		input string
+	}{
+		{"invalid format", "2023-12-01 15:04:05"},
+		{"empty string", ""},
+		{"invalid date", "not-a-date"},
+		{"partial date", "2023-12-01"},
+	}
+
+	for _, tt := range invalidInputs {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := shared.ParseISO8601(tt.input)
+			if err == nil {
+				t.Error("ParseISO8601() expected error, got nil")
 			}
 		})
 	}

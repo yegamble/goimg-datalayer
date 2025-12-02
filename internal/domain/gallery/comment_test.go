@@ -71,5 +71,5 @@ func TestComment_ClearEvents(t *testing.T) {
 	comment, _ := gallery.NewComment(imageID, userID, "Content")
 
 	comment.ClearEvents()
-	assert.Len(t, comment.Events(), 0)
+	assert.Empty(t, comment.Events())
 }

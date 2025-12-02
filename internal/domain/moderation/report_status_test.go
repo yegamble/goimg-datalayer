@@ -1,7 +1,6 @@
 package moderation_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +64,7 @@ func TestParseReportStatus(t *testing.T) {
 
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.True(t, errors.Is(err, tt.wantErr))
+				assert.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, status)
 			} else {
 				require.NoError(t, err)
@@ -115,6 +114,7 @@ func TestReportStatus_String(t *testing.T) {
 	}
 }
 
+//nolint:dupl // IsValid tests for enum types have intentional structural similarity
 func TestReportStatus_IsValid(t *testing.T) {
 	t.Parallel()
 

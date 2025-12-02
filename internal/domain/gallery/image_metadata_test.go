@@ -484,6 +484,7 @@ func TestImageMetadata_Orientation(t *testing.T) {
 	}
 }
 
+//nolint:dupl // Test functions for similar value object methods have intentional structural similarity
 func TestImageMetadata_WithTitle(t *testing.T) {
 	t.Parallel()
 
@@ -529,6 +530,7 @@ func TestImageMetadata_WithTitle(t *testing.T) {
 	})
 }
 
+//nolint:dupl // Test functions for similar value object methods have intentional structural similarity
 func TestImageMetadata_WithDescription(t *testing.T) {
 	t.Parallel()
 

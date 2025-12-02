@@ -1,7 +1,6 @@
 package moderation_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,7 +70,7 @@ func TestParseReportReason(t *testing.T) {
 
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.True(t, errors.Is(err, tt.wantErr))
+				assert.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, reason)
 			} else {
 				require.NoError(t, err)

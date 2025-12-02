@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"strings"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestNewPasswordHash(t *testing.T) {
@@ -39,72 +41,72 @@ func TestNewPasswordHash(t *testing.T) {
 		{
 			name:    "empty string",
 			input:   "",
-			wantErr: ErrPasswordEmpty,
+			wantErr: identity.ErrPasswordEmpty,
 		},
 		{
 			name:    "too short - 11 characters",
 			input:   "Short123456",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "too short - 1 character",
 			input:   "a",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "too long - 129 characters",
 			input:   strings.Repeat("a", 129),
-			wantErr: ErrPasswordTooLong,
+			wantErr: identity.ErrPasswordTooLong,
 		},
 		{
 			name:    "common password - password (too short)",
 			input:   "password",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password - password123 (too short)",
 			input:   "password123",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password - 123456 (too short)",
 			input:   "123456",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password - qwerty (too short)",
 			input:   "qwerty",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password case insensitive - PASSWORD (too short)",
 			input:   "PASSWORD",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password case insensitive - Password123 (too short)",
 			input:   "Password123",
-			wantErr: ErrPasswordTooShort,
+			wantErr: identity.ErrPasswordTooShort,
 		},
 		{
 			name:    "common password >= 12 chars - password1234",
 			input:   "password1234",
-			wantErr: ErrPasswordWeak,
+			wantErr: identity.ErrPasswordWeak,
 		},
 		{
 			name:    "common password >= 12 chars - 123456789012",
 			input:   "123456789012",
-			wantErr: ErrPasswordWeak,
+			wantErr: identity.ErrPasswordWeak,
 		},
 		{
 			name:    "common password >= 12 chars case insensitive - PASSWORD1234",
 			input:   "PASSWORD1234",
-			wantErr: ErrPasswordWeak,
+			wantErr: identity.ErrPasswordWeak,
 		},
 		{
 			name:    "common password >= 12 chars - qwertyuiop123",
 			input:   "qwertyuiop123",
-			wantErr: ErrPasswordWeak,
+			wantErr: identity.ErrPasswordWeak,
 		},
 	}
 
@@ -113,7 +115,7 @@ func TestNewPasswordHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := NewPasswordHash(tt.input)
+			hash, err := identity.NewPasswordHash(tt.input)
 
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -137,7 +139,7 @@ func TestPasswordHash_Verify(t *testing.T) {
 		t.Parallel()
 
 		password := "MySecureP@ssw0rd123"
-		hash, err := NewPasswordHash(password)
+		hash, err := identity.NewPasswordHash(password)
 		require.NoError(t, err)
 
 		err = hash.Verify(password)
@@ -147,17 +149,17 @@ func TestPasswordHash_Verify(t *testing.T) {
 	t.Run("incorrect password fails verification", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		err = hash.Verify("WrongPassword123")
-		require.ErrorIs(t, err, ErrPasswordMismatch)
+		require.ErrorIs(t, err, identity.ErrPasswordMismatch)
 	})
 
 	t.Run("empty password fails verification", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		err = hash.Verify("")
@@ -167,19 +169,19 @@ func TestPasswordHash_Verify(t *testing.T) {
 	t.Run("case sensitive verification", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		err = hash.Verify("mysecurep@ssw0rd123")
-		require.ErrorIs(t, err, ErrPasswordMismatch)
+		require.ErrorIs(t, err, identity.ErrPasswordMismatch)
 	})
 
 	t.Run("empty hash fails verification", func(t *testing.T) {
 		t.Parallel()
 
-		var hash PasswordHash
+		var hash identity.PasswordHash
 		err := hash.Verify("anypassword")
-		require.ErrorIs(t, err, ErrPasswordEmpty)
+		require.ErrorIs(t, err, identity.ErrPasswordEmpty)
 	})
 }
 
@@ -189,10 +191,10 @@ func TestPasswordHash_UniqueHashes(t *testing.T) {
 	// Same password should produce different hashes due to unique salts
 	password := "MySecureP@ssw0rd123"
 
-	hash1, err := NewPasswordHash(password)
+	hash1, err := identity.NewPasswordHash(password)
 	require.NoError(t, err)
 
-	hash2, err := NewPasswordHash(password)
+	hash2, err := identity.NewPasswordHash(password)
 	require.NoError(t, err)
 
 	// Hashes should be different (different salts)
@@ -206,7 +208,7 @@ func TestPasswordHash_UniqueHashes(t *testing.T) {
 func TestPasswordHash_HashFormat(t *testing.T) {
 	t.Parallel()
 
-	hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+	hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 	require.NoError(t, err)
 
 	encoded := hash.String()
@@ -228,10 +230,10 @@ func TestParsePasswordHash(t *testing.T) {
 	t.Run("valid hash string parses successfully", func(t *testing.T) {
 		t.Parallel()
 
-		original, err := NewPasswordHash("MySecureP@ssw0rd123")
+		original, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
-		parsed, err := ParsePasswordHash(original.String())
+		parsed, err := identity.ParsePasswordHash(original.String())
 		require.NoError(t, err)
 
 		assert.Equal(t, original.String(), parsed.String())
@@ -240,21 +242,21 @@ func TestParsePasswordHash(t *testing.T) {
 	t.Run("empty string fails", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := ParsePasswordHash("")
-		require.ErrorIs(t, err, ErrPasswordEmpty)
+		_, err := identity.ParsePasswordHash("")
+		require.ErrorIs(t, err, identity.ErrPasswordEmpty)
 	})
 
 	t.Run("invalid format fails", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := ParsePasswordHash("not-a-valid-hash")
+		_, err := identity.ParsePasswordHash("not-a-valid-hash")
 		require.Error(t, err)
 	})
 
 	t.Run("wrong algorithm fails", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := ParsePasswordHash("$bcrypt$v=1$salt$hash")
+		_, err := identity.ParsePasswordHash("$bcrypt$v=1$salt$hash")
 		require.Error(t, err)
 	})
 
@@ -262,10 +264,10 @@ func TestParsePasswordHash(t *testing.T) {
 		t.Parallel()
 
 		password := "MySecureP@ssw0rd123"
-		original, err := NewPasswordHash(password)
+		original, err := identity.NewPasswordHash(password)
 		require.NoError(t, err)
 
-		parsed, err := ParsePasswordHash(original.String())
+		parsed, err := identity.ParsePasswordHash(original.String())
 		require.NoError(t, err)
 
 		err = parsed.Verify(password)
@@ -279,14 +281,14 @@ func TestPasswordHash_IsEmpty(t *testing.T) {
 	t.Run("zero value is empty", func(t *testing.T) {
 		t.Parallel()
 
-		var hash PasswordHash
+		var hash identity.PasswordHash
 		assert.True(t, hash.IsEmpty())
 	})
 
 	t.Run("valid hash is not empty", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.False(t, hash.IsEmpty())
@@ -299,7 +301,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	t.Run("uses Argon2id algorithm", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.Contains(t, hash.String(), "$argon2id$")
@@ -308,7 +310,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	t.Run("uses Argon2 version 19", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.Contains(t, hash.String(), "v=19")
@@ -317,7 +319,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	t.Run("uses recommended memory cost", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.Contains(t, hash.String(), "m=65536") // 64 MB
@@ -326,7 +328,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	t.Run("uses recommended time cost", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.Contains(t, hash.String(), "t=2")
@@ -335,7 +337,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	t.Run("uses recommended parallelism", func(t *testing.T) {
 		t.Parallel()
 
-		hash, err := NewPasswordHash("MySecureP@ssw0rd123")
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
 		require.NoError(t, err)
 
 		assert.Contains(t, hash.String(), "p=4")
@@ -348,7 +350,7 @@ func BenchmarkNewPasswordHash(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := NewPasswordHash(password)
+		_, err := identity.NewPasswordHash(password)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -357,7 +359,7 @@ func BenchmarkNewPasswordHash(b *testing.B) {
 
 func BenchmarkPasswordHash_Verify(b *testing.B) {
 	password := "MySecureP@ssw0rd123"
-	hash, err := NewPasswordHash(password)
+	hash, err := identity.NewPasswordHash(password)
 	if err != nil {
 		b.Fatal(err)
 	}

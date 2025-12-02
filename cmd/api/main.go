@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "log"
 
 func main() {
-	fmt.Println("goimg-datalayer API server")
+	log.Println("goimg-datalayer API server")
 }

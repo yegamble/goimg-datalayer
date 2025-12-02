@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
@@ -32,7 +33,7 @@ func TestParseImageStatus(t *testing.T) {
 	t.Parallel()
 
 	status, err := gallery.ParseImageStatus("active")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, gallery.StatusActive, status)
 
 	_, err = gallery.ParseImageStatus("invalid")
@@ -59,7 +60,7 @@ func TestParseVariantType(t *testing.T) {
 	t.Parallel()
 
 	vt, err := gallery.ParseVariantType("thumbnail")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, gallery.VariantThumbnail, vt)
 
 	_, err = gallery.ParseVariantType("invalid")

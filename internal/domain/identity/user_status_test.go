@@ -1,10 +1,12 @@
-package identity
+package identity_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestParseUserStatus(t *testing.T) {
@@ -13,31 +15,31 @@ func TestParseUserStatus(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		want    UserStatus
+		want    identity.UserStatus
 		wantErr bool
 	}{
 		{
 			name:    "valid active status",
 			input:   "active",
-			want:    StatusActive,
+			want:    identity.StatusActive,
 			wantErr: false,
 		},
 		{
 			name:    "valid pending status",
 			input:   "pending",
-			want:    StatusPending,
+			want:    identity.StatusPending,
 			wantErr: false,
 		},
 		{
 			name:    "valid suspended status",
 			input:   "suspended",
-			want:    StatusSuspended,
+			want:    identity.StatusSuspended,
 			wantErr: false,
 		},
 		{
 			name:    "valid deleted status",
 			input:   "deleted",
-			want:    StatusDeleted,
+			want:    identity.StatusDeleted,
 			wantErr: false,
 		},
 		{
@@ -62,7 +64,7 @@ func TestParseUserStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			status, err := ParseUserStatus(tt.input)
+			status, err := identity.ParseUserStatus(tt.input)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -80,27 +82,27 @@ func TestUserStatus_String(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		status UserStatus
+		status identity.UserStatus
 		want   string
 	}{
 		{
 			name:   "active status",
-			status: StatusActive,
+			status: identity.StatusActive,
 			want:   "active",
 		},
 		{
 			name:   "pending status",
-			status: StatusPending,
+			status: identity.StatusPending,
 			want:   "pending",
 		},
 		{
 			name:   "suspended status",
-			status: StatusSuspended,
+			status: identity.StatusSuspended,
 			want:   "suspended",
 		},
 		{
 			name:   "deleted status",
-			status: StatusDeleted,
+			status: identity.StatusDeleted,
 			want:   "deleted",
 		},
 	}
@@ -120,42 +122,42 @@ func TestUserStatus_IsValid(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		status UserStatus
+		status identity.UserStatus
 		want   bool
 	}{
 		{
 			name:   "active is valid",
-			status: StatusActive,
+			status: identity.StatusActive,
 			want:   true,
 		},
 		{
 			name:   "pending is valid",
-			status: StatusPending,
+			status: identity.StatusPending,
 			want:   true,
 		},
 		{
 			name:   "suspended is valid",
-			status: StatusSuspended,
+			status: identity.StatusSuspended,
 			want:   true,
 		},
 		{
 			name:   "deleted is valid",
-			status: StatusDeleted,
+			status: identity.StatusDeleted,
 			want:   true,
 		},
 		{
 			name:   "empty is invalid",
-			status: UserStatus(""),
+			status: identity.UserStatus(""),
 			want:   false,
 		},
 		{
 			name:   "random string is invalid",
-			status: UserStatus("inactive"),
+			status: identity.UserStatus("inactive"),
 			want:   false,
 		},
 		{
 			name:   "uppercase is invalid",
-			status: UserStatus("ACTIVE"),
+			status: identity.UserStatus("ACTIVE"),
 			want:   false,
 		},
 	}
@@ -175,27 +177,27 @@ func TestUserStatus_CanLogin(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		status UserStatus
+		status identity.UserStatus
 		want   bool
 	}{
 		{
 			name:   "active can login",
-			status: StatusActive,
+			status: identity.StatusActive,
 			want:   true,
 		},
 		{
 			name:   "pending cannot login",
-			status: StatusPending,
+			status: identity.StatusPending,
 			want:   false,
 		},
 		{
 			name:   "suspended cannot login",
-			status: StatusSuspended,
+			status: identity.StatusSuspended,
 			want:   false,
 		},
 		{
 			name:   "deleted cannot login",
-			status: StatusDeleted,
+			status: identity.StatusDeleted,
 			want:   false,
 		},
 	}
