@@ -195,6 +195,7 @@ func TestEmail_IsEmpty(t *testing.T) {
 	})
 }
 
+//nolint:dupl // Value object Equals tests follow intentionally similar patterns
 func TestEmail_Equals(t *testing.T) {
 	t.Parallel()
 

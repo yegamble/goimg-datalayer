@@ -105,7 +105,7 @@ func TestReconstructUser(t *testing.T) {
 	assert.Equal(t, bio, user.Bio())
 	assert.Equal(t, createdAt, user.CreatedAt())
 	assert.Equal(t, updatedAt, user.UpdatedAt())
-	assert.Len(t, user.Events(), 0) // No events on reconstruction
+	assert.Empty(t, user.Events()) // No events on reconstruction
 }
 
 func TestUser_UpdateProfile(t *testing.T) {

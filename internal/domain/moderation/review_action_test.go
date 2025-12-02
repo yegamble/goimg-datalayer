@@ -63,8 +63,7 @@ func TestParseReviewAction(t *testing.T) {
 			action, err := moderation.ParseReviewAction(tt.input)
 
 			if tt.wantErr != nil {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, action)
 			} else {
 				require.NoError(t, err)

@@ -384,8 +384,7 @@ func TestBan_Revoke(t *testing.T) {
 
 		err = ban.Revoke(revokedBy)
 
-		require.Error(t, err)
-		assert.ErrorIs(t, err, moderation.ErrBanAlreadyRevoked)
+		require.ErrorIs(t, err, moderation.ErrBanAlreadyRevoked)
 		assert.Equal(t, firstRevokedAt, ban.RevokedAt()) // Should not change
 	})
 

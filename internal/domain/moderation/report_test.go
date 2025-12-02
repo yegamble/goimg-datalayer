@@ -419,8 +419,7 @@ func TestReport_Dismiss(t *testing.T) {
 
 		err := report.Dismiss(resolverID)
 
-		require.Error(t, err)
-		assert.ErrorIs(t, err, moderation.ErrReportAlreadyDismissed)
+		require.ErrorIs(t, err, moderation.ErrReportAlreadyDismissed)
 		assert.Equal(t, moderation.StatusDismissed, report.Status())
 	})
 
