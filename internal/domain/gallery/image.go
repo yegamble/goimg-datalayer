@@ -169,7 +169,83 @@ func (i *Image) ClearEvents() {
 	i.events = []shared.DomainEvent{}
 }
 
-// Behavior Methods - Variant Management
+// Getters.
+
+// ID returns the unique identifier of the image.
+func (i *Image) ID() ImageID {
+	return i.id
+}
+
+// OwnerID returns the ID of the user who owns this image.
+func (i *Image) OwnerID() identity.UserID {
+	return i.ownerID
+}
+
+// Metadata returns the image metadata.
+func (i *Image) Metadata() ImageMetadata {
+	return i.metadata
+}
+
+// Visibility returns the current visibility setting.
+func (i *Image) Visibility() Visibility {
+	return i.visibility
+}
+
+// Status returns the current status.
+func (i *Image) Status() ImageStatus {
+	return i.status
+}
+
+// Variants returns a copy of the variants slice.
+func (i *Image) Variants() []ImageVariant {
+	result := make([]ImageVariant, len(i.variants))
+	copy(result, i.variants)
+	return result
+}
+
+// Tags returns a copy of the tags slice.
+func (i *Image) Tags() []Tag {
+	result := make([]Tag, len(i.tags))
+	copy(result, i.tags)
+	return result
+}
+
+// ViewCount returns the number of views.
+func (i *Image) ViewCount() int64 {
+	return i.viewCount
+}
+
+// LikeCount returns the number of likes.
+func (i *Image) LikeCount() int64 {
+	return i.likeCount
+}
+
+// CommentCount returns the number of comments.
+func (i *Image) CommentCount() int64 {
+	return i.commentCount
+}
+
+// CreatedAt returns when the image was created.
+func (i *Image) CreatedAt() time.Time {
+	return i.createdAt
+}
+
+// UpdatedAt returns when the image was last modified.
+func (i *Image) UpdatedAt() time.Time {
+	return i.updatedAt
+}
+
+// Events returns the domain events that have occurred.
+func (i *Image) Events() []shared.DomainEvent {
+	return i.events
+}
+
+// ClearEvents clears all pending domain events.
+func (i *Image) ClearEvents() {
+	i.events = []shared.DomainEvent{}
+}
+
+// Behavior Methods - Variant Management.
 
 // AddVariant adds a new variant to the image.
 // Returns an error if a variant of the same type already exists.
@@ -210,7 +286,7 @@ func (i *Image) HasVariant(variantType VariantType) bool {
 	return err == nil
 }
 
-// Behavior Methods - Tag Management
+// Behavior Methods - Tag Management.
 
 // AddTag adds a tag to the image.
 // Returns an error if the tag already exists or the maximum number of tags is reached.
@@ -280,7 +356,7 @@ func (i *Image) HasTag(tag Tag) bool {
 	return false
 }
 
-// Behavior Methods - Visibility and Status
+// Behavior Methods - Visibility and Status.
 
 // UpdateVisibility changes the visibility of the image.
 // Cannot change visibility of deleted or processing images.
@@ -380,7 +456,7 @@ func (i *Image) Flag() error {
 	return nil
 }
 
-// Behavior Methods - Metadata Updates
+// Behavior Methods - Metadata Updates.
 
 // UpdateMetadata updates the title and description of the image.
 // Cannot modify deleted images.
@@ -417,7 +493,7 @@ func (i *Image) UpdateMetadata(title, description string) error {
 	return nil
 }
 
-// Behavior Methods - Engagement Metrics
+// Behavior Methods - Engagement Metrics.
 
 // IncrementViews increments the view count.
 func (i *Image) IncrementViews() {
@@ -444,7 +520,7 @@ func (i *Image) SetCommentCount(count int64) {
 	i.commentCount = count
 }
 
-// Helper Methods
+// Helper Methods.
 
 // IsOwnedBy returns true if the image is owned by the given user.
 func (i *Image) IsOwnedBy(userID identity.UserID) bool {

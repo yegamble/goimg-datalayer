@@ -136,26 +136,32 @@ func TestReview_Getters(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("ID", func(t *testing.T) {
+		t.Parallel()
 		assert.False(t, review.ID().IsZero())
 	})
 
 	t.Run("ReportID", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, reportID, review.ReportID())
 	})
 
 	t.Run("ReviewerID", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, reviewerID, review.ReviewerID())
 	})
 
 	t.Run("Action", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, action, review.Action())
 	})
 
 	t.Run("Notes", func(t *testing.T) {
+		t.Parallel()
 		assert.Equal(t, notes, review.Notes())
 	})
 
 	t.Run("CreatedAt", func(t *testing.T) {
+		t.Parallel()
 		assert.False(t, review.CreatedAt().IsZero())
 	})
 }

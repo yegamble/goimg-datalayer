@@ -83,7 +83,7 @@ func ReconstructComment(
 	}
 }
 
-// Getters
+// Getters.
 
 // ID returns the unique identifier of the comment.
 func (c *Comment) ID() CommentID {
@@ -120,7 +120,7 @@ func (c *Comment) ClearEvents() {
 	c.events = []shared.DomainEvent{}
 }
 
-// Helper Methods
+// Helper Methods.
 
 // IsAuthoredBy returns true if the comment was authored by the given user.
 func (c *Comment) IsAuthoredBy(userID identity.UserID) bool {

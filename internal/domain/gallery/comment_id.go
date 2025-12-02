@@ -1,3 +1,4 @@
+//nolint:dupl // ID types are intentionally similar for type safety in DDD
 package gallery
 
 import (
@@ -32,7 +33,7 @@ func ParseCommentID(s string) (CommentID, error) {
 func MustParseCommentID(s string) CommentID {
 	id, err := ParseCommentID(s)
 	if err != nil {
-		panic(err)
+		panic(err) //nolint:forbidigo // Intentional panic for Must* function
 	}
 	return id
 }

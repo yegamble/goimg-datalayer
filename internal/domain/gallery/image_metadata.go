@@ -67,67 +67,45 @@ func NewImageMetadata(
 	storageKey,
 	storageProvider string,
 ) (ImageMetadata, error) {
-	// Normalize title - use filename if empty
-	title = strings.TrimSpace(title)
-	if title == "" {
-		title = originalFilename
+	// Validate and normalize text fields.
+	title, err := validateTitle(title, originalFilename)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate title length
-	if len(title) > MaxTitleLength {
-		return ImageMetadata{}, fmt.Errorf("%w: got %d characters", ErrTitleTooLong, len(title))
+	description, err = validateDescription(description)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate description length
-	description = strings.TrimSpace(description)
-	if len(description) > MaxDescriptionLength {
-		return ImageMetadata{}, fmt.Errorf("%w: got %d characters", ErrDescriptionTooLong, len(description))
+	originalFilename, err = validateFilename(originalFilename)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate original filename
-	originalFilename = strings.TrimSpace(originalFilename)
-	if originalFilename == "" {
-		return ImageMetadata{}, fmt.Errorf("%w: original filename is required", ErrInvalidMetadata)
+	mimeType, err = validateMimeType(mimeType)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate MIME type
-	mimeType = strings.TrimSpace(strings.ToLower(mimeType))
-	if !SupportedMimeTypes[mimeType] {
-		return ImageMetadata{}, fmt.Errorf("%w: '%s' is not supported", ErrInvalidMimeType, mimeType)
+	// Validate dimensions and file size.
+	if err := validateDimensions(width, height); err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate dimensions
-	if width <= 0 || height <= 0 {
-		return ImageMetadata{}, fmt.Errorf("%w: dimensions must be positive, got %dx%d", ErrInvalidDimensions, width, height)
-	}
-	if width > MaxImageDimension || height > MaxImageDimension {
-		return ImageMetadata{}, fmt.Errorf("%w: maximum %dx%d, got %dx%d", ErrImageTooLarge, MaxImageDimension, MaxImageDimension, width, height)
+	if err := validateFileSize(fileSize); err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate total pixels
-	totalPixels := int64(width) * int64(height)
-	if totalPixels > MaxImagePixels {
-		return ImageMetadata{}, fmt.Errorf("%w: %d pixels exceeds maximum of %d", ErrImageTooManyPixels, totalPixels, MaxImagePixels)
+	// Validate storage fields.
+	storageKey, err = validateStorageKey(storageKey)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
-	// Validate file size
-	if fileSize <= 0 {
-		return ImageMetadata{}, fmt.Errorf("%w: file size must be positive", ErrInvalidMetadata)
-	}
-	if fileSize > MaxFileSize {
-		return ImageMetadata{}, fmt.Errorf("%w: %d bytes exceeds maximum of %d", ErrFileTooLarge, fileSize, MaxFileSize)
-	}
-
-	// Validate storage key
-	storageKey = strings.TrimSpace(storageKey)
-	if storageKey == "" {
-		return ImageMetadata{}, ErrStorageKeyRequired
-	}
-
-	// Validate storage provider
-	storageProvider = strings.TrimSpace(storageProvider)
-	if storageProvider == "" {
-		return ImageMetadata{}, ErrProviderRequired
+	storageProvider, err = validateStorageProvider(storageProvider)
+	if err != nil {
+		return ImageMetadata{}, err
 	}
 
 	return ImageMetadata{
@@ -141,6 +119,123 @@ func NewImageMetadata(
 		storageKey:       storageKey,
 		storageProvider:  storageProvider,
 	}, nil
+}
+
+// validateTitle validates and normalizes the title, using filename as fallback.
+func validateTitle(title, originalFilename string) (string, error) {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		title = originalFilename
+	}
+
+	if len(title) > MaxTitleLength {
+		return "", fmt.Errorf("%w: got %d characters", ErrTitleTooLong, len(title))
+	}
+
+	return title, nil
+}
+
+// validateDescription validates and normalizes the description.
+func validateDescription(description string) (string, error) {
+	description = strings.TrimSpace(description)
+	if len(description) > MaxDescriptionLength {
+		return "", fmt.Errorf("%w: got %d characters", ErrDescriptionTooLong, len(description))
+	}
+
+	return description, nil
+}
+
+// validateFilename validates that the filename is not empty.
+func validateFilename(filename string) (string, error) {
+	filename = strings.TrimSpace(filename)
+	if filename == "" {
+		return "", fmt.Errorf("%w: original filename is required", ErrInvalidMetadata)
+	}
+
+	return filename, nil
+}
+
+// validateMimeType validates the MIME type against the whitelist.
+func validateMimeType(mimeType string) (string, error) {
+	mimeType = strings.TrimSpace(strings.ToLower(mimeType))
+	if !SupportedMimeTypes[mimeType] {
+		return "", fmt.Errorf("%w: '%s' is not supported", ErrInvalidMimeType, mimeType)
+	}
+
+	return mimeType, nil
+}
+
+// validateDimensions validates image width and height.
+func validateDimensions(width, height int) error {
+	if width <= 0 || height <= 0 {
+		return fmt.Errorf(
+			"%w: dimensions must be positive, got %dx%d",
+			ErrInvalidDimensions,
+			width,
+			height,
+		)
+	}
+
+	if width > MaxImageDimension || height > MaxImageDimension {
+		return fmt.Errorf(
+			"%w: maximum %dx%d, got %dx%d",
+			ErrImageTooLarge,
+			MaxImageDimension,
+			MaxImageDimension,
+			width,
+			height,
+		)
+	}
+
+	totalPixels := int64(width) * int64(height)
+	if totalPixels > MaxImagePixels {
+		return fmt.Errorf(
+			"%w: %d pixels exceeds maximum of %d",
+			ErrImageTooManyPixels,
+			totalPixels,
+			MaxImagePixels,
+		)
+	}
+
+	return nil
+}
+
+// validateFileSize validates the file size.
+func validateFileSize(fileSize int64) error {
+	if fileSize <= 0 {
+		return fmt.Errorf("%w: file size must be positive", ErrInvalidMetadata)
+	}
+
+	if fileSize > MaxFileSize {
+		return fmt.Errorf(
+			"%w: %d bytes exceeds maximum of %d",
+			ErrFileTooLarge,
+			fileSize,
+			MaxFileSize,
+		)
+	}
+
+	return nil
+}
+
+// validateStorageKey validates the storage key.
+func validateStorageKey(storageKey string) (string, error) {
+	storageKey = strings.TrimSpace(storageKey)
+	if storageKey == "" {
+		return "", ErrStorageKeyRequired
+	}
+
+	return storageKey, nil
+}
+
+// validateStorageProvider validates the storage provider.
+func validateStorageProvider(storageProvider string) (string, error) {
+	storageProvider = strings.TrimSpace(storageProvider)
+	if storageProvider == "" {
+		return "", ErrProviderRequired
+	}
+
+	return storageProvider, nil
 }
 
 // Title returns the image title.

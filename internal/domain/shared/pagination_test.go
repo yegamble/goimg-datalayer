@@ -1,8 +1,10 @@
-package shared
+package shared_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
 func TestNewPagination(t *testing.T) {
@@ -35,18 +37,18 @@ func TestNewPagination(t *testing.T) {
 		{
 			name:        "valid pagination at min perPage",
 			page:        1,
-			perPage:     MinPerPage,
+			perPage:     shared.MinPerPage,
 			wantErr:     false,
 			wantPage:    1,
-			wantPerPage: MinPerPage,
+			wantPerPage: shared.MinPerPage,
 		},
 		{
 			name:        "valid pagination at max perPage",
 			page:        1,
-			perPage:     MaxPerPage,
+			perPage:     shared.MaxPerPage,
 			wantErr:     false,
 			wantPage:    1,
-			wantPerPage: MaxPerPage,
+			wantPerPage: shared.MaxPerPage,
 		},
 		{
 			name:    "invalid page zero",
@@ -75,7 +77,7 @@ func TestNewPagination(t *testing.T) {
 		{
 			name:    "invalid perPage exceeds max",
 			page:    1,
-			perPage: MaxPerPage + 1,
+			perPage: shared.MaxPerPage + 1,
 			wantErr: true,
 		},
 	}
@@ -84,13 +86,13 @@ func TestNewPagination(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, err := NewPagination(tt.page, tt.perPage)
+			p, err := shared.NewPagination(tt.page, tt.perPage)
 
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("NewPagination() expected error, got nil")
 				}
-				if !errors.Is(err, ErrInvalidInput) {
+				if !errors.Is(err, shared.ErrInvalidInput) {
 					t.Errorf("NewPagination() error = %v, want wrapped ErrInvalidInput", err)
 				}
 				return
@@ -117,13 +119,13 @@ func TestNewPagination(t *testing.T) {
 func TestDefaultPagination(t *testing.T) {
 	t.Parallel()
 
-	p := DefaultPagination()
+	p := shared.DefaultPagination()
 
-	if p.Page() != DefaultPage {
-		t.Errorf("Page() = %v, want %v", p.Page(), DefaultPage)
+	if p.Page() != shared.DefaultPage {
+		t.Errorf("Page() = %v, want %v", p.Page(), shared.DefaultPage)
 	}
-	if p.PerPage() != DefaultPerPage {
-		t.Errorf("PerPage() = %v, want %v", p.PerPage(), DefaultPerPage)
+	if p.PerPage() != shared.DefaultPerPage {
+		t.Errorf("PerPage() = %v, want %v", p.PerPage(), shared.DefaultPerPage)
 	}
 	if p.Total() != 0 {
 		t.Errorf("Total() = %v, want 0", p.Total())
@@ -167,7 +169,7 @@ func TestPagination_WithTotal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
 			if p.Total() != tt.wantTotal {
@@ -230,7 +232,7 @@ func TestPagination_Offset(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
 			if p.Offset() != tt.wantOffset {
 				t.Errorf("Offset() = %v, want %v", p.Offset(), tt.wantOffset)
@@ -263,14 +265,14 @@ func TestPagination_Limit(t *testing.T) {
 		{
 			name:      "min perPage",
 			page:      1,
-			perPage:   MinPerPage,
-			wantLimit: MinPerPage,
+			perPage:   shared.MinPerPage,
+			wantLimit: shared.MinPerPage,
 		},
 		{
 			name:      "max perPage",
 			page:      1,
-			perPage:   MaxPerPage,
-			wantLimit: MaxPerPage,
+			perPage:   shared.MaxPerPage,
+			wantLimit: shared.MaxPerPage,
 		},
 	}
 
@@ -278,7 +280,7 @@ func TestPagination_Limit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
 			if p.Limit() != tt.wantLimit {
 				t.Errorf("Limit() = %v, want %v", p.Limit(), tt.wantLimit)
@@ -352,7 +354,7 @@ func TestPagination_TotalPages(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
 			if p.TotalPages() != tt.wantTotalPages {
@@ -420,7 +422,7 @@ func TestPagination_HasNext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
 			if p.HasNext() != tt.wantHasNext {
@@ -463,7 +465,7 @@ func TestPagination_HasPrev(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			p, _ := NewPagination(tt.page, tt.perPage)
+			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
 			if p.HasPrev() != tt.wantHasPrev {
 				t.Errorf("HasPrev() = %v, want %v", p.HasPrev(), tt.wantHasPrev)
@@ -475,7 +477,7 @@ func TestPagination_HasPrev(t *testing.T) {
 func TestPagination_Immutability(t *testing.T) {
 	t.Parallel()
 
-	original, _ := NewPagination(1, 20)
+	original, _ := shared.NewPagination(1, 20)
 	modified := original.WithTotal(100)
 
 	// Verify original is unchanged

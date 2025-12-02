@@ -1,4 +1,4 @@
-package shared
+package shared_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
 func TestNewBaseEvent(t *testing.T) {
@@ -34,7 +35,7 @@ func TestNewBaseEvent(t *testing.T) {
 			t.Parallel()
 
 			before := time.Now().UTC()
-			event := NewBaseEvent(tt.eventType, tt.aggregateID)
+			event := shared.NewBaseEvent(tt.eventType, tt.aggregateID)
 			after := time.Now().UTC()
 
 			assert.NotEmpty(t, event.EventID())
@@ -51,7 +52,7 @@ func TestNewBaseEvent(t *testing.T) {
 func TestBaseEvent_Getters(t *testing.T) {
 	t.Parallel()
 
-	event := NewBaseEvent("TestEvent", "aggregate-456")
+	event := shared.NewBaseEvent("TestEvent", "aggregate-456")
 
 	t.Run("EventID returns non-empty UUID", func(t *testing.T) {
 		t.Parallel()
@@ -80,7 +81,7 @@ func TestBaseEvent_Getters(t *testing.T) {
 func TestBaseEvent_ImplementsDomainEvent(t *testing.T) {
 	t.Parallel()
 
-	var _ DomainEvent = BaseEvent{}
+	var _ shared.DomainEvent = shared.BaseEvent{}
 }
 
 func TestBaseEvent_UniqueEventIDs(t *testing.T) {
@@ -91,7 +92,7 @@ func TestBaseEvent_UniqueEventIDs(t *testing.T) {
 	eventIDs := make(map[string]bool)
 
 	for i := 0; i < numEvents; i++ {
-		event := NewBaseEvent("test.event", "agg-1")
+		event := shared.NewBaseEvent("test.event", "agg-1")
 		id := event.EventID()
 
 		if eventIDs[id] {
@@ -108,19 +109,19 @@ func TestBaseEvent_EmbeddingInConcreteEvents(t *testing.T) {
 
 	// Example of embedding BaseEvent in a concrete event
 	type UserRegistered struct {
-		BaseEvent
+		shared.BaseEvent
 		Email    string
 		Username string
 	}
 
 	event := UserRegistered{
-		BaseEvent: NewBaseEvent("user.registered", "user-123"),
+		BaseEvent: shared.NewBaseEvent("user.registered", "user-123"),
 		Email:     "test@example.com",
 		Username:  "testuser",
 	}
 
 	// Verify it implements DomainEvent
-	var _ DomainEvent = event
+	var _ shared.DomainEvent = event
 
 	// Verify base event methods work
 	assert.Equal(t, "user.registered", event.EventType())
@@ -135,7 +136,7 @@ func TestBaseEvent_EmbeddingInConcreteEvents(t *testing.T) {
 func TestBaseEvent_ImmutableFields(t *testing.T) {
 	t.Parallel()
 
-	event := NewBaseEvent("test.event", "agg-123")
+	event := shared.NewBaseEvent("test.event", "agg-123")
 
 	// Store original values
 	originalID := event.EventID()
@@ -154,8 +155,8 @@ func TestBaseEvent_MultipleEventsHaveDistinctTimestamps(t *testing.T) {
 	t.Parallel()
 
 	// Create multiple events in quick succession
-	event1 := NewBaseEvent("test.event", "agg-1")
-	event2 := NewBaseEvent("test.event", "agg-2")
+	event1 := shared.NewBaseEvent("test.event", "agg-1")
+	event2 := shared.NewBaseEvent("test.event", "agg-2")
 
 	// They should have different EventIDs
 	assert.NotEqual(t, event1.EventID(), event2.EventID())
@@ -168,7 +169,7 @@ func TestBaseEvent_EmptyStringsAllowed(t *testing.T) {
 	t.Parallel()
 
 	// Empty strings should be allowed (validation is up to the concrete event type)
-	event := NewBaseEvent("", "")
+	event := shared.NewBaseEvent("", "")
 
 	assert.Empty(t, event.EventType())
 	assert.Empty(t, event.AggregateID())
