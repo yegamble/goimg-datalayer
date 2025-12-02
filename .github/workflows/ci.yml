@@ -98,12 +98,116 @@ jobs:
           # Exit with original test exit code if tests failed
           exit ${TEST_EXIT:-0}
 
+      - name: Add Unit Test Coverage Summary
+        if: always()
+        run: |
+          echo "## Unit Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f coverage-unit.out ] && [ -s coverage-unit.out ] && [ "$(wc -l < coverage-unit.out)" -gt 1 ]; then
+            TOTAL_COVERAGE=$(go tool cover -func=coverage-unit.out | grep total | awk '{print $3}')
+            echo "**Total Unit Coverage:** ${TOTAL_COVERAGE}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Top Packages" >> $GITHUB_STEP_SUMMARY
+            echo "| Package | Coverage |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|----------|" >> $GITHUB_STEP_SUMMARY
+            go tool cover -func=coverage-unit.out | grep -v "total:" | head -20 | \
+              awk '{printf "| %s | %s |\n", $1, $3}' >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "No unit tests found yet." >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Upload unit test coverage
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         if: always()
         with:
           name: coverage-unit
           path: coverage-unit.out
+          retention-days: 7
+
+  # ============================================================================
+  # Domain Layer Tests - Core business logic with 90% coverage threshold
+  # ============================================================================
+  domain-tests:
+    name: Domain Layer Tests (90% threshold)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run Domain Tests
+        run: |
+          echo "Running domain layer tests..."
+          # Check if domain tests exist
+          if go list ./internal/domain/... 2>/dev/null | grep -q .; then
+            go test -race -coverprofile=domain-coverage.out \
+              -covermode=atomic -timeout 5m ./internal/domain/... 2>&1 | tee domain-test-output.txt || DOMAIN_TEST_EXIT=$?
+
+            # Check if coverage was generated
+            if [ ! -f domain-coverage.out ] || grep -q "no test files" domain-test-output.txt; then
+              echo "No domain tests found or no coverage generated (expected during early development)"
+              echo "mode: atomic" > domain-coverage.out
+              echo "domain_tests_exist=false" >> $GITHUB_ENV
+            else
+              echo "domain_tests_exist=true" >> $GITHUB_ENV
+            fi
+
+            # Exit with test result if tests exist
+            exit ${DOMAIN_TEST_EXIT:-0}
+          else
+            echo "No domain packages found yet (expected during Sprint 1 Week 3-4)"
+            echo "mode: atomic" > domain-coverage.out
+            echo "domain_tests_exist=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check Domain Coverage Threshold
+        if: env.domain_tests_exist == 'true'
+        run: |
+          COVERAGE=$(go tool cover -func=domain-coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Domain layer coverage: ${COVERAGE}%"
+
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "::error::Domain coverage ${COVERAGE}% below 90% threshold"
+            echo "The domain layer requires 90% coverage as it contains core business logic"
+            exit 1
+          fi
+          echo "::notice::Domain coverage ${COVERAGE}% meets 90% threshold ✓"
+
+      - name: Add Coverage Summary
+        if: always()
+        run: |
+          echo "## Domain Layer Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f domain-coverage.out ] && [ "${{ env.domain_tests_exist }}" == "true" ]; then
+            TOTAL_COVERAGE=$(go tool cover -func=domain-coverage.out | grep total | awk '{print $3}')
+            echo "**Total Domain Coverage:** ${TOTAL_COVERAGE}" >> $GITHUB_STEP_SUMMARY
+            echo "**Required Threshold:** 90%" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Package Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "| Package | Coverage |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|----------|" >> $GITHUB_STEP_SUMMARY
+            go tool cover -func=domain-coverage.out | grep -E "internal/domain" | grep -v "total:" | \
+              awk '{printf "| %s | %s |\n", $1, $3}' >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "No domain tests found yet. This is expected during Sprint 1 Week 3-4." >> $GITHUB_STEP_SUMMARY
+            echo "Domain tests will be added as the domain layer is implemented." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload domain test coverage
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always()
+        with:
+          name: coverage-domain
+          path: domain-coverage.out
           retention-days: 7
 
   # ============================================================================
@@ -196,6 +300,25 @@ jobs:
             echo "mode: atomic" > coverage-integration.out
           fi
 
+      - name: Add Integration Test Coverage Summary
+        if: always()
+        run: |
+          echo "## Integration Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f coverage-integration.out ] && [ -s coverage-integration.out ] && [ "$(wc -l < coverage-integration.out)" -gt 1 ]; then
+            TOTAL_COVERAGE=$(go tool cover -func=coverage-integration.out | grep total | awk '{print $3}')
+            echo "**Total Integration Coverage:** ${TOTAL_COVERAGE}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Tested Packages" >> $GITHUB_STEP_SUMMARY
+            echo "| Package | Coverage |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|----------|" >> $GITHUB_STEP_SUMMARY
+            go tool cover -func=coverage-integration.out | grep -v "total:" | head -20 | \
+              awk '{printf "| %s | %s |\n", $1, $3}' >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "No integration tests found yet." >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Upload integration test coverage
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         if: always()
@@ -210,7 +333,7 @@ jobs:
   coverage:
     name: Coverage Analysis
     runs-on: ubuntu-latest
-    needs: [test-unit, test-integration]
+    needs: [test-unit, test-integration, domain-tests]
     timeout-minutes: 10
 
     steps:
@@ -232,11 +355,16 @@ jobs:
         with:
           name: coverage-integration
 
+      - name: Download domain test coverage
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: coverage-domain
+
       - name: Merge coverage reports
         run: |
           # Install gocovmerge to combine coverage files
           go install github.com/wadey/gocovmerge@latest
-          gocovmerge coverage-unit.out coverage-integration.out > coverage-merged.out
+          gocovmerge coverage-unit.out coverage-integration.out coverage-domain.out > coverage-merged.out
 
       - name: Calculate coverage percentage
         id: coverage
@@ -409,10 +537,12 @@ jobs:
 
   # ============================================================================
   # Build Verification - Ensure the project builds successfully
+  # Only runs after tests pass to save CI minutes
   # ============================================================================
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-integration, domain-tests]
     timeout-minutes: 10
 
     strategy:
@@ -464,6 +594,7 @@ jobs:
       - lint
       - test-unit
       - test-integration
+      - domain-tests
       - coverage
       - openapi-validation
       - security-scan
