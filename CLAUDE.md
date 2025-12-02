@@ -1,25 +1,77 @@
 # Claude Agent Guide
 
-This repository uses a foldered guide so Claude agents can stay within scope and keep context size low. Load only what you need for the area you are working in.
+> **goimg-datalayer**: Go backend for an image gallery (Flickr/Chevereto-style). Upload, moderation, user management.
 
-- Start here for orientation, then jump into the topic-specific files under `claude/`.
-- When working in a single folder or feature, load only the matching guide (for example, tests ➜ `claude/testing_ci.md`; HTTP handlers ➜ `claude/api_security.md`).
-- Prefer placing short, folder-local `CLAUDE.md` files next to the code they describe (see `claude/placement.md`). This follows [Anthropic's scoped-instruction guidance](https://www.anthropic.com/engineering/claude-code-best-practices).
+This repository uses a foldered guide so Claude agents can stay within scope and keep context size low. **Load only what you need** for the area you are working in.
 
-## Quick Navigation
+## Quick Start
 
-| Topic | File |
-| --- | --- |
-| Architecture & domain model | `claude/architecture.md` |
-| Coding standards, linting, and formatting | `claude/coding.md` |
-| API contract, security, and HTTP guidance | `claude/api_security.md` |
-| Testing strategy and CI/CD expectations | `claude/testing_ci.md` |
-| Mandatory agent checklist | `claude/agent_checklist.md` |
-| Where to place scoped guides | `claude/placement.md` |
+```bash
+# Setup
+docker-compose -f docker/docker-compose.yml up -d
+make migrate-up
+make generate
 
-## Core Expectations
+# Run
+make run              # API server
+make run-worker       # Background jobs
 
-- Follow Domain-Driven Design (DDD) layering and keep domain logic free of infrastructure dependencies.
-- Treat the OpenAPI spec as the single source of truth for the HTTP API.
-- Maintain the testing and security posture documented in the topic guides.
-- Keep instructions scoped: prefer localized guides over monolithic documents to prevent unnecessary memory use.
+# Validate before commit
+make lint && make test && make validate-openapi
+```
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Language | Go 1.22+ |
+| Database | PostgreSQL 16+, Redis 7+ |
+| Migrations | Goose |
+| Image Processing | bimg (libvips) |
+| Security | ClamAV, JWT, OAuth2 |
+| Object Storage | Local/S3/DO Spaces/B2 |
+| API Spec | OpenAPI 3.1 |
+| Observability | zerolog, Prometheus, OpenTelemetry |
+
+## Navigation
+
+| Topic | File | When to Load |
+| --- | --- | --- |
+| Architecture & DDD | `claude/architecture.md` | Domain modeling, bounded contexts |
+| Coding standards | `claude/coding.md` | Writing/reviewing Go code |
+| API & security | `claude/api_security.md` | HTTP handlers, auth, endpoints |
+| Testing & CI | `claude/testing_ci.md` | Writing tests, CI issues |
+| Agent checklist | `claude/agent_checklist.md` | Before committing changes |
+| Scoped guide placement | `claude/placement.md` | Adding folder-local guides |
+
+**Scoped guides**: Check for `CLAUDE.md` files in the directory you're working in. They contain context-specific rules.
+
+## Core Rules
+
+1. **DDD layering**: Domain logic must not import infrastructure packages
+2. **OpenAPI is truth**: All HTTP changes must match `api/openapi/` spec
+3. **No business logic in handlers**: Handlers delegate to application layer
+4. **Wrap errors**: Always use `fmt.Errorf("context: %w", err)`
+5. **Test coverage**: Minimum 80% overall; 90% for domain layer
+
+## Project Structure (Key Paths)
+
+```
+internal/
+├── domain/           # Entities, value objects, aggregates, repo interfaces
+├── application/      # Commands, queries, application services
+├── infrastructure/   # Postgres, Redis, storage, external services
+└── interfaces/http/  # Handlers, middleware, DTOs
+api/openapi/          # OpenAPI 3.1 spec (source of truth)
+tests/                # Unit, integration, e2e, contract tests
+```
+
+## Before Every Commit
+
+```bash
+go fmt ./... && go vet ./... && golangci-lint run
+go test -race ./...
+make validate-openapi
+```
+
+See `claude/agent_checklist.md` for the full verification checklist.

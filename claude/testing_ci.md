@@ -1,26 +1,315 @@
 # Testing Strategy & CI/CD
 
+> Load this guide when writing tests, debugging CI failures, or adding new test coverage.
+
 ## Test Pyramid
-- Unit (~60–70%): domain logic, value objects, handlers without external deps.
-- Integration (~20–25%): repositories, external services via Testcontainers/real services.
-- E2E (~10–15%): Newman/Postman against a running API.
 
-## Commands
-- `make test` – full suite.
-- `make test-unit` – race-enabled short tests.
-- `make test-integration` – integration suite (requires Postgres/Redis, migrations).
-- `make test-e2e` – Newman collection after starting services.
-- `make validate-openapi` – lint spec and regenerate code; diff must stay clean.
+```
+                    ┌───────────────┐
+                    │     E2E       │  10-15%
+                    │  Newman/API   │  Full system
+                    ├───────────────┤
+                    │  Integration  │  20-25%
+                    │ Testcontainers│  Repository/DB
+                    ├───────────────┤
+                    │               │
+                    │     Unit      │  60-70%
+                    │   Domain +    │  Pure logic
+                    │   Handlers    │
+                    └───────────────┘
+```
 
-## Coverage
-- Minimum overall coverage 80%; domain 90%, application 85%, infrastructure 70%, handlers 75%.
+## Coverage Requirements
 
-## CI/CD Expectations
-- GitHub Actions run lint, unit, integration, contract validation, e2e (where applicable), and coverage checks.
-- Security workflows include `gosec` and `trivy` scans; dependency review on PRs.
-- Ensure migrations, OpenAPI updates, and Postman collections accompany breaking changes.
+| Layer | Minimum | Rationale |
+|-------|---------|-----------|
+| **Overall** | 80% | Project baseline |
+| **Domain** | 90% | Core business logic |
+| **Application** | 85% | Use case coverage |
+| **Infrastructure** | 70% | External integrations |
+| **Handlers** | 75% | HTTP layer |
 
-## Observability (runtime checks)
-- Use zerolog for structured logs; include request IDs and operation names.
-- Expose Prometheus metrics for HTTP, uploads, storage, and moderation queues.
-- Emit OpenTelemetry traces with meaningful attributes (IDs, content types, durations).
+## Test Commands
+
+```bash
+make test              # Full suite with race detection
+make test-unit         # Unit tests only (-short flag)
+make test-integration  # Integration tests (requires DB)
+make test-e2e          # Newman/Postman collection
+make test-coverage     # Generate HTML coverage report
+```
+
+## Unit Test Patterns
+
+### Value Object Tests
+
+```go
+func TestNewEmail(t *testing.T) {
+    t.Parallel()
+
+    tests := []struct {
+        name      string
+        input     string
+        wantErr   error
+        wantValue string
+    }{
+        {
+            name:      "valid email",
+            input:     "user@example.com",
+            wantValue: "user@example.com",
+        },
+        {
+            name:      "normalizes uppercase",
+            input:     "User@Example.COM",
+            wantValue: "user@example.com",
+        },
+        {
+            name:    "empty email",
+            input:   "",
+            wantErr: identity.ErrEmailEmpty,
+        },
+        {
+            name:    "invalid format",
+            input:   "not-an-email",
+            wantErr: identity.ErrEmailInvalid,
+        },
+    }
+
+    for _, tt := range tests {
+        tt := tt // capture range variable
+        t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()
+
+            email, err := identity.NewEmail(tt.input)
+
+            if tt.wantErr != nil {
+                require.ErrorIs(t, err, tt.wantErr)
+                return
+            }
+
+            require.NoError(t, err)
+            assert.Equal(t, tt.wantValue, email.String())
+        })
+    }
+}
+```
+
+### Aggregate Tests
+
+```go
+func TestImage_AddVariant(t *testing.T) {
+    t.Parallel()
+
+    t.Run("adds variant successfully", func(t *testing.T) {
+        image := gallery.NewTestImage(t) // Test helper
+        variant := gallery.NewTestVariant(t, gallery.SizeSmall)
+
+        err := image.AddVariant(variant)
+
+        require.NoError(t, err)
+        assert.Len(t, image.Variants(), 1)
+        assert.Len(t, image.Events(), 1) // Domain event emitted
+    })
+
+    t.Run("rejects duplicate size", func(t *testing.T) {
+        image := gallery.NewTestImage(t)
+        variant := gallery.NewTestVariant(t, gallery.SizeSmall)
+        _ = image.AddVariant(variant)
+
+        err := image.AddVariant(variant)
+
+        require.ErrorIs(t, err, gallery.ErrVariantExists)
+    })
+}
+```
+
+## Integration Tests
+
+### Testcontainers Setup
+
+```go
+// tests/integration/setup_test.go
+type TestSuite struct {
+    PostgresContainer testcontainers.Container
+    RedisContainer    testcontainers.Container
+    PostgresDSN       string
+    RedisAddr         string
+}
+
+func SetupTestSuite(t *testing.T) *TestSuite {
+    t.Helper()
+    ctx := context.Background()
+
+    // PostgreSQL
+    pgContainer, _ := postgres.RunContainer(ctx,
+        testcontainers.WithImage("postgres:16-alpine"),
+        postgres.WithDatabase("goimg_test"),
+    )
+
+    // Redis
+    redisContainer, _ := redis.RunContainer(ctx,
+        testcontainers.WithImage("redis:7-alpine"),
+    )
+
+    t.Cleanup(func() {
+        _ = pgContainer.Terminate(ctx)
+        _ = redisContainer.Terminate(ctx)
+    })
+
+    return &TestSuite{...}
+}
+```
+
+### Repository Tests
+
+```go
+func TestUserRepository_FindByEmail(t *testing.T) {
+    suite := SetupTestSuite(t)
+    repo := postgres.NewUserRepository(suite.PostgresDSN)
+
+    t.Run("finds existing user", func(t *testing.T) {
+        // Arrange
+        email, _ := identity.NewEmail("test@example.com")
+        user := identity.NewTestUser(t, email)
+        _ = repo.Save(context.Background(), user)
+
+        // Act
+        found, err := repo.FindByEmail(context.Background(), email)
+
+        // Assert
+        require.NoError(t, err)
+        assert.True(t, user.Email().Equals(found.Email()))
+    })
+
+    t.Run("returns not found for missing user", func(t *testing.T) {
+        email, _ := identity.NewEmail("missing@example.com")
+
+        _, err := repo.FindByEmail(context.Background(), email)
+
+        require.ErrorIs(t, err, identity.ErrUserNotFound)
+    })
+}
+```
+
+## E2E Tests (Newman)
+
+Location: `tests/e2e/postman/`
+
+```bash
+# Run E2E suite
+./tests/e2e/newman/run_tests.sh
+```
+
+### Collection Structure
+
+```
+tests/e2e/postman/
+├── goimg-collection.json    # Postman collection
+├── environment/
+│   ├── local.json           # Local dev settings
+│   └── ci.json              # CI environment
+└── newman/
+    └── run_tests.sh         # Runner script
+```
+
+## Contract Tests
+
+Validate implementation matches OpenAPI spec:
+
+```go
+// tests/contract/openapi_test.go
+func TestAPIMatchesOpenAPISpec(t *testing.T) {
+    loader := openapi3.NewLoader()
+    doc, _ := loader.LoadFromFile("../../api/openapi/openapi.yaml")
+    router, _ := gorillamux.NewRouter(doc)
+
+    // Test each endpoint against spec
+    testCases := []struct{
+        method, path string
+        expectedStatus int
+    }{
+        {"GET", "/api/v1/health", 200},
+        {"POST", "/api/v1/auth/login", 200},
+        // ...
+    }
+
+    for _, tc := range testCases {
+        // Validate request/response against OpenAPI schema
+    }
+}
+```
+
+## CI Pipeline (GitHub Actions)
+
+### Jobs
+
+| Job | Purpose | Triggers |
+|-----|---------|----------|
+| `lint` | golangci-lint | Push, PR |
+| `test-unit` | Unit tests + coverage | Push, PR |
+| `test-integration` | Integration tests | Push, PR |
+| `test-e2e` | Newman API tests | Push, PR |
+| `contract-validation` | OpenAPI compliance | Push, PR |
+| `security` | gosec, trivy | Push, PR, Weekly |
+
+### Required Checks
+
+All must pass before merge:
+- Lint
+- Unit tests
+- Integration tests
+- Contract validation
+- Coverage threshold (80%)
+
+## Observability
+
+### Structured Logging
+
+```go
+logger := log.With().
+    Str("handler", "image.upload").
+    Str("request_id", middleware.GetRequestID(ctx)).
+    Logger()
+
+logger.Info().
+    Str("content_type", contentType).
+    Int64("size", size).
+    Msg("processing upload")
+```
+
+### Prometheus Metrics
+
+| Metric | Type | Labels |
+|--------|------|--------|
+| `goimg_http_requests_total` | Counter | method, path, status |
+| `goimg_http_request_duration_seconds` | Histogram | method, path |
+| `goimg_image_uploads_total` | Counter | status, format |
+| `goimg_image_processing_duration_seconds` | Histogram | operation |
+
+### Health Checks
+
+```
+GET /health        # Liveness - is service running?
+GET /health/ready  # Readiness - can accept traffic?
+```
+
+## Test Fixtures
+
+Location: `tests/fixtures/`
+
+```
+tests/fixtures/
+├── images/
+│   ├── valid_jpeg.jpg
+│   ├── valid_png.png
+│   └── malware_sample.bin
+└── data/
+    └── seed.sql
+```
+
+## Debugging Tips
+
+1. **Flaky tests**: Check for parallel test interference, use `t.Parallel()` correctly
+2. **Integration failures**: Ensure containers are healthy before tests run
+3. **Coverage drops**: Run `go tool cover -html=coverage.out` to find gaps
+4. **Contract mismatches**: Regenerate with `make generate` and check diff
