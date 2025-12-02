@@ -38,6 +38,8 @@ make lint && make test && make validate-openapi
 
 | Topic | File | When to Load |
 | --- | --- | --- |
+| **Sprint Plan** | `claude/sprint_plan.md` | Planning work, understanding roadmap |
+| **MVP Features** | `claude/mvp_features.md` | Feature requirements, API specs |
 | Architecture & DDD | `claude/architecture.md` | Domain modeling, bounded contexts |
 | Coding standards | `claude/coding.md` | Writing/reviewing Go code |
 | API & security | `claude/api_security.md` | HTTP handlers, auth, endpoints |
