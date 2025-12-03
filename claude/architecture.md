@@ -6,7 +6,7 @@
 
 Backend for an image gallery with upload, moderation, and user management.
 
-**Tech**: Go 1.22+, PostgreSQL 16+, Redis 7+, bimg/libvips, Goose migrations.
+**Tech**: Go 1.25+, PostgreSQL 16+, Redis 7+, bimg/libvips, Goose migrations.
 
 ## Clean Architecture Layers
 
