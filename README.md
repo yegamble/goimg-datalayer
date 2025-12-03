@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Sprint 3 - Infrastructure Layer (Identity Context)
+**Current Phase**: Sprint 5 - Domain & Infrastructure (Gallery Context)
 
 **Completed**:
 - Sprint 1-2: Foundation & Domain Layer (4 weeks)
@@ -15,8 +15,25 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - CI/CD pipeline (GitHub Actions with linting, testing, security scanning)
   - Newman/Postman E2E test infrastructure
 
+- Sprint 3: Infrastructure - Identity Context (2 weeks)
+  - Database migrations (users, sessions tables)
+  - PostgreSQL connection pool and repositories (UserRepository, SessionRepository)
+  - Redis client and session store
+  - JWT service with RS256 signing (4096-bit keys enforced)
+  - Refresh token rotation with replay detection
+  - Token blacklist in Redis
+  - Integration tests with testcontainers (PostgreSQL, Redis)
+
+- Sprint 4: Application & HTTP - Identity Context (2 weeks)
+  - Application layer commands and queries (91.4% and 92.9% test coverage)
+  - HTTP middleware (9 components): request_id, logging, recovery, security_headers, cors, rate_limit, auth, error_handler, context
+  - HTTP handlers (5 files): auth_handler, user_handler, router, helpers, dto
+  - RFC 7807 Problem Details error format
+  - Redis-backed rate limiting (5/100/300 req/min)
+  - 30+ E2E tests covering complete auth flow
+
 **In Progress**:
-- Sprint 3: Infrastructure - Identity Context (Database, Redis, JWT)
+- Sprint 5: Domain & Infrastructure - Gallery Context (Image processing, storage providers, ClamAV)
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
@@ -233,10 +250,10 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 
 | Sprint | Focus | Duration | Status |
 |--------|-------|----------|--------|
-| 1-2 | Foundation & Domain Layer | 4 weeks | **COMPLETE** |
-| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | In Progress |
-| 4 | Application & HTTP - Auth | 2 weeks | Planned |
-| 5 | Domain & Infrastructure - Gallery | 2 weeks | Planned |
+| 1-2 | Foundation & Domain Layer | 4 weeks | **COMPLETE** ✅ |
+| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | **COMPLETE** ✅ |
+| 4 | Application & HTTP - Auth | 2 weeks | **COMPLETE** ✅ |
+| 5 | Domain & Infrastructure - Gallery | 2 weeks | In Progress |
 | 6 | Application & HTTP - Gallery | 2 weeks | Planned |
 | 7 | Moderation & Social Features | 2 weeks | Planned |
 | 8 | Integration, Testing & Security | 2 weeks | Planned |
