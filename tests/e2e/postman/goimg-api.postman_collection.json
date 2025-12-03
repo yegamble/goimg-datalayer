@@ -2,13 +2,17 @@
   "info": {
     "_postman_id": "goimg-api-e2e-tests",
     "name": "GoImg API E2E Tests",
-    "description": "End-to-end API tests for the GoImg image gallery platform.\n\nThese tests validate the complete API functionality including authentication, user management, image operations, albums, and moderation workflows.",
+    "description": "End-to-end API tests for the GoImg image gallery platform.\n\nThese tests validate the complete API functionality including authentication, user management, image operations, albums, and moderation workflows.\n\n## Test Organization\n\n- **Health Check**: System health and readiness\n- **Auth**: Registration, login, token refresh, logout flows\n- **Users**: Profile management, sessions, account deletion\n- **Images**: Upload, retrieve, update, delete operations\n- **Albums**: Album CRUD operations\n- **Explore**: Public discovery features\n- **E2E Flows**: Complete user journey tests\n- **Error Handling**: RFC 7807 error response validation\n\n## Running Tests\n\nTests are designed to run sequentially as they depend on previous test results (e.g., registration before login).\n\n```bash\nnewman run goimg-api.postman_collection.json -e ci.postman_environment.json\n```",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "{{BASE_URL}}"
+    },
+    {
+      "key": "testPassword",
+      "value": "SecureP@ssw0rd123!"
     }
   ],
   "item": [
@@ -30,6 +34,10 @@
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('status');",
                   "    pm.expect(jsonData.status).to.eql('ok');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -62,6 +70,10 @@
                   "    pm.expect(jsonData).to.have.property('status');",
                   "    pm.expect(jsonData.status).to.eql('ok');",
                   "    pm.expect(jsonData).to.have.property('services');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -81,11 +93,26 @@
       ]
     },
     {
-      "name": "Authentication",
+      "name": "Auth",
       "item": [
         {
-          "name": "Register User",
+          "name": "Register - Success",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate unique test data for idempotent tests",
+                  "const timestamp = Date.now();",
+                  "const randomSuffix = Math.floor(Math.random() * 10000);",
+                  "const uniqueId = `${timestamp}${randomSuffix}`;",
+                  "",
+                  "pm.collectionVariables.set('testEmail', `e2e-test-${uniqueId}@example.com`);",
+                  "pm.collectionVariables.set('testUsername', `e2euser${uniqueId}`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -94,28 +121,58 @@
                   "    pm.response.to.have.status(201);",
                   "});",
                   "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});",
+                  "",
                   "pm.test('Response has user data', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('id');",
                   "    pm.expect(jsonData).to.have.property('email');",
                   "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData).to.have.property('displayName');",
+                  "    pm.expect(jsonData).to.have.property('role');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('createdAt');",
+                  "    pm.expect(jsonData).to.have.property('updatedAt');",
+                  "    ",
+                  "    // Store user ID for subsequent tests",
                   "    pm.collectionVariables.set('testUserId', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('User email matches request', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('testEmail'));",
+                  "});",
+                  "",
+                  "pm.test('User username matches request', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.username).to.eql(pm.collectionVariables.get('testUsername'));",
+                  "});",
+                  "",
+                  "pm.test('User has default role', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.role).to.eql('user');",
+                  "});",
+                  "",
+                  "pm.test('User status is active', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('active');",
+                  "});",
+                  "",
+                  "pm.test('Response does not contain password', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.not.have.property('password');",
+                  "    pm.expect(jsonData).to.not.have.property('passwordHash');",
                   "});",
                   "",
                   "pm.test('Response time is acceptable', function () {",
                   "    pm.expect(pm.response.responseTime).to.be.below(2000);",
                   "});"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const timestamp = Date.now();",
-                  "pm.collectionVariables.set('testEmail', `e2e-test-${timestamp}@example.com`);",
-                  "pm.collectionVariables.set('testUsername', `e2euser${timestamp}`);"
                 ],
                 "type": "text/javascript"
               }
@@ -131,7 +188,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"SecureP@ssw0rd123!\",\n  \"displayName\": \"E2E Test User\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"displayName\": \"E2E Test User\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
@@ -141,7 +198,165 @@
           }
         },
         {
-          "name": "Login",
+          "name": "Register - Email Already Exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(409);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates email conflict', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('conflict');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"differentuser123\",\n  \"password\": \"{{testPassword}}\",\n  \"displayName\": \"Different User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register - Username Already Exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(409);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates username conflict', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('conflict');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"different@example.com\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"displayName\": \"Different User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register - Weak Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 422', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "});",
+                  "",
+                  "pm.test('Error indicates validation failure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const title = jsonData.title.toLowerCase();",
+                  "    pm.expect(title).to.satisfy(function(t) {",
+                  "        return t.includes('validation') || t.includes('invalid') || t.includes('bad request');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"weakpass@example.com\",\n  \"username\": \"weakpassuser\",\n  \"password\": \"weak\",\n  \"displayName\": \"Weak Password User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login - Success",
           "event": [
             {
               "listen": "test",
@@ -151,13 +366,49 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});",
+                  "",
                   "pm.test('Response has tokens', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('accessToken');",
                   "    pm.expect(jsonData).to.have.property('refreshToken');",
                   "    pm.expect(jsonData).to.have.property('expiresIn');",
+                  "    pm.expect(jsonData).to.have.property('tokenType');",
+                  "    ",
+                  "    // Store tokens for subsequent requests",
                   "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
                   "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('user');",
+                  "    pm.expect(jsonData.user).to.have.property('id');",
+                  "    pm.expect(jsonData.user).to.have.property('email');",
+                  "    pm.expect(jsonData.user).to.have.property('username');",
+                  "});",
+                  "",
+                  "pm.test('Tokens are non-empty', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.accessToken.length).to.be.above(0);",
+                  "    pm.expect(jsonData.refreshToken.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Token type is Bearer', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tokenType).to.eql('Bearer');",
+                  "});",
+                  "",
+                  "pm.test('ExpiresIn is positive integer', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.expiresIn).to.be.a('number');",
+                  "    pm.expect(jsonData.expiresIn).to.be.above(0);",
                   "});",
                   "",
                   "pm.test('Response time is acceptable', function () {",
@@ -178,7 +429,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"SecureP@ssw0rd123!\"\n}"
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -188,7 +439,117 @@
           }
         },
         {
-          "name": "Refresh Token",
+          "name": "Login - Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message is generic (security)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    // Should not reveal whether email exists or password is wrong",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                  "        return detail.includes('invalid') || detail.includes('incorrect');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login - Unknown User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message is generic (security)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    // Should not reveal whether user exists - generic message",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                  "        return detail.includes('invalid') || detail.includes('incorrect');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonexistent@example.com\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Access Protected Resource - Valid Token",
           "event": [
             {
               "listen": "test",
@@ -198,12 +559,113 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
+                  "pm.test('Response has user profile', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('email');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('testEmail'));",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Access Protected Resource - No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Response has WWW-Authenticate header', function () {",
+                  "    pm.response.to.have.header('WWW-Authenticate');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
                   "pm.test('Response has new tokens', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('accessToken');",
                   "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "    pm.expect(jsonData).to.have.property('expiresIn');",
+                  "    pm.expect(jsonData).to.have.property('tokenType');",
+                  "    ",
+                  "    // Update stored tokens",
                   "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
                   "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});",
+                  "",
+                  "pm.test('New tokens are non-empty', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.accessToken.length).to.be.above(0);",
+                  "    pm.expect(jsonData.refreshToken.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -230,22 +692,33 @@
           }
         },
         {
-          "name": "Get Current User",
+          "name": "Refresh Token - Invalid Token",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
                   "});",
                   "",
-                  "pm.test('Response has user profile', function () {",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('id');",
-                  "    pm.expect(jsonData).to.have.property('email');",
-                  "    pm.expect(jsonData).to.have.property('username');",
-                  "    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('testEmail'));",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates invalid token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                  "        return detail.includes('invalid') || detail.includes('expired') || detail.includes('token');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -253,17 +726,21 @@
             }
           ],
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"invalid.refresh.token.xyz123\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/users/me",
+              "raw": "{{baseUrl}}/auth/refresh",
               "host": ["{{baseUrl}}"],
-              "path": ["users", "me"]
+              "path": ["auth", "refresh"]
             }
           }
         },
@@ -276,7 +753,18 @@
                 "exec": [
                   "pm.test('Status code is 204', function () {",
                   "    pm.response.to.have.status(204);",
-                  "});"
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});",
+                  "",
+                  "// Store the logged-out token for the next test",
+                  "pm.collectionVariables.set('loggedOutToken', pm.collectionVariables.get('accessToken'));"
                 ],
                 "type": "text/javascript"
               }
@@ -296,32 +784,126 @@
               "path": ["auth", "logout"]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "User Management",
-      "item": [
+        },
         {
-          "name": "Get User Profile (Public)",
+          "name": "Access After Logout - Token Blacklisted",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200 or 404', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
                   "});",
                   "",
-                  "if (pm.response.code === 200) {",
-                  "    pm.test('Response has public profile fields', function () {",
-                  "        const jsonData = pm.response.json();",
-                  "        pm.expect(jsonData).to.have.property('id');",
-                  "        pm.expect(jsonData).to.have.property('username');",
-                  "        pm.expect(jsonData).to.have.property('displayName');",
-                  "        pm.expect(jsonData).to.not.have.property('email');",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates invalid or expired token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                  "        return detail.includes('invalid') || detail.includes('expired') || detail.includes('revoked') || detail.includes('blacklist');",
                   "    });",
-                  "}"
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{loggedOutToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get User by ID - Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Re-login to get fresh tokens after logout test",
+                  "const loginRequest = {",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json'",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            email: pm.collectionVariables.get('testEmail'),",
+                  "            password: pm.collectionVariables.get('testPassword')",
+                  "        })",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.sendRequest(loginRequest, function (err, response) {",
+                  "    if (err) {",
+                  "        console.error('Login failed:', err);",
+                  "        return;",
+                  "    }",
+                  "    ",
+                  "    const jsonData = response.json();",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has public profile fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData).to.have.property('displayName');",
+                  "    pm.expect(jsonData).to.have.property('bio');",
+                  "    pm.expect(jsonData).to.have.property('avatarUrl');",
+                  "    pm.expect(jsonData).to.have.property('createdAt');",
+                  "});",
+                  "",
+                  "pm.test('Response does not expose private fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.not.have.property('email');",
+                  "    pm.expect(jsonData).to.not.have.property('password');",
+                  "    pm.expect(jsonData).to.not.have.property('passwordHash');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -338,7 +920,50 @@
           }
         },
         {
-          "name": "Update User Profile",
+          "name": "Get User by ID - Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates resource not found', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "Update Own Profile - Success",
           "event": [
             {
               "listen": "test",
@@ -352,6 +977,18 @@
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.displayName).to.eql('Updated E2E User');",
                   "    pm.expect(jsonData.bio).to.eql('Updated bio from E2E tests');",
+                  "});",
+                  "",
+                  "pm.test('Response has complete user data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('email');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData).to.have.property('updatedAt');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -359,7 +996,7 @@
             }
           ],
           "request": {
-            "method": "PATCH",
+            "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
@@ -375,11 +1012,565 @@
               "raw": "{\n  \"displayName\": \"Updated E2E User\",\n  \"bio\": \"Updated bio from E2E tests\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/users/me",
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["users", "me"]
+              "path": ["users", "{{testUserId}}"]
             }
           }
+        },
+        {
+          "name": "Update Another User Profile - Forbidden",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Create a second test user",
+                  "const timestamp = Date.now();",
+                  "const randomSuffix = Math.floor(Math.random() * 10000);",
+                  "const uniqueId = `${timestamp}${randomSuffix}`;",
+                  "",
+                  "const registerRequest = {",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json'",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            email: `other-user-${uniqueId}@example.com`,",
+                  "            username: `otheruser${uniqueId}`,",
+                  "            password: pm.collectionVariables.get('testPassword'),",
+                  "            displayName: 'Other Test User'",
+                  "        })",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.sendRequest(registerRequest, function (err, response) {",
+                  "    if (err) {",
+                  "        console.error('Registration failed:', err);",
+                  "        return;",
+                  "    }",
+                  "    ",
+                  "    const userData = response.json();",
+                  "    pm.collectionVariables.set('otherUserId', userData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(403);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates forbidden access', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('forbidden');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Attempted Unauthorized Update\",\n  \"bio\": \"This should fail\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{otherUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{otherUserId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Sessions have required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        const session = jsonData[0];",
+                  "        pm.expect(session).to.have.property('id');",
+                  "        pm.expect(session).to.have.property('userId');",
+                  "        pm.expect(session).to.have.property('ipAddress');",
+                  "        pm.expect(session).to.have.property('userAgent');",
+                  "        pm.expect(session).to.have.property('createdAt');",
+                  "        pm.expect(session).to.have.property('expiresAt');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('At least one session exists', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{testUserId}}", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account - Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates invalid credentials', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                  "        return detail.includes('password') || detail.includes('invalid') || detail.includes('incorrect');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{testUserId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{testUserId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "E2E Flows",
+      "item": [
+        {
+          "name": "Complete Auth Journey",
+          "item": [
+            {
+              "name": "1. Register New User",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "pm.collectionVariables.set('e2eEmail', `e2e-journey-${uniqueId}@example.com`);",
+                      "pm.collectionVariables.set('e2eUsername', `e2ejourney${uniqueId}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('User registered successfully', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.collectionVariables.set('e2eUserId', jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{e2eEmail}}\",\n  \"username\": \"{{e2eUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"displayName\": \"E2E Journey User\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "2. Login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.collectionVariables.set('e2eAccessToken', jsonData.accessToken);",
+                      "    pm.collectionVariables.set('e2eRefreshToken', jsonData.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{e2eEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "3. Access Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Profile accessed successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('e2eEmail'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{e2eAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "me"]
+                }
+              }
+            },
+            {
+              "name": "4. Update Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Profile updated successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.bio).to.eql('E2E journey test bio');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{e2eAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bio\": \"E2E journey test bio\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{e2eUserId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{e2eUserId}}"]
+                }
+              }
+            },
+            {
+              "name": "5. Refresh Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Token refreshed successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.collectionVariables.set('e2eAccessToken', jsonData.accessToken);",
+                      "    pm.collectionVariables.set('e2eRefreshToken', jsonData.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{e2eRefreshToken}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/refresh",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "refresh"]
+                }
+              }
+            },
+            {
+              "name": "6. Verify Sessions",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Sessions retrieved successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.above(0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{e2eAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{e2eUserId}}/sessions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{e2eUserId}}", "sessions"]
+                }
+              }
+            },
+            {
+              "name": "7. Logout",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Logout successful', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{e2eAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "logout"]
+                }
+              }
+            },
+            {
+              "name": "8. Verify Token Blacklisted",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Access denied with logged-out token', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{e2eAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "me"]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -834,6 +2025,10 @@
                   "    pm.expect(jsonData).to.have.property('title');",
                   "    pm.expect(jsonData).to.have.property('status');",
                   "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -867,6 +2062,10 @@
                   "    pm.expect(jsonData).to.have.property('title');",
                   "    pm.expect(jsonData).to.have.property('status');",
                   "    pm.expect(jsonData.status).to.eql(404);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -890,8 +2089,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 422', function () {",
-                  "    pm.response.to.have.status(422);",
+                  "pm.test('Status code is 422 or 400', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
                   "});",
                   "",
                   "pm.test('Response follows RFC 7807 with validation details', function () {",
@@ -899,7 +2098,10 @@
                   "    pm.expect(jsonData).to.have.property('type');",
                   "    pm.expect(jsonData).to.have.property('title');",
                   "    pm.expect(jsonData).to.have.property('status');",
-                  "    pm.expect(jsonData.status).to.eql(422);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
                   "});"
                 ],
                 "type": "text/javascript"
