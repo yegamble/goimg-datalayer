@@ -17,6 +17,8 @@ coverage-*.out
 coverage-*.html
 domain-coverage.out
 domain-coverage.html
+domain-coverage-report.md
+*-coverage-report.md
 
 # Go workspace file
 go.work
