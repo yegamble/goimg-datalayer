@@ -99,6 +99,12 @@ func (u *User) Username() Username {
 	return u.username
 }
 
+// PasswordHash returns the user's password hash.
+// This method is primarily for persistence and should not be used for business logic.
+func (u *User) PasswordHash() PasswordHash {
+	return u.passwordHash
+}
+
 // Role returns the user's role.
 func (u *User) Role() Role {
 	return u.role

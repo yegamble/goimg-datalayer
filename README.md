@@ -4,9 +4,21 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Greenfield development — architecture documented, implementation starting.
+**Current Phase**: Sprint 3 - Infrastructure Layer (Identity Context)
 
-See [claude/sprint_plan.md](claude/sprint_plan.md) for the 8-9 sprint roadmap.
+**Completed**:
+- Sprint 1-2: Foundation & Domain Layer (4 weeks)
+  - Project setup with DDD architecture
+  - OpenAPI 3.1 specification (2,300+ lines)
+  - Complete domain layer (Identity, Gallery, Moderation, Shared contexts)
+  - Domain layer test coverage: 95% (exceeds 90% requirement)
+  - CI/CD pipeline (GitHub Actions with linting, testing, security scanning)
+  - Newman/Postman E2E test infrastructure
+
+**In Progress**:
+- Sprint 3: Infrastructure - Identity Context (Database, Redis, JWT)
+
+See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
 ## MVP Features
 
@@ -56,7 +68,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.22+ |
+| Language | Go 1.24+ |
 | Database | PostgreSQL 16+ |
 | Cache/Sessions | Redis 7+ |
 | Migrations | Goose |
@@ -72,10 +84,10 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.22
+go >= 1.24
 docker >= 24.0
 docker-compose >= 2.20
-libvips >= 8.14
+libvips >= 8.14  # Required for image processing (Sprint 5+)
 ```
 
 ### Setup
@@ -219,16 +231,16 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 
 ## Roadmap
 
-| Sprint | Focus | Duration |
-|--------|-------|----------|
-| 1-2 | Foundation & Domain Layer | 4 weeks |
-| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks |
-| 4 | Application & HTTP - Auth | 2 weeks |
-| 5 | Domain & Infrastructure - Gallery | 2 weeks |
-| 6 | Application & HTTP - Gallery | 2 weeks |
-| 7 | Moderation & Social Features | 2 weeks |
-| 8 | Integration, Testing & Security | 2 weeks |
-| 9 | MVP Polish & Launch | 2 weeks |
+| Sprint | Focus | Duration | Status |
+|--------|-------|----------|--------|
+| 1-2 | Foundation & Domain Layer | 4 weeks | **COMPLETE** |
+| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | In Progress |
+| 4 | Application & HTTP - Auth | 2 weeks | Planned |
+| 5 | Domain & Infrastructure - Gallery | 2 weeks | Planned |
+| 6 | Application & HTTP - Gallery | 2 weeks | Planned |
+| 7 | Moderation & Social Features | 2 weeks | Planned |
+| 8 | Integration, Testing & Security | 2 weeks | Planned |
+| 9 | MVP Polish & Launch | 2 weeks | Planned |
 
 **Phase 2** (post-MVP): OAuth providers, user follows, activity feeds, email notifications, IPFS storage
 

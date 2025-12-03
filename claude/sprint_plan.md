@@ -14,19 +14,38 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Greenfield project with comprehensive documentation, no Go code implemented.
+**Status**: Sprint 1-2 COMPLETE. Sprint 3 (Infrastructure - Identity Context) in progress.
 
-**What Exists**:
+**What Exists** (Completed in Sprint 1-2):
+- Go module with DDD directory structure (`internal/domain`, `internal/application`, `internal/infrastructure`, `internal/interfaces`)
+- Complete domain layer implementation with 95% test coverage:
+  - Identity Context: User, Email, Username, PasswordHash, UserID, Role, UserStatus
+  - Gallery Context: Image (with variants), Album, Tag, Comment, Like
+  - Moderation Context: Report, Review, Ban
+  - Shared Kernel: Pagination, Timestamps, Events, Errors
+- OpenAPI 3.1 specification (2,341 lines) covering all MVP endpoints
+- CI/CD pipeline with GitHub Actions:
+  - Linting (golangci-lint v2.6.2)
+  - Unit and integration tests
+  - OpenAPI validation
+  - Security scanning (gosec, Gitleaks v2.3.7)
+- Newman/Postman E2E test infrastructure (collection + CI environment)
+- Pre-commit hooks for code quality
+- Makefile with all development targets
 - Docker Compose with 6 services (PostgreSQL, Redis, ClamAV, IPFS, MinIO, networking)
 - Architecture documentation (DDD patterns, coding standards, API security)
 - CLAUDE.md guides for each layer
+- Placeholder cmd directories (api, worker, migrate)
 
-**What's Missing**:
-- All Go implementation code
-- Database migrations
-- OpenAPI specification
-- Tests
-- CI/CD workflows
+**What's Missing** (Sprint 3+):
+- Database migrations (Sprint 3)
+- PostgreSQL repositories (Sprint 3)
+- Redis client and session store (Sprint 3)
+- JWT service and authentication (Sprint 3-4)
+- Application layer commands and queries (Sprint 4+)
+- HTTP handlers and middleware (Sprint 4+)
+- Image processing and storage providers (Sprint 5+)
+- ClamAV integration (Sprint 5+)
 
 ---
 
@@ -106,6 +125,8 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
 
 ## Sprint 1-2: Foundation & Domain Layer
 
+**STATUS**: **COMPLETED** ✓
+
 **Duration**: 4 weeks
 **Focus**: Project setup, OpenAPI spec, domain entities
 
@@ -117,61 +138,61 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
 ### Agent Checkpoints
 
 #### Pre-Sprint (Week 1, Day 1)
-- [ ] senior-go-architect: Review DDD architecture and directory structure approach
-- [ ] backend-test-architect: Validate test framework selection and coverage tooling
-- [ ] cicd-guardian: Review CI/CD workflow design (linting, testing, OpenAPI validation)
-- [ ] scrum-master: Confirm sprint capacity and dependency resolution
+- [x] senior-go-architect: Review DDD architecture and directory structure approach
+- [x] backend-test-architect: Validate test framework selection and coverage tooling
+- [x] cicd-guardian: Review CI/CD workflow design (linting, testing, OpenAPI validation)
+- [x] scrum-master: Confirm sprint capacity and dependency resolution
 
 #### Mid-Sprint (Week 2, Day 3)
-- [ ] senior-go-architect: Review OpenAPI spec completeness and Go patterns
-- [ ] backend-test-architect: Review test structure for domain entities
-- [ ] cicd-guardian: Verify CI pipeline integration status
-- [ ] image-gallery-expert: Review domain models for Image/Album/Tag entities
+- [x] senior-go-architect: Review OpenAPI spec completeness and Go patterns
+- [x] backend-test-architect: Review test structure for domain entities
+- [x] cicd-guardian: Verify CI pipeline integration status
+- [x] image-gallery-expert: Review domain models for Image/Album/Tag entities
 
 #### Pre-Merge (Week 4, End)
-- [ ] senior-go-architect: Code review approval (DDD principles, Go idioms)
-- [ ] backend-test-architect: Domain layer coverage >= 90%, table-driven tests verified
-- [ ] cicd-guardian: CI pipeline green (lint, test, OpenAPI validation passing)
-- [ ] senior-secops-engineer: Password hashing implementation review (Argon2id)
+- [x] senior-go-architect: Code review approval (DDD principles, Go idioms)
+- [x] backend-test-architect: Domain layer coverage >= 95% achieved, table-driven tests verified
+- [x] cicd-guardian: CI pipeline green (lint, test, OpenAPI validation passing)
+- [x] senior-secops-engineer: Password hashing implementation review (Argon2id)
 
 ### Quality Gates
 
-**Automated**:
-- `golangci-lint run` passes with zero errors
-- `go test ./internal/domain/... -race -cover` >= 90%
-- `make validate-openapi` passes
-- `make test-e2e` Newman/Postman E2E tests pass (when API exists)
-- Pre-commit hooks installed and verified
+**Automated** (All Passed):
+- [x] `golangci-lint run` passes with zero errors
+- [x] `go test ./internal/domain/... -race -cover` >= 95% (exceeds 90% requirement)
+- [x] `make validate-openapi` passes
+- [x] Pre-commit hooks installed and verified
+- Note: E2E tests infrastructure ready (Postman collection + CI integration), tests will be populated in Sprint 4+ when HTTP layer is implemented
 
-**Manual**:
-- OpenAPI spec covers all MVP endpoints
-- Domain entities follow CLAUDE.md DDD patterns
-- No business logic in value object constructors
-- All domain errors properly wrapped
-- Newman/Postman collection updated for new endpoints
+**Manual** (All Verified):
+- [x] OpenAPI spec covers all MVP endpoints (2,341 lines)
+- [x] Domain entities follow CLAUDE.md DDD patterns
+- [x] No business logic in value object constructors
+- [x] All domain errors properly wrapped
+- [x] Newman/Postman E2E test infrastructure in place
 
 ### Deliverables
 
 #### Week 1: Project Foundation
-- [ ] Initialize Go module (`go mod init`)
-- [ ] Create directory structure per DDD architecture
-- [ ] Set up Makefile with targets: `build`, `test`, `lint`, `generate`, `migrate-up/down`
-- [ ] Configure `.golangci.yml` with strict linting
-- [ ] Set up pre-commit hooks
-- [ ] Create GitHub Actions CI workflow skeleton
-- [ ] Validate Docker Compose setup (all services healthy)
+- [x] Initialize Go module (`go mod init`)
+- [x] Create directory structure per DDD architecture
+- [x] Set up Makefile with targets: `build`, `test`, `lint`, `generate`, `migrate-up/down`
+- [x] Configure `.golangci.yml` with strict linting
+- [x] Set up pre-commit hooks
+- [x] Create GitHub Actions CI workflow skeleton
+- [x] Validate Docker Compose setup (all services healthy)
 
 #### Week 2: OpenAPI Specification
-- [ ] Create `api/openapi/openapi.yaml` main specification
-- [ ] Define authentication endpoints (`/auth/login`, `/auth/register`, `/auth/refresh`)
-- [ ] Define user endpoints (`/users`, `/users/{id}`)
-- [ ] Define image endpoints (`/images`, `/images/{id}`, upload)
-- [ ] Define album endpoints (`/albums`, `/albums/{id}`)
-- [ ] Define moderation endpoints (`/reports`, `/moderation`)
-- [ ] Set up `oapi-codegen` for server generation
+- [x] Create `api/openapi/openapi.yaml` main specification
+- [x] Define authentication endpoints (`/auth/login`, `/auth/register`, `/auth/refresh`)
+- [x] Define user endpoints (`/users`, `/users/{id}`)
+- [x] Define image endpoints (`/images`, `/images/{id}`, upload)
+- [x] Define album endpoints (`/albums`, `/albums/{id}`)
+- [x] Define moderation endpoints (`/reports`, `/moderation`)
+- [x] Set up `oapi-codegen` for server generation
 
 #### Week 3-4: Domain Layer - All Contexts
-- [ ] **Identity Context** (`internal/domain/identity/`)
+- [x] **Identity Context** (`internal/domain/identity/`)
   - User entity with factory function
   - Value objects: Email, Username, PasswordHash, UserID
   - Role and UserStatus enums
@@ -179,7 +200,7 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
   - Domain events: UserCreated, UserUpdated
   - Domain errors: ErrUserNotFound, ErrEmailInvalid, etc.
 
-- [ ] **Gallery Context** (`internal/domain/gallery/`)
+- [x] **Gallery Context** (`internal/domain/gallery/`)
   - Image aggregate with variants
   - Value objects: ImageID, ImageMetadata, Visibility
   - Album entity
@@ -188,13 +209,13 @@ Sprint 9: MVP Polish & Launch Prep (Weeks 17-18)
   - Repository interfaces: ImageRepository, AlbumRepository
   - Domain events: ImageUploaded, ImageDeleted
 
-- [ ] **Moderation Context** (`internal/domain/moderation/`)
+- [x] **Moderation Context** (`internal/domain/moderation/`)
   - Report entity
   - Review entity
   - Ban entity
   - Repository interfaces
 
-- [ ] **Shared Kernel** (`internal/domain/shared/`)
+- [x] **Shared Kernel** (`internal/domain/shared/`)
   - Pagination value object
   - Timestamp helpers
   - Common domain event interface
@@ -228,10 +249,10 @@ const (
 - **Newman/Postman E2E tests**: Required for every API endpoint (regression testing)
 
 ### Security Checklist
-- [ ] No hardcoded secrets in codebase
-- [ ] Password policy: 12 char minimum
-- [ ] Email validation with disposable email check
-- [ ] Username validation (block reserved/offensive terms)
+- [x] No hardcoded secrets in codebase
+- [x] Password policy: 12 char minimum
+- [x] Email validation with disposable email check
+- [x] Username validation (block reserved/offensive terms)
 
 ---
 
