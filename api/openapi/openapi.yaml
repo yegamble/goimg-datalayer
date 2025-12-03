@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: goimg-datalayer API
   version: 1.0.0
@@ -814,16 +814,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Album'
-                  - type: object
-                    properties:
-                      images:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Image'
-                      pagination:
-                        $ref: '#/components/schemas/Pagination'
+                $ref: '#/components/schemas/AlbumWithImages'
         '404':
           description: Album not found or not accessible
           content:
@@ -1988,9 +1979,9 @@ components:
           nullable: true
           example: 123e4567-e89b-12d3-a456-426614174002
         cover_image:
+          nullable: true
           allOf:
             - $ref: '#/components/schemas/Image'
-            - nullable: true
         image_count:
           type: integer
           example: 15
@@ -2002,6 +1993,56 @@ components:
           type: string
           format: date-time
           example: 2024-01-15T11:00:00Z
+
+    AlbumWithImages:
+      type: object
+      required: [id, owner_id, title, visibility, image_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        owner_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        title:
+          type: string
+          example: Summer Vacation 2024
+        description:
+          type: string
+          nullable: true
+          example: Photos from our trip to the mountains
+        visibility:
+          type: string
+          enum: [public, private, unlisted]
+          example: public
+        cover_image_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: 123e4567-e89b-12d3-a456-426614174002
+        cover_image:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Image'
+        image_count:
+          type: integer
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T11:00:00Z
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
 
     Tag:
       type: object

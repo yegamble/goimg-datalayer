@@ -105,9 +105,13 @@ lint:
 	@echo "Running golangci-lint..."
 	@golangci-lint run
 
-# Code generation (placeholder for Sprint 2)
+# Code generation from OpenAPI spec
 generate:
-	@echo "Code generation not yet configured (Sprint 2: OpenAPI)"
+	@echo "Generating server code from OpenAPI spec..."
+	@mkdir -p internal/interfaces/http/generated
+	@PATH="$(PATH):/root/go/bin" oapi-codegen -config api/openapi/oapi-codegen.yaml api/openapi/openapi.yaml
+	@gofmt -w internal/interfaces/http/generated/
+	@echo "Code generation complete: internal/interfaces/http/generated/server.gen.go"
 
 # Database migrations (placeholder - will need Goose in Sprint 3)
 migrate-up:
@@ -128,9 +132,11 @@ run-worker:
 	@echo "Starting background worker..."
 	@go run ./cmd/worker
 
-# OpenAPI validation (placeholder for Sprint 2)
+# OpenAPI validation
 validate-openapi:
-	@echo "OpenAPI validation not yet configured (Sprint 2)"
+	@echo "Validating OpenAPI specification..."
+	@GOTOOLCHAIN=local go run tools/validate-openapi/main.go api/openapi/openapi.yaml
+	@echo "OpenAPI spec validation passed"
 
 # Docker Compose
 docker-up:
