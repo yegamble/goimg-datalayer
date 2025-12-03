@@ -14,9 +14,9 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-2 COMPLETE. Sprint 3 (Infrastructure - Identity Context) in progress.
+**Status**: Sprint 1-3 COMPLETE. Sprint 4 (Application & HTTP - Identity Context) in progress.
 
-**What Exists** (Completed in Sprint 1-2):
+**What Exists** (Completed in Sprint 1-3):
 - Go module with DDD directory structure (`internal/domain`, `internal/application`, `internal/infrastructure`, `internal/interfaces`)
 - Complete domain layer implementation with 95% test coverage:
   - Identity Context: User, Email, Username, PasswordHash, UserID, Role, UserStatus
@@ -36,12 +36,15 @@ This sprint plan is informed by:
 - Architecture documentation (DDD patterns, coding standards, API security)
 - CLAUDE.md guides for each layer
 - Placeholder cmd directories (api, worker, migrate)
+- Database migrations (users, sessions tables) with Goose
+- PostgreSQL connection pool and repositories (UserRepository, SessionRepository)
+- Redis client and session store
+- JWT service with RS256 signing (4096-bit keys enforced)
+- Refresh token rotation with replay detection
+- Token blacklist in Redis
+- Integration tests with testcontainers (PostgreSQL, Redis)
 
-**What's Missing** (Sprint 3+):
-- Database migrations (Sprint 3)
-- PostgreSQL repositories (Sprint 3)
-- Redis client and session store (Sprint 3)
-- JWT service and authentication (Sprint 3-4)
+**What's Missing** (Sprint 4+):
 - Application layer commands and queries (Sprint 4+)
 - HTTP handlers and middleware (Sprint 4+)
 - Image processing and storage providers (Sprint 5+)
@@ -258,6 +261,8 @@ const (
 
 ## Sprint 3: Infrastructure - Identity Context
 
+**STATUS**: **COMPLETED** ✓
+
 **Duration**: 2 weeks
 **Focus**: Database, Redis, JWT implementation
 
@@ -269,34 +274,34 @@ const (
 ### Agent Checkpoints
 
 #### Pre-Sprint
-- [ ] senior-go-architect: Review infrastructure patterns and repository implementations
-- [ ] senior-secops-engineer: Review JWT architecture (RS256, token rotation, replay detection)
-- [ ] backend-test-architect: Plan integration test strategy with testcontainers
+- [x] senior-go-architect: Review infrastructure patterns and repository implementations
+- [x] senior-secops-engineer: Review JWT architecture (RS256, token rotation, replay detection)
+- [x] backend-test-architect: Plan integration test strategy with testcontainers
 
 #### Mid-Sprint (Day 7)
-- [ ] senior-secops-engineer: Review session management and refresh token security
-- [ ] senior-go-architect: Review database migration structure and repository implementations
-- [ ] backend-test-architect: Coverage trajectory check (infrastructure layer >= 70%)
+- [x] senior-secops-engineer: Review session management and refresh token security
+- [x] senior-go-architect: Review database migration structure and repository implementations
+- [x] backend-test-architect: Coverage trajectory check (infrastructure layer >= 70%)
 
 #### Pre-Merge
-- [ ] senior-go-architect: Code review approval (connection pooling, error handling)
-- [ ] senior-secops-engineer: Security controls verified (token hashing, constant-time comparison, Redis key patterns)
-- [ ] backend-test-architect: Integration tests passing with testcontainers
-- [ ] cicd-guardian: Migration rollback tested
+- [x] senior-go-architect: Code review approval (connection pooling, error handling)
+- [x] senior-secops-engineer: Security controls verified (token hashing, constant-time comparison, Redis key patterns)
+- [x] backend-test-architect: Integration tests passing with testcontainers
+- [x] cicd-guardian: Migration rollback tested
 
 ### Quality Gates
 
 **Automated**:
-- Migration up/down tested successfully
-- Integration tests with PostgreSQL/Redis containers passing
-- `gosec ./...` security scan clean
-- JWT signing/verification tests passing
+- [x] Migration up/down tested successfully
+- [x] Integration tests with PostgreSQL/Redis containers passing
+- [x] `gosec ./...` security scan clean
+- [x] JWT signing/verification tests passing
 
 **Manual**:
-- JWT private key >= 4096-bit
-- Refresh tokens stored hashed (SHA-256 minimum)
-- Token replay attack detection verified
-- Database SSL connection enforced
+- [x] JWT private key >= 4096-bit
+- [x] Refresh tokens stored hashed (SHA-256 minimum)
+- [x] Token replay attack detection verified
+- [x] Database SSL connection enforced
 
 ### Deliverables
 
@@ -328,15 +333,15 @@ CREATE TABLE sessions (
 ```
 
 #### Infrastructure Implementations
-- [ ] PostgreSQL connection with pool configuration
-- [ ] Goose migration setup
-- [ ] UserRepository implementation (`internal/infrastructure/persistence/postgres/`)
-- [ ] SessionRepository implementation
-- [ ] Redis client setup
-- [ ] Session store (Redis)
-- [ ] JWT service with RS256 signing
-- [ ] Refresh token rotation with replay detection
-- [ ] Token blacklist in Redis
+- [x] PostgreSQL connection with pool configuration
+- [x] Goose migration setup
+- [x] UserRepository implementation (`internal/infrastructure/persistence/postgres/`)
+- [x] SessionRepository implementation
+- [x] Redis client setup
+- [x] Session store (Redis)
+- [x] JWT service with RS256 signing
+- [x] Refresh token rotation with replay detection
+- [x] Token blacklist in Redis
 
 ### Technical Requirements
 
@@ -366,11 +371,11 @@ goimg:ratelimit:{scope}:{key}    # Rate limiting
 - Token rotation on refresh (detect replay attacks)
 
 ### Security Checklist
-- [ ] JWT private key: 4096-bit minimum
-- [ ] Refresh tokens stored hashed
-- [ ] Token rotation detects replay attacks
-- [ ] Constant-time password comparison
-- [ ] Database uses SSL connections
+- [x] JWT private key: 4096-bit minimum
+- [x] Refresh tokens stored hashed
+- [x] Token rotation detects replay attacks
+- [x] Constant-time password comparison
+- [x] Database uses SSL connections
 
 ---
 

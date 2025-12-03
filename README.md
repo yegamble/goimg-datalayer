@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Sprint 3 - Infrastructure Layer (Identity Context)
+**Current Phase**: Sprint 4 - Application & HTTP Layer (Identity Context)
 
 **Completed**:
 - Sprint 1-2: Foundation & Domain Layer (4 weeks)
@@ -15,8 +15,17 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - CI/CD pipeline (GitHub Actions with linting, testing, security scanning)
   - Newman/Postman E2E test infrastructure
 
+- Sprint 3: Infrastructure - Identity Context (2 weeks)
+  - Database migrations (users, sessions tables)
+  - PostgreSQL connection pool and repositories (UserRepository, SessionRepository)
+  - Redis client and session store
+  - JWT service with RS256 signing (4096-bit keys enforced)
+  - Refresh token rotation with replay detection
+  - Token blacklist in Redis
+  - Integration tests with testcontainers (PostgreSQL, Redis)
+
 **In Progress**:
-- Sprint 3: Infrastructure - Identity Context (Database, Redis, JWT)
+- Sprint 4: Application & HTTP - Identity Context (Auth use cases, HTTP handlers, middleware)
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
@@ -234,8 +243,8 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | Sprint | Focus | Duration | Status |
 |--------|-------|----------|--------|
 | 1-2 | Foundation & Domain Layer | 4 weeks | **COMPLETE** |
-| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | In Progress |
-| 4 | Application & HTTP - Auth | 2 weeks | Planned |
+| 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | **COMPLETE** |
+| 4 | Application & HTTP - Auth | 2 weeks | In Progress |
 | 5 | Domain & Infrastructure - Gallery | 2 weeks | Planned |
 | 6 | Application & HTTP - Gallery | 2 weeks | Planned |
 | 7 | Moderation & Social Features | 2 weeks | Planned |
