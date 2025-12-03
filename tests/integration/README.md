@@ -9,7 +9,7 @@ Integration tests verify that components work together correctly with real depen
 ## Prerequisites
 
 - **Docker**: Must be running on your machine
-- **Go 1.24+**: For running tests
+- **Go 1.25+**: For running tests
 - **5GB+ free disk space**: For Docker images
 
 ## Running Integration Tests

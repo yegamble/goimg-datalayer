@@ -14,7 +14,7 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-4 COMPLETE. Sprint 5 (Domain & Infrastructure - Gallery Context) ready to start.
+**Status**: Sprint 1-4 COMPLETE. Sprint 5 (Domain & Infrastructure - Gallery Context) IN PROGRESS.
 
 **What Exists** (Completed in Sprint 1-4):
 - Go module with DDD directory structure (`internal/domain`, `internal/application`, `internal/infrastructure`, `internal/interfaces`)

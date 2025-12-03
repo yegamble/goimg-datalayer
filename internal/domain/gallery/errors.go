@@ -16,6 +16,10 @@ var (
 	ErrImageProcessing = errors.New("image is still processing")
 	ErrImageFlagged    = errors.New("image has been flagged for moderation")
 
+	// Security errors
+	ErrMalwareDetected   = errors.New("malware detected in uploaded file")
+	ErrStorageCorruption = errors.New("storage file is missing or corrupted")
+
 	// Validation errors - Metadata
 	ErrInvalidMetadata    = errors.New("invalid image metadata")
 	ErrTitleTooLong       = errors.New("title exceeds 255 characters")

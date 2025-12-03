@@ -36,7 +36,7 @@ Sprint 1-2 successfully established the foundational architecture for the goimg-
   - Networking configuration
 
 **Technical Decisions**:
-- Go 1.24+ selected for latest language features
+- Go 1.25+ selected for latest language features
 - golangci-lint v2.6.2 for comprehensive static analysis
 - Testify for test assertions
 - Table-driven tests as the standard pattern

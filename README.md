@@ -85,7 +85,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.24+ |
+| Language | Go 1.25+ |
 | Database | PostgreSQL 16+ |
 | Cache/Sessions | Redis 7+ |
 | Migrations | Goose |
@@ -101,7 +101,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.24
+go >= 1.25
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
