@@ -15,9 +15,10 @@ help:
 	@echo "  coverage-domain   - Generate HTML coverage report for domain layer"
 	@echo "  lint              - Run golangci-lint"
 	@echo "  generate          - Run code generation (oapi-codegen)"
-	@echo "  migrate-up        - Apply database migrations"
-	@echo "  migrate-down      - Rollback database migrations"
+	@echo "  migrate-up        - Apply pending database migrations"
+	@echo "  migrate-down      - Rollback last database migration"
 	@echo "  migrate-status    - Show migration status"
+	@echo "  migrate-create    - Create new migration (requires NAME=migration_name)"
 	@echo "  run               - Start API server locally"
 	@echo "  run-worker        - Start background worker"
 	@echo "  validate-openapi  - Validate OpenAPI specification"
@@ -79,9 +80,11 @@ test-unit:
 	@go test -race -short -v ./...
 
 # Integration tests (tests with database, Redis, etc.)
+# Requires Docker to be running for testcontainers
 test-integration:
-	@echo "Running integration tests..."
-	@go test -race -tags=integration -v ./...
+	@echo "Running integration tests with testcontainers..."
+	@echo "Note: Docker must be running for testcontainers"
+	@go test -race -tags=integration -v -timeout=10m ./tests/integration/...
 
 # E2E tests (Newman/Postman)
 test-e2e:
@@ -113,15 +116,26 @@ generate:
 	@gofmt -w internal/interfaces/http/generated/
 	@echo "Code generation complete: internal/interfaces/http/generated/server.gen.go"
 
-# Database migrations (placeholder - will need Goose in Sprint 3)
+# Database migrations with Goose
 migrate-up:
-	@echo "Migration up not yet configured (Sprint 3)"
+	@echo "Running pending migrations..."
+	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations up
 
 migrate-down:
-	@echo "Migration down not yet configured (Sprint 3)"
+	@echo "Rolling back last migration..."
+	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations down
 
 migrate-status:
-	@echo "Migration status not yet configured (Sprint 3)"
+	@echo "Checking migration status..."
+	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations status
+
+migrate-create:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	@echo "Creating new migration: $(NAME)"
+	@goose -dir migrations create $(NAME) sql
 
 # Run targets
 run:
