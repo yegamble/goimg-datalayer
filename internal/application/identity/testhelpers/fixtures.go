@@ -64,6 +64,19 @@ func ValidUserWithID(userID identity.UserID) *identity.User {
 	return user
 }
 
+// ValidUserWithPassword returns a valid user that can verify the given password.
+// This is useful for testing password verification flows.
+func ValidUserWithPassword(password string) *identity.User {
+	email, _ := identity.NewEmail(ValidEmail)
+	username, _ := identity.NewUsername(ValidUsername)
+	passwordHash, _ := identity.NewPasswordHash(password)
+
+	user, _ := identity.NewUser(email, username, passwordHash)
+	_ = user.Activate()
+	user.ClearEvents()
+	return user
+}
+
 // ValidActiveUser returns a user with active status.
 func ValidActiveUser() *identity.User {
 	user := ValidUser()
@@ -254,11 +267,11 @@ func InvalidUsernames() []string {
 // InvalidPasswords returns various invalid password strings for testing validation.
 func InvalidPasswords() []string {
 	return []string{
-		"",         // empty
-		"short",    // too short
-		"nodigit",  // missing digit
-		"NOUPPER",  // missing uppercase
-		"nolower1", // missing lowercase
+		"",           // empty
+		"short",      // too short
+		"nodigit",    // missing digit
+		"NOUPPER",    // missing uppercase
+		"nolower1",   // missing lowercase
 		"NoSpecial1", // missing special character
 	}
 }
@@ -266,9 +279,9 @@ func InvalidPasswords() []string {
 // WeakPasswords returns passwords that pass validation but are weak.
 func WeakPasswords() []string {
 	return []string{
-		"Password1!",    // common pattern
-		"Welcome123!",   // common pattern
-		"Test1234!",     // sequential
-		"Qwerty123!",    // keyboard pattern
+		"Password1!",  // common pattern
+		"Welcome123!", // common pattern
+		"Test1234!",   // sequential
+		"Qwerty123!",  // keyboard pattern
 	}
 }
