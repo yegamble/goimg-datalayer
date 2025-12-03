@@ -2,18 +2,12 @@ package unit_test
 
 import (
 	"testing"
-	"time"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/yegamble/goimg-datalayer/tests/integration/fixtures"
 )
 
 // TestJWTService_GenerateAccessToken tests generating an access token.
 func TestJWTService_GenerateAccessToken(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service instance once infrastructure layer is implemented
 	// jwtService := jwt.NewJWTService(
@@ -24,10 +18,10 @@ func TestJWTService_GenerateAccessToken(t *testing.T) {
 	// )
 
 	// Arrange
-	userID := uuid.New()
-	email := "test@example.com"
-	username := "testuser"
-	role := "user"
+	// userID := uuid.New()
+	// email := "test@example.com"
+	// username := "testuser"
+	// role := "user"
 
 	// Act
 	// token, err := jwtService.GenerateAccessToken(userID, email, username, role)
@@ -36,13 +30,12 @@ func TestJWTService_GenerateAccessToken(t *testing.T) {
 	// require.NoError(t, err)
 	// assert.NotEmpty(t, token)
 	// assert.Greater(t, len(token), 100, "JWT should be reasonably long")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_GenerateRefreshToken tests generating a refresh token.
 func TestJWTService_GenerateRefreshToken(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service instance
 	// jwtService := jwt.NewJWTService(
@@ -53,8 +46,8 @@ func TestJWTService_GenerateRefreshToken(t *testing.T) {
 	// )
 
 	// Arrange
-	userID := uuid.New()
-	sessionID := uuid.New()
+	// userID := uuid.New()
+	// sessionID := uuid.New()
 
 	// Act
 	// token, err := jwtService.GenerateRefreshToken(userID, sessionID)
@@ -63,13 +56,12 @@ func TestJWTService_GenerateRefreshToken(t *testing.T) {
 	// require.NoError(t, err)
 	// assert.NotEmpty(t, token)
 	// assert.Greater(t, len(token), 100, "JWT should be reasonably long")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_ValidateAccessToken tests validating a valid access token.
 func TestJWTService_ValidateAccessToken(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service instance
 	// jwtService := jwt.NewJWTService(
@@ -80,10 +72,10 @@ func TestJWTService_ValidateAccessToken(t *testing.T) {
 	// )
 
 	// Arrange - generate token
-	userID := uuid.New()
-	email := "test@example.com"
-	username := "testuser"
-	role := "user"
+	// userID := uuid.New()
+	// email := "test@example.com"
+	// username := "testuser"
+	// role := "user"
 
 	// token, err := jwtService.GenerateAccessToken(userID, email, username, role)
 	// require.NoError(t, err)
@@ -97,13 +89,12 @@ func TestJWTService_ValidateAccessToken(t *testing.T) {
 	// assert.Equal(t, email, claims.Email)
 	// assert.Equal(t, username, claims.Username)
 	// assert.Equal(t, role, claims.Role)
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_ValidateRefreshToken tests validating a valid refresh token.
 func TestJWTService_ValidateRefreshToken(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service instance
 	// jwtService := jwt.NewJWTService(
@@ -114,8 +105,8 @@ func TestJWTService_ValidateRefreshToken(t *testing.T) {
 	// )
 
 	// Arrange - generate refresh token
-	userID := uuid.New()
-	sessionID := uuid.New()
+	// userID := uuid.New()
+	// sessionID := uuid.New()
 
 	// token, err := jwtService.GenerateRefreshToken(userID, sessionID)
 	// require.NoError(t, err)
@@ -127,13 +118,12 @@ func TestJWTService_ValidateRefreshToken(t *testing.T) {
 	// require.NoError(t, err)
 	// assert.Equal(t, userID.String(), claims.UserID)
 	// assert.Equal(t, sessionID.String(), claims.SessionID)
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_ExpiredToken tests that expired tokens are rejected.
 func TestJWTService_ExpiredToken(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service with very short expiration
 	// jwtService := jwt.NewJWTService(
@@ -146,12 +136,12 @@ func TestJWTService_ExpiredToken(t *testing.T) {
 	// Arrange - generate token with 1 second expiration
 	// jwtService.SetAccessTokenDuration(1 * time.Second)
 
-	userID := uuid.New()
+	// userID := uuid.New()
 	// token, err := jwtService.GenerateAccessToken(userID, "test@example.com", "testuser", "user")
 	// require.NoError(t, err)
 
 	// Wait for token to expire
-	time.Sleep(2 * time.Second)
+	// time.Sleep(2 * time.Second)
 
 	// Act - validate expired token
 	// _, err = jwtService.ValidateAccessToken(token)
@@ -159,13 +149,12 @@ func TestJWTService_ExpiredToken(t *testing.T) {
 	// Assert - should return error
 	// require.Error(t, err)
 	// assert.Contains(t, err.Error(), "expired")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_InvalidSignature tests that tokens with invalid signatures are rejected.
 func TestJWTService_InvalidSignature(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service
 	// jwtService := jwt.NewJWTService(
@@ -183,7 +172,7 @@ func TestJWTService_InvalidSignature(t *testing.T) {
 	//     fixtures.TestJWTAudience,
 	// )
 
-	userID := uuid.New()
+	// userID := uuid.New()
 	// token, err := differentKeyService.GenerateAccessToken(userID, "test@example.com", "testuser", "user")
 	// require.NoError(t, err)
 
@@ -193,13 +182,12 @@ func TestJWTService_InvalidSignature(t *testing.T) {
 	// Assert - should fail signature verification
 	// require.Error(t, err)
 	// assert.Contains(t, err.Error(), "signature")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_TokenClaims tests that all expected claims are present.
 func TestJWTService_TokenClaims(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service
 	// jwtService := jwt.NewJWTService(
@@ -210,10 +198,10 @@ func TestJWTService_TokenClaims(t *testing.T) {
 	// )
 
 	// Arrange
-	userID := uuid.New()
-	email := "test@example.com"
-	username := "testuser"
-	role := "admin"
+	// userID := uuid.New()
+	// email := "test@example.com"
+	// username := "testuser"
+	// role := "admin"
 
 	// Act
 	// token, err := jwtService.GenerateAccessToken(userID, email, username, role)
@@ -235,8 +223,6 @@ func TestJWTService_TokenClaims(t *testing.T) {
 	// assert.Equal(t, email, claims.Email)
 	// assert.Equal(t, username, claims.Username)
 	// assert.Equal(t, role, claims.Role)
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_MalformedToken tests handling of malformed tokens.
@@ -278,6 +264,7 @@ func TestJWTService_MalformedToken(t *testing.T) {
 // TestJWTService_WrongAudience tests that tokens with wrong audience are rejected.
 func TestJWTService_WrongAudience(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT services with different audiences
 	// service1 := jwt.NewJWTService(
@@ -294,7 +281,7 @@ func TestJWTService_WrongAudience(t *testing.T) {
 	// )
 
 	// Arrange - generate token with audience1
-	userID := uuid.New()
+	// userID := uuid.New()
 	// token, err := service1.GenerateAccessToken(userID, "test@example.com", "testuser", "user")
 	// require.NoError(t, err)
 
@@ -304,13 +291,12 @@ func TestJWTService_WrongAudience(t *testing.T) {
 	// Assert - should fail audience check
 	// require.Error(t, err)
 	// assert.Contains(t, err.Error(), "audience")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
 
 // TestJWTService_UniqueJTI tests that each token has a unique JTI.
 func TestJWTService_UniqueJTI(t *testing.T) {
 	t.Parallel()
+	t.Skip("Skipping until JWTService implementation is available")
 
 	// TODO: Create JWT service
 	// jwtService := jwt.NewJWTService(
@@ -321,10 +307,10 @@ func TestJWTService_UniqueJTI(t *testing.T) {
 	// )
 
 	// Arrange
-	userID := uuid.New()
-	email := "test@example.com"
-	username := "testuser"
-	role := "user"
+	// userID := uuid.New()
+	// email := "test@example.com"
+	// username := "testuser"
+	// role := "user"
 
 	// Act - generate multiple tokens
 	// token1, err := jwtService.GenerateAccessToken(userID, email, username, role)
@@ -339,6 +325,4 @@ func TestJWTService_UniqueJTI(t *testing.T) {
 
 	// Assert - JTIs should be different
 	// assert.NotEqual(t, claims1.JTI, claims2.JTI, "each token should have unique JTI")
-
-	t.Skip("Skipping until JWTService implementation is available")
 }
