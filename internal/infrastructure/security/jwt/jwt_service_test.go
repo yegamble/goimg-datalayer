@@ -407,25 +407,36 @@ func TestService_ValidateToken_InvalidToken(t *testing.T) {
 func TestService_ValidateToken_WrongIssuer(t *testing.T) {
 	t.Parallel()
 
-	// Create service with one issuer
+	// Generate keys once and use for both services
 	privateKeyPath, publicKeyPath := generateTestKeys(t, 4096)
-	cfg := Config{
+
+	// Create service with one issuer to sign the token
+	cfg1 := Config{
 		PrivateKeyPath: privateKeyPath,
 		PublicKeyPath:  publicKeyPath,
 		AccessTTL:      15 * time.Minute,
 		RefreshTTL:     7 * 24 * time.Hour,
 		Issuer:         "wrong-issuer",
 	}
-	wrongSvc, err := NewService(cfg)
+	wrongSvc, err := NewService(cfg1)
 	require.NoError(t, err)
 
 	// Generate token with wrong issuer
 	token, err := wrongSvc.GenerateAccessToken("user-id", "test@example.com", "user", "session-id")
 	require.NoError(t, err)
 
-	// Try to validate with service expecting different issuer
-	svc := getTestService(t) // Uses "goimg-api" as issuer
+	// Create another service with same keys but different issuer
+	cfg2 := Config{
+		PrivateKeyPath: privateKeyPath,
+		PublicKeyPath:  publicKeyPath,
+		AccessTTL:      15 * time.Minute,
+		RefreshTTL:     7 * 24 * time.Hour,
+		Issuer:         "goimg-api",
+	}
+	svc, err := NewService(cfg2)
+	require.NoError(t, err)
 
+	// Try to validate with service expecting different issuer
 	claims, err := svc.ValidateToken(token)
 
 	require.Error(t, err)

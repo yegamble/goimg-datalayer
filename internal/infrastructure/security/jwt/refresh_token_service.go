@@ -197,7 +197,7 @@ func (s *RefreshTokenService) MarkAsUsed(ctx context.Context, token string) erro
 	metadata.Used = true
 
 	// Update metadata in Redis
-	data, err = json.Marshal(metadata)
+	updatedData, err := json.Marshal(metadata)
 	if err != nil {
 		return fmt.Errorf("failed to serialize token metadata: %w", err)
 	}
@@ -209,7 +209,7 @@ func (s *RefreshTokenService) MarkAsUsed(ctx context.Context, token string) erro
 		return fmt.Errorf("token has expired")
 	}
 
-	err = s.redis.Set(ctx, key, data, ttl).Err()
+	err = s.redis.Set(ctx, key, updatedData, ttl).Err()
 	if err != nil {
 		return fmt.Errorf("failed to update token metadata: %w", err)
 	}
