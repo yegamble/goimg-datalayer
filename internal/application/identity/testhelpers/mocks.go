@@ -7,10 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/services"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt"
 )
 
 // MockUserRepository is a mock implementation of identity.UserRepository.
@@ -66,7 +65,7 @@ func (m *MockUserRepository) Delete(ctx context.Context, id identity.UserID) err
 	return args.Error(0)
 }
 
-// MockJWTService is a mock implementation of jwt.Service.
+// MockJWTService is a mock implementation of services.JWTService.
 type MockJWTService struct {
 	mock.Mock
 }
@@ -84,11 +83,11 @@ func (m *MockJWTService) GenerateRefreshToken(userID, email, role, sessionID str
 }
 
 // ValidateToken validates a JWT token and returns claims.
-func (m *MockJWTService) ValidateToken(tokenString string) (*jwt.Claims, error) {
+func (m *MockJWTService) ValidateToken(tokenString string) (*services.JWTClaims, error) {
 	args := m.Called(tokenString)
-	var claims *jwt.Claims
+	var claims *services.JWTClaims
 	if args.Get(0) != nil {
-		claims = args.Get(0).(*jwt.Claims)
+		claims = args.Get(0).(*services.JWTClaims)
 	}
 	return claims, args.Error(1)
 }
@@ -105,7 +104,7 @@ func (m *MockJWTService) GetTokenExpiration(tokenString string) (time.Time, erro
 	return args.Get(0).(time.Time), args.Error(1)
 }
 
-// MockRefreshTokenService is a mock implementation of jwt.RefreshTokenService.
+// MockRefreshTokenService is a mock implementation of services.RefreshTokenService.
 type MockRefreshTokenService struct {
 	mock.Mock
 }
@@ -114,21 +113,21 @@ type MockRefreshTokenService struct {
 func (m *MockRefreshTokenService) GenerateToken(
 	ctx context.Context,
 	userID, sessionID, familyID, parentHash, ip, userAgent string,
-) (string, *jwt.RefreshTokenMetadata, error) {
+) (string, *services.RefreshTokenMetadata, error) {
 	args := m.Called(ctx, userID, sessionID, familyID, parentHash, ip, userAgent)
-	var metadata *jwt.RefreshTokenMetadata
+	var metadata *services.RefreshTokenMetadata
 	if args.Get(1) != nil {
-		metadata = args.Get(1).(*jwt.RefreshTokenMetadata)
+		metadata = args.Get(1).(*services.RefreshTokenMetadata)
 	}
 	return args.String(0), metadata, args.Error(2)
 }
 
 // ValidateToken validates a refresh token and returns metadata.
-func (m *MockRefreshTokenService) ValidateToken(ctx context.Context, token string) (*jwt.RefreshTokenMetadata, error) {
+func (m *MockRefreshTokenService) ValidateToken(ctx context.Context, token string) (*services.RefreshTokenMetadata, error) {
 	args := m.Called(ctx, token)
-	var metadata *jwt.RefreshTokenMetadata
+	var metadata *services.RefreshTokenMetadata
 	if args.Get(0) != nil {
-		metadata = args.Get(0).(*jwt.RefreshTokenMetadata)
+		metadata = args.Get(0).(*services.RefreshTokenMetadata)
 	}
 	return metadata, args.Error(1)
 }
@@ -152,7 +151,7 @@ func (m *MockRefreshTokenService) RevokeFamily(ctx context.Context, familyID str
 }
 
 // DetectAnomalies checks for suspicious behavior in token usage.
-func (m *MockRefreshTokenService) DetectAnomalies(metadata *jwt.RefreshTokenMetadata, currentIP, currentUserAgent string) bool {
+func (m *MockRefreshTokenService) DetectAnomalies(metadata *services.RefreshTokenMetadata, currentIP, currentUserAgent string) bool {
 	args := m.Called(metadata, currentIP, currentUserAgent)
 	return args.Bool(0)
 }
@@ -235,23 +234,23 @@ func (m *MockSessionRepository) DeleteExpired(ctx context.Context) (int64, error
 	return args.Get(0).(int64), args.Error(1)
 }
 
-// MockSessionStore is a mock implementation of redis.SessionStore.
+// MockSessionStore is a mock implementation of services.SessionStore.
 type MockSessionStore struct {
 	mock.Mock
 }
 
 // Create creates a new session in Redis.
-func (m *MockSessionStore) Create(ctx context.Context, session redis.Session) error {
+func (m *MockSessionStore) Create(ctx context.Context, session services.Session) error {
 	args := m.Called(ctx, session)
 	return args.Error(0)
 }
 
 // Get retrieves a session by ID.
-func (m *MockSessionStore) Get(ctx context.Context, sessionID string) (*redis.Session, error) {
+func (m *MockSessionStore) Get(ctx context.Context, sessionID string) (*services.Session, error) {
 	args := m.Called(ctx, sessionID)
-	var session *redis.Session
+	var session *services.Session
 	if args.Get(0) != nil {
-		session = args.Get(0).(*redis.Session)
+		session = args.Get(0).(*services.Session)
 	}
 	return session, args.Error(1)
 }
@@ -275,23 +274,22 @@ func (m *MockSessionStore) RevokeAll(ctx context.Context, userID string) error {
 }
 
 // GetUserSessions retrieves all active sessions for a user.
-func (m *MockSessionStore) GetUserSessions(ctx context.Context, userID string) ([]*redis.Session, error) {
+func (m *MockSessionStore) GetUserSessions(ctx context.Context, userID string) ([]*services.Session, error) {
 	args := m.Called(ctx, userID)
-	var sessions []*redis.Session
+	var sessions []*services.Session
 	if args.Get(0) != nil {
-		sessions = args.Get(0).([]*redis.Session)
+		sessions = args.Get(0).([]*services.Session)
 	}
 	return sessions, args.Error(1)
 }
 
-// Count returns the number of active sessions.
-func (m *MockSessionStore) Count(ctx context.Context) (int64, error) {
-	args := m.Called(ctx)
-	return args.Get(0).(int64), args.Error(1)
+// MockEventPublisher is a mock implementation of EventPublisher.
+type MockEventPublisher struct {
+	mock.Mock
 }
 
-// Clear removes all sessions.
-func (m *MockSessionStore) Clear(ctx context.Context) error {
-	args := m.Called(ctx)
+// Publish publishes a domain event.
+func (m *MockEventPublisher) Publish(ctx context.Context, event interface{}) error {
+	args := m.Called(ctx, event)
 	return args.Error(0)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
@@ -24,6 +25,12 @@ type TestSuite struct {
 	// Session Management Mocks
 	SessionRepo  *MockSessionRepository // Postgres sessions
 	SessionStore *MockSessionStore      // Redis sessions
+
+	// Event Publishing Mock
+	EventPublisher *MockEventPublisher
+
+	// Logger for handlers (no-op logger for tests)
+	Logger zerolog.Logger
 
 	// Testing context
 	t *testing.T
@@ -52,6 +59,8 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		TokenBlacklist:      new(MockTokenBlacklist),
 		SessionRepo:         new(MockSessionRepository),
 		SessionStore:        new(MockSessionStore),
+		EventPublisher:      new(MockEventPublisher),
+		Logger:              zerolog.Nop(), // No-op logger for tests
 		t:                   t,
 	}
 }
@@ -65,6 +74,7 @@ func (s *TestSuite) AssertExpectations() {
 	s.TokenBlacklist.AssertExpectations(s.t)
 	s.SessionRepo.AssertExpectations(s.t)
 	s.SessionStore.AssertExpectations(s.t)
+	s.EventPublisher.AssertExpectations(s.t)
 }
 
 // Helper methods for common test setups

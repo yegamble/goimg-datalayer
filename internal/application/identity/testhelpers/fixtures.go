@@ -3,13 +3,11 @@ package testhelpers
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/services"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis"
-	jwtpkg "github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt"
 )
 
 // Test constants for consistent fixture data.
@@ -101,6 +99,27 @@ func ValidSuspendedUser() *identity.User {
 	return user
 }
 
+// ValidDeletedUser returns a deleted user.
+func ValidDeletedUser() *identity.User {
+	email, _ := identity.NewEmail(ValidEmail)
+	username, _ := identity.NewUsername(ValidUsername)
+	passwordHash, _ := identity.NewPasswordHash(ValidPassword)
+
+	user := identity.ReconstructUser(
+		identity.NewUserID(),
+		email,
+		username,
+		passwordHash,
+		identity.RoleUser,
+		identity.StatusDeleted, // Deleted status
+		ValidDisplayName,
+		ValidBio,
+		time.Now().UTC(),
+		time.Now().UTC(),
+	)
+	return user
+}
+
 // ValidEmail returns a valid Email value object.
 func ValidEmailVO() identity.Email {
 	email, _ := identity.NewEmail(ValidEmail)
@@ -125,49 +144,37 @@ func ValidTokenPair() (accessToken string, refreshToken string) {
 }
 
 // ValidJWTClaims returns valid JWT claims for testing.
-func ValidJWTClaims() *jwtpkg.Claims {
+func ValidJWTClaims() *services.JWTClaims {
 	now := time.Now().UTC()
-	return &jwtpkg.Claims{
+	return &services.JWTClaims{
 		UserID:    ValidUserID.String(),
 		Email:     ValidEmail,
 		Role:      string(identity.RoleUser),
 		SessionID: ValidSessionID.String(),
-		TokenType: jwtpkg.TokenTypeAccess,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "goimg-api",
-			Subject:   ValidUserID.String(),
-			ExpiresAt: jwt.NewNumericDate(now.Add(15 * time.Minute)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-			ID:        uuid.New().String(),
-		},
+		TokenType: "access",
+		JTI:       uuid.New().String(),
+		ExpiresAt: now.Add(15 * time.Minute),
 	}
 }
 
 // ExpiredJWTClaims returns expired JWT claims for testing.
-func ExpiredJWTClaims() *jwtpkg.Claims {
+func ExpiredJWTClaims() *services.JWTClaims {
 	now := time.Now().UTC()
-	return &jwtpkg.Claims{
+	return &services.JWTClaims{
 		UserID:    ValidUserID.String(),
 		Email:     ValidEmail,
 		Role:      string(identity.RoleUser),
 		SessionID: ValidSessionID.String(),
-		TokenType: jwtpkg.TokenTypeAccess,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "goimg-api",
-			Subject:   ValidUserID.String(),
-			ExpiresAt: jwt.NewNumericDate(now.Add(-1 * time.Hour)), // Expired 1 hour ago
-			IssuedAt:  jwt.NewNumericDate(now.Add(-2 * time.Hour)),
-			NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
-			ID:        uuid.New().String(),
-		},
+		TokenType: "access",
+		JTI:       uuid.New().String(),
+		ExpiresAt: now.Add(-1 * time.Hour), // Expired 1 hour ago
 	}
 }
 
 // ValidRefreshTokenMetadata returns valid refresh token metadata for testing.
-func ValidRefreshTokenMetadata() *jwtpkg.RefreshTokenMetadata {
+func ValidRefreshTokenMetadata() *services.RefreshTokenMetadata {
 	now := time.Now().UTC()
-	return &jwtpkg.RefreshTokenMetadata{
+	return &services.RefreshTokenMetadata{
 		TokenHash:  "test-token-hash",
 		UserID:     ValidUserID.String(),
 		SessionID:  ValidSessionID.String(),
@@ -182,9 +189,9 @@ func ValidRefreshTokenMetadata() *jwtpkg.RefreshTokenMetadata {
 }
 
 // ExpiredRefreshTokenMetadata returns expired refresh token metadata.
-func ExpiredRefreshTokenMetadata() *jwtpkg.RefreshTokenMetadata {
+func ExpiredRefreshTokenMetadata() *services.RefreshTokenMetadata {
 	now := time.Now().UTC()
-	return &jwtpkg.RefreshTokenMetadata{
+	return &services.RefreshTokenMetadata{
 		TokenHash:  "expired-token-hash",
 		UserID:     ValidUserID.String(),
 		SessionID:  ValidSessionID.String(),
@@ -213,10 +220,10 @@ func ValidPostgresSession() *postgres.Session {
 	}
 }
 
-// ValidRedisSession returns a valid Redis session for testing.
-func ValidRedisSession() redis.Session {
+// ValidSession returns a valid services.Session for testing.
+func ValidSession() services.Session {
 	now := time.Now().UTC()
-	return redis.Session{
+	return services.Session{
 		SessionID: ValidSessionID.String(),
 		UserID:    ValidUserID.String(),
 		Email:     ValidEmail,
