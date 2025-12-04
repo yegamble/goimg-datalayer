@@ -3,9 +3,31 @@ package gallery
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
+
+// SearchSortBy defines the sort order for search results.
+type SearchSortBy string
+
+const (
+	SearchSortByRelevance  SearchSortBy = "relevance"
+	SearchSortByCreatedAt  SearchSortBy = "created_at"
+	SearchSortByViewCount  SearchSortBy = "view_count"
+	SearchSortByLikeCount  SearchSortBy = "like_count"
+)
+
+// SearchParams encapsulates all search criteria for image queries.
+type SearchParams struct {
+	Query      string          // Full-text search query (searches title and description)
+	Tags       []Tag           // Filter by tags (AND logic for multiple tags)
+	OwnerID    *identity.UserID // Optional: filter by owner
+	Visibility *Visibility     // Optional: filter by visibility (defaults to public only)
+	SortBy     SearchSortBy    // Sort order (defaults to relevance)
+	Pagination shared.Pagination // Pagination parameters
+}
 
 // ImageRepository defines the interface for persisting and retrieving images.
 // Implementations reside in the infrastructure layer.
@@ -33,6 +55,10 @@ type ImageRepository interface {
 	// FindByStatus retrieves images by status with pagination.
 	// Used for administrative tasks like finding processing or flagged images.
 	FindByStatus(ctx context.Context, status ImageStatus, pagination shared.Pagination) ([]*Image, int64, error)
+
+	// Search performs a full-text search on images with filters and sorting.
+	// Returns images matching the search criteria, total count, and any error.
+	Search(ctx context.Context, params SearchParams) ([]*Image, int64, error)
 
 	// Save persists an image (insert or update).
 	// The repository is responsible for detecting whether to insert or update.
@@ -133,4 +159,29 @@ type AlbumImageRepository interface {
 	// CountImagesInAlbum returns the number of images in an album.
 	// Used to update the image count on the album entity.
 	CountImagesInAlbum(ctx context.Context, albumID AlbumID) (int, error)
+}
+
+// LikeRepository defines the interface for managing image likes.
+// Likes represent a many-to-many relationship between users and images.
+type LikeRepository interface {
+	// Like creates a like relationship between a user and an image.
+	// Returns nil if the like already exists (idempotent).
+	Like(ctx context.Context, userID identity.UserID, imageID ImageID) error
+
+	// Unlike removes a like relationship between a user and an image.
+	// Returns nil if the like doesn't exist (idempotent).
+	Unlike(ctx context.Context, userID identity.UserID, imageID ImageID) error
+
+	// HasLiked checks if a user has liked an image.
+	HasLiked(ctx context.Context, userID identity.UserID, imageID ImageID) (bool, error)
+
+	// GetLikeCount returns the total number of likes for an image.
+	GetLikeCount(ctx context.Context, imageID ImageID) (int64, error)
+
+	// GetLikedImageIDs returns a paginated list of image IDs that a user has liked.
+	// Results are ordered by most recently liked first.
+	GetLikedImageIDs(ctx context.Context, userID identity.UserID, pagination shared.Pagination) ([]uuid.UUID, error)
+
+	// CountLikedImagesByUser returns the total number of images a user has liked.
+	CountLikedImagesByUser(ctx context.Context, userID identity.UserID) (int64, error)
 }

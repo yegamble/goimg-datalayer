@@ -346,6 +346,85 @@ func setRateLimitHeaders(w http.ResponseWriter, info *RateLimitInfo) {
 	w.Header().Set("X-RateLimit-Reset", strconv.FormatInt(info.Reset, 10))
 }
 
+// UploadRateLimiter creates a rate limiting middleware specifically for upload endpoints.
+// Uses a stricter limit (50 uploads/hour per user) to prevent storage abuse.
+//
+// Redis key pattern: goimg:ratelimit:upload:{user_id}
+//
+// This should be applied specifically to upload endpoints using chi's With() method:
+//
+// Usage:
+//
+//	r.With(middleware.UploadRateLimiter(cfg)).Post("/api/v1/images", handlers.Image.Upload)
+func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Default upload limit: 50 uploads per hour
+	uploadLimit := 50
+	uploadWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user ID in context - should not happen if JWTAuth middleware is present
+				cfg.Logger.Error().
+					Str("request_id", GetRequestID(ctx)).
+					Msg("upload rate limiter called without user context")
+
+				WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "Rate limiter configuration error")
+				return
+			}
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:upload:%s", userID)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, uploadLimit, uploadWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("upload rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Int("limit", uploadLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("upload rate limit exceeded - potential storage abuse")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Upload Limit Exceeded",
+					fmt.Sprintf("You have exceeded the upload limit of %d uploads per %s. Please try again later.", uploadLimit, uploadWindow),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // extractClientIP extracts the client IP address from the request.
 // If trustProxy is true, it checks X-Forwarded-For and X-Real-IP headers.
 // Otherwise, it uses RemoteAddr directly.

@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Sprint 5 - Domain & Infrastructure (Gallery Context)
+**Current Phase**: Sprint 6 - Application & HTTP (Gallery Context)
 
 **Completed**:
 - Sprint 1-2: Foundation & Domain Layer (4 weeks)
@@ -32,10 +32,18 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - Redis-backed rate limiting (5/100/300 req/min)
   - 30+ E2E tests covering complete auth flow
 
+- Sprint 5: Domain & Infrastructure - Gallery Context (2 weeks)
+  - Storage infrastructure: Local and S3 providers with comprehensive interface abstraction
+  - Security pipeline: ClamAV malware scanning, 7-step image validation (size/MIME/dimensions/pixels/malware/EXIF/re-encode)
+  - Image processing: bimg/libvips integration with 4 variant generation (thumbnail/small/medium/large)
+  - Repositories: ImageRepository (764 lines), AlbumRepository (334 lines) with PostgreSQL integration
+  - Database migration 00003: Gallery tables (images, image_variants, albums, album_images, tags, image_tags)
+  - Test coverage: 47 test functions across security/storage, 78.9% local storage, 97.1% validator, repository integration tests
+  - Security fix: SanitizeFilename consolidation (path traversal protection)
+
 **In Progress**:
-- Sprint 5: Domain & Infrastructure - Gallery Context
-  - Completed: Database migrations, storage interface (local + S3), ClamAV integration, image validator
-  - In progress: Image processor (bimg), gallery repositories
+- Sprint 6: Application & HTTP - Gallery Context
+  - Focus: Upload flow, image commands/queries, album management, search functionality, social features (likes, comments)
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
@@ -267,8 +275,8 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 1-2 | Foundation & Domain Layer | 4 weeks | **COMPLETE** ✅ |
 | 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | **COMPLETE** ✅ |
 | 4 | Application & HTTP - Auth | 2 weeks | **COMPLETE** ✅ |
-| 5 | Domain & Infrastructure - Gallery | 2 weeks | In Progress |
-| 6 | Application & HTTP - Gallery | 2 weeks | Planned |
+| 5 | Domain & Infrastructure - Gallery | 2 weeks | **COMPLETE** ✅ |
+| 6 | Application & HTTP - Gallery | 2 weeks | In Progress |
 | 7 | Moderation & Social Features | 2 weeks | Planned |
 | 8 | Integration, Testing & Security | 2 weeks | Planned |
 | 9 | MVP Polish & Launch | 2 weeks | Planned |

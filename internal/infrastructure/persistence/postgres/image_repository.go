@@ -128,6 +128,19 @@ const (
 		SELECT EXISTS(SELECT 1 FROM images WHERE id = $1 AND deleted_at IS NULL)
 	`
 
+	// Full-text search query with dynamic filtering
+	sqlSearchImagesBase = `
+		SELECT DISTINCT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
+		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,
+		       i.status, i.visibility, i.scan_status, i.view_count,
+		       i.created_at, i.updated_at,
+		       ts_rank(
+		           to_tsvector('english', i.title || ' ' || COALESCE(i.description, '')),
+		           plainto_tsquery('english', $1)
+		       ) AS relevance_score
+		FROM images i
+	`
+
 	sqlInsertVariant = `
 		INSERT INTO image_variants (
 			id, image_id, variant_type, storage_key, width, height, file_size, format, created_at
@@ -480,6 +493,139 @@ func (r *ImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (b
 		return false, fmt.Errorf("failed to check image existence: %w", err)
 	}
 	return exists, nil
+}
+
+// Search performs a full-text search on images with filters and sorting.
+// Uses PostgreSQL's ts_vector and ts_rank for relevance scoring.
+func (r *ImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
+	// Build dynamic query based on search parameters
+	query, countQuery, args := r.buildSearchQuery(params)
+
+	// Execute search query
+	type searchRow struct {
+		imageRow
+		RelevanceScore float64 `db:"relevance_score"`
+	}
+
+	var rows []searchRow
+	err := r.db.SelectContext(ctx, &rows, query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to search images: %w", err)
+	}
+
+	// Execute count query
+	var total int64
+	err = r.db.GetContext(ctx, &total, countQuery, args[:len(args)-2]...) // Exclude LIMIT and OFFSET
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count search results: %w", err)
+	}
+
+	// Convert rows to domain entities
+	images := make([]*gallery.Image, 0, len(rows))
+	for _, row := range rows {
+		image, err := rowToImage(row.imageRow)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to convert row to image: %w", err)
+		}
+		images = append(images, image)
+	}
+
+	return images, total, nil
+}
+
+// buildSearchQuery constructs a dynamic SQL query based on search parameters.
+func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string, string, []interface{}) {
+	query := sqlSearchImagesBase
+	countQuery := "SELECT COUNT(DISTINCT i.id) FROM images i"
+	args := []interface{}{params.Query}
+	paramIndex := 2
+
+	// Build WHERE conditions
+	conditions := []string{"i.deleted_at IS NULL", "i.status = 'active'"}
+
+	// Full-text search condition (only if query is not empty)
+	if params.Query != "" {
+		conditions = append(conditions,
+			"to_tsvector('english', i.title || ' ' || COALESCE(i.description, '')) @@ plainto_tsquery('english', $1)",
+		)
+	}
+
+	// Filter by visibility
+	if params.Visibility != nil {
+		conditions = append(conditions, fmt.Sprintf("i.visibility = $%d", paramIndex))
+		args = append(args, params.Visibility.String())
+		paramIndex++
+	} else {
+		// Default to public only if no visibility specified
+		conditions = append(conditions, "i.visibility = 'public'")
+	}
+
+	// Filter by owner
+	if params.OwnerID != nil {
+		conditions = append(conditions, fmt.Sprintf("i.owner_id = $%d", paramIndex))
+		args = append(args, params.OwnerID.String())
+		paramIndex++
+	}
+
+	// Filter by tags (AND logic - image must have ALL specified tags)
+	if len(params.Tags) > 0 {
+		query += " INNER JOIN image_tags it ON i.id = it.image_id INNER JOIN tags t ON it.tag_id = t.id"
+		countQuery += " INNER JOIN image_tags it ON i.id = it.image_id INNER JOIN tags t ON it.tag_id = t.id"
+
+		tagSlugs := make([]string, len(params.Tags))
+		for i, tag := range params.Tags {
+			tagSlugs[i] = tag.Slug()
+		}
+
+		conditions = append(conditions, fmt.Sprintf("t.slug = ANY($%d)", paramIndex))
+		args = append(args, tagSlugs)
+		paramIndex++
+
+		// For AND logic: group by image and count matching tags
+		query = fmt.Sprintf("%s WHERE %s GROUP BY i.id HAVING COUNT(DISTINCT t.id) = %d",
+			query, joinConditions(conditions), len(params.Tags))
+		countQuery = fmt.Sprintf("%s WHERE %s GROUP BY i.id HAVING COUNT(DISTINCT t.id) = %d",
+			countQuery, joinConditions(conditions), len(params.Tags))
+	} else {
+		query += " WHERE " + joinConditions(conditions)
+		countQuery += " WHERE " + joinConditions(conditions)
+	}
+
+	// Add ORDER BY based on sort parameter
+	switch params.SortBy {
+	case gallery.SearchSortByRelevance:
+		if params.Query != "" {
+			query += " ORDER BY relevance_score DESC, i.created_at DESC"
+		} else {
+			query += " ORDER BY i.created_at DESC"
+		}
+	case gallery.SearchSortByCreatedAt:
+		query += " ORDER BY i.created_at DESC"
+	case gallery.SearchSortByViewCount:
+		query += " ORDER BY i.view_count DESC, i.created_at DESC"
+	case gallery.SearchSortByLikeCount:
+		query += " ORDER BY i.view_count DESC, i.created_at DESC" // Using view_count as proxy for now
+	default:
+		query += " ORDER BY i.created_at DESC"
+	}
+
+	// Add pagination
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
+	args = append(args, params.Pagination.Limit(), params.Pagination.Offset())
+
+	return query, countQuery, args
+}
+
+// joinConditions joins SQL WHERE conditions with AND.
+func joinConditions(conditions []string) string {
+	result := ""
+	for i, cond := range conditions {
+		if i > 0 {
+			result += " AND "
+		}
+		result += cond
+	}
+	return result
 }
 
 // insertInTx creates a new image in the database within a transaction.
