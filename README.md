@@ -33,7 +33,9 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - 30+ E2E tests covering complete auth flow
 
 **In Progress**:
-- Sprint 5: Domain & Infrastructure - Gallery Context (Image processing, storage providers, ClamAV)
+- Sprint 5: Domain & Infrastructure - Gallery Context
+  - Completed: Database migrations, storage interface (local + S3), ClamAV integration, image validator
+  - In progress: Image processor (bimg), gallery repositories
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
@@ -216,8 +218,20 @@ Environment variables or config file:
 | `DATABASE_URL` | PostgreSQL connection string | - |
 | `REDIS_URL` | Redis connection string | - |
 | `JWT_SECRET` | JWT signing secret | - |
-| `STORAGE_PROVIDER` | `local`, `s3`, `spaces`, `b2` | `local` |
+| `STORAGE_PROVIDER` | `local`, `s3`, `spaces`, `b2`, `minio` | `local` |
 | `CLAMAV_HOST` | ClamAV daemon address | `localhost:3310` |
+
+### Storage Provider Settings
+
+| Variable | Description | Required For |
+|----------|-------------|--------------|
+| `LOCAL_STORAGE_PATH` | Local filesystem directory | local |
+| `S3_ENDPOINT` | S3 API endpoint | s3, spaces, b2, minio |
+| `S3_BUCKET` | Bucket name | s3, spaces, b2, minio |
+| `S3_ACCESS_KEY` | Access key ID | s3, spaces, b2, minio |
+| `S3_SECRET_KEY` | Secret access key | s3, spaces, b2, minio |
+| `S3_REGION` | AWS region | s3, spaces |
+| `S3_USE_PATH_STYLE` | Use path-style URLs | minio, b2 |
 
 ### IPFS Settings
 

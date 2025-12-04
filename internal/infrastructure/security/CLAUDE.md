@@ -1,15 +1,16 @@
 # Security Infrastructure Guide
 
-> JWT authentication, token management, and session security for goimg-datalayer.
+> Authentication, authorization, and malware scanning for goimg-datalayer.
 
 ## Overview
 
-This directory implements the authentication and authorization infrastructure for goimg, including:
+This directory implements the security infrastructure for goimg, including:
 
 - **JWT Service**: RS256-signed access and refresh tokens
 - **Token Blacklist**: Redis-backed revocation for immediate logout
 - **Session Store**: Redis-based session tracking with multi-device support
 - **Refresh Token Rotation**: Automatic rotation with replay attack detection
+- **ClamAV Integration**: Real-time malware scanning for uploaded images
 
 ## Architecture
 
@@ -466,6 +467,199 @@ claims := jwt.ValidateToken(token)
 - Unusual session creation patterns
 - Token expiration errors (clock skew)
 
+---
+
+## ClamAV Integration
+
+The `clamav` package provides malware scanning capabilities for uploaded images using the ClamAV antivirus daemon.
+
+### Architecture
+
+```
+security/clamav/
+├── scanner.go       # ClamAV client implementation
+└── scanner_test.go  # Tests with EICAR sample
+```
+
+The client communicates with the ClamAV daemon (clamd) over TCP using the ClamAV streaming protocol.
+
+### Configuration
+
+```go
+import "github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
+
+config := clamav.Config{
+    TCPAddress: "clamav:3310",  // Docker service name or host:port
+    Timeout:    30 * time.Second,
+}
+
+client, err := clamav.NewClient(config)
+if err != nil {
+    log.Fatal("Failed to create ClamAV client:", err)
+}
+
+// Verify ClamAV is responsive
+if err := client.Ping(ctx); err != nil {
+    log.Fatal("ClamAV daemon not responding:", err)
+}
+```
+
+### Usage
+
+#### Scanning Byte Data
+
+```go
+// Scan data loaded into memory (use for small files)
+result, err := client.Scan(ctx, imageData)
+if err != nil {
+    return fmt.Errorf("scan failed: %w", err)
+}
+
+if result.Infected {
+    log.Error("Malware detected:", result.Virus)
+    return errors.New("file contains malware")
+}
+
+log.Info("File is clean, scanned at:", result.ScannedAt)
+```
+
+#### Scanning Streams
+
+```go
+// Scan large files without loading into memory
+file, _ := os.Open("upload.jpg")
+defer file.Close()
+
+stat, _ := file.Stat()
+result, err := client.ScanReader(ctx, file, stat.Size())
+if err != nil {
+    return fmt.Errorf("scan failed: %w", err)
+}
+
+if result.Infected {
+    return fmt.Errorf("malware detected: %s", result.Virus)
+}
+```
+
+### ClamAV Protocol
+
+The client implements the ClamAV streaming protocol (INSTREAM):
+
+1. Connect to clamd via TCP
+2. Send `zINSTREAM\x00` command
+3. Stream data in 32KB chunks with 4-byte size prefix (big-endian)
+4. Send zero-length chunk to signal end of stream
+5. Read response: `stream: OK` or `stream: Virus-Name FOUND`
+
+### Performance Considerations
+
+**Chunked Streaming**: The client streams data in 32KB chunks, preventing memory spikes for large files.
+
+**Buffer Pooling**: Uses `sync.Pool` to reuse buffers and reduce GC pressure.
+
+**Timeouts**: Configurable timeout prevents indefinite blocking on slow scans.
+
+**Connection Per Scan**: Creates a new TCP connection for each scan to avoid state issues.
+
+### Testing
+
+The client includes comprehensive tests using the EICAR test file:
+
+```go
+// EICAR test string - safe malware signature for testing
+const eicarSignature = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+
+func TestScan_Malware(t *testing.T) {
+    result, err := client.Scan(ctx, []byte(eicarSignature))
+    require.NoError(t, err)
+    assert.True(t, result.Infected)
+    assert.Contains(t, result.Virus, "EICAR")
+}
+```
+
+### Integration with Image Validation
+
+ClamAV scanning is integrated into the image validation pipeline:
+
+```go
+// In storage/validator package
+if v.config.EnableMalwareScan && v.clamavClient != nil {
+    scanResult, err := v.clamavClient.Scan(ctx, imageData)
+    if err != nil {
+        return nil, fmt.Errorf("malware scan failed: %w", err)
+    }
+    if scanResult.Infected {
+        return nil, gallery.ErrMalwareDetected
+    }
+}
+```
+
+### Security Best Practices
+
+1. **Always scan uploads**: Enable malware scanning for all user-uploaded content
+2. **Keep signatures updated**: ClamAV daemon auto-updates virus definitions via freshclam
+3. **Monitor scan failures**: Alert on scan errors (could indicate daemon issues)
+4. **Combine with re-encoding**: Polyglot files bypass signature detection; re-encode through bimg
+5. **Timeout configuration**: Set appropriate timeouts for expected file sizes
+6. **Network isolation**: Run ClamAV in isolated container with no internet access
+
+### Deployment
+
+**Docker Compose**:
+```yaml
+services:
+  clamav:
+    image: clamav/clamav:stable
+    ports:
+      - "3310:3310"
+    volumes:
+      - clamav-data:/var/lib/clamav
+    environment:
+      - CLAMAV_NO_FRESHCLAM=false  # Enable automatic signature updates
+    healthcheck:
+      test: ["CMD", "clamdscan", "--ping", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+**Resource Requirements**:
+- RAM: Minimum 2GB (signature database size)
+- CPU: 1-2 cores for scanning throughput
+- Disk: 1GB for signatures
+
+### Monitoring
+
+Key metrics to track:
+
+- **Scan latency** (p50, p95, p99)
+- **Infected file count** (security incidents)
+- **Scan error rate** (daemon health)
+- **Signature database age** (update status)
+
+### Troubleshooting
+
+**Connection Refused**: ClamAV daemon not running or wrong address
+```bash
+docker ps | grep clamav
+docker logs clamav
+```
+
+**Timeout Errors**: Large files or slow daemon
+- Increase client timeout
+- Check ClamAV resource limits
+
+**Signature Database Outdated**: freshclam not running
+```bash
+docker exec clamav freshclam
+```
+
+**False Positives**: Report to ClamAV team
+- Test with latest signatures
+- Exclude specific patterns if confirmed safe
+
+---
+
 ## Future Enhancements
 
 ### Planned Improvements
@@ -476,6 +670,7 @@ claims := jwt.ValidateToken(token)
 4. **Machine Learning**: Detect abnormal usage patterns
 5. **Hardware Security Modules**: Store private keys in HSM for production
 6. **Certificate-Based Auth**: Support mTLS for service-to-service authentication
+7. **ML-based NSFW Detection**: Complement ClamAV with AI-based content moderation
 
 ### OAuth2 Integration
 
@@ -487,10 +682,16 @@ For third-party authentication:
 
 ## References
 
+### Authentication & Authorization
 - [RFC 7519: JWT](https://datatracker.ietf.org/doc/html/rfc7519)
 - [RFC 7515: JWS (JSON Web Signature)](https://datatracker.ietf.org/doc/html/rfc7515)
 - [OWASP JWT Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html)
 - [NIST SP 800-57: Key Management](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)
+
+### Malware Scanning
+- [ClamAV Documentation](https://docs.clamav.net/)
+- [ClamAV Protocol Specification](https://linux.die.net/man/8/clamd)
+- [EICAR Test File](https://www.eicar.org/download-anti-malware-testfile/)
 
 ## Support
 

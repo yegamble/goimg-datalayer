@@ -1,0 +1,2 @@
+This is not a JPEG file, just plain text with a .jpg extension.
+This should fail MIME type validation when checked by content, not extension.
