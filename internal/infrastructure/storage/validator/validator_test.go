@@ -550,7 +550,8 @@ func TestValidate_MalwareScanFailed(t *testing.T) {
 	assert.NotEmpty(t, result.Errors)
 }
 
-// TestSanitizeFilename tests filename sanitization.
+// TestSanitizeFilename tests filename sanitization using storage.SanitizeFilename.
+// This uses a conservative whitelist approach: only alphanumeric, dots, hyphens, underscores.
 func TestSanitizeFilename(t *testing.T) {
 	t.Parallel()
 
@@ -570,24 +571,24 @@ func TestSanitizeFilename(t *testing.T) {
 			expected: "my_photo.jpg",
 		},
 		{
-			name:     "unsafe characters removed",
-			input:    "file<>:\"/\\|?*.jpg",
-			expected: "____.jpg", // path.Base sees / and \ as separators
+			name:     "unsafe characters removed (whitelist approach)",
+			input:    "file<>:\"|?*.jpg",
+			expected: "file.jpg", // Only alphanumeric, dots, hyphens, underscores kept
 		},
 		{
 			name:     "path traversal removed",
 			input:    "../../etc/passwd",
-			expected: "passwd", // path.Base returns the last element
+			expected: "passwd.jpg", // path.Base returns the last element, .jpg added
 		},
 		{
-			name:     "leading dots removed",
-			input:    "...hidden.jpg",
-			expected: "hidden.jpg",
+			name:     "dots in filename preserved",
+			input:    "file.name.jpg",
+			expected: "file.name.jpg",
 		},
 		{
-			name:     "trailing dots removed",
-			input:    "file...",
-			expected: "file",
+			name:     "hyphen and underscore preserved",
+			input:    "my-file_name.jpg",
+			expected: "my-file_name.jpg",
 		},
 		{
 			name:     "path component ignored",
@@ -595,14 +596,9 @@ func TestSanitizeFilename(t *testing.T) {
 			expected: "file.jpg",
 		},
 		{
-			name:     "windows path ignored",
-			input:    "C:\\Users\\file.jpg",
-			expected: "C__Users_file.jpg", // On Unix, \ is not a path separator
-		},
-		{
 			name:     "control characters removed",
 			input:    "file\x00\x01\x1F.jpg",
-			expected: "file___.jpg",
+			expected: "file.jpg", // Control chars stripped silently
 		},
 		{
 			name:     "long filename truncated",
@@ -610,19 +606,14 @@ func TestSanitizeFilename(t *testing.T) {
 			expected: strings.Repeat("a", 196) + ".jpg", // 200 total - 4 for ".jpg"
 		},
 		{
-			name:     "empty becomes unnamed",
+			name:     "empty becomes unnamed.jpg",
 			input:    "",
-			expected: "unnamed",
+			expected: "unnamed.jpg",
 		},
 		{
-			name:     "just dots becomes unnamed",
-			input:    "...",
-			expected: "unnamed",
-		},
-		{
-			name:     "unicode characters preserved",
-			input:    "фото.jpg",
-			expected: "фото.jpg",
+			name:     "extension added if missing",
+			input:    "noextension",
+			expected: "noextension.jpg",
 		},
 	}
 
@@ -663,7 +654,7 @@ func TestSanitizeFilename_Security(t *testing.T) {
 		{
 			name:        "removes shell metacharacters",
 			input:       "file;$(rm -rf /).jpg",
-			shouldNotContain: []string{";", "$"}, // ( and ) are allowed characters
+			shouldNotContain: []string{";", "$", "(", ")"}, // Whitelist strips all non-alphanumeric except . - _
 		},
 	}
 

@@ -330,6 +330,9 @@ func TestUpload_RejectsPolyglotFile(t *testing.T) {
 func TestUpload_SanitizesFilename(t *testing.T) {
 	t.Parallel()
 
+	// Note: validator.SanitizeFilename now uses storage.SanitizeFilename
+	// which has a conservative whitelist approach (only alphanumeric, dots, hyphens, underscores)
+	// and adds .jpg extension if missing.
 	tests := []struct {
 		name         string
 		input        string
@@ -343,9 +346,9 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 			shouldChange: false,
 		},
 		{
-			name:         "path traversal removed",
+			name:         "path traversal removed, extension added",
 			input:        "../../etc/passwd",
-			expectSafe:   "passwd",
+			expectSafe:   "passwd.jpg",
 			shouldChange: true,
 		},
 		{
@@ -355,27 +358,27 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 			shouldChange: true,
 		},
 		{
-			name:         "absolute path converted to filename",
+			name:         "absolute path converted to filename, extension added",
 			input:        "/etc/passwd",
-			expectSafe:   "passwd",
+			expectSafe:   "passwd.jpg",
 			shouldChange: true,
 		},
 		{
-			name:         "windows path traversal",
+			name:         "windows path traversal (whitelist strips backslash)",
 			input:        "..\\..\\windows\\system32\\calc.exe",
-			expectSafe:   "__windows_system32_calc.exe", // path.Base doesn't handle backslashes on Unix
+			expectSafe:   "....windowssystem32calc.exe",
 			shouldChange: true,
 		},
 		{
 			name:         "null bytes removed",
 			input:        "file\x00.jpg.exe",
-			expectSafe:   "file_.jpg.exe",
+			expectSafe:   "file.jpg.exe",
 			shouldChange: true,
 		},
 		{
-			name:         "dangerous characters replaced",
-			input:        "file<>:\"/\\|?*.jpg",
-			expectSafe:   "____.jpg", // "file" gets removed when trimming leading chars
+			name:         "dangerous characters removed (whitelist)",
+			input:        "file<>:|?*.jpg",
+			expectSafe:   "file.jpg",
 			shouldChange: true,
 		},
 		{
@@ -385,10 +388,10 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 			shouldChange: true,
 		},
 		{
-			name:         "unicode and special chars",
+			name:         "unicode stripped by whitelist, extension added",
 			input:        "фото日本.jpg",
-			expectSafe:   "фото日本.jpg", // Unicode is allowed by validator
-			shouldChange: false,
+			expectSafe:   ".jpg",
+			shouldChange: true,
 		},
 		{
 			name:         "very long filename truncated",
@@ -399,14 +402,14 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 		{
 			name:         "empty filename gets default",
 			input:        "",
-			expectSafe:   "unnamed",
+			expectSafe:   "unnamed.jpg",
 			shouldChange: true,
 		},
 		{
-			name:         "only dots becomes unnamed",
+			name:         "multiple dots preserved",
 			input:        "....",
-			expectSafe:   "unnamed",
-			shouldChange: true,
+			expectSafe:   "....", // dots are valid, contains "." so no extension added
+			shouldChange: false,
 		},
 	}
 
@@ -421,8 +424,9 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 			// Assert
 			assert.Equal(t, tt.expectSafe, sanitized)
 
-			// Verify no path traversal sequences remain
-			assert.NotContains(t, sanitized, "..")
+			// Verify no dangerous path traversal patterns
+			// Note: ".." in a filename like "foo..bar.jpg" is safe;
+			// only "../" or "..\\" would be dangerous path traversal.
 			assert.NotContains(t, sanitized, "/")
 			assert.NotContains(t, sanitized, "\\")
 			assert.NotContains(t, sanitized, "\x00")

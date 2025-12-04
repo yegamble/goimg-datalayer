@@ -7,12 +7,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path"
-	"regexp"
 	"strings"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
 // ValidationResult contains the result of validating an image.
@@ -223,39 +222,8 @@ func (v *Validator) ValidateDimensions(width, height int) error {
 	return nil
 }
 
-// SanitizeFilename removes dangerous characters from a filename.
-var unsafeCharsRegex = regexp.MustCompile(`[<>:"/\\|?*\x00-\x1F]`)
-
-func SanitizeFilename(filename string) string {
-	// Get just the filename, no path
-	filename = path.Base(filename)
-
-	// Remove path traversal attempts
-	filename = strings.ReplaceAll(filename, "..", "")
-
-	// Remove unsafe characters
-	filename = unsafeCharsRegex.ReplaceAllString(filename, "_")
-
-	// Replace spaces
-	filename = strings.ReplaceAll(filename, " ", "_")
-
-	// Remove leading/trailing dots and spaces
-	filename = strings.Trim(filename, ". ")
-
-	// Limit length
-	if len(filename) > 200 {
-		ext := path.Ext(filename)
-		name := strings.TrimSuffix(filename, ext)
-		if len(name) > 200-len(ext) {
-			name = name[:200-len(ext)]
-		}
-		filename = name + ext
-	}
-
-	// Ensure we have a valid filename
-	if filename == "" || filename == "." {
-		filename = "unnamed"
-	}
-
-	return filename
-}
+// SanitizeFilename is re-exported from the storage package for convenience.
+// It removes dangerous characters from a filename using a conservative
+// whitelist approach (only alphanumeric, dots, hyphens, underscores).
+// See storage.SanitizeFilename for the canonical implementation.
+var SanitizeFilename = storage.SanitizeFilename
