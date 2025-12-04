@@ -31,13 +31,25 @@ type Image struct {
 // The image starts in processing status with private visibility.
 // An ImageUploaded event is emitted.
 func NewImage(ownerID identity.UserID, metadata ImageMetadata) (*Image, error) {
+	return NewImageWithID(NewImageID(), ownerID, metadata)
+}
+
+// NewImageWithID creates a new Image aggregate with a specific ID.
+// This is used by the application layer when the ID needs to be determined
+// before creating the aggregate (e.g., for storage key generation).
+// The image starts in processing status with private visibility.
+// An ImageUploaded event is emitted.
+func NewImageWithID(id ImageID, ownerID identity.UserID, metadata ImageMetadata) (*Image, error) {
+	if id.IsZero() {
+		return nil, fmt.Errorf("%w: image ID is required", shared.ErrInvalidInput)
+	}
 	if ownerID.IsZero() {
 		return nil, fmt.Errorf("%w: owner ID is required", shared.ErrInvalidInput)
 	}
 
 	now := time.Now().UTC()
 	img := &Image{
-		id:           NewImageID(),
+		id:           id,
 		ownerID:      ownerID,
 		metadata:     metadata,
 		visibility:   VisibilityPrivate, // Start private until processing completes
