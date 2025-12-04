@@ -508,6 +508,8 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 ## Sprint 5: Domain & Infrastructure - Gallery Context
 
+**STATUS**: **IN PROGRESS** (Infrastructure layer complete, repositories in progress)
+
 **Duration**: 2 weeks
 **Focus**: Image processing, storage providers, ClamAV
 
@@ -519,19 +521,19 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ### Agent Checkpoints
 
 #### Pre-Sprint
-- [ ] image-gallery-expert: Review image processing pipeline (bimg, variants, EXIF stripping)
-- [ ] senior-secops-engineer: Review image validation pipeline and ClamAV integration
-- [ ] senior-go-architect: Review storage provider interface design
+- [x] image-gallery-expert: Review image processing pipeline (bimg, variants, EXIF stripping)
+- [x] senior-secops-engineer: Review image validation pipeline and ClamAV integration
+- [x] senior-go-architect: Review storage provider interface design
 
 #### Mid-Sprint (Day 7)
 - [ ] image-gallery-expert: Verify variant generation quality and performance
-- [ ] senior-secops-engineer: Review malware scanning integration and polyglot prevention
+- [x] senior-secops-engineer: Review malware scanning integration and polyglot prevention
 - [ ] backend-test-architect: Coverage check for gallery domain/infrastructure
 
 #### Pre-Merge
 - [ ] senior-go-architect: Code review approval (storage abstraction, error handling)
 - [ ] image-gallery-expert: Image quality validation (variant sizes, formats, EXIF removal)
-- [ ] senior-secops-engineer: Security validation pipeline verified (6-step process)
+- [x] senior-secops-engineer: Security validation pipeline verified (7-step process)
 - [ ] backend-test-architect: Integration tests with ClamAV container passing
 
 ### Quality Gates
@@ -552,7 +554,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 #### Database Migrations
 ```sql
--- migrations/00002_create_gallery_tables.sql
+-- migrations/00003_create_gallery_tables.sql
 CREATE TABLE images (
     id UUID PRIMARY KEY,
     owner_id UUID NOT NULL REFERENCES users(id),
@@ -591,12 +593,13 @@ CREATE TABLE image_tags (...);
 ```
 
 #### Infrastructure Implementations
-- [ ] Storage interface definition
-- [ ] Local filesystem storage provider
-- [ ] S3-compatible storage provider (AWS SDK v2)
-- [ ] ClamAV client integration
+- [x] Storage interface definition
+- [x] Local filesystem storage provider
+- [x] S3-compatible storage provider (AWS SDK v2)
+- [x] ClamAV client integration
+- [x] Storage key generator with path traversal protection
+- [x] Image validator (size, MIME, magic bytes, malware)
 - [ ] Image processor with libvips (bimg)
-- [ ] Image validator (size, MIME, pixels, malware)
 - [ ] EXIF metadata stripper
 - [ ] Image repository implementation
 - [ ] Album repository implementation

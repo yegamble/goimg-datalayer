@@ -19,21 +19,21 @@ This package provides multi-provider object storage for images. Storage provider
 ```
 storage/
 ├── storage.go          # Common Storage interface
-├── orchestrator.go     # Multi-provider coordination
+├── keys.go             # Key generation and validation
 ├── errors.go           # Shared error types
 ├── local/
 │   ├── local.go        # Filesystem storage
 │   └── local_test.go
 ├── s3/
 │   ├── s3.go           # S3-compatible storage
-│   ├── config.go       # S3 configuration
 │   └── s3_test.go
-└── ipfs/
+├── validator/
+│   ├── validator.go    # Image validation pipeline
+│   └── validator_test.go
+└── ipfs/               # Future: IPFS integration
     ├── client.go       # IPFS HTTP API client
     ├── config.go       # IPFS configuration
-    ├── remote_pin.go   # Remote pinning services
-    ├── errors.go       # IPFS-specific errors
-    └── client_test.go
+    └── remote_pin.go   # Remote pinning services
 ```
 
 ## Storage Interface
@@ -132,6 +132,111 @@ func (c *Client) Get(ctx context.Context, key string) ([]byte, error)
 // Bad: exposes IPFS-specific types
 func (c *Client) Get(ctx context.Context, key string) (*ipfs.Object, error)
 ```
+
+## Key Generation and Validation
+
+All storage keys use a standardized format with security validation.
+
+### Key Format
+
+```
+images/{owner_id}/{image_id}/{variant}.{ext}
+```
+
+Example: `images/550e8400-e29b-41d4-a716-446655440000/7c9e6679-7425-40de-944b-e07fc1f90ae7/thumbnail.jpg`
+
+### Benefits
+
+- **Organization by user**: Enables bulk operations, quota management
+- **Unique image ID**: Prevents collisions
+- **Variant identification**: Distinguishes thumbnails from originals
+- **Extension for MIME sniffing**: Helps storage providers set Content-Type
+
+### Security Features
+
+The KeyGenerator validates all keys to prevent:
+- **Path traversal attacks** (../ sequences)
+- **Absolute paths** (leading /)
+- **Null bytes** (string termination exploits)
+- **Invalid characters**
+
+```go
+generator := storage.NewKeyGenerator()
+
+// Generate a safe key
+key := generator.GenerateKey(ownerID, imageID, "thumbnail", "jpg")
+// Returns: images/{uuid}/{uuid}/thumbnail.jpg
+
+// Validate before use
+if err := generator.ValidateKey(key); err != nil {
+    return err // Prevents path traversal
+}
+
+// Parse components from key
+ownerID, imageID, variant, ext, err := generator.ParseKey(key)
+```
+
+## Image Validation Pipeline
+
+The validator package implements a 7-step security validation pipeline for uploaded images.
+
+### Validation Steps
+
+1. **Size check**: Max 10MB (configurable)
+2. **MIME sniffing**: Detects type by content, not extension
+3. **Magic byte validation**: Verifies file format signatures
+4. **Dimension check**: Max 8192x8192 pixels (configurable)
+5. **Pixel count check**: Max 100M pixels (decompression bomb prevention)
+6. **ClamAV malware scan**: Detects viruses and polyglot files
+7. **Filename sanitization**: Removes dangerous characters
+
+### Usage
+
+```go
+import (
+    "github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/validator"
+    "github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
+)
+
+// Create ClamAV client
+clamavClient, _ := clamav.NewClient(clamav.DefaultConfig())
+
+// Create validator with default config
+config := validator.DefaultConfig()
+config.MaxFileSize = 10 * 1024 * 1024 // 10MB
+config.EnableMalwareScan = true
+
+v := validator.New(config, clamavClient)
+
+// Validate uploaded data
+result, err := v.Validate(ctx, imageData, originalFilename)
+if err != nil {
+    // Validation failed (size, malware, etc.)
+    return err
+}
+
+if !result.Valid {
+    // Check specific errors
+    for _, errMsg := range result.Errors {
+        log.Error(errMsg)
+    }
+}
+
+// Check malware scan result
+if result.ScanResult != nil && result.ScanResult.Infected {
+    log.Error("Malware detected:", result.ScanResult.Virus)
+}
+```
+
+### Validation Errors
+
+The validator returns domain errors from `internal/domain/gallery`:
+
+- `ErrFileTooLarge`: File exceeds size limit
+- `ErrInvalidMimeType`: Unsupported file type or invalid magic bytes
+- `ErrImageTooLarge`: Dimensions exceed maximum
+- `ErrImageTooManyPixels`: Pixel count exceeds limit (decompression bomb)
+- `ErrMalwareDetected`: ClamAV found malware
 
 ## Dual-Storage Pattern
 
