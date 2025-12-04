@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.25.x"  # Use latest patch version of Go 1.25
+  GO_VERSION: "1.24.x"  # Use latest patch version of Go 1.24
 
 jobs:
   # ============================================================================
@@ -58,7 +58,7 @@ jobs:
             ./...
 
       - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         if: always()
         with:
           sarif_file: gosec-results.sarif
@@ -106,9 +106,11 @@ jobs:
           ignore-unfixed: true
           # Scan private dependencies
           scanners: 'vuln,secret,config'
+          # Fail build on CRITICAL or HIGH vulnerabilities
+          exit-code: '1'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         if: always()
         with:
           sarif_file: 'trivy-${{ matrix.scan-type }}-results.sarif'
@@ -148,14 +150,40 @@ jobs:
         run: go mod download
 
       - name: Run govulncheck
+        id: govulncheck
         run: |
-          govulncheck -format json ./... > govulncheck-results.json 2>&1 || true
+          # Run govulncheck and capture results
+          govulncheck -format json ./... > govulncheck-results.json 2>&1 || GOVULN_EXIT=$?
+          echo "exit_code=${GOVULN_EXIT:-0}" >> $GITHUB_OUTPUT
+          exit 0  # Don't fail yet, we'll parse results first
 
-      - name: Display vulnerabilities
+      - name: Parse and display vulnerabilities
         run: |
           if [ -s govulncheck-results.json ]; then
+            echo "## Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Display readable output
             echo "Running govulncheck in text mode for readable output:"
-            govulncheck ./...
+            govulncheck ./... 2>&1 | tee govulncheck-output.txt || true
+
+            # Check for vulnerabilities
+            if grep -q "Vulnerability" govulncheck-output.txt; then
+              echo "⚠️ **Vulnerabilities detected!**" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat govulncheck-output.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+
+              # Fail if high or critical vulnerabilities found
+              if [ "${{ steps.govulncheck.outputs.exit_code }}" != "0" ]; then
+                echo "❌ Build failed due to vulnerabilities" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+            else
+              echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload govulncheck results
@@ -182,7 +210,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks secret scanner
-        uses: gitleaks/gitleaks-action@v2.3.7
+        uses: gitleaks/gitleaks-action@1f2d10fb689bc07a5f56f48d6db61f5bbbe772f3 # v2.3.7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional: for Gitleaks Pro
@@ -283,17 +311,17 @@ jobs:
           cache: true
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         with:
           languages: go
           # Run extended query suite for deeper analysis
           queries: +security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         with:
           category: "/language:go"
 

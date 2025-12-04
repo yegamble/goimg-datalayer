@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.25.x"  # Use latest patch version of Go 1.25
+  GO_VERSION: "1.24.x"  # Use latest patch version of Go 1.24
   GOLANGCI_LINT_VERSION: "v2.6.2"
 
 jobs:
@@ -510,10 +510,11 @@ jobs:
           args: '-fmt sarif -out gosec-results.sarif ./...'
 
       - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         if: always()
         with:
           sarif_file: gosec-results.sarif
+          category: gosec
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
@@ -523,12 +524,15 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          # Fail build on CRITICAL or HIGH vulnerabilities
+          exit-code: '1'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
         if: always()
         with:
           sarif_file: trivy-results.sarif
+          category: trivy
 
   # ============================================================================
   # Build Verification - Ensure the project builds successfully
@@ -653,10 +657,17 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            tests/e2e/package-lock.json
+            tests/e2e/package.json
 
       - name: Install Newman
         if: steps.check_e2e.outputs.exists == 'true'
         run: npm install -g newman newman-reporter-htmlextra
+        # Cache npm global packages for faster installs
+        env:
+          npm_config_cache: ~/.npm
 
       - name: Setup database and run migrations
         if: steps.check_e2e.outputs.exists == 'true'

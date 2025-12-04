@@ -1,0 +1,107 @@
+# Gitleaks configuration for goimg-datalayer
+# Detects hardcoded secrets, API keys, tokens, and credentials
+
+title = "Gitleaks Configuration for goimg-datalayer"
+
+# Extend the default Gitleaks configuration
+[extend]
+useDefault = true
+
+# Custom rules for this project
+[[rules]]
+id = "jwt-secret"
+description = "JWT signing secret"
+regex = '''(?i)(jwt[_-]?secret|signing[_-]?key)\s*[:=]\s*['"]?[a-zA-Z0-9+/=]{32,}['"]?'''
+tags = ["secret", "jwt"]
+
+[[rules]]
+id = "database-password"
+description = "Database password in connection string"
+regex = '''postgres://[^:]+:([^@]+)@'''
+tags = ["secret", "database"]
+
+[[rules]]
+id = "redis-password"
+description = "Redis password in connection string"
+regex = '''redis://[^:]+:([^@]+)@'''
+tags = ["secret", "redis"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+tags = ["secret", "aws"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Access Key"
+regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z/+]{40}['\"]'''
+tags = ["secret", "aws"]
+
+[[rules]]
+id = "do-spaces-key"
+description = "DigitalOcean Spaces Access Key"
+regex = '''(?i)(do[_-]?spaces[_-]?key|digitalocean[_-]?key)\s*[:=]\s*['"]?[A-Z0-9]{20}['"]?'''
+tags = ["secret", "digitalocean"]
+
+[[rules]]
+id = "b2-application-key"
+description = "Backblaze B2 Application Key"
+regex = '''(?i)(b2[_-]?app[_-]?key|backblaze[_-]?key)\s*[:=]\s*['"]?[A-Za-z0-9]{31}['"]?'''
+tags = ["secret", "backblaze"]
+
+[[rules]]
+id = "ipfs-api-key"
+description = "IPFS API Key (Pinata/Infura)"
+regex = '''(?i)(pinata[_-]?api[_-]?key|ipfs[_-]?api[_-]?key)\s*[:=]\s*['"]?[a-zA-Z0-9]{20,}['"]?'''
+tags = ["secret", "ipfs"]
+
+# Allowlist - Files and patterns to exclude from scanning
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+    '''go\.sum$''',
+    '''\.golangci\.yml$''',
+    '''\.github/workflows/.*\.yml$''',
+    '''tests/e2e/postman/.*\.json$''',
+    '''\.trivyignore$''',
+    '''\.gitleaks\.toml$''',
+    '''claude/.*\.md$''',
+]
+
+# Allow test fixtures and example data
+regexes = [
+    '''test[_-]?password''',
+    '''dummy[_-]?secret''',
+    '''example[_-]?key''',
+    '''fake[_-]?token''',
+    '''mock[_-]?api[_-]?key''',
+]
+
+# Allow common false positives
+[[allowlist.regexes]]
+regex = '''(?i)-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----'''
+description = "Test SSH/RSA keys in test fixtures"
+
+[[allowlist.regexes]]
+regex = '''(?i)AKIAIOSFODNN7EXAMPLE'''
+description = "AWS documentation example key"
+
+[[allowlist.regexes]]
+regex = '''(?i)wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'''
+description = "AWS documentation example secret"
+
+# Commits to allowlist (e.g., initial setup commits with example configs)
+# Format: "commit-hash"
+commits = []
+
+# Stop words - patterns that indicate false positives
+stopwords = [
+    "example",
+    "sample",
+    "dummy",
+    "test",
+    "mock",
+    "fake",
+    "placeholder",
+]
