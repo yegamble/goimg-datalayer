@@ -1914,6 +1914,1173 @@
       ]
     },
     {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Likes",
+          "item": [
+            {
+              "name": "Setup - Create Test Image for Social Tests",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Re-login to ensure fresh token",
+                      "const loginRequest = {",
+                      "    url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                      "    method: 'POST',",
+                      "    header: {",
+                      "        'Content-Type': 'application/json'",
+                      "    },",
+                      "    body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({",
+                      "            email: pm.collectionVariables.get('testEmail'),",
+                      "            password: pm.collectionVariables.get('testPassword')",
+                      "        })",
+                      "    }",
+                      "};",
+                      "",
+                      "pm.sendRequest(loginRequest, function (err, response) {",
+                      "    if (err) {",
+                      "        console.error('Login failed:', err);",
+                      "        return;",
+                      "    }",
+                      "    ",
+                      "    const jsonData = response.json();",
+                      "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                      "    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Image created for social tests', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.collectionVariables.set('socialTestImageId', jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "{{testImagePath}}"
+                    },
+                    {
+                      "key": "title",
+                      "value": "Social Test Image",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Image for testing likes and comments",
+                      "type": "text"
+                    },
+                    {
+                      "key": "visibility",
+                      "value": "public",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images"]
+                }
+              }
+            },
+            {
+              "name": "Like Image - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has correct Content-Type', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                      "});",
+                      "",
+                      "pm.test('Response indicates like successful', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('liked');",
+                      "    pm.expect(jsonData.liked).to.be.true;",
+                      "    pm.expect(jsonData).to.have.property('like_count');",
+                      "    pm.expect(jsonData.like_count).to.be.a('number');",
+                      "    pm.expect(jsonData.like_count).to.be.above(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/like",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "like"]
+                }
+              }
+            },
+            {
+              "name": "Like Image - Idempotency (Like Twice)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Like count remains same (idempotent)', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('liked');",
+                      "    pm.expect(jsonData.liked).to.be.true;",
+                      "    pm.expect(jsonData).to.have.property('like_count');",
+                      "    // Count should be 1 (not incremented again)",
+                      "    pm.expect(jsonData.like_count).to.eql(1);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/like",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "like"]
+                }
+              }
+            },
+            {
+              "name": "List Image Likes - With Results",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('items');",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "    pm.expect(jsonData.items).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('At least one like exists', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.items.length).to.be.above(0);",
+                      "});",
+                      "",
+                      "pm.test('Like objects have required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.items.length > 0) {",
+                      "        const like = jsonData.items[0];",
+                      "        pm.expect(like).to.have.property('user_id');",
+                      "        pm.expect(like).to.have.property('user');",
+                      "        pm.expect(like).to.have.property('image_id');",
+                      "        pm.expect(like).to.have.property('created_at');",
+                      "        pm.expect(like.user).to.have.property('id');",
+                      "        pm.expect(like.user).to.have.property('username');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/likes?page=1&per_page=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "likes"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Unlike Image - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response indicates unlike successful', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('liked');",
+                      "    pm.expect(jsonData.liked).to.be.false;",
+                      "    pm.expect(jsonData).to.have.property('like_count');",
+                      "    pm.expect(jsonData.like_count).to.be.a('number');",
+                      "    pm.expect(jsonData.like_count).to.eql(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/like",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "like"]
+                }
+              }
+            },
+            {
+              "name": "List Image Likes - Empty After Unlike",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('items');",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "});",
+                      "",
+                      "pm.test('Likes list is empty', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.items).to.be.an('array');",
+                      "    pm.expect(jsonData.items.length).to.eql(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/likes",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "likes"]
+                }
+              }
+            },
+            {
+              "name": "Like Image - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Response has WWW-Authenticate header', function () {",
+                      "    pm.response.to.have.header('WWW-Authenticate');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/like",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "like"]
+                }
+              }
+            },
+            {
+              "name": "Like Image - Image Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates image not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/like",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "00000000-0000-0000-0000-000000000000", "like"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Comments",
+          "item": [
+            {
+              "name": "Add Comment - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has correct Content-Type', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                      "});",
+                      "",
+                      "pm.test('Comment created successfully', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('user_id');",
+                      "    pm.expect(jsonData).to.have.property('user');",
+                      "    pm.expect(jsonData).to.have.property('image_id');",
+                      "    pm.expect(jsonData).to.have.property('content');",
+                      "    pm.expect(jsonData).to.have.property('created_at');",
+                      "    ",
+                      "    // Store comment ID for subsequent tests",
+                      "    pm.collectionVariables.set('testCommentId', jsonData.id);",
+                      "});",
+                      "",
+                      "pm.test('Comment content matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.content).to.eql('Beautiful photo! Love the colors.');",
+                      "});",
+                      "",
+                      "pm.test('User info is included', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.user).to.have.property('id');",
+                      "    pm.expect(jsonData.user).to.have.property('username');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Beautiful photo! Love the colors.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Add Comment - Empty Content",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 422', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates validation failure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const title = jsonData.title.toLowerCase();",
+                      "    pm.expect(title).to.satisfy(function(t) {",
+                      "        return t.includes('validation') || t.includes('invalid') || t.includes('bad request');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Add Comment - Content Too Long",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Generate a comment that exceeds 1000 characters",
+                      "const longComment = 'A'.repeat(1001);",
+                      "pm.collectionVariables.set('longComment', longComment);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 422', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates validation failure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const detail = jsonData.detail.toLowerCase();",
+                      "    pm.expect(detail).to.satisfy(function(d) {",
+                      "        return d.includes('length') || d.includes('long') || d.includes('1000');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"{{longComment}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Add Comment - Special Characters and Unicode",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Comment with Unicode created successfully', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('content');",
+                      "    // Verify Unicode characters preserved",
+                      "    pm.expect(jsonData.content).to.include('😍');",
+                      "    pm.expect(jsonData.content).to.include('日本語');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Amazing shot! 😍 素晴らしい写真！ 日本語 test @user #photo\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "List Comments - With Results",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('items');",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "    pm.expect(jsonData.items).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Comments exist', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.items.length).to.be.above(0);",
+                      "});",
+                      "",
+                      "pm.test('Comment objects have required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.items.length > 0) {",
+                      "        const comment = jsonData.items[0];",
+                      "        pm.expect(comment).to.have.property('id');",
+                      "        pm.expect(comment).to.have.property('user_id');",
+                      "        pm.expect(comment).to.have.property('user');",
+                      "        pm.expect(comment).to.have.property('image_id');",
+                      "        pm.expect(comment).to.have.property('content');",
+                      "        pm.expect(comment).to.have.property('created_at');",
+                      "        pm.expect(comment.user).to.have.property('id');",
+                      "        pm.expect(comment.user).to.have.property('username');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments?page=1&per_page=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Add Comment - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Response has WWW-Authenticate header', function () {",
+                      "    pm.response.to.have.header('WWW-Authenticate');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"This should fail without auth\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "{{socialTestImageId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Add Comment - Image Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates image not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Comment on non-existent image\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["images", "00000000-0000-0000-0000-000000000000", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Delete Comment - Author Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.be.empty;",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/{{testCommentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "{{testCommentId}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Comment - Comment Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates comment not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/00000000-0000-0000-0000-000000000000",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "00000000-0000-0000-0000-000000000000"]
+                }
+              }
+            },
+            {
+              "name": "Delete Comment - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create a new comment to delete in this test",
+                      "const addCommentRequest = {",
+                      "    url: pm.collectionVariables.get('baseUrl') + '/images/' + pm.collectionVariables.get('socialTestImageId') + '/comments',",
+                      "    method: 'POST',",
+                      "    header: {",
+                      "        'Content-Type': 'application/json',",
+                      "        'Authorization': 'Bearer ' + pm.collectionVariables.get('accessToken')",
+                      "    },",
+                      "    body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({",
+                      "            content: 'Comment for unauthorized delete test'",
+                      "        })",
+                      "    }",
+                      "};",
+                      "",
+                      "pm.sendRequest(addCommentRequest, function (err, response) {",
+                      "    if (err) {",
+                      "        console.error('Create comment failed:', err);",
+                      "        return;",
+                      "    }",
+                      "    ",
+                      "    const jsonData = response.json();",
+                      "    pm.collectionVariables.set('commentToDeleteWithoutAuth', jsonData.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Response has WWW-Authenticate header', function () {",
+                      "    pm.response.to.have.header('WWW-Authenticate');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/{{commentToDeleteWithoutAuth}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "{{commentToDeleteWithoutAuth}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Comment - Forbidden (Not Author/Owner)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create a second user and their comment",
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "// Register second user",
+                      "const registerRequest = {",
+                      "    url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                      "    method: 'POST',",
+                      "    header: {",
+                      "        'Content-Type': 'application/json'",
+                      "    },",
+                      "    body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({",
+                      "            email: `user2-${uniqueId}@example.com`,",
+                      "            username: `user2${uniqueId}`,",
+                      "            password: pm.collectionVariables.get('testPassword'),",
+                      "            displayName: 'Second Test User'",
+                      "        })",
+                      "    }",
+                      "};",
+                      "",
+                      "pm.sendRequest(registerRequest, function (err, regResponse) {",
+                      "    if (err) {",
+                      "        console.error('Registration failed:', err);",
+                      "        return;",
+                      "    }",
+                      "    ",
+                      "    const userData = regResponse.json();",
+                      "    pm.collectionVariables.set('user2Id', userData.id);",
+                      "    ",
+                      "    // Login as second user",
+                      "    const loginRequest = {",
+                      "        url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                      "        method: 'POST',",
+                      "        header: {",
+                      "            'Content-Type': 'application/json'",
+                      "        },",
+                      "        body: {",
+                      "            mode: 'raw',",
+                      "            raw: JSON.stringify({",
+                      "                email: `user2-${uniqueId}@example.com`,",
+                      "                password: pm.collectionVariables.get('testPassword')",
+                      "            })",
+                      "        }",
+                      "    };",
+                      "    ",
+                      "    pm.sendRequest(loginRequest, function (err, loginResponse) {",
+                      "        if (err) {",
+                      "            console.error('Login failed:', err);",
+                      "            return;",
+                      "        }",
+                      "        ",
+                      "        const loginData = loginResponse.json();",
+                      "        pm.collectionVariables.set('user2AccessToken', loginData.accessToken);",
+                      "        ",
+                      "        // Create comment as user 2",
+                      "        const commentRequest = {",
+                      "            url: pm.collectionVariables.get('baseUrl') + '/images/' + pm.collectionVariables.get('socialTestImageId') + '/comments',",
+                      "            method: 'POST',",
+                      "            header: {",
+                      "                'Content-Type': 'application/json',",
+                      "                'Authorization': 'Bearer ' + loginData.accessToken",
+                      "            },",
+                      "            body: {",
+                      "                mode: 'raw',",
+                      "                raw: JSON.stringify({",
+                      "                    content: 'Comment from user 2'",
+                      "                })",
+                      "            }",
+                      "        };",
+                      "        ",
+                      "        pm.sendRequest(commentRequest, function (err, commentResponse) {",
+                      "            if (err) {",
+                      "                console.error('Create comment failed:', err);",
+                      "                return;",
+                      "            }",
+                      "            ",
+                      "            const commentData = commentResponse.json();",
+                      "            pm.collectionVariables.set('user2CommentId', commentData.id);",
+                      "        });",
+                      "    });",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(403);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates forbidden access', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('forbidden');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/comments/{{user2CommentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comments", "{{user2CommentId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Explore",
       "item": [
         {
