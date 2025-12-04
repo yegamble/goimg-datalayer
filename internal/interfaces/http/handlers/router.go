@@ -35,10 +35,14 @@ type MiddlewareConfig struct {
 //
 // Route groups:
 //   - Public routes: /api/v1/auth/* (no authentication)
-//   - Protected routes: /api/v1/users/* (JWT authentication required)
+//   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
+//   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
 func NewRouter(
 	authHandler *AuthHandler,
 	userHandler *UserHandler,
+	imageHandler *ImageHandler,
+	albumHandler *AlbumHandler,
+	socialHandler *SocialHandler,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
 ) chi.Router {
@@ -77,7 +81,7 @@ func NewRouter(
 		// Public auth routes (no authentication required)
 		r.Mount("/auth", authHandler.Routes())
 
-		// Protected user routes (JWT authentication required)
+		// Protected routes (JWT authentication required)
 		r.Group(func(r chi.Router) {
 			// JWT authentication middleware
 			authCfg := middleware.AuthConfig{
@@ -90,6 +94,28 @@ func NewRouter(
 
 			// Mount user routes
 			r.Mount("/users", userHandler.Routes())
+
+			// Mount image routes
+			// Note: Upload endpoint should have special rate limiting applied at handler level
+			r.Mount("/images", imageHandler.Routes())
+
+			// Mount album routes
+			r.Mount("/albums", albumHandler.Routes())
+
+			// Social interaction routes (likes and comments)
+			// These are mounted under images and users paths
+			r.Route("/images/{imageID}", func(r chi.Router) {
+				r.Post("/likes", socialHandler.LikeImage)
+				r.Delete("/likes", socialHandler.UnlikeImage)
+				r.Post("/comments", socialHandler.AddComment)
+				r.Get("/comments", socialHandler.ListImageComments)
+			})
+
+			// Comment deletion endpoint (not under images path)
+			r.Delete("/comments/{commentID}", socialHandler.DeleteComment)
+
+			// User liked images endpoint
+			r.Get("/users/{userID}/likes", socialHandler.GetUserLikedImages)
 		})
 	})
 

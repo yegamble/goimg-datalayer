@@ -234,3 +234,31 @@ type CommentDeleted struct {
 func (e *CommentDeleted) EventType() string {
 	return "gallery.comment.deleted"
 }
+
+// Like Events
+
+// ImageLiked is emitted when a user likes an image.
+type ImageLiked struct {
+	shared.BaseEvent
+	ImageID   ImageID
+	UserID    identity.UserID
+	LikedAt   time.Time
+}
+
+// EventType returns the event type identifier.
+func (e *ImageLiked) EventType() string {
+	return "gallery.image.liked"
+}
+
+// ImageUnliked is emitted when a user unlikes an image.
+type ImageUnliked struct {
+	shared.BaseEvent
+	ImageID    ImageID
+	UserID     identity.UserID
+	UnlikedAt  time.Time
+}
+
+// EventType returns the event type identifier.
+func (e *ImageUnliked) EventType() string {
+	return "gallery.image.unliked"
+}

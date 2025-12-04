@@ -8,7 +8,7 @@ require (
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/runtime v1.1.2
@@ -19,6 +19,18 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.27.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.27.0
 	golang.org/x/crypto v0.45.0
+)
+
+require (
+	github.com/alicebob/miniredis/v2 v2.35.0 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
+	github.com/hibiken/asynq v0.25.1 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/spf13/cast v1.7.0 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
+	golang.org/x/time v0.8.0 // indirect
 )
 
 require (
@@ -110,6 +122,6 @@ require (
 	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
