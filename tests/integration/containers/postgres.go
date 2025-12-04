@@ -109,8 +109,17 @@ func runMigrations(db *sql.DB, migrationsDir string) error {
 func (pc *PostgresContainer) Cleanup(ctx context.Context, t *testing.T) {
 	t.Helper()
 
-	// Truncate tables in reverse dependency order
-	tables := []string{"sessions", "users"}
+	// Truncate tables in reverse dependency order (respecting foreign keys)
+	tables := []string{
+		"image_tags",
+		"tags",
+		"album_images",
+		"image_variants",
+		"albums",
+		"images",
+		"sessions",
+		"users",
+	}
 	for _, table := range tables {
 		_, err := pc.DB.ExecContext(ctx, fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table))
 		require.NoError(t, err, "failed to truncate table %s", table)
