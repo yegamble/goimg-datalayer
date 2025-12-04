@@ -179,7 +179,7 @@ func (h *GetImageHandler) Handle(ctx context.Context, q GetImageQuery) (*ImageDT
 	}
 
 	// 5. Convert to DTO and return
-	dto := imageToDTO(image)
+	dto := ImageToDTO(image)
 
 	h.logger.Debug().
 		Str("image_id", imageID.String()).
@@ -191,7 +191,9 @@ func (h *GetImageHandler) Handle(ctx context.Context, q GetImageQuery) (*ImageDT
 }
 
 // imageToDTO converts a domain Image to an ImageDTO.
-func imageToDTO(image *gallery.Image) *ImageDTO {
+// ImageToDTO converts a domain Image entity to an ImageDTO for API responses.
+// This is a public function so it can be reused by other handlers.
+func ImageToDTO(image *gallery.Image) *ImageDTO {
 	metadata := image.Metadata()
 
 	// Convert variants

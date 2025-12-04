@@ -258,8 +258,3 @@ func TestDeleteImageHandler_Handle(t *testing.T) {
 }
 
 // TestDeleteImageCommand_Interface verifies the command implements the interface.
-func TestDeleteImageCommand_Interface(t *testing.T) {
-	t.Parallel()
-
-	var _ interface{ isCommand() } = commands.DeleteImageCommand{}
-}

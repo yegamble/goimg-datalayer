@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 
@@ -314,7 +312,8 @@ func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Execute update command
-	if err := h.updateImage.Handle(ctx, cmd); err != nil {
+	_, err = h.updateImage.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "update image")
 		return
 	}
@@ -393,7 +392,8 @@ func (h *ImageHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Execute delete command
-	if err := h.deleteImage.Handle(ctx, cmd); err != nil {
+	_, err = h.deleteImage.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete image")
 		return
 	}

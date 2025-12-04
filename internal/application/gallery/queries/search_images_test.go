@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -96,17 +97,18 @@ func TestSearchImagesHandler_Handle_Success(t *testing.T) {
 
 	userID := identity.NewUserID()
 	metadata, _ := gallery.NewImageMetadata(
+		"Test Image",
+		"Test description",
 		"test.jpg",
 		"image/jpeg",
-		1024,
 		800,
 		600,
-		"local",
+		1024,
 		"path/to/image.jpg",
+		"local",
 	)
-	metadata, _ = metadata.WithTitle("Test Image")
-	metadata, _ = metadata.WithDescription("Test description")
 
+	now := time.Now().UTC()
 	image := gallery.ReconstructImage(
 		gallery.NewImageID(),
 		userID,
@@ -118,8 +120,8 @@ func TestSearchImagesHandler_Handle_Success(t *testing.T) {
 		100,
 		50,
 		10,
-		gallery.UTCNow(),
-		gallery.UTCNow(),
+		now,
+		now,
 	)
 
 	query := SearchImagesQuery{

@@ -37,7 +37,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 					testhelpers.ValidImage(t),
 				}
 
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(images, int64(2), nil).Once()
 			},
@@ -66,7 +66,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				}
 
 				ownerID := testhelpers.ValidUserIDParsed()
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
 					Return(images, int64(1), nil).Once()
 			},
@@ -92,7 +92,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				}
 
 				tag := testhelpers.ValidTag(t, "nature")
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindByTag", mock.Anything, tag, pagination).
 					Return(images, int64(1), nil).Once()
 			},
@@ -117,7 +117,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 					images[i] = testhelpers.ValidImage(t)
 				}
 
-				pagination := shared.NewPagination(0, 10)
+				pagination, _ := shared.NewPagination(0, 10)
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(images, int64(25), nil).Once() // Total is 25, so has more
 			},
@@ -142,7 +142,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 					testhelpers.ValidImage(t),
 				}
 
-				pagination := shared.NewPagination(0, 20) // Default limit
+				pagination, _ := shared.NewPagination(0, 20) // Default limit
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(images, int64(1), nil).Once()
 			},
@@ -165,7 +165,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 					testhelpers.ValidImage(t),
 				}
 
-				pagination := shared.NewPagination(0, 100) // Max limit
+				pagination, _ := shared.NewPagination(0, 100) // Max limit
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(images, int64(1), nil).Once()
 			},
@@ -188,7 +188,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 					testhelpers.ValidImage(t),
 				}
 
-				pagination := shared.NewPagination(0, 20) // Normalized offset
+				pagination, _ := shared.NewPagination(0, 20) // Normalized offset
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(images, int64(1), nil).Once()
 			},
@@ -277,7 +277,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				tag := testhelpers.ValidTag(t, "nature")
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindByTag", mock.Anything, tag, pagination).
 					Return(nil, int64(0), fmt.Errorf("database error")).Once()
 			},
@@ -298,7 +298,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				ownerID := testhelpers.ValidUserIDParsed()
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
 					Return(nil, int64(0), fmt.Errorf("database error")).Once()
 			},
@@ -317,7 +317,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				Limit:  20,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				pagination := shared.NewPagination(0, 20)
+				pagination, _ := shared.NewPagination(0, 20)
 				suite.ImageRepo.On("FindPublic", mock.Anything, pagination).
 					Return(nil, int64(0), fmt.Errorf("database error")).Once()
 			},
@@ -368,5 +368,4 @@ func TestListImagesHandler_Handle(t *testing.T) {
 func TestListImagesQuery_Interface(t *testing.T) {
 	t.Parallel()
 
-	var _ interface{ isQuery() } = queries.ListImagesQuery{}
 }

@@ -99,7 +99,7 @@ func (h *ListAlbumImagesHandler) Handle(ctx context.Context, q ListAlbumImagesQu
 	// 7. Convert to DTOs
 	imageDTOs := make([]*ImageDTO, 0, len(images))
 	for _, image := range images {
-		dto := imageToDTO(image)
+		dto := ImageToDTO(image)
 		imageDTOs = append(imageDTOs, dto)
 	}
 

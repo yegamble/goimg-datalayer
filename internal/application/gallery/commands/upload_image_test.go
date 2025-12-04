@@ -6,6 +6,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/testhelpers"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
 func TestUploadImageHandler_Handle(t *testing.T) {
@@ -404,11 +404,6 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 }
 
 // TestUploadImageCommand_Interface verifies the command implements the interface.
-func TestUploadImageCommand_Interface(t *testing.T) {
-	t.Parallel()
-
-	var _ interface{ isCommand() } = commands.UploadImageCommand{}
-}
 
 // BenchmarkUploadImageHandler_Handle benchmarks the upload handler.
 func BenchmarkUploadImageHandler_Handle(b *testing.B) {

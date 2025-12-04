@@ -2,6 +2,8 @@ package testhelpers
 
 import (
 	"context"
+	"io"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 
@@ -71,6 +73,14 @@ func (m *MockImageRepository) Delete(ctx context.Context, id gallery.ImageID) er
 	return args.Error(0)
 }
 
+func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
+	}
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
 func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
@@ -81,7 +91,7 @@ type MockStorage struct {
 	mock.Mock
 }
 
-func (m *MockStorage) Put(ctx context.Context, key string, data any, size int64, opts storage.PutOptions) error {
+func (m *MockStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts storage.PutOptions) error {
 	args := m.Called(ctx, key, data, size, opts)
 	return args.Error(0)
 }
@@ -91,12 +101,12 @@ func (m *MockStorage) PutBytes(ctx context.Context, key string, data []byte, opt
 	return args.Error(0)
 }
 
-func (m *MockStorage) Get(ctx context.Context, key string) (any, error) {
+func (m *MockStorage) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	args := m.Called(ctx, key)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0), args.Error(1)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (m *MockStorage) GetBytes(ctx context.Context, key string) ([]byte, error) {
@@ -122,7 +132,7 @@ func (m *MockStorage) URL(key string) string {
 	return args.String(0)
 }
 
-func (m *MockStorage) PresignedURL(ctx context.Context, key string, duration any) (string, error) {
+func (m *MockStorage) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
 	args := m.Called(ctx, key, duration)
 	return args.String(0), args.Error(1)
 }

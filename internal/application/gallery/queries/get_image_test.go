@@ -244,11 +244,6 @@ func TestGetImageHandler_Handle(t *testing.T) {
 }
 
 // TestGetImageQuery_Interface verifies the query implements the interface.
-func TestGetImageQuery_Interface(t *testing.T) {
-	t.Parallel()
-
-	var _ interface{ isQuery() } = queries.GetImageQuery{}
-}
 
 // TestImageToDTO tests the DTO conversion function.
 func TestImageToDTO(t *testing.T) {

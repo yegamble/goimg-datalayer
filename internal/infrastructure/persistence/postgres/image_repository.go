@@ -523,7 +523,8 @@ func (r *ImageRepository) Search(ctx context.Context, params gallery.SearchParam
 	// Convert rows to domain entities
 	images := make([]*gallery.Image, 0, len(rows))
 	for _, row := range rows {
-		image, err := rowToImage(row.imageRow)
+		// Note: Search query doesn't fetch variants and tags, so we pass nil slices
+		image, err := rowToImage(row.imageRow, nil, nil)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to convert row to image: %w", err)
 		}

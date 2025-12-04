@@ -139,7 +139,7 @@ func (h *SearchImagesHandler) Handle(ctx context.Context, q SearchImagesQuery) (
 	// 7. Convert to DTOs
 	imageDTOs := make([]*ImageDTO, 0, len(images))
 	for _, image := range images {
-		dto := imageToDTO(image)
+		dto := ImageToDTO(image)
 		imageDTOs = append(imageDTOs, dto)
 	}
 

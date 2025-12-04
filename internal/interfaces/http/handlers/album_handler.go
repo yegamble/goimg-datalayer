@@ -409,12 +409,13 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 100
 	}
 
-	// 2. Extract requesting user ID (for authorization)
+	// 2. Extract requesting user ID (for authorization - currently unused but may be needed for filtering)
 	var requestingUserID string
 	userCtx, err := GetUserFromContext(ctx)
 	if err == nil {
 		requestingUserID = userCtx.UserID.String()
 	}
+	_ = requestingUserID // TODO: Use for authorization filtering if needed
 
 	// 3. Convert offset/limit to page/perPage
 	page := (offset / limit) + 1
