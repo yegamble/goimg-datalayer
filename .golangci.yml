@@ -10,8 +10,8 @@ run:
   # Include test files
   tests: true
 
-  # Which directories to skip
-  skip-dirs:
+  # Which directories to exclude
+  exclude-dirs:
     - vendor
     - third_party
     - testdata
@@ -19,8 +19,8 @@ run:
     - Godeps
     - builtin
 
-  # Which files to skip
-  skip-files:
+  # Which files to exclude
+  exclude-files:
     - ".*\\.pb\\.go$"
     - ".*\\.gen\\.go$"
     - "mock_.*\\.go$"
