@@ -1308,6 +1308,45 @@ Final decision meeting to approve MVP launch based on launch readiness report.
 
 ---
 
+## OpenAPI Spec Accuracy Status
+
+**Analysis Date**: 2025-12-05
+
+### Summary
+The OpenAPI spec at `/api/openapi/openapi.yaml` documents 42 endpoints, with 31 implemented (74% coverage).
+
+### Implemented Features (100% spec coverage)
+- ✅ Auth endpoints (4/4): register, login, refresh, logout
+- ✅ User endpoints (3/3): get, update, delete profile
+- ✅ Album endpoints (8/8): CRUD + image management
+- ✅ Social - Comments (3/3): add, list, delete
+- ✅ Health endpoints (3/3): health, ready, metrics
+
+### Partial Implementation
+- ⚠️ Image endpoints (5/7): Missing `/images/{id}/variants/{size}` and image download
+- ⚠️ Social - Likes (2/3): Missing `GET /images/{id}/likes` (list users who liked)
+
+### Intentionally Deferred (Phase 2)
+Per Sprint 7 deferral decision:
+- 🔄 Moderation endpoints (6): reports, ban/unban users - Phase 2
+- 🔄 Advanced tag endpoints (3): popular tags, search, tag-based listing - Phase 2
+
+### Not Documented in Spec
+- `GET /images/search` - Implemented but not in spec (should add)
+- `GET /users/{id}/sessions` - Implemented but not in spec (should add)
+
+### Explore Feature
+- ❌ `GET /explore/recent` - Not implemented (MVP candidate)
+- ❌ `GET /explore/popular` - Not implemented (MVP candidate)
+
+### Recommendations for Sprint 9
+1. **Add to spec**: Document `/images/search` and `/users/{id}/sessions` endpoints
+2. **Implement for MVP**: Image variants endpoint (`/images/{id}/variants/{size}`)
+3. **Clarify scope**: Decide if explore endpoints are MVP or Phase 2
+4. **Mark Phase 2**: Add `x-phase: 2` extension to deferred moderation endpoints
+
+---
+
 ## Sprint 9 Deliverables Summary
 
 ### Documentation Deliverables

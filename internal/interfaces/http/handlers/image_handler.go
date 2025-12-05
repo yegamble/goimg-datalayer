@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -9,6 +11,7 @@ import (
 
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
+	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
@@ -21,7 +24,14 @@ type ImageHandler struct {
 	getImage     *queries.GetImageHandler
 	listImages   *queries.ListImagesHandler
 	searchImages *queries.SearchImagesHandler
+	storage      StorageProvider
 	logger       zerolog.Logger
+}
+
+// StorageProvider is the interface for retrieving image files from storage.
+// This interface is defined here to avoid importing infrastructure packages in tests.
+type StorageProvider interface {
+	Get(ctx context.Context, key string) (io.ReadCloser, error)
 }
 
 // NewImageHandler creates a new ImageHandler with the given dependencies.
@@ -33,6 +43,7 @@ func NewImageHandler(
 	getImage *queries.GetImageHandler,
 	listImages *queries.ListImagesHandler,
 	searchImages *queries.SearchImagesHandler,
+	storage StorageProvider,
 	logger zerolog.Logger,
 ) *ImageHandler {
 	return &ImageHandler{
@@ -42,6 +53,7 @@ func NewImageHandler(
 		getImage:     getImage,
 		listImages:   listImages,
 		searchImages: searchImages,
+		storage:      storage,
 		logger:       logger,
 	}
 }
@@ -51,6 +63,9 @@ func NewImageHandler(
 //
 // Note: Authentication and rate limiting middleware should be applied
 // at the router level before mounting these routes.
+//
+// Note: The variant endpoint (/{imageID}/variants/{size}) is registered
+// separately in router.go with optional authentication.
 func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -614,6 +629,163 @@ func (h *ImageHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 		"Internal Server Error",
 		"An unexpected error occurred",
 	)
+}
+
+// GetImageVariant handles GET /api/v1/images/{imageID}/variants/{size}
+// Retrieves a specific image variant (resized version) and returns binary data.
+//
+// Path parameters:
+//   - imageID: UUID of the image
+//   - size: Variant size (thumbnail, small, medium, large, original)
+//
+// Security: Optional auth - respects image visibility rules (public images accessible to all, private only to owner)
+//
+// Response: Binary image data with appropriate Content-Type
+// Errors:
+//   - 400: Invalid image ID or variant size
+//   - 403: Image is private and user is not the owner
+//   - 404: Image or variant not found
+//   - 500: Internal server error
+func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract image ID from path
+	imageID := GetPathParam(r, "imageID")
+	if imageID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing image ID",
+		)
+		return
+	}
+
+	// 2. Extract variant size from path
+	sizeParam := GetPathParam(r, "size")
+	if sizeParam == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing variant size",
+		)
+		return
+	}
+
+	// 3. Parse variant type
+	variantType, err := gallery.ParseVariantType(sizeParam)
+	if err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("size", sizeParam).
+			Msg("invalid variant size")
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid variant size. Must be one of: thumbnail, small, medium, large, original",
+		)
+		return
+	}
+
+	// 4. Extract requesting user ID (optional - for authorization)
+	var requestingUserID string
+	userCtx, err := GetUserFromContext(ctx)
+	if err == nil {
+		requestingUserID = userCtx.UserID.String()
+	}
+
+	// 5. Get image metadata using existing query handler
+	// This enforces visibility rules (public images accessible to all, private only to owner)
+	query := queries.GetImageQuery{
+		ImageID:          imageID,
+		RequestingUserID: requestingUserID,
+	}
+
+	imageDTO, err := h.getImage.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "get image for variant")
+		return
+	}
+
+	// 6. Find the requested variant
+	var variantDTO *queries.VariantDTO
+	for i := range imageDTO.Variants {
+		if imageDTO.Variants[i].Type == variantType.String() {
+			variantDTO = &imageDTO.Variants[i]
+			break
+		}
+	}
+
+	if variantDTO == nil {
+		h.logger.Debug().
+			Str("image_id", imageID).
+			Str("variant_type", variantType.String()).
+			Msg("variant not found")
+		middleware.WriteError(w, r,
+			http.StatusNotFound,
+			"Not Found",
+			"Image variant not found",
+		)
+		return
+	}
+
+	// 7. Retrieve variant file from storage
+	fileReader, err := h.storage.Get(ctx, variantDTO.StorageKey)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID).
+			Str("variant_type", variantType.String()).
+			Str("storage_key", variantDTO.StorageKey).
+			Msg("failed to retrieve variant from storage")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to retrieve image variant",
+		)
+		return
+	}
+	defer fileReader.Close()
+
+	// 8. Set Content-Type header based on variant format
+	contentType := formatToMimeType(variantDTO.Format)
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Length", strconv.FormatInt(variantDTO.FileSize, 10))
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+
+	// 9. Stream binary data to response
+	w.WriteHeader(http.StatusOK)
+	if _, err := io.Copy(w, fileReader); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID).
+			Str("variant_type", variantType.String()).
+			Msg("failed to stream variant data")
+		// Can't send error response after writing to body
+		return
+	}
+
+	h.logger.Debug().
+		Str("image_id", imageID).
+		Str("variant_type", variantType.String()).
+		Str("content_type", contentType).
+		Int64("file_size", variantDTO.FileSize).
+		Msg("image variant retrieved successfully")
+}
+
+// formatToMimeType converts a format string (jpeg, png, gif, webp) to a MIME type.
+func formatToMimeType(format string) string {
+	switch format {
+	case "jpeg", "jpg":
+		return "image/jpeg"
+	case "png":
+		return "image/png"
+	case "gif":
+		return "image/gif"
+	case "webp":
+		return "image/webp"
+	default:
+		return "application/octet-stream"
+	}
 }
 
 // parseIntParam parses an integer query parameter with a default value.
