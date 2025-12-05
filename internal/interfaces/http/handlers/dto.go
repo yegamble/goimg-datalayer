@@ -1,5 +1,9 @@
 package handlers
 
+import (
+	"github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
+)
+
 // HTTP-specific request DTOs for the handlers layer.
 // These DTOs are separate from application-layer DTOs and represent the HTTP contract.
 // They include JSON tags and validation rules using go-playground/validator.
@@ -98,8 +102,11 @@ type PaginatedImagesResponse struct {
 	HasMore    bool       `json:"has_more"`
 }
 
-// ImageDTO is imported from application/gallery/queries package.
-// It's already defined there as queries.ImageDTO.
+// Type aliases for application layer DTOs to avoid duplication.
+type ImageDTO = queries.ImageDTO
+type AlbumDTO = queries.AlbumDTO
+type VariantDTO = queries.VariantDTO
+type TagDTO = queries.TagDTO
 
 // ============================================================================
 // Gallery DTOs - Album Management
@@ -178,57 +185,5 @@ type PaginatedCommentsResponse struct {
 	PerPage  int          `json:"per_page"`
 }
 
-// AlbumDTO represents an album DTO for list responses.
-// This is a simple version - the full DTO is in queries package.
-type AlbumDTO struct {
-	ID           string  `json:"id"`
-	OwnerID      string  `json:"owner_id"`
-	Title        string  `json:"title"`
-	Description  string  `json:"description"`
-	Visibility   string  `json:"visibility"`
-	CoverImageID *string `json:"cover_image_id,omitempty"`
-	ImageCount   int     `json:"image_count"`
-	CreatedAt    string  `json:"created_at"`
-	UpdatedAt    string  `json:"updated_at"`
-}
 
-// ImageDTO represents an image DTO for list responses.
-// This is a simple version - the full DTO is in queries package.
-type ImageDTO struct {
-	ID               string       `json:"id"`
-	OwnerID          string       `json:"owner_id"`
-	Title            string       `json:"title"`
-	Description      string       `json:"description"`
-	OriginalFilename string       `json:"original_filename"`
-	MimeType         string       `json:"mime_type"`
-	Width            int          `json:"width"`
-	Height           int          `json:"height"`
-	FileSize         int64        `json:"file_size"`
-	StorageKey       string       `json:"storage_key"`
-	StorageProvider  string       `json:"storage_provider"`
-	Visibility       string       `json:"visibility"`
-	Status           string       `json:"status"`
-	Variants         []VariantDTO `json:"variants"`
-	Tags             []TagDTO     `json:"tags"`
-	ViewCount        int64        `json:"view_count"`
-	LikeCount        int64        `json:"like_count"`
-	CommentCount     int64        `json:"comment_count"`
-	CreatedAt        string       `json:"created_at"`
-	UpdatedAt        string       `json:"updated_at"`
-}
 
-// VariantDTO represents an image variant (thumbnail, optimized, etc.).
-type VariantDTO struct {
-	Type       string `json:"type"`
-	StorageKey string `json:"storage_key"`
-	Width      int    `json:"width"`
-	Height     int    `json:"height"`
-	FileSize   int64  `json:"file_size"`
-	Format     string `json:"format"`
-}
-
-// TagDTO represents a tag attached to an image.
-type TagDTO struct {
-	Name string `json:"name"`
-	Slug string `json:"slug"`
-}

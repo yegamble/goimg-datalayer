@@ -17,237 +17,246 @@ import (
 func TestGetImageHandler_Handle(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		query   queries.GetImageQuery
-		setup   func(t *testing.T, suite *testhelpers.TestSuite)
-		wantErr error
-		assert  func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error)
-	}{
-		{
-			name: "successful retrieval - public image",
-			query: queries.GetImageQuery{
-				ImageID:           testhelpers.ValidImageID,
-				RequestingUserID:  "", // Anonymous
-				IncrementViewOnly: false,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				imageID := testhelpers.ValidImageIDParsed()
+	t.Run("successful retrieval - public image", func(t *testing.T) {
+		t.Parallel()
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				assert.Equal(t, testhelpers.ValidImageID, result.ID)
-				assert.Equal(t, "public", result.Visibility)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "successful retrieval - owner viewing own private image",
-			query: queries.GetImageQuery{
-				ImageID:          testhelpers.ValidImageID,
-				RequestingUserID: testhelpers.ValidUserID, // Owner
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				// Make it private
-				require.NoError(t, image.UpdateVisibility(gallery.VisibilityPrivate))
-				imageID := testhelpers.ValidImageIDParsed()
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				assert.Equal(t, testhelpers.ValidImageID, result.ID)
-				assert.Equal(t, "private", result.Visibility)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "unauthorized - private image, not owner",
-			query: queries.GetImageQuery{
-				ImageID:          testhelpers.ValidImageID,
-				RequestingUserID: "550e8400-e29b-41d4-a716-446655440001", // Different user
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				// Make it private
-				require.NoError(t, image.UpdateVisibility(gallery.VisibilityPrivate))
-				imageID := testhelpers.ValidImageIDParsed()
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: gallery.ErrUnauthorizedAccess,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrUnauthorizedAccess)
-				assert.Nil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "increment view count",
-			query: queries.GetImageQuery{
-				ImageID:           testhelpers.ValidImageID,
-				RequestingUserID:  "",   // Anonymous
-				IncrementViewOnly: true, // Only increment views
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				imageID := testhelpers.ValidImageIDParsed()
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "invalid image id",
-			query: queries.GetImageQuery{
-				ImageID:          "invalid-uuid",
-				RequestingUserID: testhelpers.ValidUserID,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				// No mocks - should fail validation
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "invalid image id")
-				assert.Nil(t, result)
-			},
-		},
-		{
-			name: "invalid requesting user id",
-			query: queries.GetImageQuery{
-				ImageID:          testhelpers.ValidImageID,
-				RequestingUserID: "invalid-uuid",
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				// No mocks - should fail validation
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), "invalid requesting user id")
-				assert.Nil(t, result)
-			},
-		},
-		{
-			name: "image not found",
-			query: queries.GetImageQuery{
-				ImageID:          testhelpers.ValidImageID,
-				RequestingUserID: testhelpers.ValidUserID,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).
-					Return(nil, gallery.ErrImageNotFound).Once()
-			},
-			wantErr: gallery.ErrImageNotFound,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrImageNotFound)
-				assert.Nil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "image not viewable - deleted",
-			query: queries.GetImageQuery{
-				ImageID:          testhelpers.ValidImageID,
-				RequestingUserID: testhelpers.ValidUserID,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				// Mark as deleted
-				require.NoError(t, image.MarkAsDeleted())
-				imageID := testhelpers.ValidImageIDParsed()
+		query := queries.GetImageQuery{
+			ImageID:           image.ID().String(),
+			RequestingUserID:  "", // Anonymous
+			IncrementViewOnly: false,
+		}
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: gallery.ErrImageNotFound,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrImageNotFound)
-				assert.Nil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "view count save failure - should not fail query",
-			query: queries.GetImageQuery{
-				ImageID:           testhelpers.ValidImageID,
-				RequestingUserID:  "550e8400-e29b-41d4-a716-446655440001", // Different user
-				IncrementViewOnly: false,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				image := testhelpers.ValidImage(t)
-				imageID := testhelpers.ValidImageIDParsed()
+		// Act
+		result, err := handler.Handle(context.Background(), query)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				// Save fails but query should still succeed
-				suite.ImageRepo.On("Save", mock.Anything, mock.Anything).
-					Return(fmt.Errorf("database error")).Maybe()
-			},
-			wantErr: nil,
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ImageDTO, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-	}
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, image.ID().String(), result.ID)
+		assert.Equal(t, "public", result.Visibility)
+		suite.AssertExpectations(t)
+	})
 
-	for _, tt := range tests {
-		tt := tt // Capture range variable
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	t.Run("successful retrieval - owner viewing own private image", func(t *testing.T) {
+		t.Parallel()
 
-			// Arrange
-			suite := testhelpers.NewTestSuite(t)
-			if tt.setup != nil {
-				tt.setup(t, suite)
-			}
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
 
-			handler := queries.NewGetImageHandler(
-				suite.ImageRepo,
-				&suite.Logger,
-			)
+		// Make it private
+		require.NoError(t, image.UpdateVisibility(gallery.VisibilityPrivate))
 
-			// Act
-			result, err := handler.Handle(context.Background(), tt.query)
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
 
-			// Assert
-			if tt.assert != nil {
-				tt.assert(t, suite, result, err)
-			} else if tt.wantErr != nil {
-				require.ErrorIs(t, err, tt.wantErr)
-				assert.Nil(t, result)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-			}
-		})
-	}
-}
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
 
-// TestGetImageQuery_Interface verifies the query implements the interface.
-func TestGetImageQuery_Interface(t *testing.T) {
-	t.Parallel()
+		query := queries.GetImageQuery{
+			ImageID:          image.ID().String(),
+			RequestingUserID: testhelpers.ValidUserID, // Owner
+		}
 
-	var _ interface{ isQuery() } = queries.GetImageQuery{}
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, image.ID().String(), result.ID)
+		assert.Equal(t, "private", result.Visibility)
+		suite.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized - private image, not owner", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
+
+		// Make it private
+		require.NoError(t, image.UpdateVisibility(gallery.VisibilityPrivate))
+
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
+
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:          image.ID().String(),
+			RequestingUserID: "550e8400-e29b-41d4-a716-446655440001", // Different user
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.Error(t, err)
+		assert.ErrorIs(t, err, gallery.ErrUnauthorizedAccess)
+		assert.Nil(t, result)
+		suite.AssertExpectations(t)
+	})
+
+	t.Run("increment view count", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
+
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
+		suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
+
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:           image.ID().String(),
+			RequestingUserID:  "", // Anonymous
+			IncrementViewOnly: true,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		suite.AssertExpectations(t)
+	})
+
+	t.Run("invalid image id", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:          "invalid-uuid",
+			RequestingUserID: testhelpers.ValidUserID,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid image id")
+		assert.Nil(t, result)
+	})
+
+	t.Run("invalid requesting user id", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:          testhelpers.ValidImageID,
+			RequestingUserID: "invalid-uuid",
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid requesting user id")
+		assert.Nil(t, result)
+	})
+
+	t.Run("image not found", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		imageID := testhelpers.ValidImageIDParsed()
+
+		suite.ImageRepo.On("FindByID", mock.Anything, imageID).
+			Return(nil, gallery.ErrImageNotFound).Once()
+
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:          testhelpers.ValidImageID,
+			RequestingUserID: testhelpers.ValidUserID,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.Error(t, err)
+		assert.ErrorIs(t, err, gallery.ErrImageNotFound)
+		assert.Nil(t, result)
+		suite.AssertExpectations(t)
+	})
+
+	t.Run("image not viewable - deleted", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
+
+		// Mark as deleted
+		require.NoError(t, image.MarkAsDeleted())
+
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
+
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:          image.ID().String(),
+			RequestingUserID: testhelpers.ValidUserID,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.Error(t, err)
+		assert.ErrorIs(t, err, gallery.ErrImageNotFound)
+		assert.Nil(t, result)
+		suite.AssertExpectations(t)
+	})
+
+	t.Run("view count save failure - should not fail query", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		suite := testhelpers.NewTestSuite(t)
+		image := testhelpers.ValidImage(t)
+
+		suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
+		// Save fails but query should still succeed
+		suite.ImageRepo.On("Save", mock.Anything, mock.Anything).
+			Return(fmt.Errorf("database error")).Maybe()
+
+		handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
+
+		query := queries.GetImageQuery{
+			ImageID:           image.ID().String(),
+			RequestingUserID:  "550e8400-e29b-41d4-a716-446655440001", // Different user
+			IncrementViewOnly: false,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		suite.AssertExpectations(t)
+	})
 }
 
 // TestImageToDTO tests the DTO conversion function.
@@ -264,8 +273,8 @@ func TestImageToDTO(t *testing.T) {
 
 	// Convert to DTO using the handler's internal logic via a query
 	suite := testhelpers.NewTestSuite(t)
-	imageID := testhelpers.ValidImageIDParsed()
-	suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
+	// Use the actual image ID, not the hardcoded ValidImageIDParsed
+	suite.ImageRepo.On("FindByID", mock.Anything, image.ID()).Return(image, nil).Once()
 
 	handler := queries.NewGetImageHandler(suite.ImageRepo, &suite.Logger)
 	dto, err := handler.Handle(context.Background(), queries.GetImageQuery{

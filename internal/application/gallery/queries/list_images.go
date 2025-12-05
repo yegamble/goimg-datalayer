@@ -207,7 +207,7 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 			continue
 		}
 
-		dto := imageToDTO(image)
+		dto := ImageToDTO(image)
 		imageDTOs = append(imageDTOs, *dto)
 	}
 

@@ -150,7 +150,8 @@ func (r *AlbumImageRepository) FindImagesInAlbum(
 	// Convert rows to domain entities
 	images := make([]*gallery.Image, 0, len(rows))
 	for _, row := range rows {
-		image, err := rowToImage(row)
+		// Note: This query doesn't fetch variants and tags, so we pass nil slices
+		image, err := rowToImage(row, nil, nil)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to convert row to image: %w", err)
 		}

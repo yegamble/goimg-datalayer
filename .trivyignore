@@ -1,0 +1,52 @@
+# Trivy Ignore File for goimg-datalayer
+# Use this file to suppress false positives or accepted vulnerabilities
+# Format: CVE-ID or vulnerability ID (one per line)
+# Add comments explaining why each vulnerability is ignored
+
+# =============================================================================
+# Development Dependencies - Not Shipped in Production
+# =============================================================================
+
+# Note: Add specific CVEs here if they only affect development dependencies
+# that are not included in production builds.
+
+# =============================================================================
+# Accepted Risks - Business Decision
+# =============================================================================
+
+# Note: Document any vulnerabilities that have been accepted as risks
+# after security review. Include:
+# - CVE ID
+# - Affected package and version
+# - Why it's accepted
+# - Planned remediation date (if applicable)
+
+# =============================================================================
+# False Positives
+# =============================================================================
+
+# Note: Add vulnerabilities that are confirmed false positives.
+# Explain why they don't apply to this project.
+
+# =============================================================================
+# Unfixable - Awaiting Upstream Patches
+# =============================================================================
+
+# Note: Vulnerabilities with no available fix yet.
+# Monitor these and remove from ignore list when patches are available.
+
+# =============================================================================
+# Instructions for Adding Entries
+# =============================================================================
+#
+# 1. Always add a comment explaining why the vulnerability is ignored
+# 2. Include the date when the entry was added
+# 3. Add a review date or condition for re-evaluation
+# 4. Link to relevant issue or security review documentation
+#
+# Example:
+# # CVE-2024-12345 - golang.org/x/crypto
+# # Affects SSH parsing, not used in our application
+# # Added: 2025-12-04
+# # Review: When updating to Go 1.26
+# CVE-2024-12345

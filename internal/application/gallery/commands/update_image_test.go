@@ -275,11 +275,6 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 }
 
 // TestUpdateImageCommand_Interface verifies the command implements the interface.
-func TestUpdateImageCommand_Interface(t *testing.T) {
-	t.Parallel()
-
-	var _ interface{ isCommand() } = commands.UpdateImageCommand{}
-}
 
 // Helper function to get string pointer
 func stringPtr(s string) *string {

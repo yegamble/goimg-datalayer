@@ -160,7 +160,8 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	}
 
 	// 6. Create Image aggregate via domain factory (status: processing)
-	image, err := gallery.NewImage(ownerID, metadata)
+	// Use NewImageWithID to ensure the image ID matches the one used for storage key
+	image, err := gallery.NewImageWithID(imageID, ownerID, metadata)
 	if err != nil {
 		h.logger.Error().
 			Err(err).

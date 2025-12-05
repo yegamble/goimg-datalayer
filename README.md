@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Sprint 6 - Application & HTTP (Gallery Context)
+**Current Phase**: Sprint 8 - Integration, Testing & Security Hardening (preparing)
 
 **Completed**:
 - Sprint 1-2: Foundation & Domain Layer (4 weeks)
@@ -41,9 +41,20 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - Test coverage: 47 test functions across security/storage, 78.9% local storage, 97.1% validator, repository integration tests
   - Security fix: SanitizeFilename consolidation (path traversal protection)
 
-**In Progress**:
-- Sprint 6: Application & HTTP - Gallery Context
-  - Focus: Upload flow, image commands/queries, album management, search functionality, social features (likes, comments)
+- Sprint 6: Application & HTTP - Gallery Context (2 weeks)
+  - Application layer: 13 commands (Upload, Update, Delete, Album CRUD, Like/Unlike, Comments) and 7 queries (Get, List, Search)
+  - HTTP handlers: ImageHandler (6 endpoints), AlbumHandler (8 endpoints), SocialHandler (6 endpoints)
+  - Asynq background job infrastructure for async image processing
+  - Repositories: LikeRepository, CommentRepository, AlbumImageRepository
+  - Database migration 00004: Social tables (likes, comments)
+  - Ownership middleware with IDOR prevention (verified by security gate)
+  - Upload rate limiting (50/hour), HTML sanitization for comments
+  - Security gate S6: APPROVED (comprehensive defense-in-depth controls)
+  - **Note**: Implementation complete (17,865 lines), but unit tests need compilation fixes before Sprint 8
+
+**Next Phase**:
+- Sprint 8: Integration, Testing & Security Hardening
+  - Focus: Fix test compilation issues, comprehensive test coverage, security scanning, performance optimization
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete 8-9 sprint roadmap.
 
@@ -276,9 +287,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 3 | Infrastructure - Identity (DB, Redis, JWT) | 2 weeks | **COMPLETE** ✅ |
 | 4 | Application & HTTP - Auth | 2 weeks | **COMPLETE** ✅ |
 | 5 | Domain & Infrastructure - Gallery | 2 weeks | **COMPLETE** ✅ |
-| 6 | Application & HTTP - Gallery | 2 weeks | In Progress |
-| 7 | Moderation & Social Features | 2 weeks | Planned |
-| 8 | Integration, Testing & Security | 2 weeks | Planned |
+| 6 | Application & HTTP - Gallery | 2 weeks | **COMPLETE** ✅ (tests need fixes) |
+| 7 | Moderation & Social Features | 2 weeks | Deferred to Phase 2 |
+| 8 | Integration, Testing & Security | 2 weeks | In Progress |
 | 9 | MVP Polish & Launch | 2 weeks | Planned |
 
 **Phase 2** (post-MVP): OAuth providers, user follows, activity feeds, email notifications, IPFS storage

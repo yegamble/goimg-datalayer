@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -122,4 +123,114 @@ func ValidTag(t *testing.T, name string) gallery.Tag {
 	require.NoError(t, err)
 
 	return tag
+}
+
+// ValidAlbum creates a valid Album aggregate for testing.
+func ValidAlbum(t *testing.T) *gallery.Album {
+	t.Helper()
+
+	ownerID := ValidUserIDParsed()
+	album, err := gallery.NewAlbum(ownerID, "Test Album")
+	require.NoError(t, err)
+
+	// Set description and visibility
+	require.NoError(t, album.UpdateDescription("Test album description"))
+	require.NoError(t, album.UpdateVisibility(gallery.VisibilityPublic))
+
+	return album
+}
+
+// ValidAlbumID returns a valid album ID string for testing.
+const ValidAlbumID = "8c9e6679-7425-40de-944b-e07fc1f90ae8"
+
+// ValidAlbumIDParsed returns a parsed AlbumID for testing.
+func ValidAlbumIDParsed() gallery.AlbumID {
+	albumID, _ := gallery.ParseAlbumID(ValidAlbumID)
+	return albumID
+}
+
+// ValidComment creates a valid Comment aggregate for testing.
+func ValidComment(t *testing.T) *gallery.Comment {
+	t.Helper()
+
+	userID := ValidUserIDParsed()
+	imageID := ValidImageIDParsed()
+	comment, err := gallery.NewComment(imageID, userID, "This is a test comment")
+	require.NoError(t, err)
+
+	return comment
+}
+
+// ValidCommentID returns a valid comment ID string for testing.
+const ValidCommentID = "9c9e6679-7425-40de-944b-e07fc1f90ae9"
+
+// ValidCommentIDParsed returns a parsed CommentID for testing.
+func ValidCommentIDParsed() gallery.CommentID {
+	commentID, _ := gallery.ParseCommentID(ValidCommentID)
+	return commentID
+}
+
+// ValidUser creates a valid User aggregate for testing.
+func ValidUser(t *testing.T) *identity.User {
+	t.Helper()
+
+	userID := ValidUserIDParsed()
+	email, err := identity.NewEmail("test@example.com")
+	require.NoError(t, err)
+
+	username, err := identity.NewUsername("testuser")
+	require.NoError(t, err)
+
+	passwordHash, err := identity.NewPasswordHash("$2a$10$N9qo8uLOickgx2ZMRZoMye7WdZGIsgbRJHaC0G/YLnQ5zt1g/K7i2") // "password"
+	require.NoError(t, err)
+
+	user := identity.ReconstructUser(
+		userID,
+		email,
+		username,
+		passwordHash,
+		identity.RoleUser,
+		identity.StatusActive,
+		"",
+		"",
+		ValidTimestamp(),
+		ValidTimestamp(),
+	)
+
+	return user
+}
+
+// ValidModeratorUser creates a valid User aggregate with moderator role for testing.
+func ValidModeratorUser(t *testing.T) *identity.User {
+	t.Helper()
+
+	userID := identity.NewUserID()
+	email, err := identity.NewEmail("moderator@example.com")
+	require.NoError(t, err)
+
+	username, err := identity.NewUsername("moduser123")
+	require.NoError(t, err)
+
+	passwordHash, err := identity.NewPasswordHash("$2a$10$N9qo8uLOickgx2ZMRZoMye7WdZGIsgbRJHaC0G/YLnQ5zt1g/K7i2")
+	require.NoError(t, err)
+
+	user := identity.ReconstructUser(
+		userID,
+		email,
+		username,
+		passwordHash,
+		identity.RoleModerator,
+		identity.StatusActive,
+		"",
+		"",
+		ValidTimestamp(),
+		ValidTimestamp(),
+	)
+
+	return user
+}
+
+// ValidTimestamp returns a valid timestamp for testing.
+func ValidTimestamp() time.Time {
+	return time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 }

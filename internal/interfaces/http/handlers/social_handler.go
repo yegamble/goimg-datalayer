@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
@@ -389,8 +388,8 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		commentDTOs = append(commentDTOs, CommentDTO{
 			ID:        comment.ID().String(),
 			ImageID:   comment.ImageID().String(),
-			UserID:    comment.AuthorID().String(),
-			Content:   comment.Content().String(),
+			UserID:    comment.UserID().String(),
+			Content:   comment.Content(),
 			CreatedAt: comment.CreatedAt().Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
@@ -475,21 +474,27 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// 5. Convert to pagination result format
+	// 5. Convert domain entities to DTOs
+	imageDTOs := make([]ImageDTO, 0, len(result.Images))
+	for _, img := range result.Images {
+		imageDTOs = append(imageDTOs, *queries.ImageToDTO(img))
+	}
+
+	// 6. Convert to pagination result format
 	offset := (page - 1) * perPage
 	hasMore := int64(offset+perPage) < result.Total
 
-	// 6. Return paginated results
+	// 7. Return paginated results
 	h.logger.Debug().
 		Str("user_id", userID).
 		Int("page", page).
 		Int("per_page", perPage).
-		Int("results", len(result.Images)).
+		Int("results", len(imageDTOs)).
 		Int64("total", result.Total).
 		Msg("user liked images retrieved successfully")
 
 	response := PaginatedImagesResponse{
-		Images:     result.Images,
+		Images:     imageDTOs,
 		TotalCount: result.Total,
 		Offset:     offset,
 		Limit:      perPage,

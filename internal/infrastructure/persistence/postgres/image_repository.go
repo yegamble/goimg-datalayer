@@ -129,15 +129,15 @@ const (
 	`
 
 	// Full-text search query with dynamic filtering
+	// PERFORMANCE NOTE: Uses pre-computed search_vector column with GIN index
+	// instead of calculating to_tsvector at query time (10-50x faster).
+	// See migration 00005_add_performance_indexes.sql
 	sqlSearchImagesBase = `
 		SELECT DISTINCT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
 		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,
 		       i.status, i.visibility, i.scan_status, i.view_count,
 		       i.created_at, i.updated_at,
-		       ts_rank(
-		           to_tsvector('english', i.title || ' ' || COALESCE(i.description, '')),
-		           plainto_tsquery('english', $1)
-		       ) AS relevance_score
+		       ts_rank(i.search_vector, plainto_tsquery('english', $1)) AS relevance_score
 		FROM images i
 	`
 
@@ -523,7 +523,8 @@ func (r *ImageRepository) Search(ctx context.Context, params gallery.SearchParam
 	// Convert rows to domain entities
 	images := make([]*gallery.Image, 0, len(rows))
 	for _, row := range rows {
-		image, err := rowToImage(row.imageRow)
+		// Note: Search query doesn't fetch variants and tags, so we pass nil slices
+		image, err := rowToImage(row.imageRow, nil, nil)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to convert row to image: %w", err)
 		}
@@ -544,9 +545,10 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 	conditions := []string{"i.deleted_at IS NULL", "i.status = 'active'"}
 
 	// Full-text search condition (only if query is not empty)
+	// Uses pre-computed search_vector column for 10-50x performance improvement
 	if params.Query != "" {
 		conditions = append(conditions,
-			"to_tsvector('english', i.title || ' ' || COALESCE(i.description, '')) @@ plainto_tsquery('english', $1)",
+			"i.search_vector @@ plainto_tsquery('english', $1)",
 		)
 	}
 
@@ -820,34 +822,15 @@ func (r *ImageRepository) loadTags(ctx context.Context, imageID gallery.ImageID)
 	return tags, nil
 }
 
-// rowsToImages converts multiple image rows to domain entities.
+// rowsToImages converts multiple image rows to domain entities using batch loading.
+// This method uses batch loading to avoid N+1 query problems.
+// For 50 images, this reduces queries from 101 (1 + 50 + 50) to 3 (1 + 1 + 1).
+//
+// PERFORMANCE NOTE: This is a critical optimization for list queries.
+// See docs/performance-analysis-sprint8.md for detailed analysis.
 func (r *ImageRepository) rowsToImages(ctx context.Context, rows []imageRow) ([]*gallery.Image, error) {
-	images := make([]*gallery.Image, 0, len(rows))
-	for _, row := range rows {
-		imageID, err := gallery.ParseImageID(row.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse image id: %w", err)
-		}
-
-		variants, err := r.loadVariants(ctx, imageID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load variants: %w", err)
-		}
-
-		tags, err := r.loadTags(ctx, imageID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load tags: %w", err)
-		}
-
-		image, err := rowToImage(row, variants, tags)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert row to image: %w", err)
-		}
-
-		images = append(images, image)
-	}
-
-	return images, nil
+	// Use batch loading helper to eliminate N+1 queries
+	return rowsToImagesWithBatchLoading(ctx, r.db, rows)
 }
 
 // rowToImage converts a database row to a domain Image entity.
