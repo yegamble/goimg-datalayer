@@ -179,7 +179,7 @@ func ExampleConfig_GetVariantSpec() {
 	// small: max width=320, quality=85
 	// medium: max width=800, quality=85
 	// large: max width=1600, quality=88
-	// original: max width=0, quality=90
+	// original: max width=0, quality=100
 }
 
 // ExampleAllVariantTypes demonstrates listing all variant types.

@@ -251,7 +251,8 @@ tests/fixtures/images/
 |------|----------|-------------|--------|
 | Thumbnail size | 150px | **160px** | Better for retina displays |
 | Format | JPEG | **WebP** | 25-34% smaller files |
-| Quality | 80-90 | **82-88** | Variant-specific tuning |
+| Quality (variants) | 80-90 | **82-88** | Variant-specific tuning |
+| Quality (original) | N/A | **100** | Maximum quality with security re-encoding |
 | EXIF handling | TBD | **StripMetadata: true** | Simple, privacy-first |
 | Memory limit | TBD | **256MB cache** | Prevent OOM |
 | Concurrency | TBD | **32 max workers** | Balance CPU/memory |
@@ -304,7 +305,7 @@ func chooseFormat(acceptHeader string) bimg.ImageType {
 
 ## Gotchas to Avoid
 
-1. **Never re-encode originals** - Privacy + quality preservation
+1. **Original variant quality is 100** - Re-encode at maximum quality for security (prevents polyglot exploits) while preserving image quality
 2. **Use magic bytes for MIME detection** - Not file extensions (security)
 3. **Validate dimensions BEFORE processing** - Prevent decompression bombs
 4. **Call `bimg.Shutdown()` on exit** - Free libvips memory

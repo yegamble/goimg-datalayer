@@ -10,7 +10,7 @@ import (
 // Processor handles image processing operations using libvips (via bimg).
 // It provides variant generation, EXIF stripping, and format conversion.
 type Processor struct {
-	config  Config
+	config    Config
 	semaphore chan struct{} // Limits concurrent operations
 }
 

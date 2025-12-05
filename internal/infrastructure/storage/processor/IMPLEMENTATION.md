@@ -67,14 +67,14 @@ Implemented a complete image processing system using **bimg** (libvips) for the 
 | Small | 320px, WebP, Q85 | `VariantSmall` in config.go |
 | Medium | 800px, WebP, Q85 | `VariantMedium` in config.go |
 | Large | 1600px, WebP, Q88 | `VariantLarge` in config.go |
-| Original | unchanged, original, Q90 | `VariantOriginal` in config.go |
+| Original | unchanged, original, Q100 | `VariantOriginal` in config.go (maximum quality, near-lossless) |
 
 ### Processing Pipeline ✓
 
 1. **Decode image** - `bimg.NewImage()` validates format
 2. **Strip EXIF** - `options.StripMetadata = true`
 3. **Generate variants** - Loop through all variant types
-4. **Re-encode original** - Process through libvips with original format
+4. **Re-encode original** - Process through libvips at quality 100 with original format (security re-encoding prevents polyglot exploits)
 
 ### Configuration Requirements ✓
 
