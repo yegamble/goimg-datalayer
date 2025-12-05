@@ -499,6 +499,10 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
 
     steps:
       - name: Checkout code
@@ -516,15 +520,16 @@ jobs:
           args: '-fmt sarif -out gosec-results.sarif ./...'
 
       - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: gosec-results.sarif
           category: gosec
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
+          version: 'v0.68.1'
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
@@ -534,7 +539,7 @@ jobs:
           exit-code: '1'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: trivy-results.sarif

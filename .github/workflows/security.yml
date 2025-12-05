@@ -35,6 +35,7 @@ jobs:
       # Required for uploading SARIF results to GitHub Security tab
       security-events: write
       contents: read
+      actions: read
 
     steps:
       - name: Checkout code
@@ -58,7 +59,7 @@ jobs:
             ./...
 
       - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: gosec-results.sarif
@@ -83,6 +84,7 @@ jobs:
     permissions:
       security-events: write
       contents: read
+      actions: read
 
     strategy:
       matrix:
@@ -95,8 +97,9 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
+          version: 'v0.68.1'
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
           format: 'sarif'
@@ -104,13 +107,11 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           # Skip unfixed vulnerabilities to reduce noise
           ignore-unfixed: true
-          # Scan private dependencies
-          scanners: 'vuln,secret,config'
           # Fail build on CRITICAL or HIGH vulnerabilities
           exit-code: '1'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: 'trivy-${{ matrix.scan-type }}-results.sarif'
@@ -311,17 +312,17 @@ jobs:
           cache: true
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/init@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         with:
           languages: go
           # Run extended query suite for deeper analysis
           queries: +security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/autobuild@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/analyze@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         with:
           category: "/language:go"
 

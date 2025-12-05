@@ -84,7 +84,7 @@ security-scan ───────┘
 
 ### 2. Trivy Vulnerability Scanner
 
-**Version:** aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 (v0.24.0)
+**Version:** aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 (v0.33.1)
 **Configuration:**
 - **CI Workflow:** Filesystem scan only, CRITICAL + HIGH severity
 - **Security Workflow:** Matrix strategy (fs + config), CRITICAL + HIGH + MEDIUM severity
@@ -158,7 +158,7 @@ security-scan ───────┘
 
 ### 7. CodeQL Analysis
 
-**Version:** github/codeql-action@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 (v3.29.5)
+**Version:** github/codeql-action@fe4161a26a8629af62121b670040955b330f9af2 (v4.31.6)
 **Configuration:**
 - Language: Go
 - Query suite: security-extended (more thorough than default)
