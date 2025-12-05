@@ -1,0 +1,79 @@
+# Prometheus Configuration for goimg-datalayer
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'goimg-production'
+    replica: '1'
+
+# Alerting configuration (optional - configure alertmanager if needed)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # goimg API service
+  - job_name: 'goimg-api'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:9090']
+        labels:
+          service: 'goimg-api'
+          environment: 'production'
+    # Relabel configurations for better metric organization
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+      - source_labels: [__address__]
+        target_label: __address__
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}:9090'
+
+  # PostgreSQL Exporter (if you add postgres_exporter service)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres'
+  #         database: 'goimg'
+
+  # Redis Exporter (if you add redis_exporter service)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+
+  # ClamAV metrics (if exposed)
+  # - job_name: 'clamav'
+  #   static_configs:
+  #     - targets: ['clamav-exporter:9810']
+  #       labels:
+  #         service: 'clamav'
+
+  # IPFS metrics
+  # - job_name: 'ipfs'
+  #   static_configs:
+  #     - targets: ['ipfs:5001']
+  #       labels:
+  #         service: 'ipfs'
+  #   metrics_path: '/debug/metrics/prometheus'

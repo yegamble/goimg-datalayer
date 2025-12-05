@@ -196,7 +196,10 @@ In the event of a security incident:
 4. **Recovery**: Restore services with verified fix deployed
 5. **Post-Incident**: Publish security advisory and post-mortem
 
-See `docs/security-runbook.md` (Sprint 9 deliverable) for detailed incident response procedures.
+See the security runbook documentation for detailed operational procedures:
+- `docs/security/incident_response.md` - Incident detection, triage, containment, and recovery
+- `docs/security/monitoring.md` - Security event monitoring and alerting
+- `docs/security/secret_rotation.md` - Credential rotation procedures
 
 ## Security Tools
 
