@@ -64,7 +64,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
     - Domain layer: **91-100%** (target: 90%)
     - Identity application: **91-93%** (target: 85%)
   - **Security Audit**: Rating **B+** (0 critical/high vulnerabilities)
-  - **E2E Tests**: 60% endpoint coverage, 38 total test requests, 19 social features tests
+  - **E2E Tests**: 62 total test requests, 60% endpoint coverage across 9 feature areas
   - **CI/CD Hardening**: Go 1.25 pinned, Trivy exit codes fixed, Gitleaks v8.23.0 pinned
   - **Performance Optimization**: N+1 query elimination (97% reduction), database indexes (migration 00005)
   - **Security Configurations**: .gitleaks.toml, .trivyignore
@@ -103,7 +103,7 @@ See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete roadmap.
 - Documented optimization strategies and benchmarks
 
 **Production Readiness**:
-- E2E test coverage: 60% of implemented endpoints (38 test requests)
+- E2E test coverage: 60% of implemented endpoints (62 test requests)
 - All Sprint 1-6 features fully tested and verified
 - CI/CD pipeline stable with all security scans passing
 - Ready for Sprint 9 launch preparation
@@ -310,9 +310,9 @@ make test-e2e          # End-to-end tests (Newman/Postman)
 | Overall Project | 80% | In Progress | 🔄 Sprint 9 |
 
 **E2E Test Coverage**:
-- 38 total test requests across 9 feature areas
+- 62 total test requests across 9 feature areas
 - 60% endpoint coverage (implemented features)
-- 19 comprehensive social features tests (likes, comments)
+- Comprehensive test coverage: Auth, Users, Images, Albums, Social, Explore, Error Handling
 - Auth flow fully covered (register, login, refresh, logout)
 - RFC 7807 error response validation
 
@@ -414,13 +414,18 @@ This repository includes structured guides for AI coding assistants in the `clau
 | [CLAUDE.md](CLAUDE.md) | Entry point and navigation |
 | [sprint_plan.md](claude/sprint_plan.md) | **Development roadmap (8-9 sprints)** |
 | [mvp_features.md](claude/mvp_features.md) | **Feature specifications and API design** |
+| [agent_workflow.md](claude/agent_workflow.md) | **Multi-agent coordination and task assignments** |
 | [architecture.md](claude/architecture.md) | DDD patterns and structure |
 | [coding.md](claude/coding.md) | Go standards and tooling |
 | [api_security.md](claude/api_security.md) | HTTP and security |
-| [testing_ci.md](claude/testing_ci.md) | Testing and CI/CD |
+| [security_gates.md](claude/security_gates.md) | **Sprint security reviews and gate approvals** |
+| [security_testing.md](claude/security_testing.md) | **Security test requirements and tools** |
+| [test_strategy.md](claude/test_strategy.md) | **Comprehensive test design patterns** |
+| [testing_ci.md](claude/testing_ci.md) | Testing and CI/CD quick reference |
 | [ipfs_storage.md](claude/ipfs_storage.md) | IPFS integration and P2P storage |
 | [notifications.md](claude/notifications.md) | Email and notification system |
 | [agent_checklist.md](claude/agent_checklist.md) | Pre-commit checklist |
+| [placement.md](claude/placement.md) | Adding folder-local guides |
 
 ## License
 

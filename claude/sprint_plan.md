@@ -31,7 +31,7 @@ This sprint plan is informed by:
   - Security scanning (gosec, Gitleaks v8.23.0 pinned, Trivy)
   - Fixed Go version (1.25), Trivy exit codes, security tool configurations
   - .gitleaks.toml and .trivyignore configurations
-- Newman/Postman E2E test infrastructure (60% coverage, 19 social features tests)
+- Newman/Postman E2E test infrastructure (62 test requests, 60% endpoint coverage)
 - Pre-commit hooks for code quality
 - Makefile with all development targets
 - Docker Compose with 6 services (PostgreSQL, Redis, ClamAV, IPFS, MinIO, networking)
