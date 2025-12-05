@@ -200,7 +200,7 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		Message: result.Message,
 	}
 
-	if err := EncodeJSON(w, http.StatusAccepted, response); err != nil {
+	if err := EncodeJSON(w, http.StatusCreated, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode upload response")
 	}
 }

@@ -153,6 +153,14 @@ type PaginatedAlbumsResponse struct {
 // Gallery DTOs - Social Interactions
 // ============================================================================
 
+// LikeResponse represents the HTTP response for like/unlike operations.
+// POST /api/v1/images/{imageID}/like
+// DELETE /api/v1/images/{imageID}/like
+type LikeResponse struct {
+	Liked     bool  `json:"liked"`
+	LikeCount int64 `json:"like_count"`
+}
+
 // AddCommentRequest represents the HTTP request body for adding a comment.
 // POST /api/v1/images/{imageID}/comments
 type AddCommentRequest struct {
@@ -184,6 +192,3 @@ type PaginatedCommentsResponse struct {
 	Page     int          `json:"page"`
 	PerPage  int          `json:"per_page"`
 }
-
-
-

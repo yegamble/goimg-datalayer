@@ -40,6 +40,8 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				// GetLikeCount called twice: once before like decision, once after like
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(9), nil).Once()
 				mocks.likes.On("Like", mock.Anything, userID, imageID).Return(nil).Once()
 				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(10), nil).Once()
 				mocks.images.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
@@ -62,6 +64,7 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(true, nil).Once()
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(10), nil).Once()
 			},
 			wantErr: "", // No error, idempotent
 		},
@@ -164,13 +167,14 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(9), nil).Once()
 				mocks.likes.On("Like", mock.Anything, userID, imageID).
 					Return(fmt.Errorf("database error")).Once()
 			},
 			wantErr: "create like",
 		},
 		{
-			name: "like count failure",
+			name: "like count failure - first call",
 			cmd: commands.LikeImageCommand{
 				UserID:  testhelpers.ValidUserID,
 				ImageID: testhelpers.ValidImageID,
@@ -184,7 +188,30 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				// First GetLikeCount call fails (before like decision)
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).
+					Return(int64(0), fmt.Errorf("count error")).Once()
+			},
+			wantErr: "get like count",
+		},
+		{
+			name: "like count failure - second call after like",
+			cmd: commands.LikeImageCommand{
+				UserID:  testhelpers.ValidUserID,
+				ImageID: testhelpers.ValidImageID,
+			},
+			setup: func(t *testing.T, mocks *likeTestMocks) {
+				userID := testhelpers.ValidUserIDParsed()
+				imageID := testhelpers.ValidImageIDParsed()
+				user := testhelpers.ValidUser(t)
+				image := testhelpers.ValidImage(t)
+
+				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
+				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
+				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(9), nil).Once()
 				mocks.likes.On("Like", mock.Anything, userID, imageID).Return(nil).Once()
+				// Second GetLikeCount call fails (after like)
 				mocks.likes.On("GetLikeCount", mock.Anything, imageID).
 					Return(int64(0), fmt.Errorf("count error")).Once()
 			},
@@ -205,6 +232,7 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(9), nil).Once()
 				mocks.likes.On("Like", mock.Anything, userID, imageID).Return(nil).Once()
 				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(10), nil).Once()
 				mocks.images.On("Save", mock.Anything, mock.Anything).
@@ -227,6 +255,7 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				mocks.users.On("FindByID", mock.Anything, userID).Return(user, nil).Once()
 				mocks.images.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
 				mocks.likes.On("HasLiked", mock.Anything, userID, imageID).Return(false, nil).Once()
+				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(9), nil).Once()
 				mocks.likes.On("Like", mock.Anything, userID, imageID).Return(nil).Once()
 				mocks.likes.On("GetLikeCount", mock.Anything, imageID).Return(int64(10), nil).Once()
 				mocks.images.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
@@ -255,14 +284,18 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 			)
 
 			// Act
-			err := handler.Handle(context.Background(), tt.cmd)
+			result, err := handler.Handle(context.Background(), tt.cmd)
 
 			// Assert
 			if tt.wantErr != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
+				assert.Nil(t, result)
 			} else {
 				require.NoError(t, err)
+				require.NotNil(t, result)
+				assert.True(t, result.Liked)
+				assert.Greater(t, result.LikeCount, int64(0))
 			}
 
 			mocks.images.AssertExpectations(t)

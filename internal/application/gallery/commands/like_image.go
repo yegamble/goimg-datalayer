@@ -18,6 +18,12 @@ type LikeImageCommand struct {
 	ImageID string
 }
 
+// LikeImageResult contains the result of a like operation.
+type LikeImageResult struct {
+	Liked     bool  // Always true for a like operation
+	LikeCount int64 // Current total like count for the image
+}
+
 // LikeImageHandler processes image like commands.
 // It validates that the image exists and is visible to the user,
 // creates the like relationship, updates the denormalized like count,
@@ -61,12 +67,12 @@ func NewLikeImageHandler(
 //  9. Publish ImageLiked domain event after successful save
 //
 // Returns:
-//   - nil on successful like
+//   - LikeImageResult with liked=true and like_count on success
 //   - Validation errors from domain value objects
 //   - ErrUserNotFound if user doesn't exist
 //   - ErrImageNotFound if image doesn't exist
 //   - ErrUnauthorizedAccess if image is not visible to user
-func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) error {
+func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) (*LikeImageResult, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)
 	if err != nil {
@@ -74,7 +80,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Err(err).
 			Str("user_id", cmd.UserID).
 			Msg("invalid user id for like image")
-		return fmt.Errorf("invalid user id: %w", err)
+		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
 
 	// 2. Parse image ID
@@ -84,7 +90,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Err(err).
 			Str("image_id", cmd.ImageID).
 			Msg("invalid image id for like")
-		return fmt.Errorf("invalid image id: %w", err)
+		return nil, fmt.Errorf("invalid image id: %w", err)
 	}
 
 	// 3. Verify user exists
@@ -94,7 +100,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Err(err).
 			Str("user_id", userID.String()).
 			Msg("user not found for like image")
-		return fmt.Errorf("find user: %w", err)
+		return nil, fmt.Errorf("find user: %w", err)
 	}
 
 	// 4. Load image
@@ -104,7 +110,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("image not found for like")
-		return fmt.Errorf("find image: %w", err)
+		return nil, fmt.Errorf("find image: %w", err)
 	}
 
 	// 5. Check image visibility
@@ -117,7 +123,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Str("image_id", imageID.String()).
 			Str("visibility", image.Visibility().String()).
 			Msg("unauthorized access to like image")
-		return gallery.ErrUnauthorizedAccess
+		return nil, gallery.ErrUnauthorizedAccess
 	}
 
 	// 6. Check if already liked (idempotent)
@@ -128,16 +134,26 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("failed to check if user has liked image")
-		return fmt.Errorf("check has liked: %w", err)
+		return nil, fmt.Errorf("check has liked: %w", err)
+	}
+
+	// Get current like count (needed for response even if already liked)
+	likeCount, err := h.likes.GetLikeCount(ctx, imageID)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID.String()).
+			Msg("failed to get like count")
+		return nil, fmt.Errorf("get like count: %w", err)
 	}
 
 	if hasLiked {
-		// Already liked - idempotent operation, return success
+		// Already liked - idempotent operation, return success with current count
 		h.logger.Debug().
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("user has already liked this image")
-		return nil
+		return &LikeImageResult{Liked: true, LikeCount: likeCount}, nil
 	}
 
 	// 7. Create like relationship
@@ -147,17 +163,17 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("failed to create like")
-		return fmt.Errorf("create like: %w", err)
+		return nil, fmt.Errorf("create like: %w", err)
 	}
 
-	// 8. Update denormalized like count on image
-	likeCount, err := h.likes.GetLikeCount(ctx, imageID)
+	// 8. Update denormalized like count on image (re-fetch after like)
+	likeCount, err = h.likes.GetLikeCount(ctx, imageID)
 	if err != nil {
 		h.logger.Error().
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to get like count")
-		return fmt.Errorf("get like count: %w", err)
+		return nil, fmt.Errorf("get like count: %w", err)
 	}
 
 	image.SetLikeCount(likeCount)
@@ -167,7 +183,7 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to update image like count")
-		return fmt.Errorf("update image like count: %w", err)
+		return nil, fmt.Errorf("update image like count: %w", err)
 	}
 
 	// 9. Publish ImageLiked domain event
@@ -193,5 +209,5 @@ func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) err
 		Int64("like_count", likeCount).
 		Msg("image liked successfully")
 
-	return nil
+	return &LikeImageResult{Liked: true, LikeCount: likeCount}, nil
 }

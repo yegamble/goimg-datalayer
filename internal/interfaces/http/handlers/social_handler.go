@@ -43,19 +43,18 @@ func NewSocialHandler(
 	}
 }
 
-// LikeImage handles POST /api/v1/images/{imageID}/likes
+// LikeImage handles POST /api/v1/images/{imageID}/like
 // Likes an image.
 //
 // Path parameters:
 //   - imageID: UUID of the image to like
 //
-// Response: 200 OK with success message
+// Response: 200 OK with {liked: true, like_count: N}
 // Errors:
 //   - 400: Invalid image ID format
 //   - 401: Not authenticated
 //   - 403: Image is not accessible to user
 //   - 404: Image not found
-//   - 409: User has already liked this image
 //   - 500: Internal server error
 func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -90,19 +89,22 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Execute like command
-	if err := h.likeImage.Handle(ctx, cmd); err != nil {
+	result, err := h.likeImage.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "like image")
 		return
 	}
 
-	// 5. Return success message
+	// 5. Return success response with like status and count
 	h.logger.Info().
 		Str("image_id", imageID).
 		Str("user_id", userCtx.UserID.String()).
+		Int64("like_count", result.LikeCount).
 		Msg("image liked successfully")
 
-	response := map[string]string{
-		"message": "Image liked successfully",
+	response := LikeResponse{
+		Liked:     result.Liked,
+		LikeCount: result.LikeCount,
 	}
 
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
@@ -110,17 +112,17 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UnlikeImage handles DELETE /api/v1/images/{imageID}/likes
+// UnlikeImage handles DELETE /api/v1/images/{imageID}/like
 // Removes a like from an image.
 //
 // Path parameters:
 //   - imageID: UUID of the image to unlike
 //
-// Response: 204 No Content
+// Response: 200 OK with {liked: false, like_count: N}
 // Errors:
 //   - 400: Invalid image ID format
 //   - 401: Not authenticated
-//   - 404: Image not found or not liked by user
+//   - 404: Image not found
 //   - 500: Internal server error
 func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -155,18 +157,27 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Execute unlike command
-	if err := h.unlikeImage.Handle(ctx, cmd); err != nil {
+	result, err := h.unlikeImage.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "unlike image")
 		return
 	}
 
-	// 5. Return 204 No Content
+	// 5. Return success response with like status and count
 	h.logger.Info().
 		Str("image_id", imageID).
 		Str("user_id", userCtx.UserID.String()).
+		Int64("like_count", result.LikeCount).
 		Msg("image unliked successfully")
 
-	w.WriteHeader(http.StatusNoContent)
+	response := LikeResponse{
+		Liked:     result.Liked,
+		LikeCount: result.LikeCount,
+	}
+
+	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode unlike response")
+	}
 }
 
 // AddComment handles POST /api/v1/images/{imageID}/comments
