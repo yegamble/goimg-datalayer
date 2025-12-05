@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -108,10 +109,8 @@ func ParsePasswordHash(encoded string) (PasswordHash, error) {
 		return PasswordHash{}, ErrPasswordEmpty
 	}
 
-	// Validate format: $argon2id$v=19$m=65536,t=2,p=4$<salt>$<hash>
-	parts := strings.Split(encoded, "$")
-	if len(parts) != 6 || parts[0] != "" || parts[1] != "argon2id" {
-		return PasswordHash{}, fmt.Errorf("invalid password hash format")
+	if _, _, _, _, _, err := parseArgon2Hash(encoded); err != nil {
+		return PasswordHash{}, err
 	}
 
 	return PasswordHash{hash: encoded}, nil
@@ -135,25 +134,17 @@ func (p PasswordHash) Verify(plaintext string) error {
 		return ErrPasswordEmpty
 	}
 
-	// Parse the encoded hash to extract parameters
-	parts := strings.Split(p.hash, "$")
-	if len(parts) != 6 {
-		return fmt.Errorf("invalid password hash format")
+	if plaintext == "" {
+		return ErrPasswordEmpty
 	}
 
-	// Extract salt and hash
-	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
+	timeCost, memoryCost, threads, salt, expectedHash, err := parseArgon2Hash(p.hash)
 	if err != nil {
-		return fmt.Errorf("failed to decode salt: %w", err)
-	}
-
-	expectedHash, err := base64.RawStdEncoding.DecodeString(parts[5])
-	if err != nil {
-		return fmt.Errorf("failed to decode hash: %w", err)
+		return err
 	}
 
 	// Hash the plaintext password with the same salt and parameters
-	actualHash := argon2.IDKey([]byte(plaintext), salt, argonTime, argonMemory, argonThreads, argonKeyLen)
+	actualHash := argon2.IDKey([]byte(plaintext), salt, timeCost, memoryCost, threads, uint32(len(expectedHash)))
 
 	// Use constant-time comparison to prevent timing attacks
 	if subtle.ConstantTimeCompare(expectedHash, actualHash) == 1 {
@@ -161,4 +152,70 @@ func (p PasswordHash) Verify(plaintext string) error {
 	}
 
 	return ErrPasswordMismatch
+}
+
+// parseArgon2Hash validates an encoded Argon2id hash and returns its components.
+// Expected format: $argon2id$v=19$m=65536,t=2,p=4$<salt>$<hash>
+func parseArgon2Hash(encoded string) (timeCost uint32, memoryCost uint32, threads uint8, salt []byte, hash []byte, err error) {
+	parts := strings.Split(encoded, "$")
+	if len(parts) != 6 || parts[0] != "" || parts[1] != "argon2id" {
+		err = fmt.Errorf("invalid password hash format")
+		return
+	}
+
+	if parts[2] != fmt.Sprintf("v=%d", argon2.Version) {
+		err = fmt.Errorf("unsupported argon2 version")
+		return
+	}
+
+	params := strings.Split(parts[3], ",")
+	if len(params) != 3 {
+		err = fmt.Errorf("invalid password hash parameters")
+		return
+	}
+
+	for _, param := range params {
+		kv := strings.SplitN(param, "=", 2)
+		if len(kv) != 2 {
+			err = fmt.Errorf("invalid password hash parameters")
+			return
+		}
+
+		value, convErr := strconv.Atoi(kv[1])
+		if convErr != nil || value <= 0 {
+			err = fmt.Errorf("invalid password hash parameters")
+			return
+		}
+
+		switch kv[0] {
+		case "m":
+			memoryCost = uint32(value)
+		case "t":
+			timeCost = uint32(value)
+		case "p":
+			threads = uint8(value)
+		default:
+			err = fmt.Errorf("invalid password hash parameters")
+			return
+		}
+	}
+
+	if memoryCost == 0 || timeCost == 0 || threads == 0 {
+		err = fmt.Errorf("invalid password hash parameters")
+		return
+	}
+
+	salt, err = base64.RawStdEncoding.DecodeString(parts[4])
+	if err != nil || len(salt) == 0 {
+		err = fmt.Errorf("failed to decode salt")
+		return
+	}
+
+	hash, err = base64.RawStdEncoding.DecodeString(parts[5])
+	if err != nil || len(hash) == 0 {
+		err = fmt.Errorf("failed to decode hash")
+		return
+	}
+
+	return
 }

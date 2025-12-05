@@ -253,6 +253,28 @@ func TestParsePasswordHash(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("invalid version fails", func(t *testing.T) {
+		t.Parallel()
+
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
+		require.NoError(t, err)
+
+		legacy := strings.Replace(hash.String(), "v=19", "v=18", 1)
+		_, err = identity.ParsePasswordHash(legacy)
+		require.Error(t, err)
+	})
+
+	t.Run("missing parameters fails", func(t *testing.T) {
+		t.Parallel()
+
+		hash, err := identity.NewPasswordHash("MySecureP@ssw0rd123")
+		require.NoError(t, err)
+
+		broken := strings.Replace(hash.String(), "m=65536,t=2,p=4", "m=65536,p=4", 1)
+		_, err = identity.ParsePasswordHash(broken)
+		require.Error(t, err)
+	})
+
 	t.Run("wrong algorithm fails", func(t *testing.T) {
 		t.Parallel()
 
