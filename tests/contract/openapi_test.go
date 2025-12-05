@@ -1,0 +1,1185 @@
+package contract_test
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers"
+	"github.com/getkin/kin-openapi/routers/gorillamux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// TestMain loads the OpenAPI spec once for all tests
+var (
+	loader *openapi3.Loader
+	doc    *openapi3.T
+	router routers.Router
+)
+
+func TestMain(m *testing.M) {
+	// Load OpenAPI spec
+	specPath := getSpecPath()
+	var err error
+	loader = openapi3.NewLoader()
+	doc, err = loader.LoadFromFile(specPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load OpenAPI spec: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Validate spec
+	err = doc.Validate(loader.Context)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "OpenAPI spec validation failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create router for path matching
+	router, err = gorillamux.NewRouter(doc)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create router: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Run tests
+	os.Exit(m.Run())
+}
+
+// getSpecPath returns the absolute path to the OpenAPI spec
+func getSpecPath() string {
+	// Navigate from tests/contract/ to api/openapi/openapi.yaml
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(dir, "..", "..", "api", "openapi", "openapi.yaml")
+}
+
+// TestOpenAPISpecLoads verifies the OpenAPI spec can be loaded and is valid
+func TestOpenAPISpecLoads(t *testing.T) {
+	t.Parallel()
+
+	require.NotNil(t, doc, "OpenAPI document should be loaded")
+	assert.Equal(t, "3.0.3", doc.OpenAPI)
+	assert.Equal(t, "goimg-datalayer API", doc.Info.Title)
+	assert.Equal(t, "1.0.0", doc.Info.Version)
+}
+
+// TestEndpointDefinitions verifies all expected endpoints are defined in the spec
+func TestEndpointDefinitions(t *testing.T) {
+	t.Parallel()
+
+	expectedEndpoints := map[string][]string{
+		// Auth endpoints
+		"/auth/register":                 {http.MethodPost},
+		"/auth/login":                    {http.MethodPost},
+		"/auth/refresh":                  {http.MethodPost},
+		"/auth/logout":                   {http.MethodPost},
+		// User endpoints
+		"/users/{id}":                    {http.MethodGet, http.MethodPut, http.MethodDelete},
+		// Image endpoints
+		"/images":                        {http.MethodGet, http.MethodPost},
+		"/images/{id}":                   {http.MethodGet, http.MethodPut, http.MethodDelete},
+		"/images/{id}/variants/{size}":  {http.MethodGet},
+		// Album endpoints
+		"/albums":                        {http.MethodGet, http.MethodPost},
+		"/albums/{id}":                   {http.MethodGet, http.MethodPut, http.MethodDelete},
+		"/albums/{id}/images":            {http.MethodPost},
+		"/albums/{id}/images/{imageId}":  {http.MethodDelete},
+		// Tag endpoints
+		"/tags":                          {http.MethodGet},
+		"/tags/search":                   {http.MethodGet},
+		"/tags/{tag}/images":             {http.MethodGet},
+		// Social endpoints
+		"/images/{id}/like":              {http.MethodPost, http.MethodDelete},
+		"/images/{id}/likes":             {http.MethodGet},
+		"/images/{id}/comments":          {http.MethodGet, http.MethodPost},
+		"/comments/{id}":                 {http.MethodDelete},
+		// Moderation endpoints
+		"/reports":                       {http.MethodPost},
+		"/moderation/reports":            {http.MethodGet},
+		"/moderation/reports/{id}":       {http.MethodGet},
+		"/moderation/reports/{id}/resolve": {http.MethodPost},
+		"/users/{id}/ban":                {http.MethodPost},
+		// Explore endpoints
+		"/explore/recent":                {http.MethodGet},
+		"/explore/popular":               {http.MethodGet},
+		// Health endpoints
+		"/health":                        {http.MethodGet},
+		"/health/ready":                  {http.MethodGet},
+		// Monitoring endpoints
+		"/metrics":                       {http.MethodGet},
+	}
+
+	for path, methods := range expectedEndpoints {
+		pathItem := doc.Paths.Find(path)
+		require.NotNil(t, pathItem, "Path %s should be defined in spec", path)
+
+		for _, method := range methods {
+			operation := pathItem.GetOperation(method)
+			assert.NotNil(t, operation, "Path %s should have %s method defined", path, method)
+		}
+	}
+}
+
+// TestAuthEndpointsContract tests contract compliance for authentication endpoints
+func TestAuthEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		path           string
+		method         string
+		requiresAuth   bool
+		requestSchema  map[string]interface{}
+		responseSchemas map[int]string // status code -> schema ref
+	}{
+		{
+			name:          "POST /auth/register",
+			path:          "/auth/register",
+			method:        http.MethodPost,
+			requiresAuth:  false,
+			requestSchema: map[string]interface{}{
+				"email":    "string",
+				"username": "string",
+				"password": "string",
+			},
+			responseSchemas: map[int]string{
+				201: "user_created",
+				400: "ProblemDetail",
+				409: "ProblemDetail",
+			},
+		},
+		{
+			name:          "POST /auth/login",
+			path:          "/auth/login",
+			method:        http.MethodPost,
+			requiresAuth:  false,
+			requestSchema: map[string]interface{}{
+				"email":    "string",
+				"password": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "TokenResponse",
+				401: "ProblemDetail",
+				429: "ProblemDetail",
+			},
+		},
+		{
+			name:          "POST /auth/refresh",
+			path:          "/auth/refresh",
+			method:        http.MethodPost,
+			requiresAuth:  false,
+			requestSchema: map[string]interface{}{
+				"refresh_token": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "TokenResponse",
+				401: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /auth/logout",
+			path:         "/auth/logout",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestUserEndpointsContract tests contract compliance for user endpoints
+func TestUserEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /users/{id}",
+			path:         "/users/{id}",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "User",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "PUT /users/{id}",
+			path:         "/users/{id}",
+			method:       http.MethodPut,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"display_name": "string",
+				"bio":          "string",
+			},
+			responseSchemas: map[int]string{
+				200: "User",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /users/{id}",
+			path:         "/users/{id}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestImageEndpointsContract tests contract compliance for image endpoints
+func TestImageEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /images",
+			path:         "/images",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+				400: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /images",
+			path:         "/images",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"file": "binary",
+			},
+			responseSchemas: map[int]string{
+				201: "Image",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				413: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /images/{id}",
+			path:         "/images/{id}",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "Image",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "PUT /images/{id}",
+			path:         "/images/{id}",
+			method:       http.MethodPut,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"title":       "string",
+				"description": "string",
+				"visibility":  "string",
+				"tags":        "array",
+			},
+			responseSchemas: map[int]string{
+				200: "Image",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /images/{id}",
+			path:         "/images/{id}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /images/{id}/variants/{size}",
+			path:         "/images/{id}/variants/{size}",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "image_binary",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestAlbumEndpointsContract tests contract compliance for album endpoints
+func TestAlbumEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /albums",
+			path:         "/albums",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+		{
+			name:         "POST /albums",
+			path:         "/albums",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"title":       "string",
+				"description": "string",
+				"visibility":  "string",
+			},
+			responseSchemas: map[int]string{
+				201: "Album",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /albums/{id}",
+			path:         "/albums/{id}",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "Album",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "PUT /albums/{id}",
+			path:         "/albums/{id}",
+			method:       http.MethodPut,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"title":       "string",
+				"description": "string",
+				"visibility":  "string",
+			},
+			responseSchemas: map[int]string{
+				200: "Album",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /albums/{id}",
+			path:         "/albums/{id}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /albums/{id}/images",
+			path:         "/albums/{id}/images",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"image_ids": "array",
+			},
+			responseSchemas: map[int]string{
+				200: "added_count",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /albums/{id}/images/{imageId}",
+			path:         "/albums/{id}/images/{imageId}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestSocialEndpointsContract tests contract compliance for social endpoints
+func TestSocialEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "POST /images/{id}/like",
+			path:         "/images/{id}/like",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "like_response",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /images/{id}/like",
+			path:         "/images/{id}/like",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "like_response",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /images/{id}/likes",
+			path:         "/images/{id}/likes",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+		{
+			name:         "POST /images/{id}/comments",
+			path:         "/images/{id}/comments",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"content": "string",
+			},
+			responseSchemas: map[int]string{
+				201: "Comment",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /images/{id}/comments",
+			path:         "/images/{id}/comments",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+		{
+			name:         "DELETE /comments/{id}",
+			path:         "/comments/{id}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestTagEndpointsContract tests contract compliance for tag endpoints
+func TestTagEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /tags",
+			path:         "/tags",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "tags_response",
+			},
+		},
+		{
+			name:         "GET /tags/search",
+			path:         "/tags/search",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "tags_response",
+			},
+		},
+		{
+			name:         "GET /tags/{tag}/images",
+			path:         "/tags/{tag}/images",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, nil, tt.responseSchemas)
+		})
+	}
+}
+
+// TestModerationEndpointsContract tests contract compliance for moderation endpoints
+func TestModerationEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "POST /reports",
+			path:         "/reports",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"image_id":    "string",
+				"reason":      "string",
+				"description": "string",
+			},
+			responseSchemas: map[int]string{
+				201: "Report",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /moderation/reports",
+			path:         "/moderation/reports",
+			method:       http.MethodGet,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /moderation/reports/{id}",
+			path:         "/moderation/reports/{id}",
+			method:       http.MethodGet,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "Report",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /moderation/reports/{id}/resolve",
+			path:         "/moderation/reports/{id}/resolve",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"status":     "string",
+				"resolution": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "Report",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /users/{id}/ban",
+			path:         "/users/{id}/ban",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"reason":   "string",
+				"duration": "integer",
+			},
+			responseSchemas: map[int]string{
+				200: "User",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
+		})
+	}
+}
+
+// TestExploreEndpointsContract tests contract compliance for explore endpoints
+func TestExploreEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /explore/recent",
+			path:         "/explore/recent",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+		{
+			name:         "GET /explore/popular",
+			path:         "/explore/popular",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "PaginatedResponse",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, nil, tt.responseSchemas)
+		})
+	}
+}
+
+// TestHealthEndpointsContract tests contract compliance for health endpoints
+func TestHealthEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "GET /health",
+			path:         "/health",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "HealthStatus",
+			},
+		},
+		{
+			name:         "GET /health/ready",
+			path:         "/health/ready",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "HealthReadyResponse",
+				503: "HealthReadyResponse",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, nil, tt.responseSchemas)
+		})
+	}
+}
+
+// TestComponentSchemas verifies all component schemas are properly defined
+func TestComponentSchemas(t *testing.T) {
+	t.Parallel()
+
+	requiredSchemas := []string{
+		"User",
+		"Image",
+		"Album",
+		"Comment",
+		"Like",
+		"Report",
+		"TokenResponse",
+		"PaginatedResponse",
+		"Pagination",
+		"ProblemDetail",
+		"HealthStatus",
+		"HealthReadyResponse",
+		"HealthCheck",
+	}
+
+	for _, schemaName := range requiredSchemas {
+		t.Run(schemaName, func(t *testing.T) {
+			schema := doc.Components.Schemas[schemaName]
+			assert.NotNil(t, schema, "Schema %s should be defined in components", schemaName)
+
+			if schema != nil {
+				assert.NotNil(t, schema.Value, "Schema %s should have a value", schemaName)
+			}
+		})
+	}
+}
+
+// TestProblemDetailSchema validates RFC 7807 error schema
+func TestProblemDetailSchema(t *testing.T) {
+	t.Parallel()
+
+	schema := doc.Components.Schemas["ProblemDetail"]
+	require.NotNil(t, schema, "ProblemDetail schema should exist")
+	require.NotNil(t, schema.Value, "ProblemDetail schema should have value")
+
+	// Verify required fields
+	requiredFields := []string{"type", "title", "status"}
+	for _, field := range requiredFields {
+		assert.Contains(t, schema.Value.Required, field, "ProblemDetail should require field: %s", field)
+	}
+
+	// Verify optional fields exist
+	optionalFields := []string{"detail", "instance", "traceId", "errors"}
+	for _, field := range optionalFields {
+		_, exists := schema.Value.Properties[field]
+		assert.True(t, exists, "ProblemDetail should have optional field: %s", field)
+	}
+}
+
+// TestSecuritySchemes verifies security schemes are properly defined
+func TestSecuritySchemes(t *testing.T) {
+	t.Parallel()
+
+	bearerAuth := doc.Components.SecuritySchemes["bearerAuth"]
+	require.NotNil(t, bearerAuth, "bearerAuth security scheme should be defined")
+	require.NotNil(t, bearerAuth.Value, "bearerAuth should have value")
+
+	assert.Equal(t, "http", bearerAuth.Value.Type)
+	assert.Equal(t, "bearer", bearerAuth.Value.Scheme)
+	assert.Equal(t, "JWT", bearerAuth.Value.BearerFormat)
+}
+
+// TestPaginationParameters verifies pagination parameters are properly defined
+func TestPaginationParameters(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		paramName    string
+		expectedType string
+		minimum      *int64
+		maximum      *int64
+		defaultValue interface{}
+	}{
+		{
+			name:         "PageParam",
+			paramName:    "PageParam",
+			expectedType: "integer",
+			minimum:      int64Ptr(1),
+			defaultValue: 1,
+		},
+		{
+			name:         "PerPageParam",
+			paramName:    "PerPageParam",
+			expectedType: "integer",
+			minimum:      int64Ptr(1),
+			maximum:      int64Ptr(100),
+			defaultValue: 20,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			param := doc.Components.Parameters[tt.paramName]
+			require.NotNil(t, param, "Parameter %s should be defined", tt.paramName)
+			require.NotNil(t, param.Value, "Parameter %s should have value", tt.paramName)
+			require.NotNil(t, param.Value.Schema, "Parameter %s should have schema", tt.paramName)
+			require.NotNil(t, param.Value.Schema.Value, "Parameter %s schema should have value", tt.paramName)
+
+			assert.Equal(t, tt.expectedType, param.Value.Schema.Value.Type.Slice()[0])
+
+			if tt.minimum != nil {
+				assert.Equal(t, float64(*tt.minimum), *param.Value.Schema.Value.Min)
+			}
+
+			if tt.maximum != nil {
+				assert.Equal(t, float64(*tt.maximum), *param.Value.Schema.Value.Max)
+			}
+		})
+	}
+}
+
+// Helper Functions
+
+// validateEndpointContract validates that an endpoint's contract matches the spec
+func validateEndpointContract(
+	t *testing.T,
+	path, method string,
+	requiresAuth bool,
+	requestSchema map[string]interface{},
+	responseSchemas map[int]string,
+) {
+	t.Helper()
+
+	// Find the path in the spec
+	pathItem := doc.Paths.Find(path)
+	require.NotNil(t, pathItem, "Path %s should exist in spec", path)
+
+	// Get the operation
+	operation := pathItem.GetOperation(method)
+	require.NotNil(t, operation, "Operation %s %s should exist", method, path)
+
+	// Validate security requirements
+	if requiresAuth {
+		// Check if operation has explicit security or inherits from global
+		hasExplicitSecurity := operation.Security != nil && len(*operation.Security) > 0
+		hasGlobalSecurity := doc.Security != nil && len(doc.Security) > 0
+
+		if hasExplicitSecurity {
+			// Check if any security requirement includes bearerAuth
+			foundBearer := false
+			for _, secReq := range *operation.Security {
+				if _, hasBearer := secReq["bearerAuth"]; hasBearer {
+					foundBearer = true
+					break
+				}
+			}
+			assert.True(t, foundBearer, "Endpoint %s %s should use bearerAuth (found %d security requirements)", method, path, len(*operation.Security))
+		} else if hasGlobalSecurity {
+			// Inherits from global security
+			secReq := doc.Security[0]
+			_, hasBearer := secReq["bearerAuth"]
+			assert.True(t, hasBearer, "Endpoint %s %s should inherit bearerAuth from global", method, path)
+		} else {
+			assert.Fail(t, "Endpoint %s %s should require authentication", method, path)
+		}
+	} else {
+		// Public endpoints can have:
+		// 1. Empty security (explicitly override global)
+		// 2. Security with empty object {} (public access)
+		// 3. Security with both {} and bearerAuth (optional auth)
+		if operation.Security != nil && len(*operation.Security) > 0 {
+			// Check if any security requirement is empty {} (public access)
+			hasPublicAccess := false
+			for _, secReq := range *operation.Security {
+				if len(secReq) == 0 {
+					hasPublicAccess = true
+					break
+				}
+			}
+			assert.True(t, hasPublicAccess, "Public endpoint %s %s should have {} security requirement for public access", method, path)
+		}
+	}
+
+	// Validate request schema if provided
+	if requestSchema != nil {
+		if operation.RequestBody != nil && operation.RequestBody.Value != nil {
+			assert.True(t, operation.RequestBody.Value.Required, "Request body should be required for %s %s", method, path)
+
+			jsonContent := operation.RequestBody.Value.Content.Get("application/json")
+			if jsonContent != nil {
+				assert.NotNil(t, jsonContent.Schema, "Request should have schema for %s %s", method, path)
+			}
+
+			// Check for multipart/form-data for file uploads
+			multipartContent := operation.RequestBody.Value.Content.Get("multipart/form-data")
+			if multipartContent != nil {
+				assert.NotNil(t, multipartContent.Schema, "Multipart request should have schema for %s %s", method, path)
+			}
+		} else {
+			assert.Fail(t, "Operation %s %s should have request body but doesn't", method, path)
+		}
+	}
+
+	// Validate response schemas
+	for statusCode, schemaName := range responseSchemas {
+		statusCodeStr := fmt.Sprintf("%d", statusCode)
+		response := operation.Responses.Status(statusCode)
+		assert.NotNil(t, response, "Response %d should be defined for %s %s", statusCode, method, path)
+
+		if response != nil && response.Value != nil {
+			// Special cases that don't have content
+			if schemaName == "no_content" {
+				assert.Nil(t, response.Value.Content, "Response %s should have no content for %s %s", statusCodeStr, method, path)
+			} else if schemaName == "image_binary" {
+				// Image binary response
+				content := response.Value.Content
+				if content != nil {
+					hasImageContent := content.Get("image/jpeg") != nil || content.Get("image/png") != nil
+					assert.True(t, hasImageContent, "Response %s should have image content for %s %s", statusCodeStr, method, path)
+				}
+			} else {
+				// JSON responses
+				jsonContent := response.Value.Content.Get("application/json")
+				if jsonContent != nil {
+					assert.NotNil(t, jsonContent.Schema, "Response %s should have JSON schema for %s %s", statusCodeStr, method, path)
+				}
+			}
+		}
+	}
+
+	// Validate operation metadata
+	assert.NotEmpty(t, operation.Summary, "Operation %s %s should have summary", method, path)
+	assert.NotEmpty(t, operation.OperationID, "Operation %s %s should have operationId", method, path)
+	assert.NotEmpty(t, operation.Tags, "Operation %s %s should have tags", method, path)
+}
+
+// validateRequestSchema validates request body schema structure
+func validateRequestSchema(t *testing.T, schema *openapi3.SchemaRef, expectedFields map[string]interface{}) {
+	t.Helper()
+
+	require.NotNil(t, schema, "Schema should not be nil")
+	require.NotNil(t, schema.Value, "Schema value should not be nil")
+
+	for fieldName, expectedType := range expectedFields {
+		prop, exists := schema.Value.Properties[fieldName]
+		assert.True(t, exists, "Field %s should exist in schema", fieldName)
+
+		if exists && prop != nil && prop.Value != nil {
+			actualType := prop.Value.Type.Slice()[0]
+			assert.Equal(t, expectedType, actualType, "Field %s should have type %s", fieldName, expectedType)
+		}
+	}
+}
+
+// validateResponseSchema validates response schema structure
+func validateResponseSchema(t *testing.T, schema *openapi3.SchemaRef, schemaName string) {
+	t.Helper()
+
+	require.NotNil(t, schema, "Response schema should not be nil")
+
+	// For schema references, verify they exist in components
+	if schema.Ref != "" {
+		refName := extractSchemaName(schema.Ref)
+		componentSchema := doc.Components.Schemas[refName]
+		assert.NotNil(t, componentSchema, "Referenced schema %s should exist in components", refName)
+	} else {
+		assert.NotNil(t, schema.Value, "Inline schema should have value")
+	}
+}
+
+// extractSchemaName extracts schema name from reference string
+func extractSchemaName(ref string) string {
+	// Format: #/components/schemas/SchemaName
+	parts := filepath.Base(ref)
+	return parts
+}
+
+// int64Ptr returns a pointer to an int64 value
+func int64Ptr(i int64) *int64 {
+	return &i
+}
+
+// TestRequestValidation tests request validation against OpenAPI spec
+func TestRequestValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		method      string
+		path        string
+		body        interface{}
+		expectValid bool
+	}{
+		{
+			name:   "Valid register request",
+			method: http.MethodPost,
+			path:   "/auth/register",
+			body: map[string]interface{}{
+				"email":    "test@example.com",
+				"username": "testuser",
+				"password": "SecurePass123!",
+			},
+			expectValid: true,
+		},
+		{
+			name:   "Invalid register request - missing email",
+			method: http.MethodPost,
+			path:   "/auth/register",
+			body: map[string]interface{}{
+				"username": "testuser",
+				"password": "SecurePass123!",
+			},
+			expectValid: false,
+		},
+		{
+			name:   "Valid login request",
+			method: http.MethodPost,
+			path:   "/auth/login",
+			body: map[string]interface{}{
+				"email":    "test@example.com",
+				"password": "SecurePass123!",
+			},
+			expectValid: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Serialize body to JSON
+			var bodyBytes []byte
+			if tt.body != nil {
+				var err error
+				bodyBytes, err = json.Marshal(tt.body)
+				require.NoError(t, err)
+			}
+
+			// Create request
+			req := mustCreateRequest(t, tt.method, tt.path, bodyBytes)
+
+			// Find route in spec
+			route, pathParams, err := router.FindRoute(req)
+			if !tt.expectValid && err != nil {
+				return // Expected to not find route
+			}
+			require.NoError(t, err)
+
+			// Create request validation input
+			requestValidationInput := &openapi3filter.RequestValidationInput{
+				Request:    req,
+				PathParams: pathParams,
+				Route:      route,
+			}
+
+			// Validate request
+			err = openapi3filter.ValidateRequest(loader.Context, requestValidationInput)
+
+			if tt.expectValid {
+				assert.NoError(t, err, "Request should be valid")
+			} else {
+				assert.Error(t, err, "Request should be invalid")
+			}
+		})
+	}
+}
+
+// mustCreateRequest creates an HTTP request for testing
+func mustCreateRequest(t *testing.T, method, path string, body []byte) *http.Request {
+	t.Helper()
+
+	url := "http://localhost:8080/api/v1" + path
+	var req *http.Request
+	var err error
+
+	if body != nil {
+		req, err = http.NewRequest(method, url, bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, err = http.NewRequest(method, url, nil)
+	}
+
+	require.NoError(t, err)
+	return req
+}
