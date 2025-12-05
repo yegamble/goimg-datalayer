@@ -516,7 +516,7 @@ jobs:
           args: '-fmt sarif -out gosec-results.sarif ./...'
 
       - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: gosec-results.sarif
@@ -534,7 +534,7 @@ jobs:
           exit-code: '1'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 # v3.29.5
+        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
         if: always()
         with:
           sarif_file: trivy-results.sarif

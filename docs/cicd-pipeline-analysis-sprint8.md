@@ -158,7 +158,7 @@ security-scan ───────┘
 
 ### 7. CodeQL Analysis
 
-**Version:** github/codeql-action@3fb89c4c8bf69096bf5e0c4c8d23c0e5c88e12e9 (v3.29.5)
+**Version:** github/codeql-action@fe4161a26a8629af62121b670040955b330f9af2 (v4.31.6)
 **Configuration:**
 - Language: Go
 - Query suite: security-extended (more thorough than default)
