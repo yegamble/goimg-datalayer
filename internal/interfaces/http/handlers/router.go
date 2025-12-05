@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
@@ -28,12 +29,14 @@ type MiddlewareConfig struct {
 //
 // Middleware order (CRITICAL for security):
 //  1. RequestID - generates correlation ID
-//  2. Logger - structured request/response logging
-//  3. Recovery - panic recovery
-//  4. SecurityHeaders - defense headers (CSP, X-Frame-Options, etc.)
-//  5. CORS - cross-origin resource sharing
+//  2. Metrics - Prometheus metrics collection
+//  3. Logger - structured request/response logging
+//  4. Recovery - panic recovery
+//  5. SecurityHeaders - defense headers (CSP, X-Frame-Options, etc.)
+//  6. CORS - cross-origin resource sharing
 //
 // Route groups:
+//   - Health/Metrics routes: /health, /health/ready, /metrics (no authentication)
 //   - Public routes: /api/v1/auth/* (no authentication)
 //   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
@@ -43,6 +46,8 @@ func NewRouter(
 	imageHandler *ImageHandler,
 	albumHandler *AlbumHandler,
 	socialHandler *SocialHandler,
+	healthHandler *HealthHandler,
+	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
 ) chi.Router {
@@ -50,6 +55,7 @@ func NewRouter(
 
 	// Global middleware (applies to all routes)
 	r.Use(middleware.RequestID)
+	r.Use(middleware.MetricsMiddleware(metricsCollector))
 	r.Use(middleware.Logger(middlewareConfig.Logger))
 	r.Use(middleware.Recovery(middlewareConfig.Logger))
 
@@ -69,12 +75,16 @@ func NewRouter(
 	// Timeout middleware (prevent long-running requests)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
 
-	// Health check endpoint (no authentication required)
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok","service":"goimg-api"}`))
-	})
+	// Health check endpoints (no authentication required)
+	// Liveness probe - checks if server is running
+	r.Get("/health", healthHandler.Liveness)
+
+	// Readiness probe - checks if all dependencies (DB, Redis) are healthy
+	r.Get("/health/ready", healthHandler.Readiness)
+
+	// Prometheus metrics endpoint (no authentication required)
+	// In production, consider adding basic auth or IP restriction
+	r.Handle("/metrics", promhttp.Handler())
 
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
