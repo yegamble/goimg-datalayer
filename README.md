@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: Sprint 9 - MVP Polish & Launch Prep (starting)
+**Current Phase**: Sprint 9 - MVP Polish & Launch Prep (IN PROGRESS - Started 2025-12-05)
 
 **Completed Sprints**:
 
@@ -382,7 +382,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 6 | Application & HTTP - Gallery | 2 weeks | **COMPLETE** ✅ |
 | 7 | Moderation & Social Features | 2 weeks | **DEFERRED** 🔄 |
 | 8 | Integration, Testing & Security Hardening | 2 weeks | **COMPLETE** ✅ |
-| 9 | MVP Polish & Launch Prep | 2 weeks | **STARTING** 🚀 |
+| 9 | MVP Polish & Launch Prep | 2 weeks | **IN PROGRESS** 🚀 (Started: 2025-12-05) |
 
 **Sprint 7 Note**: Core social features (likes, comments) were completed in Sprint 6. Advanced moderation features (abuse reporting API, moderation queue, user ban API) deferred to Phase 2. Basic moderation available via direct database access.
 
