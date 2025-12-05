@@ -409,6 +409,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /users/{id}/likes:
+    get:
+      tags: [users]
+      summary: Get user's liked images
+      description: |
+        Retrieve a paginated list of images that the specified user has liked.
+
+        Access control:
+        - Public users: Can view likes of users with public profiles
+        - Authenticated users: Can view their own likes and public likes
+      operationId: getUserLikedImages
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Liked images retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+        '401':
+          description: Unauthorized (optional - only if authentication required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Images ====================
   /images:
     post:
