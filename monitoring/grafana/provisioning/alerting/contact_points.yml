@@ -1,0 +1,110 @@
+apiVersion: 1
+
+# Contact Points Configuration for Security Alerts
+# This file defines where alerts should be sent (email, Slack, PagerDuty)
+#
+# IMPORTANT: Replace placeholder values with actual credentials before deployment:
+# - EMAIL_HOST, EMAIL_PORT, EMAIL_FROM, EMAIL_TO
+# - SLACK_WEBHOOK_URL (create at https://api.slack.com/messaging/webhooks)
+# - PAGERDUTY_INTEGRATION_KEY (create in PagerDuty service settings)
+
+contactPoints:
+  # Email notifications for security team
+  - orgId: 1
+    name: security-team-email
+    receivers:
+      - uid: email-security-team
+        type: email
+        settings:
+          addresses: security@goimg.dev
+          # Configure these via environment variables in docker-compose:
+          # GF_SMTP_ENABLED=true
+          # GF_SMTP_HOST=smtp.gmail.com:587
+          # GF_SMTP_USER=alerts@goimg.dev
+          # GF_SMTP_PASSWORD=<app-password>
+          # GF_SMTP_FROM_ADDRESS=alerts@goimg.dev
+          # GF_SMTP_FROM_NAME=goimg Security Alerts
+        disableResolveMessage: false
+
+  # Slack webhook for real-time notifications
+  - orgId: 1
+    name: security-slack-channel
+    receivers:
+      - uid: slack-security
+        type: slack
+        settings:
+          url: ${SLACK_WEBHOOK_URL}
+          # Create webhook at: https://api.slack.com/messaging/webhooks
+          # Example: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX
+          recipient: '#security-alerts'
+          title: |
+            {{ if eq .Status "firing" }}🚨 SECURITY ALERT: {{ .CommonLabels.alertname }}{{ else }}✅ RESOLVED: {{ .CommonLabels.alertname }}{{ end }}
+          text: |
+            {{ range .Alerts }}
+            *Alert:* {{ .Labels.alertname }}
+            *Severity:* {{ .Labels.severity }}
+            *Category:* {{ .Labels.subcategory }}
+            {{ if .Annotations.description }}*Description:* {{ .Annotations.description }}{{ end }}
+            {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+            *Status:* {{ .Status }}
+            {{ if eq .Status "firing" }}*Started:* {{ .StartsAt }}{{ end }}
+            {{ if eq .Status "resolved" }}*Ended:* {{ .EndsAt }}{{ end }}
+            {{ end }}
+          username: goimg Security Monitor
+          icon_emoji: ':shield:'
+        disableResolveMessage: false
+
+  # PagerDuty for critical alerts (P0/P1)
+  - orgId: 1
+    name: security-pagerduty
+    receivers:
+      - uid: pagerduty-security
+        type: pagerduty
+        settings:
+          integrationKey: ${PAGERDUTY_INTEGRATION_KEY}
+          # Create integration in PagerDuty service settings
+          # Service -> Integrations -> Add Integration -> Events API v2
+          severity: critical
+          class: security_incident
+          component: goimg-api
+          group: security
+          summary: |
+            {{ .CommonLabels.alertname }}: {{ .CommonAnnotations.summary }}
+        disableResolveMessage: false
+
+  # Webhook for custom integrations (e.g., SIEM, ticketing system)
+  - orgId: 1
+    name: security-webhook
+    receivers:
+      - uid: webhook-security
+        type: webhook
+        settings:
+          url: ${SECURITY_WEBHOOK_URL}
+          # Example: https://siem.goimg.dev/api/v1/alerts
+          httpMethod: POST
+          maxAlerts: 0
+          # Send full alert payload as JSON
+        disableResolveMessage: false
+
+  # Teams notifications (alternative to Slack)
+  - orgId: 1
+    name: security-teams-channel
+    receivers:
+      - uid: teams-security
+        type: teams
+        settings:
+          url: ${TEAMS_WEBHOOK_URL}
+          # Create webhook in Microsoft Teams channel
+          # Channel -> Connectors -> Incoming Webhook
+          title: |
+            {{ if eq .Status "firing" }}🚨 Security Alert{{ else }}✅ Resolved{{ end }}: {{ .CommonLabels.alertname }}
+          message: |
+            **Severity:** {{ .CommonLabels.severity }}
+            **Category:** {{ .CommonLabels.subcategory }}
+
+            {{ range .Alerts }}
+            {{ .Annotations.description }}
+
+            [View Runbook]({{ .Annotations.runbook_url }})
+            {{ end }}
+        disableResolveMessage: false

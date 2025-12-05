@@ -1,6 +1,68 @@
 version: "3.9"
 
 services:
+  # Nginx Reverse Proxy with SSL Termination
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: goimg-nginx
+    ports:
+      - "80:80"    # HTTP (redirects to HTTPS)
+      - "443:443"  # HTTPS
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+      - certbot_webroot:/var/www/certbot:ro
+    networks:
+      - frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Certbot for SSL Certificate Management (runs as one-off container)
+  certbot:
+    image: certbot/certbot:latest
+    container_name: goimg-certbot
+    profiles:
+      - tools  # Only run when explicitly requested
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
   # API Service
   api:
     image: goimg-api:latest
@@ -9,7 +71,6 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=goimg
-      - DB_PASSWORD=${DB_PASSWORD:-goimg_prod_password}
       - DB_NAME=goimg
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -19,9 +80,17 @@ services:
       - LOG_LEVEL=info
       - METRICS_ENABLED=true
       - METRICS_PORT=9090
-    ports:
-      - "8080:8080"
-      - "9090:9090"  # Metrics endpoint
+      - SECRET_PROVIDER=docker
+    secrets:
+      - JWT_SECRET
+      - DB_PASSWORD
+      - REDIS_PASSWORD
+      - S3_SECRET_KEY
+      - IPFS_PINATA_JWT
+    # Ports not exposed externally - nginx handles all external traffic
+    expose:
+      - "8080"  # API port (internal only)
+      - "9090"  # Metrics port (internal only)
     volumes:
       - api_uploads:/app/uploads
     networks:
@@ -63,12 +132,16 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=goimg
-      - DB_PASSWORD=${DB_PASSWORD:-goimg_prod_password}
       - DB_NAME=goimg
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - IPFS_API_URL=http://ipfs:5001
       - LOG_LEVEL=info
+      - SECRET_PROVIDER=docker
+    secrets:
+      - DB_PASSWORD
+      - REDIS_PASSWORD
+      - IPFS_PINATA_JWT
     volumes:
       - api_uploads:/app/uploads
     networks:
@@ -101,9 +174,11 @@ services:
     container_name: goimg-postgres
     environment:
       POSTGRES_USER: goimg
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-goimg_prod_password}
+      POSTGRES_PASSWORD_FILE: /run/secrets/DB_PASSWORD
       POSTGRES_DB: goimg
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    secrets:
+      - DB_PASSWORD
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
@@ -136,7 +211,9 @@ services:
     container_name: goimg-redis
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    command: sh -c 'redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru --requirepass "$$(cat /run/secrets/REDIS_PASSWORD)"'
+    secrets:
+      - REDIS_PASSWORD
     networks:
       - backend
     healthcheck:
@@ -270,12 +347,14 @@ services:
     container_name: goimg-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/GRAFANA_ADMIN_PASSWORD
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=http://localhost:3000
       - GF_ANALYTICS_REPORTING_ENABLED=false
       - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    secrets:
+      - GRAFANA_ADMIN_PASSWORD
     ports:
       - "3000:3000"
     volumes:
@@ -324,6 +403,12 @@ volumes:
     driver: local
   grafana_data:
     driver: local
+  nginx_cache:
+    driver: local
+  certbot_certs:
+    driver: local
+  certbot_webroot:
+    driver: local
 
 networks:
   # Public-facing network (API, Grafana)
@@ -348,3 +433,40 @@ networks:
     ipam:
       config:
         - subnet: 172.22.0.0/24
+
+# ============================================================================
+# Docker Secrets Configuration
+# ============================================================================
+# Docker Secrets provide secure secret management for production deployments.
+# Secrets are mounted as files in /run/secrets/ inside containers.
+#
+# SETUP INSTRUCTIONS:
+# 1. Create secret files before starting services:
+#    mkdir -p /etc/goimg/secrets
+#    chmod 700 /etc/goimg/secrets
+#
+# 2. Generate and store secrets:
+#    openssl rand -base64 64 > /etc/goimg/secrets/jwt_secret
+#    openssl rand -base64 32 > /etc/goimg/secrets/db_password
+#    openssl rand -base64 32 > /etc/goimg/secrets/redis_password
+#    chmod 600 /etc/goimg/secrets/*
+#
+# 3. For Docker Swarm, use:
+#    docker secret create JWT_SECRET /etc/goimg/secrets/jwt_secret
+#    docker secret create DB_PASSWORD /etc/goimg/secrets/db_password
+#
+# See docs/deployment/secret-management.md for full documentation.
+#
+secrets:
+  JWT_SECRET:
+    file: /etc/goimg/secrets/jwt_secret
+  DB_PASSWORD:
+    file: /etc/goimg/secrets/db_password
+  REDIS_PASSWORD:
+    file: /etc/goimg/secrets/redis_password
+  S3_SECRET_KEY:
+    file: /etc/goimg/secrets/s3_secret_key
+  IPFS_PINATA_JWT:
+    file: /etc/goimg/secrets/ipfs_pinata_jwt
+  GRAFANA_ADMIN_PASSWORD:
+    file: /etc/goimg/secrets/grafana_admin_password

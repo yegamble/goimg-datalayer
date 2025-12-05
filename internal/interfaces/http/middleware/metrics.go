@@ -13,11 +13,11 @@ import (
 // It provides centralized metric registration and collection.
 type MetricsCollector struct {
 	// HTTP request metrics
-	httpRequestsTotal       *prometheus.CounterVec
-	httpRequestDuration     *prometheus.HistogramVec
-	httpRequestsInFlight    prometheus.Gauge
-	httpRequestSize         *prometheus.HistogramVec
-	httpResponseSize        *prometheus.HistogramVec
+	httpRequestsTotal    *prometheus.CounterVec
+	httpRequestDuration  *prometheus.HistogramVec
+	httpRequestsInFlight prometheus.Gauge
+	httpRequestSize      *prometheus.HistogramVec
+	httpResponseSize     *prometheus.HistogramVec
 
 	// Image upload metrics
 	imageUploadsTotal       *prometheus.CounterVec
@@ -32,6 +32,12 @@ type MetricsCollector struct {
 	redisConnectionsActive prometheus.Gauge
 	redisHits              *prometheus.CounterVec
 	redisMisses            *prometheus.CounterVec
+
+	// Security metrics
+	authFailuresTotal        *prometheus.CounterVec
+	rateLimitExceededTotal   *prometheus.CounterVec
+	authorizationDeniedTotal *prometheus.CounterVec
+	malwareDetectedTotal     *prometheus.CounterVec
 }
 
 // NewMetricsCollector creates and registers all application metrics with Prometheus.
@@ -180,6 +186,47 @@ func NewMetricsCollector() *MetricsCollector {
 			},
 			[]string{"operation"},
 		),
+
+		// Security Metrics
+		authFailuresTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "auth_failures_total",
+				Help:      "Total number of authentication failures, labeled by reason, ip, and user_id",
+			},
+			[]string{"reason", "ip", "user_id"},
+		),
+
+		rateLimitExceededTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "rate_limit_exceeded_total",
+				Help:      "Total number of rate limit violations, labeled by endpoint and ip",
+			},
+			[]string{"endpoint", "ip"},
+		),
+
+		authorizationDeniedTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "authorization_denied_total",
+				Help:      "Total number of authorization failures (privilege escalation attempts), labeled by user_id, resource, and required_permission",
+			},
+			[]string{"user_id", "resource", "required_permission"},
+		),
+
+		malwareDetectedTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "malware_detected_total",
+				Help:      "Total number of malware detections, labeled by file_type, threat_name, and user_id",
+			},
+			[]string{"file_type", "threat_name", "user_id"},
+		),
 	}
 }
 
@@ -269,9 +316,10 @@ func (mrw *metricsResponseWriter) Write(b []byte) (int, error) {
 // This prevents cardinality explosion from path parameters like UUIDs.
 //
 // Examples:
-//   /api/v1/users/123e4567-e89b-12d3-a456-426614174000 → /api/v1/users/:id
-//   /api/v1/images/abc123/comments → /api/v1/images/:id/comments
-//   /health → /health (no change)
+//
+//	/api/v1/users/123e4567-e89b-12d3-a456-426614174000 → /api/v1/users/:id
+//	/api/v1/images/abc123/comments → /api/v1/images/:id/comments
+//	/health → /health (no change)
 //
 // Path normalization rules:
 //   - UUID patterns → :id
@@ -355,4 +403,47 @@ func (mc *MetricsCollector) RecordCacheHit(operation string) {
 //   - operation: Type of cache operation ("get", "set", "delete", etc.)
 func (mc *MetricsCollector) RecordCacheMiss(operation string) {
 	mc.redisMisses.WithLabelValues(operation).Inc()
+}
+
+// RecordAuthFailure records an authentication failure.
+// Call this when authentication fails for any reason.
+//
+// Parameters:
+//   - reason: Reason for failure ("invalid_credentials", "token_expired", "token_invalid", "account_locked", etc.)
+//   - ip: Client IP address
+//   - userID: User ID if available, otherwise use "unknown"
+func (mc *MetricsCollector) RecordAuthFailure(reason, ip, userID string) {
+	mc.authFailuresTotal.WithLabelValues(reason, ip, userID).Inc()
+}
+
+// RecordRateLimitExceeded records a rate limit violation.
+// Call this when a client exceeds rate limits.
+//
+// Parameters:
+//   - endpoint: API endpoint that was rate limited (e.g., "/api/v1/images")
+//   - ip: Client IP address
+func (mc *MetricsCollector) RecordRateLimitExceeded(endpoint, ip string) {
+	mc.rateLimitExceededTotal.WithLabelValues(endpoint, ip).Inc()
+}
+
+// RecordAuthorizationDenied records an authorization failure (privilege escalation attempt).
+// Call this when a user attempts to access a resource without proper permissions.
+//
+// Parameters:
+//   - userID: User ID attempting the action
+//   - resource: Resource being accessed (e.g., "user:123", "image:456")
+//   - requiredPermission: Permission that was required (e.g., "admin", "moderator", "image:delete")
+func (mc *MetricsCollector) RecordAuthorizationDenied(userID, resource, requiredPermission string) {
+	mc.authorizationDeniedTotal.WithLabelValues(userID, resource, requiredPermission).Inc()
+}
+
+// RecordMalwareDetection records a malware detection event.
+// Call this when ClamAV or another scanner detects malware.
+//
+// Parameters:
+//   - fileType: Type of file scanned (e.g., "image/jpeg", "image/png")
+//   - threatName: Name of the malware detected (e.g., "Win.Test.EICAR_HDB-1")
+//   - userID: User ID who uploaded the file
+func (mc *MetricsCollector) RecordMalwareDetection(fileType, threatName, userID string) {
+	mc.malwareDetectedTotal.WithLabelValues(fileType, threatName, userID).Inc()
 }

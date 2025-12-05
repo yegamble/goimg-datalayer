@@ -1,0 +1,27 @@
+[Unit]
+Description=GoImg PostgreSQL Daily Backup Timer
+Documentation=https://github.com/yegamble/goimg-datalayer
+PartOf=goimg.target
+Requires=goimg-backup.service
+
+[Timer]
+# Run daily at 2:00 AM local time
+OnCalendar=daily
+OnCalendar=*-*-* 02:00:00
+
+# If the system was powered off during the scheduled time,
+# run the backup shortly after boot
+Persistent=true
+
+# Randomize start time by up to 15 minutes to avoid
+# all backups starting at exactly the same time
+RandomizedDelaySec=15min
+
+# Accuracy window (systemd may delay by up to this much)
+AccuracySec=5min
+
+# Keep timer active even if service fails
+RemainAfterElapse=yes
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,26 @@
+[Unit]
+Description=GoImg PostgreSQL Backup Cleanup Timer (Weekly)
+Documentation=https://github.com/yegamble/goimg-datalayer
+PartOf=goimg.target
+Requires=goimg-cleanup.service
+
+[Timer]
+# Run weekly on Sunday at 3:00 AM local time
+# (1 hour after daily backup completes)
+OnCalendar=Sun *-*-* 03:00:00
+
+# If the system was powered off during the scheduled time,
+# run the cleanup shortly after boot
+Persistent=true
+
+# Randomize start time by up to 30 minutes
+RandomizedDelaySec=30min
+
+# Accuracy window
+AccuracySec=1h
+
+# Keep timer active even if service fails
+RemainAfterElapse=yes
+
+[Install]
+WantedBy=timers.target

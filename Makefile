@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean
 
 # Default target
 help:
@@ -12,6 +12,12 @@ help:
 	@echo "  test-unit         - Run unit tests only"
 	@echo "  test-integration  - Run integration tests only"
 	@echo "  test-e2e          - Run Newman/Postman E2E tests"
+	@echo "  load-test         - Run all k6 load tests"
+	@echo "  load-test-quick   - Run quick smoke load test (1 minute)"
+	@echo "  load-test-auth    - Run authentication flow load test"
+	@echo "  load-test-browse  - Run browsing flow load test"
+	@echo "  load-test-upload  - Run upload flow load test"
+	@echo "  load-test-social  - Run social interactions load test"
 	@echo "  coverage-domain   - Generate HTML coverage report for domain layer"
 	@echo "  lint              - Run golangci-lint"
 	@echo "  generate          - Run code generation (oapi-codegen)"
@@ -102,6 +108,61 @@ test-e2e:
 		--reporters cli,htmlextra \
 		--reporter-htmlextra-export newman-report.html
 	@echo "E2E test report: newman-report.html"
+
+# Load tests (k6)
+load-test:
+	@echo "Running all k6 load tests..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@echo "\n=== Running auth flow load test ===" && k6 run tests/load/auth-flow.js
+	@echo "\n=== Running browse flow load test ===" && k6 run tests/load/browse-flow.js
+	@echo "\n=== Running social flow load test ===" && k6 run tests/load/social-flow.js
+	@echo "\n=== Running upload flow load test ===" && k6 run tests/load/upload-flow.js
+	@echo "\n=== Running mixed traffic load test ===" && k6 run tests/load/mixed-traffic.js
+	@echo "\nAll load tests completed"
+
+load-test-quick:
+	@echo "Running quick smoke load test (1 minute)..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@k6 run --duration 1m --vus 10 tests/load/browse-flow.js
+	@echo "Quick load test completed"
+
+load-test-auth:
+	@echo "Running authentication flow load test..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@k6 run tests/load/auth-flow.js
+
+load-test-browse:
+	@echo "Running browsing flow load test..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@k6 run tests/load/browse-flow.js
+
+load-test-upload:
+	@echo "Running upload flow load test..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@k6 run tests/load/upload-flow.js
+
+load-test-social:
+	@echo "Running social interactions load test..."
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@k6 run tests/load/social-flow.js
 
 # Linting
 lint:

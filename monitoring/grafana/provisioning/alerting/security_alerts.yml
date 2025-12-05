@@ -1,0 +1,370 @@
+apiVersion: 1
+
+groups:
+  # Security Alert Rules for goimg-datalayer
+  # These rules monitor critical security events and trigger alerts
+  # based on thresholds defined in security gates S9-MON-001
+
+  - name: security_authentication
+    interval: 1m
+    folder: Security
+    rules:
+      # S9-MON-001-AUTH: Authentication Failures > 10/min
+      - uid: auth_failures_high
+        title: High Authentication Failure Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(goimg_security_auth_failures_total[1m]) * 60
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: sum
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: High authentication failure rate detected
+          description: |
+            Authentication failures have exceeded 10 per minute.
+            Current rate: {{ printf "%.2f" $values.A.Value }} failures/min
+            This may indicate a brute-force attack or credential stuffing attempt.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#authentication-failures
+        labels:
+          severity: warning
+          category: security
+          subcategory: authentication
+          team: security
+
+  - name: security_rate_limiting
+    interval: 1m
+    folder: Security
+    rules:
+      # S9-MON-001-RATE: Rate Limit Violations > 100/min globally
+      - uid: rate_limit_violations_high
+        title: High Rate Limit Violation Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(goimg_security_rate_limit_exceeded_total[1m]) * 60
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: sum
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 100
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: High rate limit violation rate detected
+          description: |
+            Rate limit violations have exceeded 100 per minute globally.
+            Current rate: {{ printf "%.2f" $values.A.Value }} violations/min
+            This may indicate API abuse or a distributed attack.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#rate-limit-violations
+        labels:
+          severity: warning
+          category: security
+          subcategory: rate_limiting
+          team: security
+
+  - name: security_authorization
+    interval: 30s
+    folder: Security
+    rules:
+      # S9-MON-001-AUTHZ: Privilege Escalation Attempts (ANY occurrence)
+      - uid: privilege_escalation_attempt
+        title: Privilege Escalation Attempt Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(goimg_security_authorization_denied_total[5m])
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: sum
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Alerting
+        for: 0s
+        annotations:
+          summary: Privilege escalation attempt detected
+          description: |
+            Authorization denied event detected - possible privilege escalation attempt.
+            Total denials in last 5 minutes: {{ printf "%.0f" $values.A.Value }}
+            Immediate investigation required.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#privilege-escalation
+        labels:
+          severity: critical
+          category: security
+          subcategory: authorization
+          team: security
+          priority: P1
+
+  - name: security_malware
+    interval: 30s
+    folder: Security
+    rules:
+      # S9-MON-001-MALWARE: Malware Detection (ANY occurrence)
+      - uid: malware_detection
+        title: Malware Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(goimg_security_malware_detected_total[5m])
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: sum
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Alerting
+        for: 0s
+        annotations:
+          summary: Malware detected in uploaded file
+          description: |
+            ClamAV has detected malware in an uploaded file.
+            Total detections in last 5 minutes: {{ printf "%.0f" $values.A.Value }}
+            IMMEDIATE ACTION REQUIRED - Quarantine affected files and investigate user account.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#malware-detection
+        labels:
+          severity: critical
+          category: security
+          subcategory: malware
+          team: security
+          priority: P0
+
+  - name: security_patterns
+    interval: 5m
+    folder: Security
+    rules:
+      # Suspicious pattern: Multiple failed auth attempts from single IP
+      - uid: brute_force_detected
+        title: Potential Brute Force Attack
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum by (ip) (increase(goimg_security_auth_failures_total{reason="invalid_credentials"}[10m]))
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 50
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          summary: Potential brute force attack detected
+          description: |
+            A single IP address has made {{ printf "%.0f" $values.A.Value }} failed login attempts in the last 10 minutes.
+            This may indicate a brute force attack. Consider blocking the IP address.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#brute-force-attack
+        labels:
+          severity: high
+          category: security
+          subcategory: attack_pattern
+          team: security
+          priority: P2
+
+      # Suspicious pattern: Account enumeration attempt
+      - uid: account_enumeration_detected
+        title: Potential Account Enumeration
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum by (ip) (increase(goimg_security_auth_failures_total[1h]))
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 200
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: OK
+        for: 10m
+        annotations:
+          summary: Potential account enumeration detected
+          description: |
+            A single IP address has made {{ printf "%.0f" $values.A.Value }} authentication attempts in the last hour.
+            This may indicate account enumeration or distributed brute force attack.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#account-enumeration
+        labels:
+          severity: warning
+          category: security
+          subcategory: attack_pattern
+          team: security

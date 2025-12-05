@@ -1,0 +1,59 @@
+[Unit]
+Description=GoImg PostgreSQL Backup Cleanup
+Documentation=https://github.com/yegamble/goimg-datalayer
+After=goimg-backup.service
+PartOf=goimg.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+
+# Working directory
+WorkingDirectory=/opt/goimg
+
+# Environment file with credentials
+EnvironmentFile=-/etc/goimg/backup.env
+
+# Default environment variables (override in backup.env)
+Environment="BACKUP_DIR=/var/backups/postgres"
+Environment="DAILY_RETENTION_DAYS=7"
+Environment="WEEKLY_RETENTION_WEEKS=4"
+Environment="MONTHLY_RETENTION_MONTHS=6"
+
+# S3 cleanup configuration (required if S3 backups are used)
+# S3_ENDPOINT
+# S3_BUCKET
+# S3_ACCESS_KEY
+# S3_SECRET_KEY
+
+# Execute cleanup script
+ExecStart=/opt/goimg/scripts/cleanup-old-backups.sh
+
+# Resource limits
+CPUQuota=25%
+MemoryLimit=512M
+TasksMax=5
+
+# Timeout configuration
+TimeoutStartSec=30min
+TimeoutStopSec=5min
+
+# Restart policy (retry on failure)
+Restart=on-failure
+RestartSec=10min
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=goimg-cleanup
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/postgres
+
+[Install]
+WantedBy=multi-user.target
