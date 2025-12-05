@@ -46,6 +46,7 @@ func NewRouter(
 	imageHandler *ImageHandler,
 	albumHandler *AlbumHandler,
 	socialHandler *SocialHandler,
+	exploreHandler *ExploreHandler,
 	healthHandler *HealthHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
@@ -90,6 +91,26 @@ func NewRouter(
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public auth routes (no authentication required)
 		r.Mount("/auth", authHandler.Routes())
+
+		// Public explore routes (no authentication required)
+		// Allows anonymous users to discover public content
+		r.Mount("/explore", exploreHandler.Routes())
+
+		// Image variant endpoint with optional authentication
+		// Supports both authenticated and anonymous access (respects image visibility)
+		r.Group(func(r chi.Router) {
+			// Optional JWT authentication - extracts user context if token present
+			optionalAuthCfg := middleware.AuthConfig{
+				JWTService:     middlewareConfig.JWTService,
+				TokenBlacklist: middlewareConfig.TokenBlacklist,
+				Logger:         middlewareConfig.Logger,
+				Optional:       true, // Authentication optional
+			}
+			r.Use(middleware.JWTAuth(optionalAuthCfg))
+
+			// Variant endpoint returns binary image data
+			r.Get("/images/{imageID}/variants/{size}", imageHandler.GetImageVariant)
+		})
 
 		// Protected routes (JWT authentication required)
 		r.Group(func(r chi.Router) {

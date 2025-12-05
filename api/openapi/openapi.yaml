@@ -12,6 +12,10 @@ info:
     - Content moderation and abuse reporting
     - RESTful API with RFC 7807 error responses
 
+    **Phase 2 Endpoints**: Some endpoints are marked with `x-phase: "2"` extension
+    to indicate they are planned for Phase 2 development and not yet implemented.
+    These include: moderation endpoints, advanced tag endpoints.
+
   contact:
     name: goimg-datalayer API Team
     url: https://github.com/yegamble/goimg-datalayer
@@ -349,6 +353,51 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '403':
           description: Forbidden - cannot delete another user's account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /users/{id}/sessions:
+    get:
+      tags: [users]
+      summary: List user sessions
+      description: |
+        Retrieve active sessions for the authenticated user.
+        Users can only view their own sessions.
+      operationId: listUserSessions
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Session'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot view another user's sessions
           content:
             application/json:
               schema:
@@ -708,6 +757,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /images/search:
+    get:
+      tags: [images]
+      summary: Search images
+      description: |
+        Full-text search across image titles and descriptions.
+        Supports filtering by tags, owner, and visibility.
+      operationId: searchImages
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (searches title and description)
+          schema:
+            type: string
+            minLength: 1
+            example: sunset mountains
+        - name: tags
+          in: query
+          description: Filter by tag name
+          schema:
+            type: string
+            example: nature
+        - name: owner_id
+          in: query
+          description: Filter by owner ID
+          schema:
+            type: string
+            format: uuid
+        - name: visibility
+          in: query
+          description: Filter by visibility (only for own images)
+          schema:
+            type: string
+            enum: [public, private, unlisted]
+        - name: sort_by
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [relevance, created_at, view_count, like_count]
+            default: relevance
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Image'
+        '400':
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Albums ====================
   /albums:
     post:
@@ -1013,9 +1130,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-  # ==================== Tags ====================
+  # ==================== Tags (Phase 2) ====================
   /tags:
     get:
+      x-phase: "2"
       tags: [tags]
       summary: List popular tags
       description: Retrieve a list of popular tags with usage counts
@@ -1044,6 +1162,7 @@ paths:
 
   /tags/search:
     get:
+      x-phase: "2"
       tags: [tags]
       summary: Search tags
       description: Search for tags by prefix (for autocomplete)
@@ -1080,6 +1199,7 @@ paths:
 
   /tags/{tag}/images:
     get:
+      x-phase: "2"
       tags: [tags]
       summary: List images by tag
       description: Retrieve all public images with a specific tag
@@ -1325,9 +1445,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-  # ==================== Moderation ====================
+  # ==================== Moderation (Phase 2) ====================
   /reports:
     post:
+      x-phase: "2"
       tags: [moderation]
       summary: Create abuse report
       description: |
@@ -1388,6 +1509,7 @@ paths:
 
   /moderation/reports:
     get:
+      x-phase: "2"
       tags: [moderation]
       summary: List reports
       description: List all reports (admin/moderator only)
@@ -1430,6 +1552,7 @@ paths:
 
   /moderation/reports/{id}:
     get:
+      x-phase: "2"
       tags: [moderation]
       summary: Get report details
       description: Retrieve detailed information about a specific report (admin/moderator only)
@@ -1470,6 +1593,7 @@ paths:
 
   /moderation/reports/{id}/resolve:
     post:
+      x-phase: "2"
       tags: [moderation]
       summary: Resolve report
       description: Resolve a report with an action (admin/moderator only)
@@ -1532,6 +1656,7 @@ paths:
 
   /users/{id}/ban:
     post:
+      x-phase: "2"
       tags: [moderation]
       summary: Ban user
       description: Ban a user from the platform (admin only)
@@ -1601,6 +1726,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
 
     delete:
+      x-phase: "2"
       tags: [moderation]
       summary: Unban user
       description: Remove ban from a user (admin only)
@@ -2341,6 +2467,45 @@ components:
               message:
                 type: string
                 example: must not exceed 255 characters
+
+    # ==================== Session ====================
+    Session:
+      type: object
+      required: [id, user_id, created_at, expires_at]
+      description: User session information
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Session ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        user_id:
+          type: string
+          format: uuid
+          description: User ID
+          example: 123e4567-e89b-12d3-a456-426614174001
+        ip_address:
+          type: string
+          description: IP address of the session
+          example: 192.168.1.1
+        user_agent:
+          type: string
+          description: Browser/device user agent
+          example: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation time
+          example: 2024-01-15T10:30:00Z
+        expires_at:
+          type: string
+          format: date-time
+          description: Session expiration time
+          example: 2024-01-22T10:30:00Z
+        is_current:
+          type: boolean
+          description: Whether this is the current session
+          example: true
 
     # ==================== Health ====================
     HealthStatus:
