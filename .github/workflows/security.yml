@@ -95,7 +95,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -104,8 +104,6 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           # Skip unfixed vulnerabilities to reduce noise
           ignore-unfixed: true
-          # Scan private dependencies
-          scanners: 'vuln,secret,config'
           # Fail build on CRITICAL or HIGH vulnerabilities
           exit-code: '1'
 
