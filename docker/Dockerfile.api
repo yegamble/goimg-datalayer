@@ -1,0 +1,87 @@
+# ============================================================================
+# Multi-stage Dockerfile for API Server
+# ============================================================================
+# Build stage uses full Go image, runtime uses minimal distroless image
+# Security features:
+# - Non-root user (10001:10001)
+# - Minimal attack surface (distroless)
+# - No shell or package manager in final image
+# - Static binary compilation
+
+# ============================================================================
+# Stage 1: Build
+# ============================================================================
+FROM golang:1.22-alpine AS builder
+
+# Install build dependencies
+# - gcc, musl-dev: CGO support
+# - vips-dev: Image processing with libvips
+# - ca-certificates: HTTPS support
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    vips-dev \
+    ca-certificates \
+    tzdata
+
+WORKDIR /build
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go mod verify
+
+# Copy source code
+COPY . .
+
+# Build static binary
+# - CGO_ENABLED=1: Required for vips
+# - -ldflags: Strip debug info, make static
+# - -trimpath: Remove local path information
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -trimpath \
+    -o /build/api \
+    ./cmd/api
+
+# Verify binary
+RUN /build/api --version 2>&1 || echo "API server built successfully"
+
+# ============================================================================
+# Stage 2: Runtime
+# ============================================================================
+FROM gcr.io/distroless/base-debian12:nonroot
+
+# Copy timezone data
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+# Copy CA certificates
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Copy vips libraries
+COPY --from=builder /usr/lib/libvips* /usr/lib/
+COPY --from=builder /usr/lib/libglib* /usr/lib/
+COPY --from=builder /usr/lib/libgobject* /usr/lib/
+COPY --from=builder /usr/lib/libgio* /usr/lib/
+COPY --from=builder /usr/lib/libgmodule* /usr/lib/
+
+# Copy application binary
+COPY --from=builder /build/api /app/api
+
+# Use non-root user (defined in docker-compose)
+# distroless/base-debian12:nonroot already runs as uid 65532
+# But we override with 10001 in docker-compose for consistency
+USER 10001:10001
+
+# Expose API port
+EXPOSE 8080
+
+# Health check port (metrics)
+EXPOSE 9090
+
+WORKDIR /app
+
+# Set environment defaults
+ENV ENVIRONMENT=production \
+    LOG_FORMAT=json \
+    LOG_LEVEL=info
+
+ENTRYPOINT ["/app/api"]

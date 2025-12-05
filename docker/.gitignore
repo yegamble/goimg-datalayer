@@ -1,0 +1,18 @@
+# Environment files (contain secrets)
+.env
+.env.prod
+.env.local
+.env.*.local
+
+# SSL certificates (contain private keys)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+
+# Nginx logs (generated at runtime)
+nginx/logs/
+
+# Keep example files and README
+!.env.example
+!.env.prod.example
+!nginx/ssl/README.md

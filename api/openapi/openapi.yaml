@@ -47,6 +47,8 @@ tags:
     description: Discovery and exploration features
   - name: health
     description: Health check endpoints
+  - name: monitoring
+    description: Application monitoring and metrics
 
 paths:
   # ==================== Authentication ====================
@@ -1720,22 +1722,51 @@ paths:
     get:
       tags: [health]
       summary: Readiness check
-      description: Check if the service is ready to accept traffic
-      operationId: readinessCheck
+      description: |
+        Check if the service is ready to accept traffic.
+        Validates database and Redis connectivity with timeout handling.
+      operationId: healthReadiness
       security: []
       responses:
         '200':
-          description: Service is ready
+          description: All dependencies healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthReadyResponse'
         '503':
-          description: Service is not ready
+          description: One or more dependencies unhealthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/HealthReadyResponse'
+
+  # ==================== Monitoring ====================
+  /metrics:
+    get:
+      tags: [monitoring]
+      summary: Prometheus metrics
+      description: |
+        Exposes application metrics in Prometheus format.
+
+        Metrics include:
+        - HTTP request counts and latencies
+        - Database connection pool stats
+        - Redis connection stats
+        - Image processing metrics
+      operationId: metrics
+      security: []
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP goimg_http_requests_total Total HTTP requests
+                  # TYPE goimg_http_requests_total counter
+                  goimg_http_requests_total{method="GET",path="/health",status="200"} 42
 
 # ==================== Components ====================
 components:
@@ -2320,22 +2351,46 @@ components:
           type: string
           enum: [ok, degraded, down]
           example: ok
-        checks:
-          type: object
-          properties:
-            database:
-              type: string
-              enum: [up, down]
-              example: up
-            redis:
-              type: string
-              enum: [up, down]
-              example: up
-            storage:
-              type: string
-              enum: [up, down]
-              example: up
         timestamp:
           type: string
           format: date-time
           example: 2024-01-15T10:30:00Z
+
+    HealthReadyResponse:
+      type: object
+      required: [status, timestamp, checks]
+      description: Readiness check response with dependency health status
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+          example: ready
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+            redis:
+              $ref: '#/components/schemas/HealthCheck'
+
+    HealthCheck:
+      type: object
+      description: Individual dependency health check result
+      properties:
+        status:
+          type: string
+          enum: [up, down]
+          example: up
+        latency_ms:
+          type: number
+          format: float
+          description: Response time in milliseconds
+          example: 5.2
+        error:
+          type: string
+          description: Error message if check failed
+          example: connection refused

@@ -1,0 +1,75 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Documentation
+*.md
+README.md
+LICENSE
+docs/
+
+# Claude AI
+claude/
+CLAUDE.md
+
+# Development
+.env
+.env.*
+*.local
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test files
+*_test.go
+testdata/
+tests/
+coverage.out
+coverage.html
+*.coverage
+newman-report.html
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile*
+.dockerignore
+
+# Backups
+backups/
+*.bak
+*.backup
+
+# Dependencies (will be downloaded in container)
+vendor/
+
+# Scripts (not needed in container)
+scripts/
+
+# Migrations (copied separately if needed)
+migrations/
+
+# Tools
+tools/
