@@ -19,7 +19,7 @@ The image processor handles all image processing operations using **bimg** (libv
 | Small | 320px | WebP | 85 | Mobile devices |
 | Medium | 800px | WebP | 85 | Tablets, web previews |
 | Large | 1600px | WebP | 88 | Desktop displays |
-| Original | unchanged | original | 90 | Full-size download |
+| Original | unchanged | original | 100 | Full-size download (maximum quality, near-lossless) |
 
 ## Usage
 
@@ -67,7 +67,7 @@ cfg := processor.Config{
     SmallQuality:     85,
     MediumQuality:    85,
     LargeQuality:     88,
-    OriginalQuality:  90,
+    OriginalQuality:  100,  // Maximum quality (near-lossless)
 }
 
 proc, err := processor.New(cfg)
@@ -78,7 +78,7 @@ proc, err := processor.New(cfg)
 1. **Decode & Validate**: Verify image format and dimensions
 2. **Strip Metadata**: Remove EXIF data (GPS, camera info, etc.)
 3. **Generate Variants**: Create resized WebP versions
-4. **Re-encode Original**: Process through libvips for security
+4. **Re-encode Original**: Process through libvips at quality 100 for security (prevents polyglot exploits while maintaining near-lossless quality)
 
 ## Security Features
 

@@ -25,7 +25,7 @@ type Config struct {
 	SmallQuality     int // Default: 85
 	MediumQuality    int // Default: 85
 	LargeQuality     int // Default: 88
-	OriginalQuality  int // Default: 90 (for re-encoding)
+	OriginalQuality  int // Default: 100 (maximum quality, near-lossless)
 }
 
 // DefaultConfig returns the recommended processor configuration.
@@ -38,7 +38,7 @@ func DefaultConfig() Config {
 		SmallQuality:     85,
 		MediumQuality:    85,
 		LargeQuality:     88,
-		OriginalQuality:  90,
+		OriginalQuality:  100,
 	}
 }
 

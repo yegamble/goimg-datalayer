@@ -104,7 +104,7 @@ Our approach with bimg/libvips positions us **between Flickr (enterprise) and Ch
 | medium | 800px | WebP | 85 | Tablets, web previews |
 | large | 1600px | WebP | 88 | Desktop displays |
 | xlarge | 2048px | WebP | 90 | 4K displays, portfolios (Phase 2) |
-| original | unchanged | original | original | Downloads, archival |
+| original | unchanged | original | 100 | Downloads, archival (maximum quality, near-lossless) |
 
 #### 2.3 Format: Use WebP Instead of JPEG
 
@@ -154,13 +154,13 @@ options := bimg.Options{
 | medium | WebP | 85 | Sweet spot for web display |
 | large | WebP | 88 | Higher quality for desktop viewing |
 | xlarge | WebP | 90 | Portfolio quality (Phase 2) |
-| original | original | original | Never re-encode (like Chevereto) |
+| original | original | 100 | Re-encode at maximum quality for security (prevents polyglot exploits) |
 
 **Quality Rationale**:
 - Chevereto uses **90% for all sizes** - we differentiate by use case
 - Google recommends **75-85** for WebP; we're slightly higher for quality preservation
 - Smaller sizes (thumbnail) need higher quality to avoid visible artifacts
-- **Never re-encode originals** (privacy + quality preservation)
+- **Original variant uses quality 100** (maximum, near-lossless) with security re-encoding through libvips to prevent polyglot file exploits while preserving image quality
 
 ---
 
@@ -673,9 +673,9 @@ func chooseFormat(acceptHeader string) bimg.ImageType {
 | Max display size | 6144px (6K) | Configurable | 1600px | 2048px (4K) |
 | Format support | JPEG, PNG, GIF | JPEG, PNG, GIF, WebP, BMP | JPEG, PNG, GIF, WebP | + AVIF |
 | Processing lib | Custom | ImageMagick | libvips | libvips |
-| Quality | High | 90% JPEG | 82-88% WebP | Adaptive |
+| Quality | High | 90% JPEG | 82-88% WebP (variants), 100 (original) | Adaptive |
 | EXIF stripping | Yes | Limited | Privacy-first | Selective |
-| Original compression | Yes | No | No | No |
+| Original compression | Yes | No | Yes (Q100 security re-encode) | Yes (Q100) |
 | Animated GIF | Full support | Full support | First frame | Animated WebP |
 | Performance | Enterprise | Good | Excellent | Excellent |
 
@@ -688,8 +688,8 @@ func chooseFormat(acceptHeader string) bimg.ImageType {
 
 **goimg vs Chevereto**:
 - Chevereto: PHP, ImageMagick, 3 variants, 90% JPEG quality
-- goimg: Go, libvips, 5 variants, WebP format, 82-88% quality
-- **Advantage**: 4-8x faster processing, smaller file sizes (WebP), better memory efficiency
+- goimg: Go, libvips, 5 variants, WebP format, 82-88% quality (variants), 100% quality (original)
+- **Advantage**: 4-8x faster processing, smaller file sizes (WebP), better memory efficiency, maximum quality original preservation
 
 **Unique Differentiators**:
 1. **WebP-first strategy**: 25-34% smaller files vs competitors using JPEG

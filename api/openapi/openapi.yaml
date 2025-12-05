@@ -710,11 +710,11 @@ paths:
         Retrieve a specific image variant (resized version).
 
         Available sizes:
-        - thumbnail: 150x150px (JPEG, quality 80)
-        - small: 320x320px (JPEG, quality 85)
-        - medium: 800x800px (JPEG, quality 85)
-        - large: 1600x1600px (JPEG, quality 90)
-        - original: unchanged (original format and quality)
+        - thumbnail: 160px max width (WebP, quality 82)
+        - small: 320px max width (WebP, quality 85)
+        - medium: 800px max width (WebP, quality 85)
+        - large: 1600px max width (WebP, quality 88)
+        - original: unchanged dimensions (original format, quality 100 - maximum quality with security re-encoding)
 
         Aspect ratio is preserved (contain, not crop).
       operationId: getImageVariant

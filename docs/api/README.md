@@ -450,11 +450,11 @@ Upload a new image with optional metadata.
 8. Re-encoding through libvips
 
 **Available Variants**:
-- `thumbnail`: 150x150px (JPEG, quality 80)
-- `small`: 320x320px (JPEG, quality 85)
-- `medium`: 800x800px (JPEG, quality 85)
-- `large`: 1600x1600px (JPEG, quality 90)
-- `original`: Unchanged (original format)
+- `thumbnail`: 160px max width (WebP, quality 82)
+- `small`: 320px max width (WebP, quality 85)
+- `medium`: 800px max width (WebP, quality 85)
+- `large`: 1600px max width (WebP, quality 88)
+- `original`: Unchanged dimensions (original format, quality 100 - maximum quality with security re-encoding)
 
 ---
 
@@ -682,11 +682,11 @@ Cache-Control: public, max-age=31536000
 - `404`: Image or variant not found
 
 **Variant Sizes**:
-- `thumbnail`: 150x150px (JPEG, quality 80)
-- `small`: 320x320px (JPEG, quality 85)
-- `medium`: 800x800px (JPEG, quality 85)
-- `large`: 1600x1600px (JPEG, quality 90)
-- `original`: Unchanged (original format and quality)
+- `thumbnail`: 160px max width (WebP, quality 82)
+- `small`: 320px max width (WebP, quality 85)
+- `medium`: 800px max width (WebP, quality 85)
+- `large`: 1600px max width (WebP, quality 88)
+- `original`: Unchanged dimensions (original format, quality 100 - maximum quality with security re-encoding)
 
 **Notes**:
 - Aspect ratio is preserved (contain, not crop)
