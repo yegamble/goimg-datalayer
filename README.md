@@ -70,8 +70,8 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - **Security Configurations**: .gitleaks.toml, .trivyignore
   - **Test Files Added**: 13 new test files, 130+ comprehensive test functions
 
-**Next Phase**:
-- Sprint 9: MVP Polish & Launch Prep
+**Current Sprint Focus (Sprint 9 - In Progress)**:
+- MVP Polish & Launch Prep
   - Production monitoring and observability (Prometheus, Grafana)
   - Deployment documentation and runbooks
   - Load testing and performance benchmarks
