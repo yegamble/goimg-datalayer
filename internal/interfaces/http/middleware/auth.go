@@ -32,6 +32,9 @@ type AuthConfig struct {
 	// TokenBlacklist checks if tokens have been revoked (logout, security events).
 	TokenBlacklist TokenBlacklistInterface
 
+	// MetricsCollector records authentication metrics.
+	MetricsCollector *MetricsCollector
+
 	// Logger is used to log authentication events.
 	Logger zerolog.Logger
 
@@ -112,17 +115,26 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			// Step 2: Parse "Bearer <token>" format
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("invalid_format")
+				}
 				handleAuthError(w, r, cfg, "invalid_format", "Invalid authorization header format. Expected: Authorization: Bearer <token>")
 				return
 			}
 
 			if !strings.EqualFold(parts[0], "Bearer") {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("invalid_scheme")
+				}
 				handleAuthError(w, r, cfg, "invalid_scheme", "Invalid authorization scheme. Expected: Bearer")
 				return
 			}
 
 			tokenString := parts[1]
 			if tokenString == "" {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("empty_token")
+				}
 				handleAuthError(w, r, cfg, "empty_token", "Authorization token is empty")
 				return
 			}
@@ -130,6 +142,9 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			// Step 3: Extract token ID (fast operation, no crypto)
 			tokenID, err := cfg.JWTService.ExtractTokenID(tokenString)
 			if err != nil {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("token_parse_failed")
+				}
 				handleAuthError(w, r, cfg, "token_parse_failed", "Invalid token format")
 				return
 			}
@@ -153,6 +168,10 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			}
 
 			if isBlacklisted {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("token_revoked")
+				}
+
 				cfg.Logger.Warn().
 					Str("event", "token_blacklisted").
 					Str("token_id", tokenID).
@@ -171,6 +190,10 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			// Step 5: Validate token signature and claims (RS256 verification ~5-10ms)
 			claims, err := cfg.JWTService.ValidateToken(tokenString)
 			if err != nil {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("token_invalid")
+				}
+
 				cfg.Logger.Warn().
 					Err(err).
 					Str("event", "token_validation_failed").
@@ -184,6 +207,10 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 
 			// Step 6: Verify token type (must be access token)
 			if claims.TokenType != jwt.TokenTypeAccess {
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordAuthFailure("wrong_token_type")
+				}
+
 				cfg.Logger.Warn().
 					Str("event", "wrong_token_type").
 					Str("token_type", string(claims.TokenType)).
@@ -293,17 +320,17 @@ func handleAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConfig, eve
 //	// Admin-only routes
 //	r.Group(func(r chi.Router) {
 //	    r.Use(middleware.JWTAuth(cfg))
-//	    r.Use(middleware.RequireRole("admin"))
+//	    r.Use(middleware.RequireRole(logger, collector, "admin"))
 //	    r.Get("/admin/users", handlers.Admin.ListUsers)
 //	})
 //
 //	// Moderator or admin routes
 //	r.Group(func(r chi.Router) {
 //	    r.Use(middleware.JWTAuth(cfg))
-//	    r.Use(middleware.RequireAnyRole("moderator", "admin"))
+//	    r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
 //	    r.Post("/images/{id}/moderate", handlers.Moderation.ModerateImage)
 //	})
-func RequireRole(logger zerolog.Logger, requiredRole string) func(http.Handler) http.Handler {
+func RequireRole(logger zerolog.Logger, metricsCollector *MetricsCollector, requiredRole string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -329,6 +356,11 @@ func RequireRole(logger zerolog.Logger, requiredRole string) func(http.Handler) 
 			// Check if user has required role
 			if role != requiredRole {
 				userID, _ := GetUserIDString(ctx)
+
+				// Record metrics
+				if metricsCollector != nil {
+					metricsCollector.RecordAuthorizationDenied(role, requiredRole)
+				}
 
 				logger.Warn().
 					Str("event", "insufficient_role").
@@ -357,8 +389,8 @@ func RequireRole(logger zerolog.Logger, requiredRole string) func(http.Handler) 
 //
 // Usage:
 //
-//	r.Use(middleware.RequireAnyRole(logger, "moderator", "admin"))
-func RequireAnyRole(logger zerolog.Logger, allowedRoles ...string) func(http.Handler) http.Handler {
+//	r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
+func RequireAnyRole(logger zerolog.Logger, metricsCollector *MetricsCollector, allowedRoles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -391,6 +423,12 @@ func RequireAnyRole(logger zerolog.Logger, allowedRoles ...string) func(http.Han
 
 			// User doesn't have any of the required roles
 			userID, _ := GetUserIDString(ctx)
+
+			// Record metrics (use first allowed role as required permission)
+			requiredPermission := fmt.Sprintf("role:%v", allowedRoles)
+			if metricsCollector != nil {
+				metricsCollector.RecordAuthorizationDenied(role, requiredPermission)
+			}
 
 			logger.Warn().
 				Str("event", "insufficient_role").

@@ -259,20 +259,23 @@ func TestMetricsCollector_RecordImageUpload(t *testing.T) {
 			prometheus.CounterOpts{
 				Name: "test_image_uploads_total",
 			},
-			[]string{"status"},
+			[]string{"status", "format"},
 		),
 	}
 
 	// Act
-	collector.RecordImageUpload(true)
-	collector.RecordImageUpload(true)
-	collector.RecordImageUpload(false)
+	collector.RecordImageUpload(true, "jpeg")
+	collector.RecordImageUpload(true, "png")
+	collector.RecordImageUpload(false, "jpeg")
 
 	// Assert
-	successCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("success"))
-	assert.Equal(t, float64(2), successCount, "Should record 2 successful uploads")
+	jpegSuccessCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("success", "jpeg"))
+	assert.Equal(t, float64(1), jpegSuccessCount, "Should record 1 successful JPEG upload")
 
-	failureCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("failure"))
+	pngSuccessCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("success", "png"))
+	assert.Equal(t, float64(1), pngSuccessCount, "Should record 1 successful PNG upload")
+
+	failureCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("failure", "jpeg"))
 	assert.Equal(t, float64(1), failureCount, "Should record 1 failed upload")
 }
 

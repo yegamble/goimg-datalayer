@@ -301,6 +301,55 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # PostgreSQL Backup Service (Automated Cron-based)
+  backup:
+    build:
+      context: ..
+      dockerfile: docker/backup/Dockerfile.backup
+    image: goimg-backup:latest
+    container_name: goimg-backup
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=goimg
+      - DB_USER=goimg
+      - BACKUP_DIR=/var/backups/postgres
+      - USE_DOCKER=false  # Using direct postgres connection
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - GPG_RECIPIENT=${GPG_RECIPIENT:-backup@goimg.local}
+      - DAILY_RETENTION_DAYS=7
+      - WEEKLY_RETENTION_WEEKS=4
+      - MONTHLY_RETENTION_MONTHS=6
+      - RUN_INITIAL_BACKUP=false
+    secrets:
+      - DB_PASSWORD
+      - S3_SECRET_KEY
+    volumes:
+      - backup_data:/var/backups/postgres
+      - ./backup/gpg-keys:/gpg-keys:ro
+    networks:
+      - database
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # Prometheus - Metrics Collection
   prometheus:
     image: prom/prometheus:latest
@@ -398,6 +447,8 @@ volumes:
   ipfs_staging:
     driver: local
   api_uploads:
+    driver: local
+  backup_data:
     driver: local
   prometheus_data:
     driver: local

@@ -10,14 +10,18 @@ import (
 
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
 // HealthHandler handles health check endpoints for monitoring and orchestration.
 // It provides liveness and readiness probes for Kubernetes/Docker health checks.
 type HealthHandler struct {
-	db     *sqlx.DB
-	redis  *redis.Client
-	logger zerolog.Logger
+	db      *sqlx.DB
+	redis   *redis.Client
+	storage storage.Storage
+	clamav  clamav.Scanner
+	logger  zerolog.Logger
 }
 
 // NewHealthHandler creates a new HealthHandler with the given dependencies.
@@ -26,16 +30,22 @@ type HealthHandler struct {
 // Parameters:
 //   - db: PostgreSQL database connection pool
 //   - redis: Redis client for cache/session store
+//   - storage: Storage provider for images (local, S3, etc.)
+//   - clamav: ClamAV scanner for malware detection
 //   - logger: Structured logger for health check events
 func NewHealthHandler(
 	db *sqlx.DB,
 	redis *redis.Client,
+	storage storage.Storage,
+	clamav clamav.Scanner,
 	logger zerolog.Logger,
 ) *HealthHandler {
 	return &HealthHandler{
-		db:     db,
-		redis:  redis,
-		logger: logger,
+		db:      db,
+		redis:   redis,
+		storage: storage,
+		clamav:  clamav,
+		logger:  logger,
 	}
 }
 
@@ -67,10 +77,11 @@ type CheckDetails struct {
 // to determine if the container should be restarted.
 //
 // Response: 200 OK with LivenessResponse JSON
-// {
-//   "status": "ok",
-//   "timestamp": "2024-12-05T12:00:00Z"
-// }
+//
+//	{
+//	  "status": "ok",
+//	  "timestamp": "2024-12-05T12:00:00Z"
+//	}
 func (h *HealthHandler) Liveness(w http.ResponseWriter, r *http.Request) {
 	response := LivenessResponse{
 		Status:    "ok",
@@ -86,60 +97,97 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, r *http.Request) {
 
 // Readiness handles GET /health/ready
 // Checks if the application is ready to accept traffic by verifying all
-// critical dependencies (database, Redis) are healthy.
+// critical dependencies (database, Redis, storage, ClamAV) are healthy.
 //
 // This endpoint should be used for Kubernetes readinessProbe to determine
 // if the container should receive traffic.
 //
+// Status determination:
+//   - "ok": All dependencies healthy
+//   - "degraded": Redis down (non-critical), other dependencies healthy
+//   - "down": Any critical dependency (database, storage, ClamAV) down
+//
 // Response:
-//   - 200 OK if all dependencies are healthy
-//   - 503 Service Unavailable if any dependency is unhealthy
+//   - 200 OK if status is "ok" or "degraded"
+//   - 503 Service Unavailable if status is "down"
 //
 // Example healthy response:
-// {
-//   "status": "ready",
-//   "timestamp": "2024-12-05T12:00:00Z",
-//   "checks": {
-//     "database": {"status": "up", "latency_ms": 5.2},
-//     "redis": {"status": "up", "latency_ms": 1.8}
-//   }
-// }
 //
-// Example unhealthy response (503):
-// {
-//   "status": "not_ready",
-//   "timestamp": "2024-12-05T12:00:00Z",
-//   "checks": {
-//     "database": {"status": "down", "error": "connection refused"},
-//     "redis": {"status": "up", "latency_ms": 2.1}
-//   }
-// }
+//	{
+//	  "status": "ok",
+//	  "timestamp": "2024-12-05T12:00:00Z",
+//	  "checks": {
+//	    "database": {"status": "up", "latency_ms": 5.2},
+//	    "redis": {"status": "up", "latency_ms": 1.8},
+//	    "storage": {"status": "up", "latency_ms": 3.1},
+//	    "clamav": {"status": "up", "latency_ms": 2.5}
+//	  }
+//	}
+//
+// Example degraded response (200):
+//
+//	{
+//	  "status": "degraded",
+//	  "timestamp": "2024-12-05T12:00:00Z",
+//	  "checks": {
+//	    "database": {"status": "up", "latency_ms": 5.2},
+//	    "redis": {"status": "down", "error": "connection refused"},
+//	    "storage": {"status": "up", "latency_ms": 3.1},
+//	    "clamav": {"status": "up", "latency_ms": 2.5}
+//	  }
+//	}
+//
+// Example down response (503):
+//
+//	{
+//	  "status": "down",
+//	  "timestamp": "2024-12-05T12:00:00Z",
+//	  "checks": {
+//	    "database": {"status": "down", "error": "connection refused"},
+//	    "redis": {"status": "up", "latency_ms": 1.8},
+//	    "storage": {"status": "up", "latency_ms": 3.1},
+//	    "clamav": {"status": "up", "latency_ms": 2.5}
+//	  }
+//	}
 func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	checks := make(map[string]CheckDetails)
-	allHealthy := true
 
-	// Check database connectivity
+	// Check all dependencies
 	dbStatus, dbLatency := h.checkDatabase(ctx)
 	checks["database"] = dbStatus
-	if dbStatus.Status == "down" {
-		allHealthy = false
-	}
 
-	// Check Redis connectivity
 	redisStatus, redisLatency := h.checkRedis(ctx)
 	checks["redis"] = redisStatus
-	if redisStatus.Status == "down" {
-		allHealthy = false
-	}
 
-	// Determine overall status
-	status := "ready"
-	httpStatus := http.StatusOK
-	if !allHealthy {
-		status = "not_ready"
+	storageStatus, storageLatency := h.checkStorage(ctx)
+	checks["storage"] = storageStatus
+
+	clamavStatus, clamavLatency := h.checkClamAV(ctx)
+	checks["clamav"] = clamavStatus
+
+	// Determine overall status with graceful degradation
+	// Critical dependencies: database, storage, ClamAV
+	// Non-critical: Redis (caching/sessions)
+	criticalDown := dbStatus.Status == "down" ||
+		storageStatus.Status == "down" ||
+		clamavStatus.Status == "down"
+
+	redisDown := redisStatus.Status == "down"
+
+	var status string
+	var httpStatus int
+
+	if criticalDown {
+		status = "down"
 		httpStatus = http.StatusServiceUnavailable
+	} else if redisDown {
+		status = "degraded"
+		httpStatus = http.StatusOK // Still accepting traffic
+	} else {
+		status = "ok"
+		httpStatus = http.StatusOK
 	}
 
 	response := ReadinessResponse{
@@ -149,19 +197,24 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log readiness check results
-	if !allHealthy {
-		h.logger.Warn().
-			Str("status", status).
-			Float64("database_latency_ms", dbLatency).
-			Float64("redis_latency_ms", redisLatency).
-			Bool("database_healthy", dbStatus.Status == "up").
-			Bool("redis_healthy", redisStatus.Status == "up").
-			Msg("readiness check failed")
+	logEvent := h.logger.With().
+		Str("status", status).
+		Float64("database_latency_ms", dbLatency).
+		Float64("redis_latency_ms", redisLatency).
+		Float64("storage_latency_ms", storageLatency).
+		Float64("clamav_latency_ms", clamavLatency).
+		Bool("database_healthy", dbStatus.Status == "up").
+		Bool("redis_healthy", redisStatus.Status == "up").
+		Bool("storage_healthy", storageStatus.Status == "up").
+		Bool("clamav_healthy", clamavStatus.Status == "up").
+		Logger()
+
+	if status == "down" {
+		logEvent.Warn().Msg("readiness check failed: service down")
+	} else if status == "degraded" {
+		logEvent.Warn().Msg("readiness check degraded: non-critical dependency down")
 	} else {
-		h.logger.Debug().
-			Float64("database_latency_ms", dbLatency).
-			Float64("redis_latency_ms", redisLatency).
-			Msg("readiness check succeeded")
+		logEvent.Debug().Msg("readiness check succeeded")
 	}
 
 	if err := EncodeJSON(w, httpStatus, response); err != nil {
@@ -209,6 +262,21 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 	defer cancel()
 
 	start := time.Now()
+
+	// Handle nil redis client
+	if h.redis == nil {
+		latency := time.Since(start).Seconds() * 1000
+		h.logger.Warn().
+			Float64("latency_ms", latency).
+			Msg("redis client is nil")
+
+		return CheckDetails{
+			Status:    "down",
+			LatencyMs: latency,
+			Error:     "redis client not configured",
+		}, latency
+	}
+
 	err := h.redis.HealthCheck(checkCtx)
 	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
 
@@ -217,6 +285,70 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 			Err(err).
 			Float64("latency_ms", latency).
 			Msg("redis health check failed")
+
+		return CheckDetails{
+			Status:    "down",
+			LatencyMs: latency,
+			Error:     err.Error(),
+		}, latency
+	}
+
+	return CheckDetails{
+		Status:    "up",
+		LatencyMs: latency,
+	}, latency
+}
+
+// checkStorage verifies storage provider connectivity and measures latency.
+// Returns CheckDetails with status and latency, plus latency as a separate value for logging.
+func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64) {
+	// Create a context with 5 second timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	// Use a known health check key that should not exist
+	// We just check if the storage is accessible by testing Exists operation
+	healthCheckKey := "health-check-probe"
+	_, err := h.storage.Exists(checkCtx, healthCheckKey)
+	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+
+	if err != nil {
+		h.logger.Warn().
+			Err(err).
+			Float64("latency_ms", latency).
+			Str("provider", h.storage.Provider()).
+			Msg("storage health check failed")
+
+		return CheckDetails{
+			Status:    "down",
+			LatencyMs: latency,
+			Error:     err.Error(),
+		}, latency
+	}
+
+	return CheckDetails{
+		Status:    "up",
+		LatencyMs: latency,
+	}, latency
+}
+
+// checkClamAV verifies ClamAV daemon connectivity and measures latency.
+// Returns CheckDetails with status and latency, plus latency as a separate value for logging.
+func (h *HealthHandler) checkClamAV(ctx context.Context) (CheckDetails, float64) {
+	// Create a context with 5 second timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	err := h.clamav.Ping(checkCtx)
+	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+
+	if err != nil {
+		h.logger.Warn().
+			Err(err).
+			Float64("latency_ms", latency).
+			Msg("clamav health check failed")
 
 		return CheckDetails{
 			Status:    "down",

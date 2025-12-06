@@ -16,6 +16,9 @@ type RateLimiterConfig struct {
 	// RedisClient is the Redis client for storing rate limit counters.
 	RedisClient *redis.Client
 
+	// MetricsCollector records rate limit metrics.
+	MetricsCollector *MetricsCollector
+
 	// GlobalLimit is the maximum requests per window for unauthenticated requests (per IP).
 	// Default: 100 requests per minute
 	GlobalLimit int
@@ -107,6 +110,11 @@ func RateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 			// Deny request if rate limit exceeded
 			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("global")
+				}
+
 				cfg.Logger.Warn().
 					Str("ip", clientIP).
 					Str("path", r.URL.Path).
@@ -190,6 +198,11 @@ func AuthRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 			// Deny request if rate limit exceeded
 			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("auth")
+				}
+
 				cfg.Logger.Warn().
 					Str("user_id", userID).
 					Str("path", r.URL.Path).
@@ -257,6 +270,11 @@ func LoginRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 			// Deny request if rate limit exceeded
 			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("login")
+				}
+
 				cfg.Logger.Warn().
 					Str("ip", clientIP).
 					Int("limit", cfg.LoginLimit).
@@ -398,6 +416,11 @@ func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 			// Deny request if rate limit exceeded
 			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("upload")
+				}
+
 				cfg.Logger.Warn().
 					Str("user_id", userID).
 					Int("limit", uploadLimit).

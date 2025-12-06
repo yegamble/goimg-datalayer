@@ -1,0 +1,19 @@
+# ============================================================================
+# Crontab for Automated Database Backups
+# ============================================================================
+# Format: minute hour day month weekday command
+#
+# Schedule:
+#   - Daily backup: 2:00 AM every day
+#   - Weekly cleanup: 3:00 AM every Sunday (day 0)
+# ============================================================================
+
+# Daily backup at 2:00 AM
+0 2 * * * /opt/goimg/scripts/backup-database.sh >> /var/backups/postgres/logs/cron.log 2>&1
+
+# Weekly cleanup at 3:00 AM on Sunday
+0 3 * * 0 /opt/goimg/scripts/cleanup-old-backups.sh >> /var/backups/postgres/logs/cron.log 2>&1
+
+# Monthly verification test at 4:00 AM on the 1st of each month (optional)
+# Uncomment to enable automated backup validation
+# 0 4 1 * * /opt/goimg/scripts/validate-backup-restore.sh --output-report /var/backups/postgres/logs/validation-$(date +\%Y\%m).md >> /var/backups/postgres/logs/cron.log 2>&1

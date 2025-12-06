@@ -200,6 +200,7 @@ See the security runbook documentation for detailed operational procedures:
 - `docs/security/incident_response.md` - Incident detection, triage, containment, and recovery
 - `docs/security/monitoring.md` - Security event monitoring and alerting
 - `docs/security/secret_rotation.md` - Credential rotation procedures
+- `docs/security/data_retention_policy.md` - Data retention, GDPR/CCPA compliance, and user privacy rights
 
 ## Security Tools
 

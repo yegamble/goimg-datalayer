@@ -1,0 +1,9 @@
+# Ignore GPG keys (sensitive)
+gpg-keys/
+*.key
+*.gpg
+
+# Ignore local test backups
+*.dump
+*.dump.gpg
+test-backups/
