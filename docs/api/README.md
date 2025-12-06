@@ -360,6 +360,121 @@ Delete own user account permanently.
 
 ---
 
+#### GET /users/{id}/sessions
+
+Retrieve active sessions for the authenticated user.
+
+**Authentication**: Required (Bearer token)
+
+**Path Parameters**:
+- `id` (UUID): User ID (must be own user ID)
+
+**Query Parameters**:
+- `page` (integer, optional): Page number (default: 1)
+- `per_page` (integer, optional): Items per page (default: 20, max: 100)
+
+**Success Response (200 OK)**:
+```json
+{
+  "sessions": [
+    {
+      "id": "a12b3c4d-5678-90ef-ghij-klmnopqrstuv",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "ip_address": "192.168.1.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "created_at": "2025-12-05T10:30:00Z",
+      "expires_at": "2025-12-12T10:30:00Z",
+      "is_current": true
+    },
+    {
+      "id": "b23c4d5e-6789-01fg-hijk-lmnopqrstuvw",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "ip_address": "192.168.1.5",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)",
+      "created_at": "2025-12-04T08:15:00Z",
+      "expires_at": "2025-12-11T08:15:00Z",
+      "is_current": false
+    }
+  ],
+  "pagination": {
+    "total": 2,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 1
+  }
+}
+```
+
+**Error Responses**:
+- `401`: Unauthorized
+- `403`: Cannot view another user's sessions
+- `404`: User not found
+
+**Notes**:
+- Users can only view their own sessions
+- Sessions are sorted by creation date (most recent first)
+- `is_current` indicates the session making the request
+
+---
+
+#### GET /users/{id}/likes
+
+Retrieve a paginated list of images that the specified user has liked.
+
+**Authentication**: Optional
+
+**Path Parameters**:
+- `id` (UUID): User ID
+
+**Query Parameters**:
+- `page` (integer, optional): Page number (default: 1)
+- `per_page` (integer, optional): Items per page (default: 20, max: 100)
+
+**Success Response (200 OK)**:
+```json
+{
+  "items": [
+    {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "owner_id": "8e1f5g0c-3456-7890-12cd-efgh45678901",
+      "owner": {
+        "id": "8e1f5g0c-3456-7890-12cd-efgh45678901",
+        "username": "janedoe",
+        "display_name": "Jane Doe"
+      },
+      "title": "Sunset over mountains",
+      "visibility": "public",
+      "variants": {
+        "thumbnail": {
+          "url": "https://cdn.goimg.com/images/7c9e6679/thumbnail.jpg",
+          "width": 150,
+          "height": 113
+        }
+      },
+      "tags": ["sunset", "mountains"],
+      "view_count": 150,
+      "like_count": 42,
+      "created_at": "2025-12-05T10:45:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 25,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 2
+  }
+}
+```
+
+**Error Responses**:
+- `404`: User not found
+
+**Access Control**:
+- Public users can view likes of users with public profiles
+- Authenticated users can view their own likes and public likes
+
+---
+
 ### Image Endpoints
 
 #### POST /images
@@ -655,6 +770,68 @@ Delete an image permanently.
 **Access Control**:
 - Only the image owner can delete their images
 - Moderators and admins can delete any image
+
+---
+
+#### GET /images/search
+
+Full-text search across image titles and descriptions.
+
+**Authentication**: Optional
+
+**Query Parameters**:
+- `q` (string, required): Search query (searches title and description), min 1 char
+- `tags` (string, optional): Filter by tag name
+- `owner_id` (UUID, optional): Filter by owner ID
+- `visibility` (string, optional): `public`, `private`, or `unlisted` (only for own images)
+- `sort_by` (string, optional): `relevance`, `created_at`, `view_count`, `like_count` (default: `relevance`)
+- `page` (integer, optional): Page number (default: 1)
+- `per_page` (integer, optional): Items per page (default: 20, max: 100)
+
+**Success Response (200 OK)**:
+```json
+{
+  "items": [
+    {
+      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+      "owner": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "username": "johndoe",
+        "display_name": "John Doe"
+      },
+      "title": "Sunset over mountains",
+      "description": "Beautiful sunset captured in Rocky Mountains",
+      "visibility": "public",
+      "variants": {
+        "thumbnail": {
+          "url": "https://cdn.goimg.com/images/7c9e6679/thumbnail.jpg",
+          "width": 150,
+          "height": 113
+        }
+      },
+      "tags": ["sunset", "mountains"],
+      "view_count": 150,
+      "like_count": 42,
+      "created_at": "2025-12-05T10:45:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 89,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 5
+  }
+}
+```
+
+**Error Responses**:
+- `400`: Invalid search query
+
+**Notes**:
+- Search uses full-text indexing on image titles and descriptions
+- Results sorted by relevance score by default
+- Supports filtering by tags, owner, and visibility
 
 ---
 
@@ -1771,6 +1948,27 @@ curl -X GET "http://localhost:8080/api/v1/images?q=mountains&sort=like_count&ord
   -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
+#### Search Images
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/images/search?q=sunset+mountains&tags=nature&sort_by=relevance&page=1&per_page=20" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+#### Get User Sessions
+
+```bash
+curl -X GET http://localhost:8080/api/v1/users/550e8400-e29b-41d4-a716-446655440000/sessions \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+#### Get User's Liked Images
+
+```bash
+curl -X GET http://localhost:8080/api/v1/users/550e8400-e29b-41d4-a716-446655440000/likes \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
 #### Create Album
 
 ```bash
@@ -1949,6 +2147,94 @@ const images = await listImages({
   page: 1,
   per_page: 20,
 });
+```
+
+#### Search Images
+
+```javascript
+async function searchImages(query, filters = {}) {
+  const accessToken = localStorage.getItem('access_token');
+
+  const params = new URLSearchParams({
+    q: query,
+    page: filters.page || 1,
+    per_page: filters.per_page || 20,
+    ...(filters.tags && { tags: filters.tags }),
+    ...(filters.owner_id && { owner_id: filters.owner_id }),
+    ...(filters.sort_by && { sort_by: filters.sort_by }),
+  });
+
+  const response = await fetch(`http://localhost:8080/api/v1/images/search?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+// Usage
+const results = await searchImages('sunset mountains', {
+  tags: 'nature',
+  sort_by: 'relevance',
+  page: 1,
+  per_page: 20,
+});
+```
+
+#### Get User Sessions
+
+```javascript
+async function getUserSessions(userId) {
+  const accessToken = localStorage.getItem('access_token');
+
+  const response = await fetch(`http://localhost:8080/api/v1/users/${userId}/sessions`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+
+  const data = await response.json();
+  return data;
+}
+```
+
+#### Get User's Liked Images
+
+```javascript
+async function getUserLikes(userId, page = 1) {
+  const accessToken = localStorage.getItem('access_token');
+
+  const params = new URLSearchParams({
+    page: page,
+    per_page: 20,
+  });
+
+  const response = await fetch(`http://localhost:8080/api/v1/users/${userId}/likes?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+
+  const data = await response.json();
+  return data;
+}
 ```
 
 #### Like Image
@@ -2173,6 +2459,98 @@ images = list_images(
 )
 ```
 
+#### Search Images
+
+```python
+def search_images(query, access_token, filters=None):
+    if filters is None:
+        filters = {}
+
+    params = {
+        'q': query,
+        'page': filters.get('page', 1),
+        'per_page': filters.get('per_page', 20)
+    }
+
+    if 'tags' in filters:
+        params['tags'] = filters['tags']
+    if 'owner_id' in filters:
+        params['owner_id'] = filters['owner_id']
+    if 'sort_by' in filters:
+        params['sort_by'] = filters['sort_by']
+
+    response = requests.get(
+        f"{BASE_URL}/images/search",
+        headers={'Authorization': f'Bearer {access_token}'},
+        params=params
+    )
+
+    if not response.ok:
+        error = response.json()
+        raise Exception(error['detail'])
+
+    data = response.json()
+    return data
+
+# Usage
+results = search_images(
+    'sunset mountains',
+    access_token,
+    {
+        'tags': 'nature',
+        'sort_by': 'relevance',
+        'page': 1,
+        'per_page': 20
+    }
+)
+```
+
+#### Get User Sessions
+
+```python
+def get_user_sessions(user_id, access_token):
+    response = requests.get(
+        f"{BASE_URL}/users/{user_id}/sessions",
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    if not response.ok:
+        error = response.json()
+        raise Exception(error['detail'])
+
+    data = response.json()
+    return data
+
+# Usage
+sessions = get_user_sessions('550e8400-e29b-41d4-a716-446655440000', access_token)
+```
+
+#### Get User's Liked Images
+
+```python
+def get_user_likes(user_id, access_token, page=1):
+    params = {
+        'page': page,
+        'per_page': 20
+    }
+
+    response = requests.get(
+        f"{BASE_URL}/users/{user_id}/likes",
+        headers={'Authorization': f'Bearer {access_token}'},
+        params=params
+    )
+
+    if not response.ok:
+        error = response.json()
+        raise Exception(error['detail'])
+
+    data = response.json()
+    return data
+
+# Usage
+likes = get_user_likes('550e8400-e29b-41d4-a716-446655440000', access_token)
+```
+
 #### Create Album
 
 ```python
@@ -2312,5 +2690,5 @@ images = response.json()
 
 ---
 
-**Last Updated**: 2025-12-05 (Sprint 9)
+**Last Updated**: 2025-12-06 (Sprint 9 - Comprehensive API documentation with all endpoints)
 **API Version**: 1.0.0
