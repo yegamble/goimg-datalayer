@@ -92,6 +92,60 @@ groups:
           subcategory: authentication
           team: security
 
+      # S9-MON-001-LOCKOUT: Account Lockout (ANY occurrence)
+      - uid: account_lockout_detected
+        title: Account Lockout Triggered
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(goimg_security_auth_failures_total{reason="account_locked"}[5m])
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: sum
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              expression: B
+              refId: C
+              type: threshold
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Alerting
+        for: 0s
+        annotations:
+          summary: Account lockout triggered due to failed login attempts
+          description: |
+            One or more accounts have been locked due to exceeding failed login attempt threshold.
+            Total lockouts in last 5 minutes: {{ printf "%.0f" $values.A.Value }}
+            This indicates potential brute-force attack on user accounts.
+            Investigate source IPs and notify affected users.
+          runbook_url: https://github.com/yegamble/goimg-datalayer/blob/main/docs/operations/security-alerting.md#account-lockout
+        labels:
+          severity: high
+          category: security
+          subcategory: authentication
+          team: security
+          priority: P2
+
   - name: security_rate_limiting
     interval: 1m
     folder: Security

@@ -35,18 +35,20 @@ monitoring/grafana/provisioning/alerting/
 
 ### File: `security_alerts.yml`
 
-Defines 7 alert rules across 4 categories:
+Defines 8 alert rules across 5 categories:
 
 #### 1. Authentication Security
 
 | Alert | Threshold | Severity | Priority | Description |
 |-------|-----------|----------|----------|-------------|
 | High Authentication Failure Rate | >10/min | Warning | P2 | Brute-force or credential stuffing detection |
+| Account Lockout Triggered | ANY occurrence | High | P2 | Account locked due to failed login attempts |
 | Potential Brute Force Attack | >50 from single IP in 10min | High | P2 | Targeted brute force attack |
 | Potential Account Enumeration | >200 from single IP in 1h | Warning | P3 | Account enumeration attempt |
 
 **Metrics Used**:
 - `goimg_security_auth_failures_total{reason="invalid_credentials"}`
+- `goimg_security_auth_failures_total{reason="account_locked"}`
 
 #### 2. Rate Limiting
 
@@ -566,6 +568,7 @@ curl -X POST http://localhost:8080/api/v1/images/upload \
 - [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks)
 - [PagerDuty Events API v2](https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview)
 - [Security Alerting Runbook](/docs/operations/security-alerting.md)
+- [Alert Testing Procedures](/docs/security/alert_testing.md)
 
 ---
 

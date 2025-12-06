@@ -1,0 +1,160 @@
+version: "3.9"
+
+# ============================================================================
+# Docker Compose Override for Caddy Reverse Proxy
+# ============================================================================
+# This file replaces nginx with Caddy for automatic HTTPS
+#
+# Usage:
+#   docker-compose -f docker/docker-compose.prod.yml \
+#     -f docker/docker-compose.caddy.yml up -d
+#
+# Features:
+# - Automatic HTTPS with Let's Encrypt (zero config)
+# - Automatic certificate renewal
+# - HTTP/2 and HTTP/3 (QUIC) support
+# - SSL Labs A+ rating out of the box
+#
+# Prerequisites:
+# 1. Copy and configure Caddyfile:
+#    cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile
+#    sed -i 's/example\.com/yourdomain.com/g' docker/caddy/Caddyfile
+#
+# 2. Ensure ports 80 and 443 are available
+#
+# 3. Domain DNS must point to your server
+#
+# ============================================================================
+
+services:
+  # Disable nginx service from docker-compose.prod.yml
+  nginx:
+    profiles:
+      - disabled  # This prevents nginx from starting
+
+  # Caddy Reverse Proxy with Automatic HTTPS
+  caddy:
+    image: caddy:2-alpine
+    container_name: goimg-caddy
+    ports:
+      - "80:80"     # HTTP (auto-redirects to HTTPS)
+      - "443:443"   # HTTPS
+      - "443:443/udp"  # HTTP/3 (QUIC)
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data  # Certificate storage
+      - caddy_config:/config  # Caddy configuration
+      - caddy_logs:/var/log/caddy  # Logs
+    networks:
+      - frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2019/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      # Caddy environment variables
+      - CADDY_ADMIN=:2019  # Admin API port (internal only)
+
+volumes:
+  # Caddy-specific volumes
+  caddy_data:
+    driver: local
+    # Stores Let's Encrypt certificates
+    # Location: /var/lib/docker/volumes/caddy_data/_data
+
+  caddy_config:
+    driver: local
+    # Stores Caddy configuration cache
+
+  caddy_logs:
+    driver: local
+    # Stores access and error logs
+
+# ============================================================================
+# Certificate Management
+# ============================================================================
+# Caddy automatically:
+# - Obtains SSL certificates on first request
+# - Renews certificates 30 days before expiration
+# - Stores certificates in /data/caddy/certificates/
+#
+# No manual intervention required!
+#
+# Certificate Location (inside container):
+# /data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/
+#   └── example.com/
+#       ├── example.com.crt  # Certificate
+#       ├── example.com.key  # Private key
+#       └── example.com.json # Metadata
+#
+# Certificate Location (on host):
+# /var/lib/docker/volumes/caddy_data/_data/certificates/
+#
+# ============================================================================
+# Monitoring
+# ============================================================================
+# View Caddy logs:
+#   docker logs goimg-caddy -f
+#
+# Check certificate status:
+#   docker exec goimg-caddy caddy list-certificates
+#
+# Caddy Admin API (from host):
+#   curl http://localhost:2019/config/
+#   curl http://localhost:2019/metrics
+#
+# SSL Labs test:
+#   https://www.ssllabs.com/ssltest/analyze.html?d=yourdomain.com
+#
+# ============================================================================
+# Troubleshooting
+# ============================================================================
+# Certificate acquisition failed:
+# 1. Check DNS resolution:
+#    dig +short yourdomain.com
+#    # Must return your server's public IP
+#
+# 2. Check Caddy logs:
+#    docker logs goimg-caddy
+#
+# 3. Verify ports 80/443 are accessible:
+#    curl http://YOUR_SERVER_IP
+#
+# 4. Test with staging Let's Encrypt:
+#    # Edit Caddyfile, uncomment:
+#    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+#
+# Force certificate reload:
+#   docker exec goimg-caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# ============================================================================
+# Switching Back to Nginx
+# ============================================================================
+# To switch back to nginx:
+#   docker-compose -f docker/docker-compose.prod.yml up -d
+#
+# This will:
+# - Start nginx service
+# - Stop caddy service
+# - Preserve existing nginx certificates
+#
+# ============================================================================
