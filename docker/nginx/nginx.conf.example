@@ -1,0 +1,248 @@
+# ============================================================================
+# Nginx Production Configuration Example with SSL/TLS
+# ============================================================================
+# Production-ready configuration with security hardening for SSL Labs A+ rating
+#
+# This is an EXAMPLE configuration. The actual configuration is in nginx.conf
+#
+# Features:
+# - TLS 1.2/1.3 only (SSL Labs A+ requirement)
+# - Strong cipher suites with forward secrecy
+# - HSTS with 1-year max-age
+# - OCSP stapling
+# - Security headers (CSP, X-Frame-Options, etc.)
+# - HTTP/2 support
+# - Gzip compression
+# - Rate limiting
+# - Request size limits for image uploads
+# - Optimized worker configuration
+#
+# Usage:
+#   1. Copy to production location:
+#      cp nginx.conf.example nginx.conf
+#
+#   2. Customize for your deployment:
+#      - Replace domain placeholders in conf.d/api.conf
+#      - Adjust worker processes for your server
+#      - Update rate limits as needed
+#
+#   3. Test configuration:
+#      docker run --rm \
+#        -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro \
+#        nginx:1.25-alpine nginx -t
+#
+# ============================================================================
+
+user nginx;
+worker_processes auto;  # Auto-detect CPU cores
+worker_rlimit_nofile 65535;
+
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 4096;  # Max connections per worker
+    use epoll;  # Efficient event model for Linux
+    multi_accept on;  # Accept multiple connections at once
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # ========================================================================
+    # Logging Configuration
+    # ========================================================================
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for" '
+                    'rt=$request_time uct="$upstream_connect_time" '
+                    'uht="$upstream_header_time" urt="$upstream_response_time"';
+
+    log_format json_combined escape=json '{'
+        '"time_local":"$time_local",'
+        '"remote_addr":"$remote_addr",'
+        '"remote_user":"$remote_user",'
+        '"request":"$request",'
+        '"status": "$status",'
+        '"body_bytes_sent":"$body_bytes_sent",'
+        '"request_time":"$request_time",'
+        '"http_referrer":"$http_referer",'
+        '"http_user_agent":"$http_user_agent",'
+        '"upstream_connect_time":"$upstream_connect_time",'
+        '"upstream_header_time":"$upstream_header_time",'
+        '"upstream_response_time":"$upstream_response_time"'
+    '}';
+
+    access_log /var/log/nginx/access.log json_combined;
+
+    # ========================================================================
+    # Performance Tuning
+    # ========================================================================
+    sendfile on;  # Use kernel sendfile for static files
+    tcp_nopush on;  # Send headers in one packet
+    tcp_nodelay on;  # Don't buffer data
+    keepalive_timeout 65;
+    keepalive_requests 100;
+    types_hash_max_size 2048;
+    server_tokens off;  # Hide nginx version (security)
+
+    # Request size limits (50M for large image uploads)
+    client_max_body_size 50M;
+    client_body_buffer_size 512k;
+    client_header_buffer_size 1k;
+    large_client_header_buffers 4 16k;
+
+    # Timeouts
+    client_body_timeout 12;
+    client_header_timeout 12;
+    send_timeout 10;
+
+    # ========================================================================
+    # Gzip Compression
+    # ========================================================================
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/rss+xml
+        application/atom+xml
+        image/svg+xml
+        application/x-font-ttf
+        application/x-font-opentype
+        application/vnd.ms-fontobject
+        font/woff
+        font/woff2;
+    gzip_disable "msie6";
+    gzip_min_length 1000;
+
+    # ========================================================================
+    # SSL/TLS Configuration (SSL Labs A+ Rating)
+    # ========================================================================
+
+    # Protocol Support: TLS 1.2 and TLS 1.3 only
+    # - TLS 1.0/1.1 are deprecated and vulnerable
+    # - TLS 1.2 is widely supported
+    # - TLS 1.3 provides improved security and performance
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Cipher Suites: Modern ciphers with forward secrecy
+    # - ECDHE: Elliptic Curve Diffie-Hellman Ephemeral (forward secrecy)
+    # - GCM: Galois/Counter Mode (authenticated encryption)
+    # - CHACHA20-POLY1305: Modern cipher (mobile-friendly)
+    # - No RC4, 3DES, MD5, or other weak ciphers
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+
+    # Let client choose cipher (TLS 1.3 best practice)
+    ssl_prefer_server_ciphers off;
+
+    # Session cache (performance optimization)
+    # - 10MB cache can store ~40,000 sessions
+    # - Reduces CPU load from full handshake
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Session tickets OFF (security)
+    # - Prevents session resumption attacks
+    # - Ensures perfect forward secrecy
+    ssl_session_tickets off;
+
+    # OCSP Stapling (performance + privacy)
+    # - Server fetches OCSP response and staples it to handshake
+    # - Faster handshake (client doesn't query OCSP responder)
+    # - Improved privacy (OCSP request not sent to CA)
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.8.8 8.8.4.4 valid=300s;
+    resolver_timeout 5s;
+
+    # Diffie-Hellman parameters (optional but recommended)
+    # Generate with: sudo scripts/setup-ssl.sh --generate-dhparam
+    # Uncomment after generating:
+    # ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+
+    # ========================================================================
+    # Rate Limiting Zones
+    # ========================================================================
+
+    # General API rate limiting: 10 requests/second per IP
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+    # Login endpoint rate limiting (stricter): 5 requests/minute per IP
+    # Prevents brute force attacks
+    limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+    # Upload endpoint rate limiting: 2 requests/second per IP
+    # Prevents abuse of expensive upload operations
+    limit_req_zone $binary_remote_addr zone=upload_limit:10m rate=2r/s;
+
+    # Connection limiting: Max 10 concurrent connections per IP
+    limit_conn_zone $binary_remote_addr zone=conn_limit:10m;
+
+    # ========================================================================
+    # Security Headers (Global)
+    # ========================================================================
+    # These are set globally but can be overridden per server block
+
+    # X-Frame-Options: Prevent clickjacking
+    # SAMEORIGIN: Can only be embedded by same origin
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    # X-Content-Type-Options: Prevent MIME sniffing
+    # nosniff: Don't interpret files as different MIME type
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # X-XSS-Protection: Legacy XSS protection (for older browsers)
+    # 1; mode=block: Enable XSS filter and block page
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Referrer-Policy: Control referrer information leakage
+    # strict-origin-when-cross-origin: Send full URL to same origin, origin only to cross-origin
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Content Security Policy: Prevent XSS and injection attacks
+    # - default-src 'self': Default to same origin
+    # - script-src 'self': Scripts only from same origin
+    # - style-src 'self' 'unsafe-inline': Styles from same origin + inline (for dynamic styles)
+    # - img-src 'self' data: https:: Images from same origin, data URIs, or HTTPS
+    # - frame-ancestors 'none': Cannot be embedded in frames
+    # - base-uri 'self': Restrict base tag
+    # - form-action 'self': Forms can only submit to same origin
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
+
+    # Permissions Policy: Restrict browser features
+    # Disable geolocation, microphone, camera (not needed for API)
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+    # ========================================================================
+    # Cache Settings
+    # ========================================================================
+
+    # Proxy cache path for image caching
+    proxy_cache_path /var/cache/nginx/proxy
+                     levels=1:2
+                     keys_zone=api_cache:10m
+                     max_size=1g
+                     inactive=60m
+                     use_temp_path=off;
+
+    # Proxy buffers
+    proxy_buffer_size 4k;
+    proxy_buffers 8 4k;
+    proxy_busy_buffers_size 8k;
+
+    # ========================================================================
+    # Include Server Blocks
+    # ========================================================================
+    # Server-specific configuration (SSL certificates, domains, upstreams)
+    # See: conf.d/api.conf
+    include /etc/nginx/conf.d/*.conf;
+}

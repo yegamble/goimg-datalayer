@@ -1,0 +1,189 @@
+# ============================================================================
+# Certbot SSL Certificate Auto-Renewal Cron Jobs
+# ============================================================================
+# This file contains example cron job configurations for automatic SSL/TLS
+# certificate renewal using Certbot and Let's Encrypt.
+#
+# Installation:
+#   1. Copy relevant cron jobs to root crontab:
+#      sudo crontab -e
+#
+#   2. Paste the desired cron jobs from below
+#
+#   3. Save and exit
+#
+#   4. Verify cron job is installed:
+#      sudo crontab -l
+#
+# Alternative: Use systemd timers (preferred on modern systems)
+# See: /home/user/goimg-datalayer/docs/deployment/ssl-setup.md
+#
+# ============================================================================
+
+# ============================================================================
+# PRIMARY RENEWAL JOB
+# ============================================================================
+# Runs certbot renewal twice daily (midnight and noon)
+# Certbot automatically checks if renewal is needed (< 30 days remaining)
+# If renewed, nginx is reloaded to use new certificates
+#
+# Syntax: minute hour day month weekday command
+# ============================================================================
+
+# Run at 00:00 and 12:00 daily
+0 0,12 * * * /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew >> /home/user/goimg-datalayer/logs/ssl-setup.log 2>&1
+
+# Alternative: Run using certbot directly (if setup-ssl.sh not available)
+# 0 0,12 * * * certbot renew --quiet --post-hook "docker exec goimg-nginx nginx -s reload" >> /var/log/letsencrypt/renewal.log 2>&1
+
+# ============================================================================
+# CERTIFICATE VALIDITY CHECK
+# ============================================================================
+# Runs daily at 9 AM to check certificate expiration
+# Useful for monitoring and alerting
+# ============================================================================
+
+0 9 * * * /home/user/goimg-datalayer/scripts/setup-ssl.sh --check-validity >> /var/log/ssl-check.log 2>&1
+
+# ============================================================================
+# CERTIFICATE EXPIRY ALERT
+# ============================================================================
+# Runs daily at 9 AM to check if certificate expires soon
+# Sends email alert if < 7 days remaining
+# Requires: mailutils or sendmail package
+# ============================================================================
+
+0 9 * * * /home/user/goimg-datalayer/scripts/ssl-cert-alert.sh >> /var/log/ssl-alert.log 2>&1
+
+# ============================================================================
+# ALTERNATIVE SCHEDULES
+# ============================================================================
+
+# Run renewal once daily at midnight
+# 0 0 * * * /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew >> /home/user/goimg-datalayer/logs/ssl-setup.log 2>&1
+
+# Run renewal every 6 hours (00:00, 06:00, 12:00, 18:00)
+# 0 */6 * * * /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew >> /home/user/goimg-datalayer/logs/ssl-setup.log 2>&1
+
+# Run renewal weekly on Sunday at 3 AM (minimal frequency, not recommended)
+# 0 3 * * 0 /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew >> /home/user/goimg-datalayer/logs/ssl-setup.log 2>&1
+
+# Run with random delay (0-3600 seconds) to spread load
+# 0 0,12 * * * sleep $((RANDOM \% 3600)) && /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew >> /home/user/goimg-datalayer/logs/ssl-setup.log 2>&1
+
+# ============================================================================
+# DOCKER-SPECIFIC RENEWAL
+# ============================================================================
+# If using Docker and certbot container
+# ============================================================================
+
+# Run certbot container for renewal
+# 0 0,12 * * * docker-compose -f /home/user/goimg-datalayer/docker/docker-compose.prod.yml run --rm certbot renew --quiet && docker exec goimg-nginx nginx -s reload >> /var/log/letsencrypt/renewal.log 2>&1
+
+# ============================================================================
+# LOG ROTATION
+# ============================================================================
+# Rotate SSL logs monthly to prevent disk space issues
+# ============================================================================
+
+# Rotate logs on the 1st of each month at 1 AM
+# 0 1 1 * * /home/user/goimg-datalayer/scripts/rotate-ssl-logs.sh >> /var/log/logrotate.log 2>&1
+
+# ============================================================================
+# MONITORING AND ALERTING
+# ============================================================================
+# Additional cron jobs for SSL monitoring
+# ============================================================================
+
+# Daily SSL Labs test (resource-intensive, use sparingly)
+# 0 10 * * 1 /home/user/goimg-datalayer/scripts/ssl-labs-check.sh >> /var/log/ssl-labs.log 2>&1
+
+# Weekly certificate chain validation
+# 0 4 * * 1 openssl s_client -connect yourdomain.com:443 -showcerts < /dev/null >> /var/log/ssl-chain.log 2>&1
+
+# ============================================================================
+# CRON JOB BEST PRACTICES
+# ============================================================================
+#
+# 1. Always redirect output to log files
+#    - Use >> for append (not >)
+#    - Redirect stderr with 2>&1
+#
+# 2. Use absolute paths
+#    - Scripts: /home/user/goimg-datalayer/scripts/...
+#    - Logs: /var/log/... or /home/user/goimg-datalayer/logs/...
+#
+# 3. Set appropriate frequency
+#    - Renewal: Twice daily (recommended)
+#    - Validation: Daily (monitoring)
+#    - Alerts: Daily (critical)
+#
+# 4. Test cron jobs manually
+#    sudo /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew --dry-run
+#
+# 5. Monitor cron execution
+#    grep CRON /var/log/syslog
+#
+# 6. Set environment variables if needed
+#    PATH=/usr/local/bin:/usr/bin:/bin
+#    SHELL=/bin/bash
+#
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+# Set at the top of crontab if needed
+# ============================================================================
+
+# PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+# SHELL=/bin/bash
+# MAILTO=admin@yourdomain.com  # Email for cron output
+
+# ============================================================================
+# DEBUGGING CRON JOBS
+# ============================================================================
+#
+# Check if cron service is running:
+#   sudo systemctl status cron
+#
+# View cron logs:
+#   sudo grep CRON /var/log/syslog
+#   sudo journalctl -u cron
+#
+# Test cron job manually:
+#   sudo /home/user/goimg-datalayer/scripts/setup-ssl.sh --renew --dry-run
+#
+# Check cron job output:
+#   sudo tail -f /home/user/goimg-datalayer/logs/ssl-setup.log
+#
+# Common issues:
+#   - Script not executable: chmod +x script.sh
+#   - Wrong path: Use absolute paths
+#   - Missing environment variables: Set in crontab
+#   - Permission denied: Run as root (sudo crontab -e)
+#
+# ============================================================================
+# SYSTEMD TIMER (PREFERRED ALTERNATIVE)
+# ============================================================================
+# Systemd timers are more reliable than cron on modern systems
+# See: /home/user/goimg-datalayer/docs/deployment/ssl-setup.md
+#
+# Advantages:
+#   - More reliable (survives system sleep/hibernate)
+#   - Better logging (journalctl)
+#   - Dependency management
+#   - Random delay built-in
+#
+# Setup:
+#   sudo /home/user/goimg-datalayer/scripts/setup-ssl.sh --setup-renewal
+#
+# This creates:
+#   /etc/systemd/system/certbot-renewal.timer
+#   /etc/systemd/system/certbot-renewal.service
+#
+# Manage:
+#   systemctl status certbot-renewal.timer
+#   systemctl start certbot-renewal.timer
+#   systemctl enable certbot-renewal.timer
+#   journalctl -u certbot-renewal.service
+#
+# ============================================================================

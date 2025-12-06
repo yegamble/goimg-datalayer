@@ -1,0 +1,369 @@
+# ============================================================================
+# Caddy Configuration Example with Automatic HTTPS
+# ============================================================================
+# Caddy automatically obtains and renews SSL/TLS certificates from Let's Encrypt
+# No manual certificate management required!
+#
+# Features:
+# - Automatic HTTPS with Let's Encrypt (zero config)
+# - Automatic certificate renewal
+# - HTTP/2 and HTTP/3 (QUIC) support
+# - Modern TLS configuration (TLS 1.2/1.3 only)
+# - Gzip compression
+# - Reverse proxy to API backend
+# - Security headers
+# - Rate limiting
+#
+# Usage:
+#   1. Copy to production location:
+#      cp Caddyfile.example Caddyfile
+#
+#   2. Replace example.com with your domain:
+#      sed -i 's/example\.com/yourdomain.com/g' Caddyfile
+#
+#   3. Deploy with Docker Compose:
+#      docker-compose -f docker/docker-compose.prod.yml \
+#        -f docker/docker-compose.caddy.yml up -d
+#
+# SSL Labs A+ Rating:
+# Caddy's default TLS configuration achieves SSL Labs A+ rating out of the box
+#
+# ============================================================================
+
+# ============================================================================
+# HTTP to HTTPS Redirect
+# ============================================================================
+# Automatically redirects all HTTP traffic to HTTPS
+http://example.com, http://www.example.com {
+    redir https://{host}{uri} permanent
+}
+
+# ============================================================================
+# Main HTTPS Server Block
+# ============================================================================
+example.com, www.example.com {
+    # ========================================================================
+    # Automatic HTTPS
+    # ========================================================================
+    # Caddy automatically:
+    # - Obtains SSL certificate from Let's Encrypt
+    # - Renews certificates before expiration
+    # - Redirects HTTP to HTTPS
+    # - Uses modern TLS configuration (TLS 1.2/1.3)
+    # - Enables HTTP/2 and HTTP/3 (QUIC)
+    #
+    # Email for Let's Encrypt notifications
+    # Replace with your actual email
+    tls admin@example.com {
+        # Use Let's Encrypt production (default)
+        # For testing, use: ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+        # TLS protocols (Caddy defaults to TLS 1.2+)
+        protocols tls1.2 tls1.3
+
+        # Cipher suites (Caddy defaults are secure)
+        # Explicitly set for SSL Labs A+ if needed:
+        # ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+    }
+
+    # ========================================================================
+    # Logging
+    # ========================================================================
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+    }
+
+    # ========================================================================
+    # Gzip Compression
+    # ========================================================================
+    encode gzip zstd
+
+    # ========================================================================
+    # Security Headers
+    # ========================================================================
+    header {
+        # HSTS - Force HTTPS for 1 year (SSL Labs A+ requirement)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+
+        # Prevent MIME sniffing
+        X-Content-Type-Options "nosniff"
+
+        # Legacy XSS protection (for older browsers)
+        X-XSS-Protection "1; mode=block"
+
+        # Control referrer leakage
+        Referrer-Policy "strict-origin-when-cross-origin"
+
+        # Content Security Policy - prevent XSS and injection attacks
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+
+        # Restrict browser features
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+        # Remove server header (don't advertise Caddy version)
+        -Server
+    }
+
+    # ========================================================================
+    # Health Check Endpoint
+    # ========================================================================
+    handle /health {
+        reverse_proxy api:8080 {
+            # Health check configuration
+            health_uri /health
+            health_interval 10s
+            health_timeout 5s
+
+            # Headers
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # ========================================================================
+    # Metrics Endpoint (Internal Only)
+    # ========================================================================
+    handle /metrics {
+        # Restrict to internal networks only
+        @internal {
+            remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+        }
+        handle @internal {
+            reverse_proxy api:9090
+        }
+        # Deny all other IPs
+        respond 403
+    }
+
+    # ========================================================================
+    # Authentication Endpoints (Stricter Rate Limiting)
+    # ========================================================================
+    handle /api/v1/auth/* {
+        # Rate limiting: 5 requests per minute per IP
+        # Note: Caddy rate limiting requires caddy-ext module
+        # For production, use application-level rate limiting or nginx
+
+        reverse_proxy api:8080 {
+            # Headers
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Request-ID {uuid}
+
+            # Timeouts
+            transport http {
+                dial_timeout 30s
+                response_header_timeout 30s
+                read_timeout 30s
+            }
+        }
+    }
+
+    # ========================================================================
+    # Upload Endpoint (Large Files)
+    # ========================================================================
+    handle /api/v1/images/upload {
+        # Request size limit: 50MB for image uploads
+        request_body {
+            max_size 50MB
+        }
+
+        reverse_proxy api:8080 {
+            # Headers
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Request-ID {uuid}
+
+            # Extended timeouts for uploads
+            transport http {
+                dial_timeout 75s
+                response_header_timeout 300s
+                read_timeout 300s
+            }
+
+            # Flush responses immediately (streaming)
+            flush_interval -1
+        }
+    }
+
+    # ========================================================================
+    # Static Files / Image Serving (with Caching)
+    # ========================================================================
+    @images {
+        path_regexp \.(jpg|jpeg|png|gif|webp|ico|svg)$
+    }
+    handle @images {
+        # Cache control headers
+        header Cache-Control "public, max-age=2592000, immutable"
+
+        reverse_proxy api:8080 {
+            # Headers
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # ========================================================================
+    # API Endpoints (Default)
+    # ========================================================================
+    handle /api/* {
+        reverse_proxy api:8080 {
+            # Headers
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Request-ID {uuid}
+
+            # Timeouts
+            transport http {
+                dial_timeout 30s
+                response_header_timeout 30s
+                read_timeout 30s
+            }
+
+            # Load balancing (if multiple API instances)
+            # lb_policy round_robin
+
+            # Health checks
+            health_uri /health
+            health_interval 10s
+            health_timeout 5s
+        }
+    }
+
+    # ========================================================================
+    # Root / Frontend (if serving frontend from Caddy)
+    # ========================================================================
+    handle / {
+        # If you're serving a frontend app:
+        # root * /var/www/html
+        # file_server
+        # try_files {path} /index.html
+
+        # If API only (no frontend):
+        respond "Not Found" 404 {
+            close
+        }
+    }
+
+    # ========================================================================
+    # Error Handling
+    # ========================================================================
+    handle_errors {
+        @404 {
+            expression {http.error.status_code} == 404
+        }
+        handle @404 {
+            respond "Not Found" 404
+        }
+
+        @5xx {
+            expression {http.error.status_code} >= 500
+        }
+        handle @5xx {
+            respond "Internal Server Error" 500
+        }
+    }
+}
+
+# ============================================================================
+# Admin API (Internal Only)
+# ============================================================================
+# Caddy's admin API for metrics and config management
+# Bind to localhost only for security
+# Access at http://localhost:2019/
+admin localhost:2019
+
+# ============================================================================
+# Global Options
+# ============================================================================
+{
+    # Email for Let's Encrypt notifications
+    email admin@example.com
+
+    # Default SNI (Server Name Indication)
+    # default_sni example.com
+
+    # ACME settings (Let's Encrypt)
+    # acme_ca https://acme-v02.api.letsencrypt.org/directory  # Production (default)
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory  # Staging (for testing)
+
+    # Storage for certificates
+    # Default: $HOME/.local/share/caddy
+    # In Docker: /data/caddy
+    # storage file_system /data/caddy
+
+    # Enable debug mode (verbose logging)
+    # debug
+
+    # Persist logs
+    log {
+        output file /var/log/caddy/caddy.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+        level INFO
+    }
+}
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# Caddy Advantages:
+# - Zero-config automatic HTTPS with Let's Encrypt
+# - Automatic certificate renewal
+# - HTTP/2 and HTTP/3 (QUIC) support out of the box
+# - Modern TLS defaults (TLS 1.2/1.3 only)
+# - Simple, readable configuration
+# - Built-in security best practices
+# - Graceful reloads with no downtime
+#
+# SSL Labs A+ Rating:
+# Caddy's default configuration achieves A+ rating:
+# - TLS 1.2 and 1.3 only
+# - Strong cipher suites with forward secrecy
+# - HSTS enabled (with this config)
+# - OCSP stapling enabled by default
+# - Session tickets disabled by default
+#
+# Certificate Renewal:
+# Caddy automatically renews certificates 30 days before expiration.
+# No cron jobs or systemd timers required!
+#
+# Monitoring:
+# - Certificate expiry: Caddy handles automatically
+# - Admin API: http://localhost:2019/config/
+# - Metrics: http://localhost:2019/metrics
+#
+# Testing:
+# 1. Test configuration:
+#    docker run --rm -v $(pwd)/Caddyfile:/etc/caddy/Caddyfile caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile
+#
+# 2. Dry run:
+#    docker run --rm -v $(pwd)/Caddyfile:/etc/caddy/Caddyfile caddy:2-alpine caddy run --config /etc/caddy/Caddyfile
+#
+# 3. Production:
+#    docker-compose -f docker/docker-compose.prod.yml -f docker/docker-compose.caddy.yml up -d
+#
+# SSL Labs Test:
+# After deployment, verify A+ rating:
+# https://www.ssllabs.com/ssltest/analyze.html?d=example.com
+#
+# ============================================================================
