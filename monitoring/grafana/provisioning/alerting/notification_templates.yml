@@ -1,0 +1,291 @@
+apiVersion: 1
+
+# Notification Templates for Security Alerts
+# These templates define the format and content of alert notifications
+# Templates use Go template syntax with Grafana alert context
+
+templates:
+  # Email template for security alerts
+  - name: security_email_template
+    template: |
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: {{ if eq .Status "firing" }}#d32f2f{{ else }}#388e3c{{ end }}; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+              .content { background: #f5f5f5; padding: 20px; border: 1px solid #ddd; }
+              .alert-box { background: white; padding: 15px; margin: 10px 0; border-left: 4px solid {{ if eq .CommonLabels.severity "critical" }}#d32f2f{{ else if eq .CommonLabels.severity "high" }}#f57c00{{ else }}#fbc02d{{ end }}; }
+              .severity { display: inline-block; padding: 5px 10px; border-radius: 3px; color: white; background: {{ if eq .CommonLabels.severity "critical" }}#d32f2f{{ else if eq .CommonLabels.severity "high" }}#f57c00{{ else }}#fbc02d{{ end }}; }
+              .metadata { background: #e8eaf6; padding: 10px; margin: 10px 0; border-radius: 3px; }
+              .remediation { background: #fff3e0; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9800; }
+              .footer { background: #f5f5f5; padding: 15px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+              table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+              td { padding: 8px; border-bottom: 1px solid #ddd; }
+              td:first-child { font-weight: bold; width: 30%; }
+              a { color: #1976d2; text-decoration: none; }
+              .btn { display: inline-block; padding: 10px 20px; background: #1976d2; color: white; text-decoration: none; border-radius: 3px; margin: 10px 5px; }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="header">
+                  <h1>{{ if eq .Status "firing" }}🚨 Security Alert{{ else }}✅ Alert Resolved{{ end }}</h1>
+                  <h2>{{ .CommonLabels.alertname }}</h2>
+              </div>
+
+              <div class="content">
+                  <div class="alert-box">
+                      <span class="severity">{{ upper .CommonLabels.severity }}</span>
+                      <p><strong>{{ .CommonAnnotations.summary }}</strong></p>
+                  </div>
+
+                  {{ range .Alerts }}
+                  <div class="metadata">
+                      <table>
+                          <tr>
+                              <td>Alert Name:</td>
+                              <td>{{ .Labels.alertname }}</td>
+                          </tr>
+                          <tr>
+                              <td>Severity:</td>
+                              <td>{{ .Labels.severity }}</td>
+                          </tr>
+                          <tr>
+                              <td>Category:</td>
+                              <td>{{ .Labels.subcategory }}</td>
+                          </tr>
+                          <tr>
+                              <td>Status:</td>
+                              <td>{{ .Status }}</td>
+                          </tr>
+                          {{ if eq .Status "firing" }}
+                          <tr>
+                              <td>Started At:</td>
+                              <td>{{ .StartsAt }}</td>
+                          </tr>
+                          {{ end }}
+                          {{ if eq .Status "resolved" }}
+                          <tr>
+                              <td>Resolved At:</td>
+                              <td>{{ .EndsAt }}</td>
+                          </tr>
+                          <tr>
+                              <td>Duration:</td>
+                              <td>{{ .Duration }}</td>
+                          </tr>
+                          {{ end }}
+                      </table>
+                  </div>
+
+                  {{ if .Annotations.description }}
+                  <div style="margin: 15px 0;">
+                      <h3>Description:</h3>
+                      <p>{{ .Annotations.description }}</p>
+                  </div>
+                  {{ end }}
+
+                  <div class="remediation">
+                      <h3>📋 Immediate Actions Required:</h3>
+                      {{ if eq .Labels.subcategory "malware" }}
+                      <ol>
+                          <li>Verify the malware detection in ClamAV logs</li>
+                          <li>Quarantine the affected file immediately</li>
+                          <li>Investigate the user account that uploaded the file</li>
+                          <li>Check for additional uploads from the same user/IP</li>
+                          <li>Consider temporary account suspension</li>
+                          <li>Review recent authentication activity</li>
+                      </ol>
+                      {{ else if eq .Labels.subcategory "authorization" }}
+                      <ol>
+                          <li>Identify the user attempting privilege escalation</li>
+                          <li>Review user's recent activity and access patterns</li>
+                          <li>Check for compromised credentials</li>
+                          <li>Verify user's assigned roles and permissions</li>
+                          <li>Consider account lockout if suspicious</li>
+                          <li>Update RBAC policies if legitimate access needed</li>
+                      </ol>
+                      {{ else if eq .Labels.subcategory "authentication" }}
+                      <ol>
+                          <li>Identify the source IP address(es)</li>
+                          <li>Check if failures target specific accounts</li>
+                          <li>Verify account lockout policies are active</li>
+                          <li>Consider IP blocking for confirmed attacks</li>
+                          <li>Notify affected users of suspicious activity</li>
+                          <li>Review authentication logs for patterns</li>
+                      </ol>
+                      {{ else if eq .Labels.subcategory "rate_limiting" }}
+                      <ol>
+                          <li>Identify the source IP address(es) and endpoints</li>
+                          <li>Determine if traffic is legitimate or malicious</li>
+                          <li>Review rate limit thresholds for appropriateness</li>
+                          <li>Consider temporary IP blocking if abusive</li>
+                          <li>Check for distributed attack patterns</li>
+                          <li>Adjust rate limits if legitimate traffic spike</li>
+                      </ol>
+                      {{ else if eq .Labels.subcategory "attack_pattern" }}
+                      <ol>
+                          <li>Identify attack source and pattern</li>
+                          <li>Implement IP blocking if necessary</li>
+                          <li>Review WAF rules and update if needed</li>
+                          <li>Check for similar patterns from other sources</li>
+                          <li>Coordinate with security team for response</li>
+                          <li>Document attack details for future prevention</li>
+                      </ol>
+                      {{ else }}
+                      <ol>
+                          <li>Review the alert details and context</li>
+                          <li>Check application and security logs</li>
+                          <li>Investigate related metrics and patterns</li>
+                          <li>Determine if escalation is needed</li>
+                          <li>Follow incident response procedures</li>
+                          <li>Document findings and actions taken</li>
+                      </ol>
+                      {{ end }}
+                  </div>
+
+                  {{ if .Annotations.runbook_url }}
+                  <div style="text-align: center; margin: 20px 0;">
+                      <a href="{{ .Annotations.runbook_url }}" class="btn">📖 View Detailed Runbook</a>
+                      <a href="http://localhost:3000/d/goimg-security-events/security-events" class="btn">📊 View Dashboard</a>
+                  </div>
+                  {{ end }}
+                  {{ end }}
+              </div>
+
+              <div class="footer">
+                  <p><strong>goimg Security Monitoring System</strong></p>
+                  <p>This is an automated security alert. Do not reply to this email.</p>
+                  <p>For questions, contact: security@goimg.dev</p>
+                  <p>Alert ID: {{ .ExternalURL }}</p>
+              </div>
+          </div>
+      </body>
+      </html>
+
+  # Slack template for security alerts
+  - name: security_slack_template
+    template: |
+      {{ if eq .Status "firing" }}
+      :rotating_light: *SECURITY ALERT FIRING*
+      {{ else }}
+      :white_check_mark: *SECURITY ALERT RESOLVED*
+      {{ end }}
+
+      *{{ .CommonLabels.alertname }}*
+      Severity: `{{ .CommonLabels.severity | upper }}`
+      Category: `{{ .CommonLabels.subcategory }}`
+
+      {{ range .Alerts }}
+      ---
+      {{ .Annotations.summary }}
+
+      {{ if .Annotations.description }}
+      {{ .Annotations.description }}
+      {{ end }}
+
+      {{ if eq .Status "firing" }}
+      *Started:* {{ .StartsAt | date "2006-01-02 15:04:05 MST" }}
+      {{ else }}
+      *Resolved:* {{ .EndsAt | date "2006-01-02 15:04:05 MST" }}
+      *Duration:* {{ .Duration }}
+      {{ end }}
+
+      {{ if eq .Labels.subcategory "malware" }}
+      :biohazard: *IMMEDIATE ACTION REQUIRED*
+      1. Quarantine affected file
+      2. Investigate user account
+      3. Check for additional uploads
+      {{ else if eq .Labels.subcategory "authorization" }}
+      :no_entry: *PRIVILEGE ESCALATION DETECTED*
+      1. Identify user attempting escalation
+      2. Review recent activity
+      3. Consider account lockout
+      {{ else if eq .Labels.subcategory "authentication" }}
+      :key: *AUTHENTICATION FAILURE SPIKE*
+      1. Identify source IP(s)
+      2. Check account lockout status
+      3. Consider IP blocking
+      {{ else if eq .Labels.subcategory "rate_limiting" }}
+      :chart_with_upwards_trend: *RATE LIMIT VIOLATIONS*
+      1. Identify source and endpoints
+      2. Determine if legitimate or attack
+      3. Implement blocking if needed
+      {{ end }}
+
+      {{ if .Annotations.runbook_url }}
+      <{{ .Annotations.runbook_url }}|:book: View Runbook>
+      {{ end }}
+      <http://localhost:3000/d/goimg-security-events/security-events|:bar_chart: View Dashboard>
+      {{ end }}
+
+  # PagerDuty template (concise for mobile)
+  - name: security_pagerduty_template
+    template: |
+      {{ .CommonLabels.alertname }}
+
+      Severity: {{ .CommonLabels.severity | upper }}
+      Category: {{ .CommonLabels.subcategory }}
+
+      {{ .CommonAnnotations.summary }}
+
+      {{ range .Alerts }}
+      {{ if .Annotations.description }}
+      {{ .Annotations.description }}
+      {{ end }}
+
+      Status: {{ .Status }}
+      {{ if eq .Status "firing" }}Started: {{ .StartsAt }}{{ end }}
+      {{ if eq .Status "resolved" }}Resolved: {{ .EndsAt }}{{ end }}
+
+      Runbook: {{ .Annotations.runbook_url }}
+      {{ end }}
+
+  # Teams template for security alerts
+  - name: security_teams_template
+    template: |
+      {
+        "@type": "MessageCard",
+        "@context": "http://schema.org/extensions",
+        "themeColor": "{{ if eq .Status \"firing\" }}{{ if eq .CommonLabels.severity \"critical\" }}d32f2f{{ else if eq .CommonLabels.severity \"high\" }}f57c00{{ else }}fbc02d{{ end }}{{ else }}388e3c{{ end }}",
+        "summary": "{{ .CommonLabels.alertname }}",
+        "sections": [{
+          "activityTitle": "{{ if eq .Status \"firing\" }}🚨 Security Alert{{ else }}✅ Resolved{{ end }}: {{ .CommonLabels.alertname }}",
+          "activitySubtitle": "Severity: {{ .CommonLabels.severity | upper }}",
+          "facts": [
+            {{ range $i, $alert := .Alerts }}
+            {{ if $i }},{{ end }}
+            {
+              "name": "Category",
+              "value": "{{ $alert.Labels.subcategory }}"
+            },
+            {
+              "name": "Status",
+              "value": "{{ $alert.Status }}"
+            },
+            {
+              "name": "{{ if eq $alert.Status \"firing\" }}Started{{ else }}Resolved{{ end }}",
+              "value": "{{ if eq $alert.Status \"firing\" }}{{ $alert.StartsAt }}{{ else }}{{ $alert.EndsAt }}{{ end }}"
+            }
+            {{ end }}
+          ],
+          "markdown": true,
+          "text": "{{ .CommonAnnotations.description }}"
+        }],
+        "potentialAction": [{
+          "@type": "OpenUri",
+          "name": "View Runbook",
+          "targets": [{
+            "os": "default",
+            "uri": "{{ .CommonAnnotations.runbook_url }}"
+          }]
+        }, {
+          "@type": "OpenUri",
+          "name": "View Dashboard",
+          "targets": [{
+            "os": "default",
+            "uri": "http://localhost:3000/d/goimg-security-events/security-events"
+          }]
+        }]
+      }

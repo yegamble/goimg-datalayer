@@ -1,0 +1,69 @@
+[Unit]
+Description=GoImg PostgreSQL Database Backup
+Documentation=https://github.com/yegamble/goimg-datalayer
+After=docker.service postgresql.service
+Requires=docker.service
+PartOf=goimg.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+
+# Working directory
+WorkingDirectory=/opt/goimg
+
+# Environment file with credentials
+EnvironmentFile=-/etc/goimg/backup.env
+
+# Default environment variables (override in backup.env)
+Environment="DB_HOST=localhost"
+Environment="DB_PORT=5432"
+Environment="DB_NAME=goimg"
+Environment="DB_USER=goimg"
+Environment="BACKUP_DIR=/var/backups/postgres"
+Environment="USE_DOCKER=true"
+Environment="DOCKER_CONTAINER=goimg-postgres"
+
+# Required variables (must be set in /etc/goimg/backup.env):
+# DB_PASSWORD
+# S3_ENDPOINT
+# S3_BUCKET
+# S3_ACCESS_KEY
+# S3_SECRET_KEY
+# GPG_RECIPIENT (optional but recommended)
+
+# Execute backup script
+ExecStart=/opt/goimg/scripts/backup-database.sh
+
+# Resource limits
+CPUQuota=50%
+MemoryLimit=1G
+TasksMax=10
+
+# Timeout configuration
+TimeoutStartSec=10min
+TimeoutStopSec=5min
+
+# Restart policy
+Restart=on-failure
+RestartSec=5min
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=goimg-backup
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/postgres
+ReadWritePaths=/tmp
+
+# Success/failure notifications (optional, requires OnFailure target)
+# OnFailure=status-email@%n.service
+
+[Install]
+WantedBy=multi-user.target

@@ -18,6 +18,12 @@ type UnlikeImageCommand struct {
 	ImageID string
 }
 
+// UnlikeImageResult contains the result of an unlike operation.
+type UnlikeImageResult struct {
+	Liked     bool  // Always false for an unlike operation
+	LikeCount int64 // Current total like count for the image
+}
+
 // UnlikeImageHandler processes image unlike commands.
 // It removes the like relationship, updates the denormalized like count,
 // and publishes the ImageUnliked domain event.
@@ -59,11 +65,11 @@ func NewUnlikeImageHandler(
 //  8. Publish ImageUnliked domain event after successful save
 //
 // Returns:
-//   - nil on successful unlike (or if like didn't exist)
+//   - UnlikeImageResult with liked=false and like_count on success
 //   - Validation errors from domain value objects
 //   - ErrUserNotFound if user doesn't exist
 //   - ErrImageNotFound if image doesn't exist
-func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand) error {
+func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand) (*UnlikeImageResult, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)
 	if err != nil {
@@ -71,7 +77,7 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Err(err).
 			Str("user_id", cmd.UserID).
 			Msg("invalid user id for unlike image")
-		return fmt.Errorf("invalid user id: %w", err)
+		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
 
 	// 2. Parse image ID
@@ -81,7 +87,7 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Err(err).
 			Str("image_id", cmd.ImageID).
 			Msg("invalid image id for unlike")
-		return fmt.Errorf("invalid image id: %w", err)
+		return nil, fmt.Errorf("invalid image id: %w", err)
 	}
 
 	// 3. Verify user exists
@@ -91,7 +97,7 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Err(err).
 			Str("user_id", userID.String()).
 			Msg("user not found for unlike image")
-		return fmt.Errorf("find user: %w", err)
+		return nil, fmt.Errorf("find user: %w", err)
 	}
 
 	// 4. Load image
@@ -101,7 +107,7 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("image not found for unlike")
-		return fmt.Errorf("find image: %w", err)
+		return nil, fmt.Errorf("find image: %w", err)
 	}
 
 	// 5. Check if like exists (idempotent)
@@ -112,16 +118,26 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("failed to check if user has liked image")
-		return fmt.Errorf("check has liked: %w", err)
+		return nil, fmt.Errorf("check has liked: %w", err)
+	}
+
+	// Get current like count (needed for response even if not liked)
+	likeCount, err := h.likes.GetLikeCount(ctx, imageID)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID.String()).
+			Msg("failed to get like count")
+		return nil, fmt.Errorf("get like count: %w", err)
 	}
 
 	if !hasLiked {
-		// Not liked - idempotent operation, return success
+		// Not liked - idempotent operation, return success with current count
 		h.logger.Debug().
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("user has not liked this image")
-		return nil
+		return &UnlikeImageResult{Liked: false, LikeCount: likeCount}, nil
 	}
 
 	// 6. Remove like relationship
@@ -131,17 +147,17 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Str("user_id", userID.String()).
 			Str("image_id", imageID.String()).
 			Msg("failed to remove like")
-		return fmt.Errorf("remove like: %w", err)
+		return nil, fmt.Errorf("remove like: %w", err)
 	}
 
-	// 7. Update denormalized like count on image
-	likeCount, err := h.likes.GetLikeCount(ctx, imageID)
+	// 7. Update denormalized like count on image (re-fetch after unlike)
+	likeCount, err = h.likes.GetLikeCount(ctx, imageID)
 	if err != nil {
 		h.logger.Error().
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to get like count")
-		return fmt.Errorf("get like count: %w", err)
+		return nil, fmt.Errorf("get like count: %w", err)
 	}
 
 	image.SetLikeCount(likeCount)
@@ -151,15 +167,15 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to update image like count")
-		return fmt.Errorf("update image like count: %w", err)
+		return nil, fmt.Errorf("update image like count: %w", err)
 	}
 
 	// 8. Publish ImageUnliked domain event
 	event := &gallery.ImageUnliked{
-		BaseEvent:  shared.NewBaseEvent("gallery.image.unliked", imageID.String()),
-		ImageID:    imageID,
-		UserID:     userID,
-		UnlikedAt:  time.Now().UTC(),
+		BaseEvent: shared.NewBaseEvent("gallery.image.unliked", imageID.String()),
+		ImageID:   imageID,
+		UserID:    userID,
+		UnlikedAt: time.Now().UTC(),
 	}
 
 	if err := h.publisher.Publish(ctx, event); err != nil {
@@ -177,5 +193,5 @@ func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand)
 		Int64("like_count", likeCount).
 		Msg("image unliked successfully")
 
-	return nil
+	return &UnlikeImageResult{Liked: false, LikeCount: likeCount}, nil
 }

@@ -1347,33 +1347,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-  /images/{id}/likes:
-    get:
-      tags: [social]
-      summary: List users who liked image
-      description: Retrieve a list of users who liked this image
-      operationId: listImageLikes
-      security:
-        - {}
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/ImageIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PerPageParam'
-      responses:
-        '200':
-          description: Likes retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/PaginatedResponse'
-                  - type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Like'
+  # NOTE: GET /images/{id}/likes endpoint planned for future release
+  # Will list users who liked an image with pagination
+  # Requires: LikeRepository.GetUsersWhoLiked() method implementation
 
   # ==================== Social (Comments) ====================
   /images/{id}/comments:

@@ -1,0 +1,234 @@
+// example-custom-test.js.template
+// Template for creating custom k6 load tests
+// Copy this file, rename it, and customize for your needs
+
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { Counter, Trend, Rate } from 'k6/metrics';
+import { endpoint, getThinkTime } from './helpers/config.js';
+import { setupAuthenticatedUsers, getRandomUser, getAuthHeaders } from './helpers/auth.js';
+
+// ==================== Custom Metrics ====================
+// Define custom metrics to track specific behaviors
+
+const myCustomCounter = new Counter('my_custom_count');
+const myCustomDuration = new Trend('my_custom_duration', true);
+const myCustomErrorRate = new Rate('my_custom_errors');
+
+// ==================== Test Configuration ====================
+
+export const options = {
+  // Define test stages (ramp-up, hold, ramp-down)
+  stages: [
+    { duration: '30s', target: 10 },  // Ramp up to 10 VUs
+    { duration: '1m', target: 10 },   // Hold at 10 VUs
+    { duration: '30s', target: 0 },   // Ramp down
+  ],
+
+  // Performance thresholds (test fails if not met)
+  thresholds: {
+    // HTTP metrics
+    'http_req_duration': ['p(95)<500', 'p(99)<1000'],
+    'http_req_failed': ['rate<0.01'], // Less than 1% errors
+
+    // Custom metrics
+    'my_custom_duration': ['p(95)<1000'],
+    'my_custom_errors': ['rate<0.05'],
+  },
+
+  // Test metadata
+  tags: {
+    test_type: 'custom',
+    test_name: 'my-custom-test',
+  },
+};
+
+// ==================== Main Test Function ====================
+// This function runs repeatedly for each VU
+
+export default function (data) {
+  // Get authenticated user from setup data
+  const user = getRandomUser(data.users);
+  if (!user) {
+    console.error('No user available');
+    sleep(5);
+    return;
+  }
+
+  const headers = getAuthHeaders(user.accessToken);
+  const startTime = Date.now();
+
+  // Example: Make API request
+  const response = http.get(
+    endpoint('/images'),
+    {
+      headers: headers,
+      tags: { endpoint: 'list_images', type: 'read' },
+    }
+  );
+
+  // Check response
+  const success = check(response, {
+    'status is 200': (r) => r.status === 200,
+    'has items': (r) => {
+      if (r.status === 200) {
+        const body = JSON.parse(r.body);
+        return body.items && Array.isArray(body.items);
+      }
+      return false;
+    },
+  });
+
+  // Record custom metrics
+  if (success) {
+    myCustomCounter.add(1);
+  } else {
+    myCustomErrorRate.add(1);
+  }
+
+  const duration = Date.now() - startTime;
+  myCustomDuration.add(duration);
+
+  // Simulate user think time
+  sleep(getThinkTime(1000, 3000) / 1000);
+
+  // Add more test logic here...
+}
+
+// ==================== Setup Function ====================
+// Runs once at the beginning of the test
+
+export function setup() {
+  console.log('Starting custom load test...');
+
+  // Verify API is accessible
+  const healthCheck = http.get(endpoint('/health'));
+  if (healthCheck.status !== 200) {
+    throw new Error('API health check failed - is the server running?');
+  }
+
+  console.log('API health check passed');
+
+  // Create authenticated users for the test
+  const users = setupAuthenticatedUsers(10);
+
+  // Return data to be used by default function
+  return {
+    users: users,
+    startTime: Date.now(),
+  };
+}
+
+// ==================== Teardown Function ====================
+// Runs once at the end of the test
+
+export function teardown(data) {
+  const totalDuration = (Date.now() - data.startTime) / 1000;
+  console.log(`Test completed in ${totalDuration}s`);
+  console.log(`Created ${data.users.length} test users`);
+}
+
+// ==================== Custom Summary Handler ====================
+// Optional: Customize test result output
+
+export function handleSummary(data) {
+  return {
+    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+    'my-custom-test-summary.json': JSON.stringify(data, null, 2),
+  };
+}
+
+// Helper function for text summary (optional)
+function textSummary(data, options = {}) {
+  const indent = options.indent || '';
+  const colors = options.enableColors !== false;
+
+  let summary = `\n${indent}Test Summary:\n`;
+  summary += `${indent}  Duration: ${data.state.testRunDurationMs / 1000}s\n`;
+  summary += `${indent}  Iterations: ${data.metrics.iterations.values.count}\n`;
+  summary += `${indent}  VUs: ${data.metrics.vus.values.max}\n`;
+
+  if (data.metrics.http_req_duration) {
+    summary += `${indent}  HTTP Request Duration:\n`;
+    summary += `${indent}    avg: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms\n`;
+    summary += `${indent}    p(95): ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms\n`;
+  }
+
+  return summary;
+}
+
+// ==================== Usage Instructions ====================
+/*
+
+To use this template:
+
+1. Copy this file:
+   cp tests/load/example-custom-test.js.template tests/load/my-test.js
+
+2. Customize the test:
+   - Update test name in options.tags
+   - Modify stages for your desired load profile
+   - Update thresholds for your performance targets
+   - Implement your test logic in default function
+
+3. Run the test:
+   k6 run tests/load/my-test.js
+
+4. Add to Makefile (optional):
+   load-test-my-test:
+       @k6 run tests/load/my-test.js
+
+Example customizations:
+
+## Test Different Endpoints
+
+export default function(data) {
+  // Test image search
+  const searchResponse = http.get(
+    endpoint('/images/search?q=sunset'),
+    { headers: getAuthHeaders(user.accessToken) }
+  );
+
+  // Test album operations
+  const albumResponse = http.get(
+    endpoint('/albums'),
+    { headers: getAuthHeaders(user.accessToken) }
+  );
+}
+
+## Test Error Scenarios
+
+export default function(data) {
+  // Test with invalid token
+  const response = http.get(
+    endpoint('/images'),
+    { headers: { 'Authorization': 'Bearer invalid-token' } }
+  );
+
+  check(response, {
+    'returns 401 for invalid token': (r) => r.status === 401,
+  });
+}
+
+## Test Spike Load
+
+export const options = {
+  stages: [
+    { duration: '10s', target: 100 },  // Spike to 100 VUs
+    { duration: '30s', target: 100 },  // Hold spike
+    { duration: '10s', target: 0 },    // Drop back down
+  ],
+};
+
+## Test Stress (Gradual Increase)
+
+export const options = {
+  stages: [
+    { duration: '2m', target: 50 },
+    { duration: '5m', target: 100 },
+    { duration: '10m', target: 200 },
+    { duration: '10m', target: 300 },  // Find breaking point
+  ],
+};
+
+*/

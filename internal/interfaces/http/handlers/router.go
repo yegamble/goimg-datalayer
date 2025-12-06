@@ -136,8 +136,10 @@ func NewRouter(
 			// Social interaction routes (likes and comments)
 			// These are mounted under images and users paths
 			r.Route("/images/{imageID}", func(r chi.Router) {
-				r.Post("/likes", socialHandler.LikeImage)
-				r.Delete("/likes", socialHandler.UnlikeImage)
+				// Like/unlike use singular /like path (action endpoints)
+				r.Post("/like", socialHandler.LikeImage)
+				r.Delete("/like", socialHandler.UnlikeImage)
+				// Comments use plural /comments path (collection endpoints)
 				r.Post("/comments", socialHandler.AddComment)
 				r.Get("/comments", socialHandler.ListImageComments)
 			})
