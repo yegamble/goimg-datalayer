@@ -23,6 +23,15 @@ type MetricsCollector struct {
 	imageUploadsTotal       *prometheus.CounterVec
 	imageProcessingDuration *prometheus.HistogramVec
 
+	// Storage metrics
+	storageOperationsTotal *prometheus.CounterVec
+
+	// Business metrics
+	usersTotal          prometheus.Gauge
+	imagesTotal         prometheus.Gauge
+	activeSessionsTotal prometheus.Gauge
+	storageBytesUsed    prometheus.Gauge
+
 	// Database metrics
 	dbConnectionsActive prometheus.Gauge
 	dbConnectionsIdle   prometheus.Gauge
@@ -112,9 +121,9 @@ func NewMetricsCollector() *MetricsCollector {
 				Namespace: "goimg",
 				Subsystem: "image",
 				Name:      "uploads_total",
-				Help:      "Total number of image uploads, labeled by status (success/failure)",
+				Help:      "Total number of image uploads, labeled by status and format",
 			},
-			[]string{"status"},
+			[]string{"status", "format"},
 		),
 
 		imageProcessingDuration: promauto.NewHistogramVec(
@@ -127,6 +136,50 @@ func NewMetricsCollector() *MetricsCollector {
 				Buckets: []float64{0.01, 0.05, 0.1, 0.5, 1, 5, 10, 30},
 			},
 			[]string{"operation"},
+		),
+
+		// Storage Metrics
+		storageOperationsTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "storage",
+				Name:      "operations_total",
+				Help:      "Total number of storage operations, labeled by provider, operation, and status",
+			},
+			[]string{"provider", "operation", "status"},
+		),
+
+		// Business Metrics
+		usersTotal: promauto.NewGauge(
+			prometheus.GaugeOpts{
+				Namespace: "goimg",
+				Name:      "users_total",
+				Help:      "Total number of registered users",
+			},
+		),
+
+		imagesTotal: promauto.NewGauge(
+			prometheus.GaugeOpts{
+				Namespace: "goimg",
+				Name:      "images_total",
+				Help:      "Total number of uploaded images",
+			},
+		),
+
+		activeSessionsTotal: promauto.NewGauge(
+			prometheus.GaugeOpts{
+				Namespace: "goimg",
+				Name:      "active_sessions_total",
+				Help:      "Number of active user sessions",
+			},
+		),
+
+		storageBytesUsed: promauto.NewGauge(
+			prometheus.GaugeOpts{
+				Namespace: "goimg",
+				Name:      "storage_bytes_used",
+				Help:      "Total storage space used in bytes",
+			},
 		),
 
 		// Database Metrics
@@ -193,19 +246,19 @@ func NewMetricsCollector() *MetricsCollector {
 				Namespace: "goimg",
 				Subsystem: "security",
 				Name:      "auth_failures_total",
-				Help:      "Total number of authentication failures, labeled by reason, ip, and user_id",
+				Help:      "Total number of authentication failures, labeled by reason",
 			},
-			[]string{"reason", "ip", "user_id"},
+			[]string{"reason"},
 		),
 
 		rateLimitExceededTotal: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: "goimg",
 				Subsystem: "security",
-				Name:      "rate_limit_exceeded_total",
-				Help:      "Total number of rate limit violations, labeled by endpoint and ip",
+				Name:      "rate_limit_violations_total",
+				Help:      "Total number of rate limit violations, labeled by scope",
 			},
-			[]string{"endpoint", "ip"},
+			[]string{"scope"},
 		),
 
 		authorizationDeniedTotal: promauto.NewCounterVec(
@@ -213,19 +266,18 @@ func NewMetricsCollector() *MetricsCollector {
 				Namespace: "goimg",
 				Subsystem: "security",
 				Name:      "authorization_denied_total",
-				Help:      "Total number of authorization failures (privilege escalation attempts), labeled by user_id, resource, and required_permission",
+				Help:      "Total number of authorization failures (privilege escalation attempts)",
 			},
-			[]string{"user_id", "resource", "required_permission"},
+			[]string{"role", "required_permission"},
 		),
 
 		malwareDetectedTotal: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: "goimg",
-				Subsystem: "security",
-				Name:      "malware_detected_total",
-				Help:      "Total number of malware detections, labeled by file_type, threat_name, and user_id",
+				Name:      "malware_detections_total",
+				Help:      "Total number of malware detections",
 			},
-			[]string{"file_type", "threat_name", "user_id"},
+			[]string{},
 		),
 	}
 }
@@ -349,12 +401,13 @@ func normalizePathForMetrics(path string) string {
 //
 // Parameters:
 //   - success: true if upload succeeded, false if failed
-func (mc *MetricsCollector) RecordImageUpload(success bool) {
+//   - format: Image format (e.g., "jpeg", "png", "gif", "webp")
+func (mc *MetricsCollector) RecordImageUpload(success bool, format string) {
 	status := "success"
 	if !success {
 		status = "failure"
 	}
-	mc.imageUploadsTotal.WithLabelValues(status).Inc()
+	mc.imageUploadsTotal.WithLabelValues(status, format).Inc()
 }
 
 // RecordImageProcessing records image processing duration.
@@ -405,45 +458,66 @@ func (mc *MetricsCollector) RecordCacheMiss(operation string) {
 	mc.redisMisses.WithLabelValues(operation).Inc()
 }
 
+// RecordStorageOperation records a storage operation metric.
+// Call this after storage operations (upload, download, delete, etc.)
+//
+// Parameters:
+//   - provider: Storage provider ("local", "s3", "do_spaces", "backblaze", "ipfs")
+//   - operation: Operation type ("upload", "download", "delete", "exists", "stat")
+//   - success: true if operation succeeded, false if failed
+func (mc *MetricsCollector) RecordStorageOperation(provider, operation string, success bool) {
+	status := "success"
+	if !success {
+		status = "failure"
+	}
+	mc.storageOperationsTotal.WithLabelValues(provider, operation, status).Inc()
+}
+
+// UpdateBusinessMetrics updates business-level metrics (users, images, sessions, storage).
+// Call this periodically (e.g., every 60 seconds) from a background goroutine.
+//
+// Parameters:
+//   - usersTotal: Total number of registered users
+//   - imagesTotal: Total number of uploaded images
+//   - activeSessions: Number of active user sessions
+//   - storageBytesUsed: Total storage space used in bytes
+func (mc *MetricsCollector) UpdateBusinessMetrics(usersTotal, imagesTotal, activeSessions int64, storageBytesUsed int64) {
+	mc.usersTotal.Set(float64(usersTotal))
+	mc.imagesTotal.Set(float64(imagesTotal))
+	mc.activeSessionsTotal.Set(float64(activeSessions))
+	mc.storageBytesUsed.Set(float64(storageBytesUsed))
+}
+
 // RecordAuthFailure records an authentication failure.
 // Call this when authentication fails for any reason.
 //
 // Parameters:
 //   - reason: Reason for failure ("invalid_credentials", "token_expired", "token_invalid", "account_locked", etc.)
-//   - ip: Client IP address
-//   - userID: User ID if available, otherwise use "unknown"
-func (mc *MetricsCollector) RecordAuthFailure(reason, ip, userID string) {
-	mc.authFailuresTotal.WithLabelValues(reason, ip, userID).Inc()
+func (mc *MetricsCollector) RecordAuthFailure(reason string) {
+	mc.authFailuresTotal.WithLabelValues(reason).Inc()
 }
 
 // RecordRateLimitExceeded records a rate limit violation.
 // Call this when a client exceeds rate limits.
 //
 // Parameters:
-//   - endpoint: API endpoint that was rate limited (e.g., "/api/v1/images")
-//   - ip: Client IP address
-func (mc *MetricsCollector) RecordRateLimitExceeded(endpoint, ip string) {
-	mc.rateLimitExceededTotal.WithLabelValues(endpoint, ip).Inc()
+//   - scope: Rate limit scope ("global", "auth", "login", "upload")
+func (mc *MetricsCollector) RecordRateLimitExceeded(scope string) {
+	mc.rateLimitExceededTotal.WithLabelValues(scope).Inc()
 }
 
 // RecordAuthorizationDenied records an authorization failure (privilege escalation attempt).
 // Call this when a user attempts to access a resource without proper permissions.
 //
 // Parameters:
-//   - userID: User ID attempting the action
-//   - resource: Resource being accessed (e.g., "user:123", "image:456")
+//   - role: User's current role
 //   - requiredPermission: Permission that was required (e.g., "admin", "moderator", "image:delete")
-func (mc *MetricsCollector) RecordAuthorizationDenied(userID, resource, requiredPermission string) {
-	mc.authorizationDeniedTotal.WithLabelValues(userID, resource, requiredPermission).Inc()
+func (mc *MetricsCollector) RecordAuthorizationDenied(role, requiredPermission string) {
+	mc.authorizationDeniedTotal.WithLabelValues(role, requiredPermission).Inc()
 }
 
 // RecordMalwareDetection records a malware detection event.
 // Call this when ClamAV or another scanner detects malware.
-//
-// Parameters:
-//   - fileType: Type of file scanned (e.g., "image/jpeg", "image/png")
-//   - threatName: Name of the malware detected (e.g., "Win.Test.EICAR_HDB-1")
-//   - userID: User ID who uploaded the file
-func (mc *MetricsCollector) RecordMalwareDetection(fileType, threatName, userID string) {
-	mc.malwareDetectedTotal.WithLabelValues(fileType, threatName, userID).Inc()
+func (mc *MetricsCollector) RecordMalwareDetection() {
+	mc.malwareDetectedTotal.WithLabelValues().Inc()
 }
