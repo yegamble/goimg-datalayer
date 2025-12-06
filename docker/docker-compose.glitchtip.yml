@@ -1,0 +1,291 @@
+version: "3.9"
+
+# GlitchTip Error Tracking - Self-Hosted Sentry Alternative
+#
+# Setup Instructions:
+# 1. Generate secrets:
+#    export GLITCHTIP_SECRET_KEY=$(openssl rand -hex 32)
+#    export GLITCHTIP_DB_PASSWORD=$(openssl rand -base64 32)
+#
+# 2. Add to .env.prod file:
+#    echo "GLITCHTIP_SECRET_KEY=$GLITCHTIP_SECRET_KEY" >> .env.prod
+#    echo "GLITCHTIP_DB_PASSWORD=$GLITCHTIP_DB_PASSWORD" >> .env.prod
+#
+# 3. Start services:
+#    docker-compose -f docker-compose.glitchtip.yml up -d
+#
+# 4. Create superuser:
+#    docker exec -it goimg-glitchtip-web ./manage.py createsuperuser
+#
+# 5. Access dashboard:
+#    http://localhost:8000 (or https://glitchtip.goimg.example.com via reverse proxy)
+
+services:
+  # PostgreSQL database for GlitchTip
+  # Stores error events, projects, users, and metadata
+  glitchtip-postgres:
+    image: postgres:16-alpine
+    container_name: goimg-glitchtip-postgres
+    environment:
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD}
+      POSTGRES_DB: glitchtip
+      # Performance tuning
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_MAX_CONNECTIONS: 100
+    volumes:
+      - glitchtip_postgres_data:/var/lib/postgresql/data
+      # Optional: Custom PostgreSQL configuration
+      # - ./glitchtip/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - glitchtip-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    # Resource limits (adjust based on load)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Redis for caching and Celery task queue
+  # Improves performance and handles async tasks (email sending, cleanup)
+  glitchtip-redis:
+    image: redis:7-alpine
+    container_name: goimg-glitchtip-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - glitchtip_redis_data:/data
+    networks:
+      - glitchtip-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # GlitchTip web application (Django)
+  # Handles API requests, web UI, and event ingestion
+  glitchtip-web:
+    image: glitchtip/glitchtip:latest
+    container_name: goimg-glitchtip-web
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
+    environment:
+      # Database connection
+      DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
+
+      # Redis connection
+      REDIS_URL: redis://glitchtip-redis:6379/0
+
+      # Security settings
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+      DJANGO_SUPERUSER_EMAIL: ${GLITCHTIP_ADMIN_EMAIL:-admin@goimg.example.com}
+      DJANGO_SUPERUSER_PASSWORD: ${GLITCHTIP_ADMIN_PASSWORD:-}  # Set in .env for auto-creation
+
+      # Registration settings
+      ENABLE_OPEN_USER_REGISTRATION: "False"  # Disable public registration (invite-only)
+      ENABLE_ORGANIZATION_CREATION: "True"     # Allow users to create organizations
+      ENABLE_TEST_API: "False"                 # Disable test API in production
+
+      # Email configuration (for alerts and notifications)
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      EMAIL_HOST: ${SMTP_HOST:-smtp.sendgrid.net}
+      EMAIL_PORT: ${SMTP_PORT:-587}
+      EMAIL_HOST_USER: ${SMTP_USER:-apikey}
+      EMAIL_HOST_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-False}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-alerts@goimg.example.com}
+      SERVER_EMAIL: ${SERVER_EMAIL:-noreply@goimg.example.com}
+
+      # Application settings
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-https://glitchtip.goimg.example.com}
+      PORT: "8000"
+      CELERY_WORKER_AUTOSCALE: "4,1"  # Max 4, min 1 worker
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: "10000"
+
+      # Event retention (automatic cleanup)
+      GLITCHTIP_MAX_EVENT_LIFE_DAYS: "90"  # Delete events older than 90 days
+      MAINTENANCE_EVENT_FREEZE: "False"    # Allow event deletion
+
+      # File uploads (for source maps, if needed)
+      MAX_FILE_SIZE: "10485760"  # 10 MB
+
+      # Performance tuning
+      WEB_CONCURRENCY: "4"  # Number of Gunicorn workers
+      WORKER_MAX_REQUESTS: "1000"
+      WORKER_MAX_REQUESTS_JITTER: "50"
+
+      # Security headers (additional)
+      SECURE_SSL_REDIRECT: "False"  # Handled by reverse proxy
+      SECURE_HSTS_SECONDS: "0"      # Handled by reverse proxy
+      SESSION_COOKIE_SECURE: "True" # Only send cookies over HTTPS
+      CSRF_COOKIE_SECURE: "True"
+
+      # Sentry compatibility mode
+      SENTRY_ENDPOINT: "True"  # Enable Sentry-compatible API
+
+    ports:
+      - "${GLITCHTIP_PORT:-8000}:8000"
+    networks:
+      - glitchtip-network
+      - goimg-network  # Connect to main app network for internal access
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/0/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Django needs time to start
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Celery worker for async tasks
+  # Handles background jobs: email sending, event processing, cleanup
+  glitchtip-worker:
+    image: glitchtip/glitchtip:latest
+    container_name: goimg-glitchtip-worker
+    command: ./bin/run-celery-with-beat.sh
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
+      glitchtip-web:
+        condition: service_started
+    environment:
+      # Database connection (same as web)
+      DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
+      REDIS_URL: redis://glitchtip-redis:6379/0
+
+      # Security
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+
+      # Email configuration (for sending alerts)
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      EMAIL_HOST: ${SMTP_HOST:-smtp.sendgrid.net}
+      EMAIL_PORT: ${SMTP_PORT:-587}
+      EMAIL_HOST_USER: ${SMTP_USER:-apikey}
+      EMAIL_HOST_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-alerts@goimg.example.com}
+
+      # Worker configuration
+      CELERY_WORKER_AUTOSCALE: "4,1"
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: "10000"
+
+      # Event retention
+      GLITCHTIP_MAX_EVENT_LIFE_DAYS: "90"
+
+    networks:
+      - glitchtip-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Optional: Celery monitoring with Flower
+  # Uncomment to enable Celery task monitoring dashboard
+  # glitchtip-flower:
+  #   image: mher/flower:latest
+  #   container_name: goimg-glitchtip-flower
+  #   command: celery --broker=redis://glitchtip-redis:6379/0 flower --port=5555
+  #   depends_on:
+  #     - glitchtip-redis
+  #     - glitchtip-worker
+  #   environment:
+  #     CELERY_BROKER_URL: redis://glitchtip-redis:6379/0
+  #     FLOWER_PORT: 5555
+  #   ports:
+  #     - "5555:5555"
+  #   networks:
+  #     - glitchtip-network
+  #   restart: unless-stopped
+
+volumes:
+  glitchtip_postgres_data:
+    driver: local
+    # Optional: Use named volume with specific mount point
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: /mnt/glitchtip/postgres
+
+  glitchtip_redis_data:
+    driver: local
+
+networks:
+  # Internal network for GlitchTip components
+  glitchtip-network:
+    name: glitchtip-network
+    driver: bridge
+
+  # External network to connect to main application
+  goimg-network:
+    external: true
+    name: goimg-network
+
+# Usage Examples:
+#
+# Start GlitchTip:
+#   docker-compose -f docker-compose.glitchtip.yml up -d
+#
+# Stop GlitchTip:
+#   docker-compose -f docker-compose.glitchtip.yml down
+#
+# View logs:
+#   docker-compose -f docker-compose.glitchtip.yml logs -f glitchtip-web
+#
+# Create superuser:
+#   docker exec -it goimg-glitchtip-web ./manage.py createsuperuser
+#
+# Run database migrations (if needed):
+#   docker exec -it goimg-glitchtip-web ./manage.py migrate
+#
+# Access Django shell:
+#   docker exec -it goimg-glitchtip-web ./manage.py shell
+#
+# Backup database:
+#   docker exec goimg-glitchtip-postgres pg_dump -U glitchtip glitchtip | gzip > glitchtip_backup_$(date +%Y%m%d).sql.gz
+#
+# Restore database:
+#   gunzip -c glitchtip_backup_20250101.sql.gz | docker exec -i goimg-glitchtip-postgres psql -U glitchtip glitchtip
+#
+# Check service status:
+#   docker-compose -f docker-compose.glitchtip.yml ps
+#
+# View resource usage:
+#   docker stats goimg-glitchtip-web goimg-glitchtip-worker goimg-glitchtip-postgres

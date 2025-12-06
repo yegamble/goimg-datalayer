@@ -19,8 +19,9 @@
 6. [Malware Detection](#malware-detection)
 7. [Brute Force Attack](#brute-force-attack)
 8. [Account Enumeration](#account-enumeration)
-9. [Alert Silencing](#alert-silencing)
-10. [Incident Classification](#incident-classification)
+9. [Account Lockout](#account-lockout)
+10. [Alert Silencing](#alert-silencing)
+11. [Incident Classification](#incident-classification)
 
 ---
 
@@ -853,6 +854,225 @@ All alerts implement security gate **S9-MON-001**: All security events must gene
    - Security awareness training
    - Password manager recommendations
    - 2FA adoption campaign
+
+---
+
+## Account Lockout
+
+**Alert**: `Account Lockout Triggered`
+**Threshold**: ANY occurrence
+**Severity**: High
+**Priority**: P2
+
+### Symptoms
+
+- ANY increase in `goimg_security_auth_failures_total{reason="account_locked"}` metric
+- User accounts automatically locked after exceeding failed login threshold
+- Indicates ongoing brute-force attack or compromised credentials
+
+### Triage Steps
+
+1. **Identify locked accounts**:
+   ```bash
+   # Query Prometheus for lockout events
+   increase(goimg_security_auth_failures_total{reason="account_locked"}[5m])
+
+   # Get locked accounts from Redis
+   docker exec goimg-redis redis-cli --scan --pattern "goimg:lockout:*"
+   ```
+
+2. **Check Grafana dashboard**:
+   - Navigate to [Security Events Dashboard](http://localhost:3000/d/goimg-security-events/security-events)
+   - Review "Authentication Failures" panel
+   - Filter by reason="account_locked"
+
+3. **Review application logs**:
+   ```bash
+   # Check logs for lockout events
+   docker logs goimg-api | grep "event=account_lockout"
+
+   # Get user IDs and source IPs
+   docker logs goimg-api | grep "event=account_lockout" | \
+     grep -oP 'user_id=\K[^"]*|ip=\K[^"]*'
+   ```
+
+### Investigation
+
+1. **Determine attack scope**:
+   ```bash
+   # Count number of locked accounts
+   docker exec goimg-redis redis-cli --scan --pattern "goimg:lockout:*" | wc -l
+
+   # Get lockout details for specific account
+   docker exec goimg-redis redis-cli GET "goimg:lockout:<user_id>"
+   docker exec goimg-redis redis-cli GET "goimg:failed_attempts:<user_id>"
+   ```
+
+2. **Identify attack source**:
+   ```bash
+   # Get IPs that triggered lockouts
+   docker logs goimg-api --since 1h | grep "event=account_lockout" | \
+     grep -oP 'ip=\K[^"]*' | sort | uniq -c | sort -rn
+
+   # Check if single IP or distributed attack
+   docker logs goimg-api --since 1h | grep "event=login_failure" | \
+     grep -oP 'ip=\K[^"]*' | sort -u | wc -l
+   ```
+
+3. **Check affected users**:
+   ```bash
+   # Get user details for locked accounts
+   docker exec goimg-postgres psql -U goimg -c \
+     "SELECT id, email, username, created_at FROM users WHERE id IN (
+       SELECT substring(key FROM 16) FROM redis_keys WHERE key LIKE 'goimg:lockout:%'
+     );"
+   ```
+
+### Remediation
+
+#### Immediate Actions (Within 15 minutes)
+
+1. **Verify lockout mechanism is working**:
+   ```bash
+   # Check lockout policy settings
+   # Expected: 5 failed attempts → 15 minute lockout
+
+   # Verify Redis TTL on lockout keys
+   docker exec goimg-redis redis-cli --scan --pattern "goimg:lockout:*" | \
+     xargs -I {} docker exec goimg-redis redis-cli TTL {}
+   ```
+
+2. **Identify attack pattern**:
+   - **Targeted**: Few specific accounts locked → Credential stuffing
+   - **Mass lockout**: Many accounts locked → Distributed brute force or DoS
+   - **High-value accounts**: Admin/moderator accounts → Targeted attack
+
+3. **Block attacking IPs** (if concentrated attack):
+   ```bash
+   # Get top 10 IPs causing lockouts
+   docker logs goimg-api --since 1h | grep "event=login_failure" | \
+     awk '{print $6}' | sort | uniq -c | sort -rn | head -10
+
+   # Block malicious IPs
+   sudo iptables -A INPUT -s 203.0.113.10 -j DROP
+   ```
+
+#### Short-term Actions (Within 1 hour)
+
+1. **Notify affected users**:
+   - Send email notification about lockout
+   - Explain lockout duration (15 minutes)
+   - Provide guidance on securing account if compromise suspected
+   - Include password reset link if needed
+
+   ```bash
+   # Example email content:
+   # Subject: Security Alert - Account Temporarily Locked
+   # Body:
+   #   Your account has been temporarily locked due to multiple failed
+   #   login attempts. This is a security measure to protect your account.
+   #
+   #   - Lockout Duration: 15 minutes
+   #   - Time Remaining: Check dashboard
+   #   - If this wasn't you: Reset password immediately
+   #   - Source IP: XXX.XXX.XXX.XXX
+   ```
+
+2. **Analyze attack effectiveness**:
+   ```bash
+   # Check if any accounts were compromised before lockout
+   docker logs goimg-api --since 2h | grep "event=login_success" | \
+     grep -f <(docker logs goimg-api --since 2h | grep "event=account_lockout" | \
+       grep -oP 'user_id=\K[^"]*')
+
+   # Review sessions created around lockout time
+   docker exec goimg-postgres psql -U goimg -c \
+     "SELECT user_id, created_at, ip, user_agent FROM sessions
+      WHERE created_at > NOW() - INTERVAL '2 hours'
+      AND user_id IN (
+        SELECT substring(key FROM 16) FROM redis_keys WHERE key LIKE 'goimg:lockout:%'
+      );"
+   ```
+
+3. **Adjust security controls** (if needed):
+   ```go
+   // Consider tightening lockout policy during active attack
+   // File: internal/infrastructure/security/account_lockout.go
+
+   // Temporary during attack (reduce from 5 to 3 attempts)
+   MaxFailedAttempts: 3
+   LockoutDuration: 30 * time.Minute  // Increase from 15 to 30 min
+   ```
+
+#### Long-term Actions (Within 24 hours)
+
+1. **If mass lockout attack (DoS attempt)**:
+   - Implement CAPTCHA after 2 failed attempts
+   - Add progressive delays between login attempts
+   - Enable IP reputation checking
+   - Consider temporary account lockout bypass for trusted IPs
+   - Coordinate with infrastructure team for DDoS mitigation
+
+2. **If credential stuffing attack**:
+   - Force password reset for affected accounts
+   - Check if passwords are in HIBP database
+   - Implement breach password detection at registration
+   - Enable mandatory 2FA for high-value accounts
+   - Review authentication logs for successfully compromised accounts
+
+3. **If targeted attack on high-value accounts**:
+   - Escalate to security team immediately
+   - Force password reset for targeted accounts
+   - Enable mandatory 2FA
+   - Review account activity for unauthorized access
+   - Check for data exfiltration
+   - Consider temporary account suspension pending investigation
+
+4. **System improvements**:
+   - Add honeypot accounts (fake admin accounts to detect attacks)
+   - Implement adaptive lockout (longer duration for repeated lockouts)
+   - Add device fingerprinting for anomaly detection
+   - Enable location-based access controls
+   - Implement risk-based authentication
+
+### False Positive Scenarios
+
+- **Legitimate user forgot password**: Single account, manual attempts
+  - **Resolution**: User can wait 15 minutes or use password reset
+
+- **API client misconfiguration**: Automated retries with wrong credentials
+  - **Resolution**: Contact user, fix API client configuration, whitelist IP temporarily
+
+- **Password manager sync issue**: User's password manager out of sync
+  - **Resolution**: User updates password manager, wait for lockout to expire
+
+- **Mobile app bug**: App sending wrong credentials repeatedly
+  - **Resolution**: Fix app bug, temporarily increase lockout threshold
+
+### Escalation Criteria
+
+Escalate to security team lead if:
+- More than 50 accounts locked in 1 hour (mass attack)
+- Admin or moderator accounts targeted (high-value targets)
+- Lockouts persist after IP blocking (distributed attack)
+- Successful logins detected before lockout (accounts compromised)
+- Attack coincides with other security events (coordinated attack)
+
+### Metrics to Monitor
+
+- Total lockouts per hour
+- Unique source IPs causing lockouts
+- Ratio of lockouts to total login attempts
+- Time to lockout (should be consistent ~5 attempts)
+- Lockout duration effectiveness (attack stops after lockout)
+
+### Success Criteria
+
+- Attack mitigated within 1 hour
+- No accounts compromised during attack
+- Legitimate users minimally impacted
+- Attacking IPs blocked
+- Users notified and accounts secured
 
 ---
 
