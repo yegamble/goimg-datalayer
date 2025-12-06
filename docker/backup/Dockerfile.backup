@@ -1,0 +1,96 @@
+# ============================================================================
+# Dockerfile for PostgreSQL Backup Container
+# ============================================================================
+# This container runs automated backups on a cron schedule.
+# It includes PostgreSQL client tools, AWS CLI, GPG, and backup scripts.
+#
+# Build: docker build -f Dockerfile.backup -t goimg-backup:latest .
+# Usage: See docker-compose.prod.yml for service definition
+# ============================================================================
+
+FROM alpine:3.19
+
+# Install dependencies
+RUN apk add --no-cache \
+    bash \
+    postgresql16-client \
+    aws-cli \
+    gnupg \
+    findutils \
+    coreutils \
+    dcron \
+    tini \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Create backup user and directories
+RUN addgroup -g 1000 backup && \
+    adduser -D -u 1000 -G backup backup && \
+    mkdir -p /var/backups/postgres/logs && \
+    mkdir -p /opt/goimg/scripts && \
+    chown -R backup:backup /var/backups/postgres
+
+# Copy backup scripts
+COPY scripts/backup-database.sh /opt/goimg/scripts/
+COPY scripts/cleanup-old-backups.sh /opt/goimg/scripts/
+RUN chmod +x /opt/goimg/scripts/*.sh && \
+    chown backup:backup /opt/goimg/scripts/*.sh
+
+# Copy crontab
+COPY docker/backup/crontab /etc/crontabs/backup
+
+# Create entrypoint script
+RUN cat > /entrypoint.sh <<'EOF'
+#!/bin/bash
+set -e
+
+echo "Starting backup container..."
+echo "Backup schedule: Daily at 2:00 AM, Cleanup on Sunday at 3:00 AM"
+
+# Verify environment variables
+if [ -z "$DB_PASSWORD" ]; then
+    echo "ERROR: DB_PASSWORD is required"
+    exit 1
+fi
+
+# Print configuration (without secrets)
+echo "Configuration:"
+echo "  DB_HOST: ${DB_HOST:-localhost}"
+echo "  DB_PORT: ${DB_PORT:-5432}"
+echo "  DB_NAME: ${DB_NAME:-goimg}"
+echo "  DB_USER: ${DB_USER:-goimg}"
+echo "  BACKUP_DIR: ${BACKUP_DIR:-/var/backups/postgres}"
+echo "  USE_DOCKER: ${USE_DOCKER:-false}"
+echo "  S3_ENDPOINT: ${S3_ENDPOINT:-not configured}"
+echo "  S3_BUCKET: ${S3_BUCKET:-not configured}"
+echo "  GPG_RECIPIENT: ${GPG_RECIPIENT:-not configured}"
+
+# Import GPG key if provided
+if [ -n "$GPG_PUBLIC_KEY" ] && [ -f "$GPG_PUBLIC_KEY" ]; then
+    echo "Importing GPG public key..."
+    su backup -c "gpg --import $GPG_PUBLIC_KEY"
+    su backup -c "echo '${GPG_RECIPIENT}:6:' | gpg --import-ownertrust"
+fi
+
+# Run initial backup if requested
+if [ "$RUN_INITIAL_BACKUP" = "true" ]; then
+    echo "Running initial backup..."
+    su backup -c "/opt/goimg/scripts/backup-database.sh"
+fi
+
+# Start cron daemon
+echo "Starting cron daemon..."
+exec tini -- crond -f -l 2
+EOF
+
+RUN chmod +x /entrypoint.sh
+
+# Switch to backup user
+USER backup
+WORKDIR /var/backups/postgres
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
+    CMD ps aux | grep -v grep | grep crond || exit 1
+
+ENTRYPOINT ["/entrypoint.sh"]

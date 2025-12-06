@@ -268,15 +268,82 @@ sudo chown root:root /etc/goimg/backup.env
 
 ## Backup Procedures
 
-### Automated Backups (Systemd)
+### Automated Backups
 
-The recommended approach is using systemd timers for automated backups.
+There are two approaches for automated backups, depending on your deployment model:
 
-#### Installation
+#### Option 1: Docker Container (Recommended for Containerized Deployments)
+
+The backup service runs as a Docker container with cron scheduling built-in.
+
+**Setup**:
+
+```bash
+# 1. Configure environment variables in .env or docker-compose.yml
+export S3_ENDPOINT=https://s3.amazonaws.com
+export S3_BUCKET=goimg-backups
+export S3_ACCESS_KEY=your_access_key
+export GPG_RECIPIENT=backup@example.com
+
+# 2. Create secrets directory for GPG keys
+mkdir -p docker/backup/gpg-keys
+gpg --export backup@example.com > docker/backup/gpg-keys/public.key
+
+# 3. Start backup service with docker-compose
+docker-compose -f docker/docker-compose.prod.yml up -d backup
+
+# 4. Verify backup service is running
+docker logs goimg-backup
+
+# 5. Monitor backup logs
+docker exec goimg-backup tail -f /var/backups/postgres/logs/cron.log
+```
+
+**Configuration**:
+
+The backup container runs on the following schedule:
+- Daily backup: 2:00 AM every day
+- Weekly cleanup: 3:00 AM every Sunday
+
+Environment variables are configured in `docker-compose.prod.yml`:
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` - Database connection
+- `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY` - S3 storage configuration
+- `GPG_RECIPIENT` - Email/key ID for GPG encryption
+- `DAILY_RETENTION_DAYS=7` - Daily backup retention
+- `WEEKLY_RETENTION_WEEKS=4` - Weekly backup retention
+- `MONTHLY_RETENTION_MONTHS=6` - Monthly backup retention
+
+#### Option 2: Systemd Timers (Recommended for VM/Bare Metal)
+
+For deployments on VMs or bare metal, systemd timers provide native system integration.
+
+**Installation**:
 
 See [systemd installation guide](../../docker/backup/README.md) for detailed setup instructions.
 
-#### Verification
+#### Verification (Docker Container)
+
+```bash
+# Check container status
+docker ps | grep goimg-backup
+
+# View backup schedule (cron jobs)
+docker exec goimg-backup crontab -l
+
+# Check recent backup logs
+docker exec goimg-backup tail -n 50 /var/backups/postgres/logs/cron.log
+
+# List backups
+docker exec goimg-backup ls -lh /var/backups/postgres/
+
+# Manually trigger backup (for testing)
+docker exec goimg-backup /opt/goimg/scripts/backup-database.sh
+
+# Manually trigger cleanup
+docker exec goimg-backup /opt/goimg/scripts/cleanup-old-backups.sh --dry-run
+```
+
+#### Verification (Systemd Timers)
 
 ```bash
 # Check timer status
@@ -703,7 +770,9 @@ Create incident report including:
 
 #### Recovery Time Objective (RTO)
 
-**Target RTO: 1 hour**
+**Target RTO: 30 minutes** (Security Gate S9-PROD-004)
+
+**Actual Measured RTO**: See validation reports from automated testing
 
 Breakdown:
 - Incident detection: 5 minutes
