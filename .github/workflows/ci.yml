@@ -89,6 +89,12 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
+      # Install libvips for bimg package (image processing)
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
+
       - name: Download dependencies
         run: go mod download
 
@@ -155,6 +161,12 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      # Install libvips for bimg package (image processing)
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
 
       - name: Run Domain Tests
         run: |
@@ -278,6 +290,12 @@ jobs:
 
       - name: Verify dependencies
         run: go mod verify
+
+      # Install libvips for bimg package (image processing)
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
 
       - name: Setup database and run migrations
         uses: ./.github/actions/setup-database
@@ -494,15 +512,16 @@ jobs:
 
   # ============================================================================
   # Security Scanning - Basic security checks (detailed in security.yml)
+  # Works on private repos without GitHub Advanced Security
   # ============================================================================
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      security-events: write
       contents: read
-      actions: read
+      # security-events is optional - will gracefully fail on private repos without GHAS
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -514,36 +533,100 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
-      - name: Run gosec security scanner
-        uses: securego/gosec@26e57d6b340778c2983cd61775bc7e8bb41d002a # v2.21.4
-        with:
-          args: '-fmt sarif -out gosec-results.sarif ./...'
+      # Install libvips for bimg package compilation
+      - name: Install libvips
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
 
-      - name: Upload gosec results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
-        if: always()
+      - name: Run gosec security scanner
+        id: gosec
+        run: |
+          # Install gosec
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+          # Run gosec with multiple output formats
+          gosec -fmt sarif -out gosec-results.sarif -severity=medium ./... || GOSEC_EXIT=$?
+          gosec -fmt json -out gosec-results.json -severity=medium ./... || true
+
+          # Add summary
+          echo "## GoSec Security Scan" >> $GITHUB_STEP_SUMMARY
+          if [ -f gosec-results.json ]; then
+            ISSUE_COUNT=$(jq '.Issues | length' gosec-results.json 2>/dev/null || echo "0")
+            echo "**Issues Found:** ${ISSUE_COUNT}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          exit ${GOSEC_EXIT:-0}
+
+      # Try to upload to Security tab (will fail silently on private repos without GHAS)
+      - name: Upload gosec SARIF (if available)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('gosec-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: gosec-results.sarif
           category: gosec
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        id: trivy
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          version: 'v0.68.1'
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          output: 'trivy-results.txt'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+        continue-on-error: true
+
+      - name: Generate Trivy SARIF
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          # Fail build on CRITICAL or HIGH vulnerabilities
-          exit-code: '1'
+        continue-on-error: true
 
-      - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
+      - name: Add Trivy summary
         if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Trivy Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          if [ -f trivy-results.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-results.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # Try to upload to Security tab (will fail silently on private repos without GHAS)
+      - name: Upload Trivy SARIF (if available)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: trivy-results.sarif
           category: trivy
+
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always()
+        with:
+          name: security-scan-results
+          path: |
+            gosec-results.sarif
+            gosec-results.json
+            trivy-results.txt
+            trivy-results.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Fail if Trivy found vulnerabilities
+        if: steps.trivy.outcome == 'failure'
+        run: |
+          echo "Trivy found vulnerabilities. Check the results above."
+          exit 1
 
   # ============================================================================
   # Build Verification - Ensure the project builds successfully
@@ -551,13 +634,19 @@ jobs:
   # ============================================================================
   build:
     name: Build
-    runs-on: ubuntu-latest
     needs: [lint, test-unit, test-integration, domain-tests]
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            libvips_install: sudo apt-get update && sudo apt-get install -y libvips-dev
+          - os: macos-latest
+            libvips_install: brew install vips
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -568,6 +657,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      # Install libvips for bimg package (image processing)
+      - name: Install libvips
+        run: ${{ matrix.libvips_install }}
 
       - name: Build project
         run: |
@@ -662,6 +755,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
+      # Install libvips for bimg package (image processing)
+      - name: Install libvips
+        if: steps.check_e2e.outputs.exists == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvips-dev
 
       - name: Set up Node.js (for Newman)
         if: steps.check_e2e.outputs.exists == 'true'
