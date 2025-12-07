@@ -258,10 +258,10 @@ func TestDockerSecretsProvider_ProviderName(t *testing.T) {
 
 func TestNewProvider(t *testing.T) {
 	tests := []struct {
-		name       string
-		config     SecretConfig
-		wantType   string
-		wantErr    bool
+		name     string
+		config   SecretConfig
+		wantType string
+		wantErr  bool
 	}{
 		{
 			name: "env provider",

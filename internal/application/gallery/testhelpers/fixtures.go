@@ -15,15 +15,15 @@ import (
 
 // Test constants
 const (
-	ValidUserID          = "550e8400-e29b-41d4-a716-446655440000"
-	ValidImageID         = "7c9e6679-7425-40de-944b-e07fc1f90ae7"
-	ValidFilename        = "test-image.jpg"
-	ValidTitle           = "Test Image"
-	ValidDescription     = "This is a test image"
-	ValidMimeType        = "image/jpeg"
-	ValidWidth           = 1920
-	ValidHeight          = 1080
-	ValidFileSize  int64 = 512000 // 500KB
+	ValidUserID            = "550e8400-e29b-41d4-a716-446655440000"
+	ValidImageID           = "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+	ValidFilename          = "test-image.jpg"
+	ValidTitle             = "Test Image"
+	ValidDescription       = "This is a test image"
+	ValidMimeType          = "image/jpeg"
+	ValidWidth             = 1920
+	ValidHeight            = 1080
+	ValidFileSize    int64 = 512000 // 500KB
 )
 
 // TestSuite provides mock dependencies for testing.

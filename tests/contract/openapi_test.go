@@ -79,18 +79,18 @@ func TestEndpointDefinitions(t *testing.T) {
 
 	expectedEndpoints := map[string][]string{
 		// Auth endpoints
-		"/auth/register":                   {http.MethodPost},
-		"/auth/login":                      {http.MethodPost},
-		"/auth/refresh":                    {http.MethodPost},
-		"/auth/logout":                     {http.MethodPost},
+		"/auth/register": {http.MethodPost},
+		"/auth/login":    {http.MethodPost},
+		"/auth/refresh":  {http.MethodPost},
+		"/auth/logout":   {http.MethodPost},
 		// User endpoints
 		"/users/{id}":          {http.MethodGet, http.MethodPut, http.MethodDelete},
 		"/users/{id}/likes":    {http.MethodGet},
 		"/users/{id}/sessions": {http.MethodGet},
 		// Image endpoints
-		"/images":                       {http.MethodGet, http.MethodPost},
-		"/images/{id}":                  {http.MethodGet, http.MethodPut, http.MethodDelete},
-		"/images/{id}/variants/{size}":  {http.MethodGet},
+		"/images":                      {http.MethodGet, http.MethodPost},
+		"/images/{id}":                 {http.MethodGet, http.MethodPut, http.MethodDelete},
+		"/images/{id}/variants/{size}": {http.MethodGet},
 		// Album endpoints
 		"/albums":                       {http.MethodGet, http.MethodPost},
 		"/albums/{id}":                  {http.MethodGet, http.MethodPut, http.MethodDelete},
@@ -136,18 +136,18 @@ func TestAuthEndpointsContract(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		path           string
-		method         string
-		requiresAuth   bool
-		requestSchema  map[string]interface{}
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
 		responseSchemas map[int]string // status code -> schema ref
 	}{
 		{
-			name:          "POST /auth/register",
-			path:          "/auth/register",
-			method:        http.MethodPost,
-			requiresAuth:  false,
+			name:         "POST /auth/register",
+			path:         "/auth/register",
+			method:       http.MethodPost,
+			requiresAuth: false,
 			requestSchema: map[string]interface{}{
 				"email":    "string",
 				"username": "string",
@@ -160,10 +160,10 @@ func TestAuthEndpointsContract(t *testing.T) {
 			},
 		},
 		{
-			name:          "POST /auth/login",
-			path:          "/auth/login",
-			method:        http.MethodPost,
-			requiresAuth:  false,
+			name:         "POST /auth/login",
+			path:         "/auth/login",
+			method:       http.MethodPost,
+			requiresAuth: false,
 			requestSchema: map[string]interface{}{
 				"email":    "string",
 				"password": "string",
@@ -175,10 +175,10 @@ func TestAuthEndpointsContract(t *testing.T) {
 			},
 		},
 		{
-			name:          "POST /auth/refresh",
-			path:          "/auth/refresh",
-			method:        http.MethodPost,
-			requiresAuth:  false,
+			name:         "POST /auth/refresh",
+			path:         "/auth/refresh",
+			method:       http.MethodPost,
+			requiresAuth: false,
 			requestSchema: map[string]interface{}{
 				"refresh_token": "string",
 			},

@@ -22,11 +22,11 @@ import (
 //   - etc.
 //
 // Benefits over environment variables:
-//   1. Secrets are not visible in `docker inspect` or process listings
-//   2. Secrets are not logged or included in error messages
-//   3. Access can be restricted with filesystem permissions
-//   4. Secrets can be rotated without rebuilding containers
-//   5. Better integration with orchestration platforms (Swarm, Kubernetes)
+//  1. Secrets are not visible in `docker inspect` or process listings
+//  2. Secrets are not logged or included in error messages
+//  3. Access can be restricted with filesystem permissions
+//  4. Secrets can be rotated without rebuilding containers
+//  5. Better integration with orchestration platforms (Swarm, Kubernetes)
 type DockerSecretsProvider struct {
 	secretsPath string
 	cache       map[string]string // In-memory cache for performance

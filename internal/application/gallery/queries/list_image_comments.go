@@ -10,9 +10,9 @@ import (
 
 // ListImageCommentsQuery represents a request to list comments for an image.
 type ListImageCommentsQuery struct {
-	ImageID  string
-	Page     int
-	PerPage  int
+	ImageID   string
+	Page      int
+	PerPage   int
 	SortOrder string // "newest" or "oldest" (default)
 }
 

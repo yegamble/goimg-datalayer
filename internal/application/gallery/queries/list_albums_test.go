@@ -249,7 +249,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Len(t, result.Albums, 10) // Second page: items 10-19
+		assert.Len(t, result.Albums, 10)              // Second page: items 10-19
 		assert.Equal(t, int64(25), result.TotalCount) // Total count across all pages
 		mockAlbumRepo.AssertExpectations(t)
 	})

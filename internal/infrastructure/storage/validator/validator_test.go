@@ -33,11 +33,11 @@ func TestNew_WithCustomConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := Config{
-		MaxFileSize:      5 * 1024 * 1024,
-		MaxWidth:         4096,
-		MaxHeight:        4096,
-		MaxPixels:        50_000_000,
-		AllowedMIMETypes: []string{"image/jpeg", "image/png"},
+		MaxFileSize:       5 * 1024 * 1024,
+		MaxWidth:          4096,
+		MaxHeight:         4096,
+		MaxPixels:         50_000_000,
+		AllowedMIMETypes:  []string{"image/jpeg", "image/png"},
 		EnableMalwareScan: false,
 	}
 
@@ -632,28 +632,28 @@ func TestSanitizeFilename_Security(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		input       string
+		name             string
+		input            string
 		shouldNotContain []string
 	}{
 		{
-			name:        "removes path traversal",
-			input:       "../../../etc/passwd",
+			name:             "removes path traversal",
+			input:            "../../../etc/passwd",
 			shouldNotContain: []string{"..", "/", "\\"},
 		},
 		{
-			name:        "removes null bytes",
-			input:       "file\x00.jpg",
+			name:             "removes null bytes",
+			input:            "file\x00.jpg",
 			shouldNotContain: []string{"\x00"},
 		},
 		{
-			name:        "removes control characters",
-			input:       "file\r\n\t.jpg",
+			name:             "removes control characters",
+			input:            "file\r\n\t.jpg",
 			shouldNotContain: []string{"\r", "\n", "\t"},
 		},
 		{
-			name:        "removes shell metacharacters",
-			input:       "file;$(rm -rf /).jpg",
+			name:             "removes shell metacharacters",
+			input:            "file;$(rm -rf /).jpg",
 			shouldNotContain: []string{";", "$", "(", ")"}, // Whitelist strips all non-alphanumeric except . - _
 		},
 	}

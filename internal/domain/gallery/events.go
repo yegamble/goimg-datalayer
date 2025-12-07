@@ -240,9 +240,9 @@ func (e *CommentDeleted) EventType() string {
 // ImageLiked is emitted when a user likes an image.
 type ImageLiked struct {
 	shared.BaseEvent
-	ImageID   ImageID
-	UserID    identity.UserID
-	LikedAt   time.Time
+	ImageID ImageID
+	UserID  identity.UserID
+	LikedAt time.Time
 }
 
 // EventType returns the event type identifier.
@@ -253,9 +253,9 @@ func (e *ImageLiked) EventType() string {
 // ImageUnliked is emitted when a user unlikes an image.
 type ImageUnliked struct {
 	shared.BaseEvent
-	ImageID    ImageID
-	UserID     identity.UserID
-	UnlikedAt  time.Time
+	ImageID   ImageID
+	UserID    identity.UserID
+	UnlikedAt time.Time
 }
 
 // EventType returns the event type identifier.

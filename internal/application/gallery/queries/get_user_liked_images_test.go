@@ -187,7 +187,7 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Len(t, result.Images, 2) // Only 2 images (deleted one skipped)
+		assert.Len(t, result.Images, 2)         // Only 2 images (deleted one skipped)
 		assert.Equal(t, int64(3), result.Total) // Total still reflects all likes
 		mockLikeRepo.AssertExpectations(t)
 		mockImageRepo.AssertExpectations(t)

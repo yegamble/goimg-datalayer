@@ -25,26 +25,26 @@ func (GetImageQuery) isQuery() {}
 // ImageDTO represents the data transfer object for an image.
 // It contains all public information about an image.
 type ImageDTO struct {
-	ID               string        `json:"id"`
-	OwnerID          string        `json:"owner_id"`
-	Title            string        `json:"title"`
-	Description      string        `json:"description"`
-	OriginalFilename string        `json:"original_filename"`
-	MimeType         string        `json:"mime_type"`
-	Width            int           `json:"width"`
-	Height           int           `json:"height"`
-	FileSize         int64         `json:"file_size"`
-	StorageKey       string        `json:"storage_key"`
-	StorageProvider  string        `json:"storage_provider"`
-	Visibility       string        `json:"visibility"`
-	Status           string        `json:"status"`
-	Variants         []VariantDTO  `json:"variants"`
-	Tags             []TagDTO      `json:"tags"`
-	ViewCount        int64         `json:"view_count"`
-	LikeCount        int64         `json:"like_count"`
-	CommentCount     int64         `json:"comment_count"`
-	CreatedAt        string        `json:"created_at"`
-	UpdatedAt        string        `json:"updated_at"`
+	ID               string       `json:"id"`
+	OwnerID          string       `json:"owner_id"`
+	Title            string       `json:"title"`
+	Description      string       `json:"description"`
+	OriginalFilename string       `json:"original_filename"`
+	MimeType         string       `json:"mime_type"`
+	Width            int          `json:"width"`
+	Height           int          `json:"height"`
+	FileSize         int64        `json:"file_size"`
+	StorageKey       string       `json:"storage_key"`
+	StorageProvider  string       `json:"storage_provider"`
+	Visibility       string       `json:"visibility"`
+	Status           string       `json:"status"`
+	Variants         []VariantDTO `json:"variants"`
+	Tags             []TagDTO     `json:"tags"`
+	ViewCount        int64        `json:"view_count"`
+	LikeCount        int64        `json:"like_count"`
+	CommentCount     int64        `json:"comment_count"`
+	CreatedAt        string       `json:"created_at"`
+	UpdatedAt        string       `json:"updated_at"`
 }
 
 // VariantDTO represents an image variant (thumbnail, optimized, etc.).
