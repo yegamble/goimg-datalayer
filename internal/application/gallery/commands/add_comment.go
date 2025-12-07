@@ -61,6 +61,7 @@ func NewAddCommentHandler(
 //  7. Validate content length (max 5000 chars as per migration, but domain allows 1000)
 //  8. Create Comment aggregate via domain factory
 //  9. Persist comment
+//
 // 10. Update denormalized comment count on image
 // 11. Publish CommentAdded domain event after successful save
 //

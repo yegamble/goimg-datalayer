@@ -10,8 +10,8 @@ import (
 
 // GetAlbumQuery represents a query to retrieve album details.
 type GetAlbumQuery struct {
-	AlbumID           string
-	RequestingUserID  string // Optional: empty string if not authenticated
+	AlbumID          string
+	RequestingUserID string // Optional: empty string if not authenticated
 }
 
 // AlbumDTO represents the album data transfer object.

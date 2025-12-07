@@ -61,7 +61,7 @@ func createTestImageWithStatus(ownerID identity.UserID, title string, status gal
 		_ = img.MarkAsDeleted()
 	case gallery.StatusFlagged:
 		_ = img.Flag()
-	// StatusProcessing is default, no action needed
+		// StatusProcessing is default, no action needed
 	}
 
 	return img

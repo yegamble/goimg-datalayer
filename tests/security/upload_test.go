@@ -109,12 +109,12 @@ func TestUpload_ValidatesMIMEByContent(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
-		filePath        string
-		fileName        string
-		expectedMIME    string
-		shouldPass      bool
-		expectedError   error
+		name          string
+		filePath      string
+		fileName      string
+		expectedMIME  string
+		shouldPass    bool
+		expectedError error
 	}{
 		{
 			name:         "valid JPEG with .jpg extension",

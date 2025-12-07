@@ -55,8 +55,8 @@ func InitializeErrorTracking(logger *zerolog.Logger) error {
 		Release:     release,
 
 		// Sampling configuration
-		SampleRate:       1.0,  // 100% of errors
-		TracesSampleRate: 0.1,  // 10% of transactions
+		SampleRate:       1.0, // 100% of errors
+		TracesSampleRate: 0.1, // 10% of transactions
 
 		// Error filtering and scrubbing
 		BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -371,17 +371,17 @@ var (
 	}
 
 	sensitiveFields = map[string]bool{
-		"password":        true,
-		"passwd":          true,
-		"pwd":             true,
-		"secret":          true,
-		"api_key":         true,
-		"token":           true,
-		"access_token":    true,
-		"refresh_token":   true,
-		"credit_card":     true,
-		"cvv":             true,
-		"ssn":             true,
+		"password":      true,
+		"passwd":        true,
+		"pwd":           true,
+		"secret":        true,
+		"api_key":       true,
+		"token":         true,
+		"access_token":  true,
+		"refresh_token": true,
+		"credit_card":   true,
+		"cvv":           true,
+		"ssn":           true,
 	}
 )
 
@@ -414,8 +414,8 @@ func scrubPII(event *sentry.Event) *sentry.Event {
 	if event.User.IPAddress != "" {
 		event.User.IPAddress = maskIP(event.User.IPAddress)
 	}
-	event.User.Email = ""      // Never send email
-	event.User.Username = ""   // Never send username
+	event.User.Email = ""    // Never send email
+	event.User.Username = "" // Never send username
 
 	// 6. Scrub extra context
 	if event.Extra != nil {
@@ -713,19 +713,21 @@ var (
 	ErrForbidden    = errors.New("forbidden")
 )
 
-func getRequestIDFromContext(ctx context.Context) string { return "req-123" }
-func getUserIDFromContext(ctx context.Context) string    { return "user-456" }
-func getClientIP(r *http.Request) string                 { return r.RemoteAddr }
-func getHostname() string                                 { hostname, _ := os.Hostname(); return hostname }
-func parseRequest(r *http.Request, req interface{}) error { return nil }
+func getRequestIDFromContext(ctx context.Context) string                                    { return "req-123" }
+func getUserIDFromContext(ctx context.Context) string                                       { return "user-456" }
+func getClientIP(r *http.Request) string                                                    { return r.RemoteAddr }
+func getHostname() string                                                                   { hostname, _ := os.Hostname(); return hostname }
+func parseRequest(r *http.Request, req interface{}) error                                   { return nil }
 func respondError(w http.ResponseWriter, r *http.Request, status int, title, detail string) {}
-func respondJSON(w http.ResponseWriter, status int, data interface{})                        {}
-func uploadImageCommand(ctx context.Context, req ImageUploadRequest) (interface{}, error)   { return nil, nil }
-func isDataLossError(err error) bool                                                         { return false }
-func isSecurityError(err error) bool                                                         { return false }
-func isInfrastructureError(err error) bool                                                   { return false }
-func validateFile(req ImageUploadRequest) error                                              { return nil }
-func uploadToStorage(ctx context.Context, req ImageUploadRequest) (string, error)           { return "", nil }
+func respondJSON(w http.ResponseWriter, status int, data interface{})                       {}
+func uploadImageCommand(ctx context.Context, req ImageUploadRequest) (interface{}, error) {
+	return nil, nil
+}
+func isDataLossError(err error) bool                                              { return false }
+func isSecurityError(err error) bool                                              { return false }
+func isInfrastructureError(err error) bool                                        { return false }
+func validateFile(req ImageUploadRequest) error                                   { return nil }
+func uploadToStorage(ctx context.Context, req ImageUploadRequest) (string, error) { return "", nil }
 
 var db interface {
 	FindUserByID(ctx context.Context, id string) (*User, error)

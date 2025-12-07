@@ -301,19 +301,19 @@ func TestS3Storage_PresignedURLDuration(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
+		name             string
 		configuredExpiry string
 		requestDuration  string
 		description      string
 	}{
 		{
-			name:            "uses default expiry when duration is zero",
+			name:             "uses default expiry when duration is zero",
 			configuredExpiry: "15m",
 			requestDuration:  "0",
 			description:      "Should use configured default when 0 duration is passed",
 		},
 		{
-			name:            "uses custom duration when provided",
+			name:             "uses custom duration when provided",
 			configuredExpiry: "15m",
 			requestDuration:  "1h",
 			description:      "Should use custom duration when explicitly provided",
@@ -335,10 +335,10 @@ func TestObjectInfo(t *testing.T) {
 	t.Parallel()
 
 	info := &ObjectInfo{
-		Key:          "images/test.jpg",
-		Size:         1024,
-		ContentType:  "image/jpeg",
-		ETag:         `"abc123"`,
+		Key:         "images/test.jpg",
+		Size:        1024,
+		ContentType: "image/jpeg",
+		ETag:        `"abc123"`,
 	}
 
 	assert.Equal(t, "images/test.jpg", info.Key)

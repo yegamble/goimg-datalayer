@@ -18,12 +18,12 @@ import (
 
 // Common storage errors (duplicated to avoid import cycle).
 var (
-	errNotFound     = errors.New("storage: object not found")
-	errAccessDenied = errors.New("storage: access denied")
-	errInvalidKey   = errors.New("storage: invalid key")
+	errNotFound      = errors.New("storage: object not found")
+	errAccessDenied  = errors.New("storage: access denied")
+	errInvalidKey    = errors.New("storage: invalid key")
 	errPathTraversal = errors.New("storage: path traversal detected")
-	errNotSupported = errors.New("storage: operation not supported")
-	errSizeMismatch = errors.New("storage: size mismatch")
+	errNotSupported  = errors.New("storage: operation not supported")
+	errSizeMismatch  = errors.New("storage: size mismatch")
 )
 
 // ObjectInfo contains metadata about a stored object.

@@ -367,8 +367,8 @@ func TestSearchImagesHandler_Handle_DefaultPagination(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, 1, result.Page)       // Default page
-	assert.Equal(t, 20, result.PerPage)   // Default per_page
+	assert.Equal(t, 1, result.Page)     // Default page
+	assert.Equal(t, 20, result.PerPage) // Default per_page
 
 	mockImages.AssertExpectations(t)
 }

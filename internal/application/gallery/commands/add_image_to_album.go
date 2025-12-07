@@ -20,11 +20,11 @@ type AddImageToAlbumCommand struct {
 // AddImageToAlbumHandler processes commands to add images to albums.
 // It validates that the user owns both the album and the image before adding.
 type AddImageToAlbumHandler struct {
-	albums       gallery.AlbumRepository
-	images       gallery.ImageRepository
-	albumImages  gallery.AlbumImageRepository
-	publisher    EventPublisher
-	logger       *zerolog.Logger
+	albums      gallery.AlbumRepository
+	images      gallery.ImageRepository
+	albumImages gallery.AlbumImageRepository
+	publisher   EventPublisher
+	logger      *zerolog.Logger
 }
 
 // NewAddImageToAlbumHandler creates a new AddImageToAlbumHandler.

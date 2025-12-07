@@ -60,7 +60,7 @@ func TestLoginHandler_Handle(t *testing.T) {
 					user.ID().String(),
 					mock.AnythingOfType("string"), // sessionID
 					mock.AnythingOfType("string"), // familyID
-					"", // parentHash
+					"",                            // parentHash
 					testhelpers.ValidIPAddress,
 					testhelpers.ValidUserAgent,
 				).Return("refresh.token.value", metadata, nil).Once()

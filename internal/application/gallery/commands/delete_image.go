@@ -26,11 +26,11 @@ func (DeleteImageCommand) isCommand() {}
 
 // DeleteImageResult represents the result of a successful image deletion.
 type DeleteImageResult struct {
-	ImageID        string
-	DeletedAt      string
-	VariantsCount  int
-	CleanupJobID   string
-	Message        string
+	ImageID       string
+	DeletedAt     string
+	VariantsCount int
+	CleanupJobID  string
+	Message       string
 }
 
 // DeleteImageHandler processes image deletion commands.

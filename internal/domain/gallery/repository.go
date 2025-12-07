@@ -13,19 +13,19 @@ import (
 type SearchSortBy string
 
 const (
-	SearchSortByRelevance  SearchSortBy = "relevance"
-	SearchSortByCreatedAt  SearchSortBy = "created_at"
-	SearchSortByViewCount  SearchSortBy = "view_count"
-	SearchSortByLikeCount  SearchSortBy = "like_count"
+	SearchSortByRelevance SearchSortBy = "relevance"
+	SearchSortByCreatedAt SearchSortBy = "created_at"
+	SearchSortByViewCount SearchSortBy = "view_count"
+	SearchSortByLikeCount SearchSortBy = "like_count"
 )
 
 // SearchParams encapsulates all search criteria for image queries.
 type SearchParams struct {
-	Query      string          // Full-text search query (searches title and description)
-	Tags       []Tag           // Filter by tags (AND logic for multiple tags)
-	OwnerID    *identity.UserID // Optional: filter by owner
-	Visibility *Visibility     // Optional: filter by visibility (defaults to public only)
-	SortBy     SearchSortBy    // Sort order (defaults to relevance)
+	Query      string            // Full-text search query (searches title and description)
+	Tags       []Tag             // Filter by tags (AND logic for multiple tags)
+	OwnerID    *identity.UserID  // Optional: filter by owner
+	Visibility *Visibility       // Optional: filter by visibility (defaults to public only)
+	SortBy     SearchSortBy      // Sort order (defaults to relevance)
 	Pagination shared.Pagination // Pagination parameters
 }
 
