@@ -314,17 +314,7 @@ func TestProcessor_Process_Integration(t *testing.T) {
 		t.Skip("skipping integration test in short mode")
 	}
 
-	// Create a simple test image (1x1 PNG)
-	// This is a minimal valid PNG image
-	testPNG := []byte{
-		0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG header
-		0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-		0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x64, // 100x100
-		0x08, 0x02, 0x00, 0x00, 0x00, 0xFF, 0x80, 0x02, 0x03,
-	}
-
-	// For real testing, we need a valid image file
-	// Let's load a test image if available
+	// Load a test image from testdata directory
 	testImagePath := filepath.Join("testdata", "test.jpg")
 	if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
 		t.Skip("test image not found, skipping integration test")
