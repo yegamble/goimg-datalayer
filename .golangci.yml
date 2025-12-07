@@ -18,6 +18,7 @@ run:
     - examples
     - Godeps
     - builtin
+    - docs
 
   # Which files to exclude
   exclude-files:

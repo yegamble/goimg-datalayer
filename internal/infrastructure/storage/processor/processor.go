@@ -250,6 +250,6 @@ func calculateTargetDimensions(originalWidth, originalHeight, maxWidth int) (int
 // Shutdown cleans up processor resources.
 // Call this when shutting down the application.
 func (p *Processor) Shutdown() {
-	// Clear bimg cache
-	bimg.VipsClearCache()
+	// Note: bimg/libvips manages its own memory and cache internally.
+	// No explicit cleanup is required as libvips handles this automatically.
 }
