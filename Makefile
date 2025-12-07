@@ -236,9 +236,10 @@ install-hooks:
 	@./scripts/setup-hooks.sh
 
 # Pre-commit check (run manually before pushing)
+# Runs FULL lint on all files - not just changed files
 pre-commit:
-	@echo "Running pre-commit checks..."
+	@echo "Running pre-commit checks (full lint)..."
 	@go fmt ./...
 	@go vet ./...
-	@golangci-lint run
+	@golangci-lint run ./...
 	@echo "Pre-commit checks passed!"
