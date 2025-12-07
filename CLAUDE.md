@@ -7,7 +7,8 @@ This repository uses a foldered guide so Claude agents can stay within scope and
 ## Quick Start
 
 ```bash
-# Setup
+# Setup (REQUIRED - run once after cloning)
+make install-hooks    # Install pre-commit hooks (MANDATORY)
 docker-compose -f docker/docker-compose.yml up -d
 make migrate-up
 make generate
@@ -16,7 +17,7 @@ make generate
 make run              # API server
 make run-worker       # Background jobs
 
-# Validate before commit
+# Validate before commit (hooks enforce this automatically)
 make lint && make test && make validate-openapi
 ```
 
@@ -63,6 +64,35 @@ make lint && make test && make validate-openapi
 4. **Wrap errors**: Always use `fmt.Errorf("context: %w", err)`
 5. **Test coverage**: Minimum 80% overall; 90% for domain layer
 6. **E2E tests required**: Every new API feature MUST have Newman/Postman E2E tests for regression testing
+
+## Mandatory Lint Before Push (Claude Agents)
+
+> **CRITICAL**: All Claude agents MUST run linting before pushing any commits.
+
+### Requirements
+
+1. **Run `make pre-commit` before every push** - This runs `go fmt`, `go vet`, and `golangci-lint`
+2. **Install hooks on first session**: Run `make install-hooks` when starting work on this repo
+3. **Never skip linting** - If lint fails, fix the issues before committing/pushing
+4. **No `--no-verify`** - Never use `git commit --no-verify` to bypass hooks
+
+### Pre-Push Checklist (Mandatory)
+
+```bash
+# ALWAYS run before git push:
+make pre-commit       # Run all lint checks
+make test             # Run tests
+make validate-openapi # Validate API spec (if changed)
+```
+
+### If Lint Fails
+
+1. Read the error output carefully
+2. Fix the issues in your code
+3. Run `make pre-commit` again until it passes
+4. Only then proceed with `git push`
+
+**Failure to lint before push will result in CI failures and wasted time.**
 
 ## E2E Testing Requirements
 
@@ -112,7 +142,13 @@ docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 
 ## Before Every Commit
 
+> **Claude Agents: Run `make pre-commit` before every commit/push. This is MANDATORY.**
+
 ```bash
+# Option 1: Use the pre-commit make target (RECOMMENDED)
+make pre-commit
+
+# Option 2: Run commands individually
 go fmt ./... && go vet ./... && golangci-lint run
 go test -race ./...
 make validate-openapi

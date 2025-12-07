@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
 
 # Default target
 help:
@@ -31,6 +31,8 @@ help:
 	@echo "  docker-up         - Start Docker Compose services"
 	@echo "  docker-down       - Stop Docker Compose services"
 	@echo "  clean             - Remove build artifacts"
+	@echo "  install-hooks     - Install git pre-commit hooks (REQUIRED for Claude agents)"
+	@echo "  pre-commit        - Run pre-commit checks manually"
 
 # Build targets
 build:
@@ -227,3 +229,16 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@rm -rf bin/ coverage.out coverage.html domain-coverage.out domain-coverage.html
 	@echo "Clean complete"
+
+# Git hooks
+install-hooks:
+	@echo "Installing git hooks..."
+	@./scripts/setup-hooks.sh
+
+# Pre-commit check (run manually before pushing)
+pre-commit:
+	@echo "Running pre-commit checks..."
+	@go fmt ./...
+	@go vet ./...
+	@golangci-lint run
+	@echo "Pre-commit checks passed!"

@@ -2,11 +2,28 @@
 
 > **CRITICAL**: Complete this checklist before submitting any code changes.
 
+## Mandatory Lint Before Push
+
+> **ALL CLAUDE AGENTS MUST RUN LINT BEFORE PUSHING ANY COMMITS**
+
+```bash
+# REQUIRED: Run before every commit/push
+make pre-commit
+```
+
+If lint fails:
+
+1. Fix ALL lint errors
+2. Run `make pre-commit` again
+3. Only push when lint passes
+
+**Never use `git commit --no-verify` or skip lint checks.**
+
 ## Quick Validation Commands
 
 ```bash
-# Run all checks
-go fmt ./... && go vet ./... && golangci-lint run
+# Run all checks (use this before pushing)
+make pre-commit                               # MANDATORY lint check
 go test -race ./...
 make validate-openapi
 ```
@@ -56,6 +73,12 @@ make validate-openapi
 ---
 
 ## Before Committing
+
+### Lint Check (MANDATORY)
+
+> **Run `make pre-commit` before every commit. This is non-negotiable.**
+
+- [ ] `make pre-commit` passes (runs go fmt, go vet, golangci-lint)
 
 ### Code Quality
 
@@ -237,6 +260,7 @@ user, err := NewUser(email, username, hash)  // ✓ Validates
 
 Before submitting PR:
 
+- [ ] **`make pre-commit` passes** (MANDATORY - lint check)
 - [ ] All CI checks pass
 - [ ] Code coverage maintained or improved
 - [ ] OpenAPI spec updated (if API changed)
