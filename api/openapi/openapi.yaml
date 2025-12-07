@@ -962,23 +962,23 @@ paths:
   /albums/{id}:
     get:
       tags: [albums]
-      summary: Get album with images
-      description: Retrieve album details including all images in the album
+      summary: Get album details
+      description: |
+        Retrieve album metadata (title, description, visibility, counts).
+        Use GET /albums/{id}/images to retrieve images in the album.
       operationId: getAlbum
       security:
         - {}
         - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/AlbumIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PerPageParam'
       responses:
         '200':
           description: Album retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlbumWithImages'
+                $ref: '#/components/schemas/Album'
         '404':
           description: Album not found or not accessible
           content:
@@ -1076,6 +1076,62 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
 
   /albums/{id}/images:
+    get:
+      tags: [albums]
+      summary: List images in album
+      description: |
+        Retrieve a paginated list of images belonging to an album.
+        Public albums are accessible to everyone; private/unlisted albums
+        require the owner to be authenticated.
+      operationId: getAlbumImages
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+        - name: offset
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Images retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Image'
+                  total_count:
+                    type: integer
+                    description: Total number of images in the album
+                  offset:
+                    type: integer
+                  limit:
+                    type: integer
+                  has_more:
+                    type: boolean
+        '404':
+          description: Album not found or not accessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
     post:
       tags: [albums]
       summary: Add images to album
