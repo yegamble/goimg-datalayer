@@ -134,7 +134,7 @@ const (
 	// Full-text search query with dynamic filtering
 	// PERFORMANCE NOTE: Uses pre-computed search_vector column with GIN index
 	// instead of calculating to_tsvector at query time (10-50x faster).
-	// See migration 00005_add_performance_indexes.sql
+	// See migration 00005_add_performance_indexes.sql.
 	sqlSearchImagesBase = `
 		SELECT DISTINCT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
 		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,

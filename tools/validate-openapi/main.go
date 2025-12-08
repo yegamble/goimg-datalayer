@@ -37,10 +37,15 @@ func main() {
 	// Additional checks
 	checkForCommonIssues(doc)
 
+	//nolint:forbidigo // CLI tool requires stdout output
 	fmt.Printf("✓ OpenAPI spec is valid: %s\n", specFile)
+	//nolint:forbidigo // CLI tool requires stdout output
 	fmt.Printf("  Title: %s\n", doc.Info.Title)
+	//nolint:forbidigo // CLI tool requires stdout output
 	fmt.Printf("  Version: %s\n", doc.Info.Version)
+	//nolint:forbidigo // CLI tool requires stdout output
 	fmt.Printf("  Paths: %d\n", len(doc.Paths.Map()))
+	//nolint:forbidigo // CLI tool requires stdout output
 	fmt.Printf("  Components/Schemas: %d\n", len(doc.Components.Schemas))
 }
 
@@ -69,8 +74,10 @@ func checkForCommonIssues(doc *openapi3.T) {
 	}
 
 	if len(warnings) > 0 {
+		//nolint:forbidigo // CLI tool requires stdout output
 		fmt.Println("\nWarnings:")
 		for _, warning := range warnings {
+			//nolint:forbidigo // CLI tool requires stdout output
 			fmt.Printf("  ⚠ %s\n", warning)
 		}
 	}

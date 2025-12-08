@@ -16,12 +16,12 @@ import (
 
 // Test helper functions
 
-// createTestUser creates a test user ID
+// createTestUser creates a test user ID.
 func createTestUser() identity.UserID {
 	return identity.NewUserID()
 }
 
-// createTestMetadata creates valid image metadata for testing
+// createTestMetadata creates valid image metadata for testing.
 func createTestMetadata(title string) gallery.ImageMetadata {
 	metadata, err := gallery.NewImageMetadata(
 		title,
@@ -61,7 +61,10 @@ func createTestImageWithStatus(ownerID identity.UserID, title string, status gal
 		_ = img.MarkAsDeleted()
 	case gallery.StatusFlagged:
 		_ = img.Flag()
+	case gallery.StatusProcessing:
 		// StatusProcessing is default, no action needed
+	default:
+		// Unexpected status - no action needed
 	}
 
 	return img

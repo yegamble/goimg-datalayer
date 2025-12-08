@@ -66,7 +66,7 @@ func (g *KeyGenerator) GenerateKey(ownerID, imageID uuid.UUID, variant, format s
 // - Parent directory references (..)
 // - Absolute paths (/)
 // - Null bytes
-// - Invalid characters
+// - Invalid characters.
 func (g *KeyGenerator) ValidateKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("%w: empty key", ErrInvalidKey)
@@ -167,7 +167,7 @@ func SanitizeFilename(filename string) string {
 	return ensureValidFilename(sanitized)
 }
 
-// sanitizeCharacters replaces or removes unsafe characters from a filename
+// sanitizeCharacters replaces or removes unsafe characters from a filename.
 func sanitizeCharacters(filename string) string {
 	var builder strings.Builder
 	for _, r := range filename {
@@ -181,7 +181,7 @@ func sanitizeCharacters(filename string) string {
 	return builder.String()
 }
 
-// isSafeCharacter returns true if the character is safe for filenames
+// isSafeCharacter returns true if the character is safe for filenames.
 func isSafeCharacter(r rune) bool {
 	return (r >= 'a' && r <= 'z') ||
 		(r >= 'A' && r <= 'Z') ||

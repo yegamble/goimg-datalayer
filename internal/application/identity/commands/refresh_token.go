@@ -223,6 +223,9 @@ func (h *RefreshTokenHandler) handleInactiveUser(ctx context.Context, user *iden
 		return appidentity.ErrAccountSuspended
 	case identity.StatusDeleted:
 		return appidentity.ErrAccountDeleted
+	case identity.StatusActive, identity.StatusPending:
+		// CanLogin() should have handled these, but included for exhaustiveness
+		return appidentity.ErrInvalidToken
 	default:
 		return appidentity.ErrInvalidToken
 	}

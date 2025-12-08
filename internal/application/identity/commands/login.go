@@ -120,6 +120,9 @@ func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthR
 			return nil, appidentity.ErrAccountSuspended
 		case identity.StatusDeleted:
 			return nil, appidentity.ErrAccountDeleted
+		case identity.StatusActive, identity.StatusPending:
+			// CanLogin() should have handled these, but included for exhaustiveness
+			return nil, appidentity.ErrInvalidCredentials
 		default:
 			return nil, appidentity.ErrInvalidCredentials
 		}

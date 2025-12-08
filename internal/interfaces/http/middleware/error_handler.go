@@ -217,7 +217,7 @@ func containsAny(s string, substrings ...string) bool {
 	return false
 }
 
-// Simple string helpers to avoid importing strings package
+// Simple string helpers to avoid importing strings package.
 func toLower(s string) string {
 	b := make([]byte, len(s))
 	for i := 0; i < len(s); i++ {

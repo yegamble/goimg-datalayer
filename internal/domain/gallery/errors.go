@@ -20,7 +20,7 @@ var (
 	ErrMalwareDetected   = errors.New("malware detected in uploaded file")
 	ErrStorageCorruption = errors.New("storage file is missing or corrupted")
 
-	// Validation errors - Metadata
+	// Validation errors - Metadata.
 	ErrInvalidMetadata    = errors.New("invalid image metadata")
 	ErrTitleTooLong       = errors.New("title exceeds 255 characters")
 	ErrDescriptionTooLong = errors.New("description exceeds 2000 characters")
@@ -32,13 +32,13 @@ var (
 	ErrStorageKeyRequired = errors.New("storage key is required")
 	ErrProviderRequired   = errors.New("storage provider is required")
 
-	// Validation errors - Variant
+	// Validation errors - Variant.
 	ErrVariantExists      = errors.New("variant already exists")
 	ErrVariantNotFound    = errors.New("variant not found")
 	ErrInvalidVariantType = errors.New("invalid variant type")
 	ErrInvalidVariantData = errors.New("invalid variant data")
 
-	// Validation errors - Tag
+	// Validation errors - Tag.
 	ErrTagInvalid       = errors.New("invalid tag format")
 	ErrTagTooShort      = errors.New("tag must be at least 2 characters")
 	ErrTagTooLong       = errors.New("tag exceeds 50 characters")

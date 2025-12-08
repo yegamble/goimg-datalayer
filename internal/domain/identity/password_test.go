@@ -344,7 +344,7 @@ func TestPasswordHash_Security(t *testing.T) {
 	})
 }
 
-// Benchmark to ensure hashing performance is reasonable
+// Benchmark to ensure hashing performance is reasonable.
 func BenchmarkNewPasswordHash(b *testing.B) {
 	password := "MySecureP@ssw0rd123"
 
