@@ -287,6 +287,7 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 
 // loadPrivateKey loads an RSA private key from a PEM file.
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
+	//nolint:gosec // G304: File path comes from trusted configuration, not user input
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
@@ -323,6 +324,7 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 
 // loadPublicKey loads an RSA public key from a PEM file.
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
+	//nolint:gosec // G304: File path comes from trusted configuration, not user input
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)

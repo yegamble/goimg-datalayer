@@ -122,7 +122,8 @@ func WriteProblemDetails(w http.ResponseWriter, r *http.Request, problem Problem
 	if err := json.NewEncoder(w).Encode(problem); err != nil {
 		// Fallback: write a plain text error (we can't use JSON at this point)
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintf(w, "Internal error encoding problem details: %v\n", err)
+		// Best-effort write; ignore error since response is already compromised
+		_, _ = fmt.Fprintf(w, "Internal error encoding problem details: %v\n", err)
 	}
 }
 

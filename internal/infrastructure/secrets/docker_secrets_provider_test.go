@@ -28,7 +28,9 @@ func writeSecret(t *testing.T, dir, name, value string) {
 
 func TestDockerSecretsProvider_GetSecret(t *testing.T) {
 	tmpDir := setupTestSecrets(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir) // Cleanup best effort
+	}()
 
 	provider := NewDockerSecretsProvider(tmpDir)
 	ctx := context.Background()
@@ -113,7 +115,9 @@ func TestDockerSecretsProvider_GetSecret(t *testing.T) {
 
 func TestDockerSecretsProvider_GetSecretWithDefault(t *testing.T) {
 	tmpDir := setupTestSecrets(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir) // Cleanup best effort
+	}()
 
 	provider := NewDockerSecretsProvider(tmpDir)
 	ctx := context.Background()
@@ -170,7 +174,9 @@ func TestDockerSecretsProvider_GetSecretWithDefault(t *testing.T) {
 
 func TestDockerSecretsProvider_MustGetSecret(t *testing.T) {
 	tmpDir := setupTestSecrets(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir) // Cleanup best effort
+	}()
 
 	provider := NewDockerSecretsProvider(tmpDir)
 	ctx := context.Background()
@@ -197,7 +203,9 @@ func TestDockerSecretsProvider_MustGetSecret(t *testing.T) {
 
 func TestDockerSecretsProvider_ClearCache(t *testing.T) {
 	tmpDir := setupTestSecrets(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir) // Cleanup best effort
+	}()
 
 	provider := NewDockerSecretsProvider(tmpDir)
 	ctx := context.Background()
@@ -227,7 +235,9 @@ func TestDockerSecretsProvider_ClearCache(t *testing.T) {
 
 func TestDockerSecretsProvider_RefreshSecret(t *testing.T) {
 	tmpDir := setupTestSecrets(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir) // Cleanup best effort
+	}()
 
 	provider := NewDockerSecretsProvider(tmpDir)
 	ctx := context.Background()

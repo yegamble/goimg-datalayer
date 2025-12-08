@@ -124,7 +124,9 @@ func getTestClient(t *testing.T) *Client {
 
 func TestClient_Ping(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	err := client.Ping(ctx)
@@ -134,7 +136,9 @@ func TestClient_Ping(t *testing.T) {
 
 func TestClient_HealthCheck(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	err := client.HealthCheck(ctx)
@@ -144,14 +148,18 @@ func TestClient_HealthCheck(t *testing.T) {
 
 func TestClient_SetAndGet(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	key := "test:key:1"
 	value := "test-value"
 
 	// Clean up after test
-	defer client.Del(ctx, key)
+	defer func() {
+		_, _ = client.Del(ctx, key) // Cleanup best effort
+	}()
 
 	// Set a value
 	err := client.Set(ctx, key, value, 0)
@@ -165,7 +173,9 @@ func TestClient_SetAndGet(t *testing.T) {
 
 func TestClient_SetWithExpiration(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	key := "test:key:expiring"
@@ -173,7 +183,9 @@ func TestClient_SetWithExpiration(t *testing.T) {
 	expiration := 2 * time.Second
 
 	// Clean up after test
-	defer client.Del(ctx, key)
+	defer func() {
+		_, _ = client.Del(ctx, key) // Cleanup best effort
+	}()
 
 	// Set a value with expiration
 	err := client.Set(ctx, key, value, expiration)
@@ -201,7 +213,9 @@ func TestClient_SetWithExpiration(t *testing.T) {
 
 func TestClient_Del(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	key1 := "test:key:del:1"
@@ -226,13 +240,17 @@ func TestClient_Del(t *testing.T) {
 
 func TestClient_Exists(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	key := "test:key:exists"
 
 	// Clean up after test
-	defer client.Del(ctx, key)
+	defer func() {
+		_, _ = client.Del(ctx, key) // Cleanup best effort
+	}()
 
 	// Key should not exist initially
 	exists, err := client.Exists(ctx, key)
@@ -251,13 +269,17 @@ func TestClient_Exists(t *testing.T) {
 
 func TestClient_Expire(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	key := "test:key:expire"
 
 	// Clean up after test
-	defer client.Del(ctx, key)
+	defer func() {
+		_, _ = client.Del(ctx, key) // Cleanup best effort
+	}()
 
 	// Set a value without expiration
 	err := client.Set(ctx, key, "value", 0)
@@ -282,7 +304,9 @@ func TestClient_Expire(t *testing.T) {
 
 func TestClient_TTL(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 
@@ -301,14 +325,14 @@ func TestClient_TTL(t *testing.T) {
 		{
 			name: "key exists without expiration",
 			setup: func(key string) {
-				client.Set(ctx, key, "value", 0)
+				_ = client.Set(ctx, key, "value", 0) // Setup best effort
 			},
 			expectedTTL: -1 * time.Second,
 		},
 		{
 			name: "key exists with expiration",
 			setup: func(key string) {
-				client.Set(ctx, key, "value", 5*time.Second)
+				_ = client.Set(ctx, key, "value", 5*time.Second) // Setup best effort
 			},
 			expectedTTL: 5 * time.Second,
 		},
@@ -320,7 +344,9 @@ func TestClient_TTL(t *testing.T) {
 			key := "test:key:ttl:" + tt.name
 
 			// Clean up after test
-			defer client.Del(ctx, key)
+			defer func() {
+				_, _ = client.Del(ctx, key) // Cleanup best effort
+			}()
 
 			// Setup
 			tt.setup(key)
@@ -342,7 +368,9 @@ func TestClient_TTL(t *testing.T) {
 
 func TestClient_UnderlyingClient(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	underlying := client.UnderlyingClient()
 	assert.NotNil(t, underlying)

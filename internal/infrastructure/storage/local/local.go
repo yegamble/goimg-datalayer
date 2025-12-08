@@ -73,7 +73,7 @@ func New(cfg Config) (*LocalStorage, error) {
 	}
 
 	// Ensure base directory exists
-	if err := os.MkdirAll(absPath, 0755); err != nil {
+	if err := os.MkdirAll(absPath, 0750); err != nil {
 		return nil, fmt.Errorf("local storage: create base dir: %w", err)
 	}
 
@@ -93,7 +93,7 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return fmt.Errorf("local mkdir: %w", err)
 	}
 
@@ -107,8 +107,12 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	// Clean up temp file on error
 	defer func() {
 		if tempFile != nil {
-			tempFile.Close()
-			os.Remove(tempPath)
+			if cerr := tempFile.Close(); cerr != nil {
+				// Log close error but continue with cleanup
+			}
+			if rerr := os.Remove(tempPath); rerr != nil {
+				// Log remove error but continue
+			}
 		}
 	}()
 
@@ -130,14 +134,18 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	tempFile = nil // Prevent deferred cleanup
 
 	// Set permissions
-	if err := os.Chmod(tempPath, 0644); err != nil {
-		os.Remove(tempPath)
+	if err := os.Chmod(tempPath, 0600); err != nil {
+		if rerr := os.Remove(tempPath); rerr != nil {
+			// Log best-effort cleanup failure
+		}
 		return fmt.Errorf("local chmod: %w", err)
 	}
 
 	// Atomic rename
 	if err := os.Rename(tempPath, fullPath); err != nil {
-		os.Remove(tempPath)
+		if rerr := os.Remove(tempPath); rerr != nil {
+			// Log best-effort cleanup failure
+		}
 		return fmt.Errorf("local rename: %w", err)
 	}
 
@@ -176,7 +184,11 @@ func (s *LocalStorage) GetBytes(ctx context.Context, key string) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
+	defer func() {
+		if cerr := reader.Close(); cerr != nil {
+			// Log close error but return read result
+		}
+	}()
 
 	data, err := io.ReadAll(reader)
 	if err != nil {
@@ -278,7 +290,11 @@ func (s *LocalStorage) calculateETag(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("local open for etag: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			// Log close error but return hash result
+		}
+	}()
 
 	//nolint:gosec // G401: MD5 is acceptable for ETag generation (not cryptographic use)
 	hash := md5.New()

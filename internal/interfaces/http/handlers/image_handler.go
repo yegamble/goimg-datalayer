@@ -137,7 +137,11 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			h.logger.Warn().Err(cerr).Msg("failed to close uploaded file")
+		}
+	}()
 
 	// 4. Get file metadata
 	fileSize := header.Size
@@ -745,7 +749,14 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	defer fileReader.Close()
+	defer func() {
+		if cerr := fileReader.Close(); cerr != nil {
+			h.logger.Warn().Err(cerr).
+				Str("image_id", imageID).
+				Str("variant_type", variantType.String()).
+				Msg("failed to close variant file reader")
+		}
+	}()
 
 	// 8. Set Content-Type header based on variant format
 	contentType := formatToMimeType(variantDTO.Format)

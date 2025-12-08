@@ -85,7 +85,9 @@ func TestClient_EnqueueTask(t *testing.T) {
 
 	client, err := asynq.NewClient(cfg)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 
@@ -118,7 +120,9 @@ func TestClient_EnqueueTaskWithDelay(t *testing.T) {
 
 	client, err := asynq.NewClient(cfg)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	payload := map[string]string{"delayed": "true"}
@@ -140,7 +144,9 @@ func TestClient_EnqueueTaskAt(t *testing.T) {
 
 	client, err := asynq.NewClient(cfg)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		_ = client.Close() // Cleanup best effort
+	}()
 
 	ctx := context.Background()
 	payload := map[string]string{"scheduled": "true"}

@@ -69,6 +69,7 @@ func Example_processor() {
 
 	for name, variant := range variants {
 		filename := fmt.Sprintf("photo_%s.%s", name, variant.Format)
+		//nolint:gosec // G306: Example test code with appropriate permissions for test output
 		if err := os.WriteFile(filename, variant.Data, 0644); err != nil {
 			log.Printf("Failed to save %s: %v\n", name, err)
 		}
@@ -129,6 +130,7 @@ func Example_processor_GenerateVariant() {
 		thumbnail.FileSize)
 
 	// Save the thumbnail
+	//nolint:gosec // G306: Example test code with appropriate permissions for test output
 	if err := os.WriteFile("thumbnail.webp", thumbnail.Data, 0644); err != nil {
 		panic(err)
 	}

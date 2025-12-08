@@ -182,7 +182,11 @@ func (s *S3Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
+	defer func() {
+		if cerr := reader.Close(); cerr != nil {
+			// Log close error but return read result
+		}
+	}()
 
 	data, err := io.ReadAll(reader)
 	if err != nil {

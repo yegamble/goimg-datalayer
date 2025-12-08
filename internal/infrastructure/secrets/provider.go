@@ -74,7 +74,9 @@ const (
 	SecretRedisPassword = "REDIS_PASSWORD"
 
 	// Object Storage (S3-compatible)
+	//nolint:gosec // G101: These are environment variable names, not actual credentials
 	SecretS3AccessKey = "S3_ACCESS_KEY"
+	//nolint:gosec // G101: These are environment variable names, not actual credentials
 	SecretS3SecretKey = "S3_SECRET_KEY"
 
 	// IPFS Pinning Services
