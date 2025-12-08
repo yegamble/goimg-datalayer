@@ -9,7 +9,7 @@ import (
 // They include JSON tags and validation rules using go-playground/validator.
 
 // RegisterRequest represents the HTTP request body for user registration.
-// POST /api/v1/auth/register
+// POST /api/v1/auth/register.
 type RegisterRequest struct {
 	Email    string `json:"email" validate:"required,email,max=255"`
 	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
@@ -26,7 +26,7 @@ type LoginRequest struct {
 }
 
 // RefreshRequest represents the HTTP request body for token refresh.
-// POST /api/v1/auth/refresh
+// POST /api/v1/auth/refresh.
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
@@ -103,17 +103,19 @@ type PaginatedImagesResponse struct {
 }
 
 // Type aliases for application layer DTOs to avoid duplication.
-type ImageDTO = queries.ImageDTO
-type AlbumDTO = queries.AlbumDTO
-type VariantDTO = queries.VariantDTO
-type TagDTO = queries.TagDTO
+type (
+	ImageDTO   = queries.ImageDTO
+	AlbumDTO   = queries.AlbumDTO
+	VariantDTO = queries.VariantDTO
+	TagDTO     = queries.TagDTO
+)
 
 // ============================================================================
 // Gallery DTOs - Album Management
 // ============================================================================
 
 // CreateAlbumRequest represents the HTTP request body for creating an album.
-// POST /api/v1/albums
+// POST /api/v1/albums.
 type CreateAlbumRequest struct {
 	Title       string `json:"title" validate:"required,max=255"`
 	Description string `json:"description,omitempty" validate:"omitempty,max=2000"`
@@ -132,7 +134,7 @@ type UpdateAlbumRequest struct {
 }
 
 // AddImageToAlbumRequest represents the HTTP request body for adding an image to an album.
-// POST /api/v1/albums/{albumID}/images
+// POST /api/v1/albums/{albumID}/images.
 type AddImageToAlbumRequest struct {
 	ImageID string `json:"image_id" validate:"required,uuid"`
 }
@@ -155,14 +157,14 @@ type PaginatedAlbumsResponse struct {
 
 // LikeResponse represents the HTTP response for like/unlike operations.
 // POST /api/v1/images/{imageID}/like
-// DELETE /api/v1/images/{imageID}/like
+// DELETE /api/v1/images/{imageID}/like.
 type LikeResponse struct {
 	Liked     bool  `json:"liked"`
 	LikeCount int64 `json:"like_count"`
 }
 
 // AddCommentRequest represents the HTTP request body for adding a comment.
-// POST /api/v1/images/{imageID}/comments
+// POST /api/v1/images/{imageID}/comments.
 type AddCommentRequest struct {
 	Content string `json:"content" validate:"required,min=1,max=1000"`
 }

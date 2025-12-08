@@ -166,7 +166,7 @@ func (h *ImageProcessHandler) ProcessTask(ctx context.Context, t *asynq.Task) er
 }
 
 // buildVariantKey constructs the storage key for an image variant.
-// Format: images/{image_id}/{variant}.webp
+// Format: images/{image_id}/{variant}.webp.
 func (h *ImageProcessHandler) buildVariantKey(imageID, variant string) string {
 	// Determine file extension based on variant
 	ext := "webp" // Default for processed variants
@@ -208,7 +208,7 @@ func NewImageProcessTaskWithOptions(payload ImageProcessPayload, opts ...asynq.O
 	}
 
 	// Append custom options (they override defaults)
-	allOpts := append(defaultOpts, opts...)
+	defaultOpts = append(defaultOpts, opts...)
 
-	return asynq.NewTask(TypeImageProcess, payloadBytes, allOpts...), nil
+	return asynq.NewTask(TypeImageProcess, payloadBytes, defaultOpts...), nil
 }

@@ -102,8 +102,9 @@ func TestPutBytes_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Verify file exists
+	// Verify file exists.
 	fullPath := storage.fullPath(key)
+	//nolint:gosec // G304: Test helper - path is controlled by test.
 	data, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)
@@ -111,7 +112,7 @@ func TestPutBytes_Success(t *testing.T) {
 	// Verify permissions
 	info, err := os.Stat(fullPath)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
+	assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
 }
 
 // TestPut_Success tests successful streaming Put operation.
@@ -598,7 +599,7 @@ type infiniteReader struct {
 	count int
 }
 
-func (r *infiniteReader) Read(p []byte) (n int, err error) {
+func (r *infiniteReader) Read(p []byte) (int, error) {
 	r.count++
 	// Fill buffer with data
 	for i := range p {

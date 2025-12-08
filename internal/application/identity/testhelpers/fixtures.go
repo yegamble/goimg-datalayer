@@ -139,7 +139,7 @@ func ValidPasswordHashVO() identity.PasswordHash {
 }
 
 // ValidTokenPair returns valid access and refresh tokens for testing.
-func ValidTokenPair() (accessToken string, refreshToken string) {
+func ValidTokenPair() (string, string) {
 	return "valid.access.token", "valid.refresh.token"
 }
 

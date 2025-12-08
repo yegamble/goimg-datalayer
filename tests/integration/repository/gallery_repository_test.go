@@ -16,12 +16,12 @@ import (
 
 // Test helper functions
 
-// createTestUser creates a test user ID
+// createTestUser creates a test user ID.
 func createTestUser() identity.UserID {
 	return identity.NewUserID()
 }
 
-// createTestMetadata creates valid image metadata for testing
+// createTestMetadata creates valid image metadata for testing.
 func createTestMetadata(title string) gallery.ImageMetadata {
 	metadata, err := gallery.NewImageMetadata(
 		title,
@@ -39,7 +39,7 @@ func createTestMetadata(title string) gallery.ImageMetadata {
 	return metadata
 }
 
-// createTestImage creates a test image entity
+// createTestImage creates a test image entity.
 func createTestImage(ownerID identity.UserID, title string) *gallery.Image {
 	metadata := createTestMetadata(title)
 	img, err := gallery.NewImage(ownerID, metadata)
@@ -49,7 +49,7 @@ func createTestImage(ownerID identity.UserID, title string) *gallery.Image {
 	return img
 }
 
-// createTestImageWithStatus creates a test image with a specific status
+// createTestImageWithStatus creates a test image with a specific status.
 func createTestImageWithStatus(ownerID identity.UserID, title string, status gallery.ImageStatus) *gallery.Image {
 	img := createTestImage(ownerID, title)
 
@@ -61,13 +61,16 @@ func createTestImageWithStatus(ownerID identity.UserID, title string, status gal
 		_ = img.MarkAsDeleted()
 	case gallery.StatusFlagged:
 		_ = img.Flag()
+	case gallery.StatusProcessing:
 		// StatusProcessing is default, no action needed
+	default:
+		// Unexpected status - no action needed
 	}
 
 	return img
 }
 
-// createTestImageWithVisibility creates a test image with specific visibility
+// createTestImageWithVisibility creates a test image with specific visibility.
 func createTestImageWithVisibility(ownerID identity.UserID, title string, visibility gallery.Visibility) *gallery.Image {
 	img := createTestImage(ownerID, title)
 	_ = img.MarkAsActive() // Must be active to change visibility
@@ -75,7 +78,7 @@ func createTestImageWithVisibility(ownerID identity.UserID, title string, visibi
 	return img
 }
 
-// createTestAlbum creates a test album entity
+// createTestAlbum creates a test album entity.
 func createTestAlbum(ownerID identity.UserID, title string) *gallery.Album {
 	album, err := gallery.NewAlbum(ownerID, title)
 	if err != nil {
@@ -272,7 +275,7 @@ func TestImageRepository_FindByOwner_EmptyResult(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), total)
-	assert.Len(t, images, 0)
+	assert.Empty(t, images)
 }
 
 func TestImageRepository_FindPublic_OnlyReturnsPublicActiveImages(t *testing.T) {
@@ -879,7 +882,7 @@ func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
 
 	// Assert
 	require.NoError(t, err)
-	assert.Len(t, albums, 0)
+	assert.Empty(t, albums)
 }
 
 func TestAlbumRepository_FindPublic_OnlyReturnsPublicAlbums(t *testing.T) {

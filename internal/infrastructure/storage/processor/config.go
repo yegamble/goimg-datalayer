@@ -187,23 +187,22 @@ func bimgTypeToString(t bimg.ImageType) string {
 		return "webp"
 	case bimg.GIF:
 		return "gif"
-	default:
+	case bimg.TIFF:
+		return "tiff"
+	case bimg.PDF:
+		return "pdf"
+	case bimg.SVG:
+		return "svg"
+	case bimg.MAGICK:
+		return "magick"
+	case bimg.HEIF:
+		return "heif"
+	case bimg.AVIF:
+		return "avif"
+	case bimg.UNKNOWN:
 		return "unknown"
-	}
-}
-
-// stringToBimgType converts string format to bimg.ImageType.
-func stringToBimgType(format string) bimg.ImageType {
-	switch format {
-	case "jpeg", "jpg":
-		return bimg.JPEG
-	case "png":
-		return bimg.PNG
-	case "webp":
-		return bimg.WEBP
-	case "gif":
-		return bimg.GIF
 	default:
-		return bimg.UNKNOWN
+		// Handle any other unsupported image types
+		return "unknown"
 	}
 }

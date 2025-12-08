@@ -62,7 +62,9 @@ func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	t.Cleanup(func() {
+		client.Close()
+	})
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -135,7 +137,9 @@ func TestRefreshTokenService_ValidateToken_InvalidToken(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	t.Cleanup(func() {
+		client.Close()
+	})
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -255,7 +259,7 @@ func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 	require.NoError(t, err)
 
 	// This token should not validate because the family was revoked
-	metadata, err = service.ValidateToken(ctx, token2)
+	_, err = service.ValidateToken(ctx, token2)
 	require.Error(t, err)
 }
 

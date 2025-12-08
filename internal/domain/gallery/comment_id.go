@@ -33,7 +33,7 @@ func ParseCommentID(s string) (CommentID, error) {
 func MustParseCommentID(s string) CommentID {
 	id, err := ParseCommentID(s)
 	if err != nil {
-		panic(err) //nolint:forbidigo // Intentional panic for Must* function
+		panic(err) // Intentional panic for Must* function
 	}
 	return id
 }

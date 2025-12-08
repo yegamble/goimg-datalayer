@@ -7,6 +7,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,8 +16,10 @@ import (
 
 const (
 	// refreshTokenKeyPrefix is the Redis key prefix for refresh token metadata.
+	//nolint:gosec // G101: This is a Redis key prefix, not credentials
 	refreshTokenKeyPrefix = "goimg:refresh:"
 	// tokenFamilyKeyPrefix is the Redis key prefix for token family tracking.
+	//nolint:gosec // G101: This is a Redis key prefix, not credentials
 	tokenFamilyKeyPrefix = "goimg:token_family:"
 	// refreshTokenLength is the length of the cryptographically secure refresh token in bytes.
 	refreshTokenLength = 32
@@ -133,7 +136,7 @@ func (s *RefreshTokenService) ValidateToken(ctx context.Context, token string) (
 	key := refreshTokenKeyPrefix + tokenHash
 	data, err := s.redis.Get(ctx, key).Result()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return nil, fmt.Errorf("invalid or expired refresh token")
 		}
 		return nil, fmt.Errorf("failed to retrieve token metadata: %w", err)
@@ -181,7 +184,7 @@ func (s *RefreshTokenService) MarkAsUsed(ctx context.Context, token string) erro
 	// Retrieve current metadata
 	data, err := s.redis.Get(ctx, key).Result()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return fmt.Errorf("token not found")
 		}
 		return fmt.Errorf("failed to retrieve token metadata: %w", err)
@@ -229,7 +232,7 @@ func (s *RefreshTokenService) RevokeToken(ctx context.Context, token string) err
 	// Retrieve metadata to get family ID
 	data, err := s.redis.Get(ctx, key).Result()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return nil // Token already expired or revoked
 		}
 		return fmt.Errorf("failed to retrieve token metadata: %w", err)

@@ -102,7 +102,7 @@ func DefaultCORSConfig() CORSConfig {
 // - Allows all origins (*)
 // - Allows all methods
 // - Allows all headers
-// - Does NOT allow credentials (security requirement with wildcard origins)
+// - Does NOT allow credentials (security requirement with wildcard origins).
 func DevelopmentCORSConfig() CORSConfig {
 	return CORSConfig{
 		AllowedOrigins: []string{"*"}, // Allow all origins in development

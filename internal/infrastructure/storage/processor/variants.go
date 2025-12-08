@@ -116,7 +116,7 @@ func (r *ProcessResult) GetVariant(variantType VariantType) (*VariantData, error
 	}
 }
 
-// Errors
+// Errors.
 var (
 	ErrInvalidVariantType = errors.New("invalid variant type")
 	ErrInvalidConfig      = errors.New("invalid processor configuration")

@@ -18,9 +18,6 @@ type DeleteUserCommand struct {
 	Password    string // Require password confirmation for safety
 }
 
-// Implement Command interface
-func (DeleteUserCommand) isCommand() {}
-
 // DeleteUserHandler processes DeleteUserCommand requests.
 // It verifies authorization and password, then soft-deletes the user and revokes all sessions.
 type DeleteUserHandler struct {

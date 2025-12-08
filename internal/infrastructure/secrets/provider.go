@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+// Provider type constants.
+const (
+	providerDockerSecrets = "docker-secrets"
+)
+
 // SecretProvider defines the interface for retrieving secrets from various sources.
 // Implementations can load secrets from environment variables, Docker Secrets,
 // AWS Secrets Manager, HashiCorp Vault, or other secret management systems.
@@ -45,7 +50,7 @@ func NewProvider(config SecretConfig) (SecretProvider, error) {
 	switch config.Provider {
 	case "env", "environment":
 		return NewEnvProvider(), nil
-	case "docker", "docker-secrets":
+	case "docker", providerDockerSecrets:
 		path := config.DockerSecretsPath
 		if path == "" {
 			path = "/run/secrets"
@@ -59,37 +64,47 @@ func NewProvider(config SecretConfig) (SecretProvider, error) {
 // SecretName constants for all secrets used in the application.
 // This provides type safety and prevents typos when requesting secrets.
 const (
-	// Authentication & Authorization
+	// Authentication & Authorization.
 	SecretJWT = "JWT_SECRET"
 
-	// Database
+	// Database.
 	SecretDBPassword = "DB_PASSWORD"
 
-	// Redis
+	// Redis.
 	SecretRedisPassword = "REDIS_PASSWORD"
 
 	// Object Storage (S3-compatible)
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretS3AccessKey = "S3_ACCESS_KEY"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretS3SecretKey = "S3_SECRET_KEY"
 
 	// IPFS Pinning Services
-	SecretIPFSPinataJWT       = "IPFS_PINATA_JWT"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
+	SecretIPFSPinataJWT = "IPFS_PINATA_JWT"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretIPFSInfuraProjectID = "IPFS_INFURA_PROJECT_ID"
-	SecretIPFSInfuraSecret    = "IPFS_INFURA_PROJECT_SECRET"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
+	SecretIPFSInfuraSecret = "IPFS_INFURA_PROJECT_SECRET"
 
 	// OAuth2 Providers
-	SecretOAuthGoogleClientID     = "OAUTH_GOOGLE_CLIENT_ID"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
+	SecretOAuthGoogleClientID = "OAUTH_GOOGLE_CLIENT_ID"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretOAuthGoogleClientSecret = "OAUTH_GOOGLE_CLIENT_SECRET"
-	SecretOAuthGitHubClientID     = "OAUTH_GITHUB_CLIENT_ID"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
+	SecretOAuthGitHubClientID = "OAUTH_GITHUB_CLIENT_ID"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretOAuthGitHubClientSecret = "OAUTH_GITHUB_CLIENT_SECRET"
 
-	// SMTP Email
+	// SMTP Email.
 	SecretSMTPPassword = "SMTP_PASSWORD"
 
-	// Monitoring (Grafana)
+	// Monitoring (Grafana).
+	//nolint:gosec // G101: Environment variable name, not actual credentials.
 	SecretGrafanaAdminPassword = "GRAFANA_ADMIN_PASSWORD"
 
-	// Backup Encryption
+	// Backup Encryption.
 	SecretBackupS3AccessKey = "BACKUP_S3_ACCESS_KEY"
 	SecretBackupS3SecretKey = "BACKUP_S3_SECRET_KEY"
 )

@@ -179,13 +179,14 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	var status string
 	var httpStatus int
 
-	if criticalDown {
+	switch {
+	case criticalDown:
 		status = "down"
 		httpStatus = http.StatusServiceUnavailable
-	} else if redisDown {
+	case redisDown:
 		status = "degraded"
 		httpStatus = http.StatusOK // Still accepting traffic
-	} else {
+	default:
 		status = "ok"
 		httpStatus = http.StatusOK
 	}
@@ -209,11 +210,12 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 		Bool("clamav_healthy", clamavStatus.Status == "up").
 		Logger()
 
-	if status == "down" {
+	switch status {
+	case "down":
 		logEvent.Warn().Msg("readiness check failed: service down")
-	} else if status == "degraded" {
+	case "degraded":
 		logEvent.Warn().Msg("readiness check degraded: non-critical dependency down")
-	} else {
+	default:
 		logEvent.Debug().Msg("readiness check succeeded")
 	}
 

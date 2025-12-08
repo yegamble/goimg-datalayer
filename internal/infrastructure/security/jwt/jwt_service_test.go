@@ -16,6 +16,8 @@ import (
 )
 
 // generateTestKeys creates RSA key pair for testing
+//
+//nolint:nonamedreturns // Named returns used for assignment in function body
 func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath string) {
 	t.Helper()
 
@@ -28,6 +30,7 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 
 	// Save private key
 	privateKeyPath = filepath.Join(tempDir, "private.pem")
+	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	privateKeyFile, err := os.Create(privateKeyPath)
 	require.NoError(t, err)
 	defer privateKeyFile.Close()
@@ -41,6 +44,7 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 
 	// Save public key
 	publicKeyPath = filepath.Join(tempDir, "public.pem")
+	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	publicKeyFile, err := os.Create(publicKeyPath)
 	require.NoError(t, err)
 	defer publicKeyFile.Close()
@@ -264,8 +268,8 @@ func TestService_GenerateAccessToken(t *testing.T) {
 
 	// Check expiration
 	now := time.Now().UTC()
-	assert.True(t, claims.ExpiresAt.Time.After(now))
-	assert.True(t, claims.ExpiresAt.Time.Before(now.Add(16*time.Minute)))
+	assert.True(t, claims.ExpiresAt.After(now))
+	assert.True(t, claims.ExpiresAt.Before(now.Add(16*time.Minute)))
 }
 
 func TestService_GenerateAccessToken_InvalidInputs(t *testing.T) {
@@ -360,8 +364,8 @@ func TestService_GenerateRefreshToken(t *testing.T) {
 	// Check expiration (should be ~7 days)
 	now := time.Now().UTC()
 	expectedExpiry := now.Add(7 * 24 * time.Hour)
-	assert.True(t, claims.ExpiresAt.Time.After(now))
-	assert.True(t, claims.ExpiresAt.Time.Before(expectedExpiry.Add(time.Minute)))
+	assert.True(t, claims.ExpiresAt.After(now))
+	assert.True(t, claims.ExpiresAt.Before(expectedExpiry.Add(time.Minute)))
 }
 
 func TestService_ValidateToken_InvalidToken(t *testing.T) {

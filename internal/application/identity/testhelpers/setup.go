@@ -51,6 +51,7 @@ type TestSuite struct {
 //	    suite.AssertExpectations()
 //	}
 func NewTestSuite(t *testing.T) *TestSuite {
+	t.Helper()
 	return &TestSuite{
 		// Initialize all mocks
 		UserRepo:            new(MockUserRepository),

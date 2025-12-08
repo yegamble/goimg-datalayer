@@ -21,9 +21,6 @@ type DeleteImageCommand struct {
 	UserRole string
 }
 
-// Implement Command interface
-func (DeleteImageCommand) isCommand() {}
-
 // DeleteImageResult represents the result of a successful image deletion.
 type DeleteImageResult struct {
 	ImageID       string
@@ -176,7 +173,7 @@ func (h *DeleteImageHandler) Handle(ctx context.Context, cmd DeleteImageCommand)
 	image.ClearEvents()
 
 	// 8. Enqueue cleanup job for storage deletion
-	cleanupJobID := ""
+	var cleanupJobID string
 	if err := h.jobEnqueuer.EnqueueImageCleanup(ctx, imageID.String(), storageProvider, storageKeys); err != nil {
 		h.logger.Error().
 			Err(err).

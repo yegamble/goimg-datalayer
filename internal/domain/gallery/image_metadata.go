@@ -54,8 +54,8 @@ type ImageMetadata struct {
 // - width, height: must be > 0 and <= 8192
 // - fileSize: must be > 0 and <= 10MB
 // - total pixels: must be <= 100 million
-// - storageKey: required
-// - storageProvider: required
+// - storageKey: required.
+// - storageProvider: required.
 func NewImageMetadata(
 	title,
 	description,

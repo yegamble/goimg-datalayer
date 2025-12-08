@@ -19,9 +19,6 @@ type GetImageQuery struct {
 	IncrementViewOnly bool   // If true, only increments view count, no authorization check
 }
 
-// Implement Query interface
-func (GetImageQuery) isQuery() {}
-
 // ImageDTO represents the data transfer object for an image.
 // It contains all public information about an image.
 type ImageDTO struct {

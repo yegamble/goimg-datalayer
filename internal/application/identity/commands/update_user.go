@@ -19,9 +19,6 @@ type UpdateUserCommand struct {
 	Bio         *string // Optional: nil means no change
 }
 
-// Implement Command interface
-func (UpdateUserCommand) isCommand() {}
-
 // UpdateUserHandler processes UpdateUserCommand requests.
 // It retrieves a user, applies updates, and persists changes.
 type UpdateUserHandler struct {

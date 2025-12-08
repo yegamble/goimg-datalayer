@@ -78,9 +78,10 @@ func TestImage_AddVariant(t *testing.T) {
 	t.Run("duplicate variant fails", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.AddVariant(variant)
-
 		err := img.AddVariant(variant)
+		require.NoError(t, err)
+
+		err = img.AddVariant(variant)
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrVariantExists)
@@ -99,7 +100,8 @@ func TestImage_GetVariant(t *testing.T) {
 		1000,
 		"jpeg",
 	)
-	img.AddVariant(variant)
+	err := img.AddVariant(variant)
+	require.NoError(t, err)
 
 	t.Run("existing variant", func(t *testing.T) {
 		t.Parallel()
@@ -129,9 +131,10 @@ func TestImage_AddTag(t *testing.T) {
 	t.Run("add first tag", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		err := img.AddTag(tag1)
+		err = img.AddTag(tag1)
 
 		require.NoError(t, err)
 		assert.Len(t, img.Tags(), 1)
@@ -141,10 +144,12 @@ func TestImage_AddTag(t *testing.T) {
 	t.Run("add multiple tags", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		img.AddTag(tag1)
-		err := img.AddTag(tag2)
+		err = img.AddTag(tag1)
+		require.NoError(t, err)
+		err = img.AddTag(tag2)
 
 		require.NoError(t, err)
 		assert.Len(t, img.Tags(), 2)
@@ -153,10 +158,12 @@ func TestImage_AddTag(t *testing.T) {
 	t.Run("duplicate tag fails", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.AddTag(tag1)
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.AddTag(tag1)
+		require.NoError(t, err)
 
-		err := img.AddTag(tag1)
+		err = img.AddTag(tag1)
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrTagAlreadyExists)
@@ -165,10 +172,12 @@ func TestImage_AddTag(t *testing.T) {
 	t.Run("cannot tag deleted image", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.MarkAsDeleted()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.MarkAsDeleted()
+		require.NoError(t, err)
 
-		err := img.AddTag(tag1)
+		err = img.AddTag(tag1)
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrCannotModifyDeleted)
@@ -183,10 +192,12 @@ func TestImage_RemoveTag(t *testing.T) {
 	t.Run("remove existing tag", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.AddTag(tag)
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.AddTag(tag)
+		require.NoError(t, err)
 
-		err := img.RemoveTag(tag)
+		err = img.RemoveTag(tag)
 
 		require.NoError(t, err)
 		assert.Empty(t, img.Tags())
@@ -195,9 +206,10 @@ func TestImage_RemoveTag(t *testing.T) {
 	t.Run("remove non-existing tag is idempotent", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		err := img.RemoveTag(tag)
+		err = img.RemoveTag(tag)
 
 		require.NoError(t, err)
 	})
@@ -209,9 +221,10 @@ func TestImage_UpdateVisibility(t *testing.T) {
 	t.Run("change visibility", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		err := img.UpdateVisibility(gallery.VisibilityPublic)
+		err = img.UpdateVisibility(gallery.VisibilityPublic)
 
 		require.NoError(t, err)
 		assert.Equal(t, gallery.VisibilityPublic, img.Visibility())
@@ -230,10 +243,12 @@ func TestImage_UpdateVisibility(t *testing.T) {
 	t.Run("cannot change visibility of deleted image", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.MarkAsDeleted()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.MarkAsDeleted()
+		require.NoError(t, err)
 
-		err := img.UpdateVisibility(gallery.VisibilityPublic)
+		err = img.UpdateVisibility(gallery.VisibilityPublic)
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrCannotModifyDeleted)
@@ -246,9 +261,10 @@ func TestImage_MarkAsDeleted(t *testing.T) {
 	t.Run("delete active image", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		err := img.MarkAsDeleted()
+		err = img.MarkAsDeleted()
 
 		require.NoError(t, err)
 		assert.Equal(t, gallery.StatusDeleted, img.Status())
@@ -258,10 +274,12 @@ func TestImage_MarkAsDeleted(t *testing.T) {
 	t.Run("cannot delete flagged image", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.Flag()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.Flag()
+		require.NoError(t, err)
 
-		err := img.MarkAsDeleted()
+		err = img.MarkAsDeleted()
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrCannotDeleteFlagged)
@@ -270,10 +288,12 @@ func TestImage_MarkAsDeleted(t *testing.T) {
 	t.Run("delete is idempotent", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.MarkAsDeleted()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.MarkAsDeleted()
+		require.NoError(t, err)
 
-		err := img.MarkAsDeleted()
+		err = img.MarkAsDeleted()
 
 		require.NoError(t, err)
 	})
@@ -285,9 +305,10 @@ func TestImage_UpdateMetadata(t *testing.T) {
 	t.Run("update title and description", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
 
-		err := img.UpdateMetadata("New Title", "New Description")
+		err = img.UpdateMetadata("New Title", "New Description")
 
 		require.NoError(t, err)
 		assert.Equal(t, "New Title", img.Metadata().Title())
@@ -297,10 +318,12 @@ func TestImage_UpdateMetadata(t *testing.T) {
 	t.Run("cannot update deleted image", func(t *testing.T) {
 		t.Parallel()
 		img := createTestImage(t)
-		img.MarkAsActive()
-		img.MarkAsDeleted()
+		err := img.MarkAsActive()
+		require.NoError(t, err)
+		err = img.MarkAsDeleted()
+		require.NoError(t, err)
 
-		err := img.UpdateMetadata("New Title", "New Description")
+		err = img.UpdateMetadata("New Title", "New Description")
 
 		require.Error(t, err)
 		assert.ErrorIs(t, err, gallery.ErrCannotModifyDeleted)
@@ -524,10 +547,12 @@ func TestImage_Flag_Idempotent(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
-	img.Flag()
+	err := img.MarkAsActive()
+	require.NoError(t, err)
+	err = img.Flag()
+	require.NoError(t, err)
 
-	err := img.Flag()
+	err = img.Flag()
 
 	require.NoError(t, err)
 	assert.True(t, img.IsFlagged())

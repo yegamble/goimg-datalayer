@@ -17,6 +17,9 @@ import (
 
 // SQL queries for image operations.
 const (
+	// Query ordering constants.
+	orderByCreatedDesc = " ORDER BY i.created_at DESC"
+
 	sqlInsertImage = `
 		INSERT INTO images (
 			id, owner_id, title, description, storage_provider, storage_key,
@@ -131,7 +134,7 @@ const (
 	// Full-text search query with dynamic filtering
 	// PERFORMANCE NOTE: Uses pre-computed search_vector column with GIN index
 	// instead of calculating to_tsvector at query time (10-50x faster).
-	// See migration 00005_add_performance_indexes.sql
+	// See migration 00005_add_performance_indexes.sql.
 	sqlSearchImagesBase = `
 		SELECT DISTINCT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
 		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,
@@ -599,16 +602,16 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 		if params.Query != "" {
 			query += " ORDER BY relevance_score DESC, i.created_at DESC"
 		} else {
-			query += " ORDER BY i.created_at DESC"
+			query += orderByCreatedDesc
 		}
 	case gallery.SearchSortByCreatedAt:
-		query += " ORDER BY i.created_at DESC"
+		query += orderByCreatedDesc
 	case gallery.SearchSortByViewCount:
 		query += " ORDER BY i.view_count DESC, i.created_at DESC"
 	case gallery.SearchSortByLikeCount:
 		query += " ORDER BY i.view_count DESC, i.created_at DESC" // Using view_count as proxy for now
 	default:
-		query += " ORDER BY i.created_at DESC"
+		query += orderByCreatedDesc
 	}
 
 	// Add pagination

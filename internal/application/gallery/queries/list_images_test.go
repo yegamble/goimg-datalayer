@@ -32,6 +32,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				Limit:  20,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				t.Helper()
 				images := []*gallery.Image{
 					testhelpers.ValidImage(t),
 					testhelpers.ValidImage(t),
@@ -44,6 +45,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ListImagesResult, err error) {
+				t.Helper()
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Len(t, result.Images, 2)
@@ -62,6 +64,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				Limit:   20,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				t.Helper()
 				images := []*gallery.Image{
 					testhelpers.ValidImage(t),
 				}
@@ -74,6 +77,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ListImagesResult, err error) {
+				t.Helper()
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Len(t, result.Images, 1)
@@ -89,6 +93,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				Limit:  20,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				t.Helper()
 				images := []*gallery.Image{
 					testhelpers.ValidImage(t),
 				}
@@ -101,6 +106,7 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.ListImagesResult, err error) {
+				t.Helper()
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.Len(t, result.Images, 1)
@@ -361,12 +367,13 @@ func TestListImagesHandler_Handle(t *testing.T) {
 			result, err := handler.Handle(context.Background(), tt.query)
 
 			// Assert
-			if tt.assert != nil {
+			switch {
+			case tt.assert != nil:
 				tt.assert(t, suite, result, err)
-			} else if tt.wantErr != nil {
+			case tt.wantErr != nil:
 				require.ErrorIs(t, err, tt.wantErr)
 				assert.Nil(t, result)
-			} else {
+			default:
 				require.NoError(t, err)
 				require.NotNil(t, result)
 			}
@@ -377,5 +384,4 @@ func TestListImagesHandler_Handle(t *testing.T) {
 // TestListImagesQuery_Interface verifies the query implements the interface.
 func TestListImagesQuery_Interface(t *testing.T) {
 	t.Parallel()
-
 }

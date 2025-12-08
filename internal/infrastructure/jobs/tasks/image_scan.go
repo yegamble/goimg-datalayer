@@ -182,7 +182,7 @@ func NewImageScanTaskWithOptions(payload ImageScanPayload, opts ...asynq.Option)
 	}
 
 	// Append custom options (they override defaults)
-	allOpts := append(defaultOpts, opts...)
+	defaultOpts = append(defaultOpts, opts...)
 
-	return asynq.NewTask(TypeImageScan, payloadBytes, allOpts...), nil
+	return asynq.NewTask(TypeImageScan, payloadBytes, defaultOpts...), nil
 }

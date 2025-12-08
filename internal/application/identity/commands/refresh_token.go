@@ -27,9 +27,6 @@ type RefreshTokenCommand struct {
 	UserAgent    string
 }
 
-// Implement Command interface from types.go
-func (RefreshTokenCommand) isCommand() {}
-
 // RefreshTokenHandler processes token refresh commands.
 // It implements automatic token rotation with replay attack detection.
 //
@@ -66,7 +63,7 @@ func NewRefreshTokenHandler(
 }
 
 const (
-	// DefaultTokenExpiryMinutes is the default token expiration in minutes
+	// DefaultTokenExpiryMinutes is the default token expiration in minutes.
 	DefaultTokenExpiryMinutes = 15
 )
 
@@ -141,7 +138,7 @@ func (h *RefreshTokenHandler) validateAndCheckReplay(ctx context.Context, cmd Re
 	metadata, err := h.refreshService.ValidateToken(ctx, cmd.RefreshToken)
 	if err != nil {
 		h.logger.Warn().Err(err).Str("ip_address", cmd.IPAddress).Msg("invalid refresh token")
-		return nil, fmt.Errorf("%w: %v", appidentity.ErrInvalidToken, err)
+		return nil, fmt.Errorf("%w: %w", appidentity.ErrInvalidToken, err)
 	}
 
 	if metadata.ExpiresAt.Before(time.Now().UTC()) {
@@ -226,6 +223,9 @@ func (h *RefreshTokenHandler) handleInactiveUser(ctx context.Context, user *iden
 		return appidentity.ErrAccountSuspended
 	case identity.StatusDeleted:
 		return appidentity.ErrAccountDeleted
+	case identity.StatusActive, identity.StatusPending:
+		// CanLogin() should have handled these, but included for exhaustiveness
+		return appidentity.ErrInvalidToken
 	default:
 		return appidentity.ErrInvalidToken
 	}

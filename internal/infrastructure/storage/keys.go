@@ -15,11 +15,14 @@ const (
 
 	// Default fallback filename
 	DefaultFilename = "unnamed.jpg"
+
+	// Format constants.
+	formatJPG = "jpg"
 )
 
 var (
 	// validKeyPattern ensures keys only contain safe characters.
-	// Pattern: images/{uuid}/{uuid}/{variant}.{ext}
+	// Pattern: images/{uuid}/{uuid}/{variant}.{ext}.
 	validKeyPattern = regexp.MustCompile(`^images/[a-f0-9-]{36}/[a-f0-9-]{36}/[a-z]+\.(jpg|jpeg|png|gif|webp)$`)
 
 	// validExtensions lists allowed file extensions.
@@ -46,7 +49,7 @@ func NewKeyGenerator() *KeyGenerator {
 // - Organizes by user (enables bulk operations, quota management)
 // - Unique image ID prevents collisions
 // - Variant type distinguishes sizes
-// - Extension for MIME type sniffing
+// - Extension for MIME type sniffing.
 func (g *KeyGenerator) GenerateKey(ownerID, imageID uuid.UUID, variant, format string) string {
 	format = normalizeFormat(format)
 	return fmt.Sprintf(
@@ -63,7 +66,7 @@ func (g *KeyGenerator) GenerateKey(ownerID, imageID uuid.UUID, variant, format s
 // - Parent directory references (..)
 // - Absolute paths (/)
 // - Null bytes
-// - Invalid characters
+// - Invalid characters.
 func (g *KeyGenerator) ValidateKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("%w: empty key", ErrInvalidKey)
@@ -100,44 +103,40 @@ func (g *KeyGenerator) ValidateKey(key string) error {
 
 // ParseKey extracts components from a storage key.
 // Returns ownerID, imageID, variant, extension, and any error.
-func (g *KeyGenerator) ParseKey(key string) (ownerID, imageID uuid.UUID, variant, ext string, err error) {
+func (g *KeyGenerator) ParseKey(key string) (uuid.UUID, uuid.UUID, string, string, error) {
 	parts := strings.Split(key, "/")
 	if len(parts) != 4 || parts[0] != "images" {
-		err = fmt.Errorf("%w: expected images/{owner}/{image}/{variant}.ext", ErrInvalidKey)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: expected images/{owner}/{image}/{variant}.ext", ErrInvalidKey)
 	}
 
-	ownerID, err = uuid.Parse(parts[1])
+	ownerID, err := uuid.Parse(parts[1])
 	if err != nil {
-		err = fmt.Errorf("%w: invalid owner ID: %v", ErrInvalidKey, err)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: invalid owner ID: %w", ErrInvalidKey, err)
 	}
 
-	imageID, err = uuid.Parse(parts[2])
+	imageID, err := uuid.Parse(parts[2])
 	if err != nil {
-		err = fmt.Errorf("%w: invalid image ID: %v", ErrInvalidKey, err)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: invalid image ID: %w", ErrInvalidKey, err)
 	}
 
 	// Extract variant and extension from filename (e.g., "thumbnail.jpg")
 	filename := parts[3]
-	ext = path.Ext(filename)
-	variant = strings.TrimSuffix(filename, ext)
+	ext := path.Ext(filename)
+	variant := strings.TrimSuffix(filename, ext)
 	ext = strings.TrimPrefix(ext, ".")
 
 	if variant == "" || ext == "" {
-		err = fmt.Errorf("%w: missing variant or extension", ErrInvalidKey)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: missing variant or extension", ErrInvalidKey)
 	}
 
-	return
+	return ownerID, imageID, variant, ext, nil
 }
 
 // normalizeFormat converts MIME types and format names to file extensions.
 func normalizeFormat(format string) string {
 	switch strings.ToLower(format) {
-	case "image/jpeg", "jpeg", "jpg":
-		return "jpg"
+	case "image/jpeg", "jpeg", formatJPG:
+		return formatJPG
 	case "image/png", "png":
 		return "png"
 	case "image/gif", "gif":
@@ -151,7 +150,7 @@ func normalizeFormat(format string) string {
 		if validExtensions["."+format] {
 			return format
 		}
-		return "jpg" // Default fallback
+		return formatJPG // Default fallback
 	}
 }
 
@@ -168,7 +167,7 @@ func SanitizeFilename(filename string) string {
 	return ensureValidFilename(sanitized)
 }
 
-// sanitizeCharacters replaces or removes unsafe characters from a filename
+// sanitizeCharacters replaces or removes unsafe characters from a filename.
 func sanitizeCharacters(filename string) string {
 	var builder strings.Builder
 	for _, r := range filename {
@@ -182,7 +181,7 @@ func sanitizeCharacters(filename string) string {
 	return builder.String()
 }
 
-// isSafeCharacter returns true if the character is safe for filenames
+// isSafeCharacter returns true if the character is safe for filenames.
 func isSafeCharacter(r rune) bool {
 	return (r >= 'a' && r <= 'z') ||
 		(r >= 'A' && r <= 'Z') ||
@@ -190,7 +189,7 @@ func isSafeCharacter(r rune) bool {
 		r == '.' || r == '-' || r == '_'
 }
 
-// ensureValidFilename ensures the filename has an extension and valid length
+// ensureValidFilename ensures the filename has an extension and valid length.
 func ensureValidFilename(filename string) string {
 	// Ensure the filename has an extension
 	if !strings.Contains(filename, ".") {
@@ -210,7 +209,7 @@ func ensureValidFilename(filename string) string {
 	return filename
 }
 
-// truncateFilename shortens a filename while preserving its extension
+// truncateFilename shortens a filename while preserving its extension.
 func truncateFilename(filename string) string {
 	ext := path.Ext(filename)
 	maxNameLength := MaxFilenameLength - len(ext)

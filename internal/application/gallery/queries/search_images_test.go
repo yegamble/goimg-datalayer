@@ -33,7 +33,7 @@ func (m *MockImageRepository) FindByID(ctx context.Context, id gallery.ImageID) 
 		if err := args.Error(1); err != nil {
 			return nil, fmt.Errorf("mock FindByID: %w", err)
 		}
-		return nil, nil
+		return nil, errors.New("mock: no image found")
 	}
 	if err := args.Error(1); err != nil {
 		return args.Get(0).(*gallery.Image), fmt.Errorf("mock FindByID: %w", err)
@@ -260,7 +260,7 @@ func TestSearchImagesHandler_Handle_InvalidVisibility(t *testing.T) {
 	result, err := handler.Handle(context.Background(), query)
 
 	// Assert
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "invalid visibility")
 
@@ -288,7 +288,7 @@ func TestSearchImagesHandler_Handle_InvalidTag(t *testing.T) {
 	result, err := handler.Handle(context.Background(), query)
 
 	// Assert
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "invalid tag")
 
@@ -348,7 +348,7 @@ func TestSearchImagesHandler_Handle_SearchError(t *testing.T) {
 	result, err := handler.Handle(context.Background(), query)
 
 	// Assert
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "search images")
 

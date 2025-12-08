@@ -451,7 +451,7 @@ func TestReport_ClearEvents(t *testing.T) {
 	assert.Empty(t, report.Events())
 }
 
-// Helper function to create a test report
+// Helper function to create a test report.
 func createTestReport(t *testing.T) *moderation.Report {
 	t.Helper()
 

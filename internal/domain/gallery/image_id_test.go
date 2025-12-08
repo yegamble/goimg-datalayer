@@ -262,7 +262,7 @@ func TestCommentID_Equals(t *testing.T) {
 	assert.False(t, id1.Equals(id3))
 }
 
-// Test that IDs are type-safe (different types cannot be compared)
+// Test that IDs are type-safe (different types cannot be compared).
 func TestID_TypeSafety(t *testing.T) {
 	t.Parallel()
 

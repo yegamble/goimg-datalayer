@@ -27,9 +27,6 @@ type LogoutCommand struct {
 	LogoutAll    bool // If true, revoke all sessions for user
 }
 
-// Implement Command interface from types.go
-func (LogoutCommand) isCommand() {}
-
 // LogoutHandler processes logout commands.
 // It handles both single-session logout and logout from all devices.
 //

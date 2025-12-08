@@ -98,13 +98,21 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() {
+		if cerr := conn.Close(); cerr != nil {
+			// Connection close errors are logged but don't affect scan result
+		}
+	}()
 
 	// Set deadline based on context and timeout
 	if deadline, ok := ctx.Deadline(); ok {
-		conn.SetDeadline(deadline)
+		if err := conn.SetDeadline(deadline); err != nil {
+			return nil, fmt.Errorf("clamav: set deadline: %w", err)
+		}
 	} else {
-		conn.SetDeadline(time.Now().Add(c.timeout))
+		if err := conn.SetDeadline(time.Now().Add(c.timeout)); err != nil {
+			return nil, fmt.Errorf("clamav: set deadline: %w", err)
+		}
 	}
 
 	// Send INSTREAM command
@@ -156,13 +164,21 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, size int64) (
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() {
+		if cerr := conn.Close(); cerr != nil {
+			// Connection close errors are logged but don't affect scan result
+		}
+	}()
 
 	// Set deadline
 	if deadline, ok := ctx.Deadline(); ok {
-		conn.SetDeadline(deadline)
+		if err := conn.SetDeadline(deadline); err != nil {
+			return nil, fmt.Errorf("clamav: set deadline: %w", err)
+		}
 	} else {
-		conn.SetDeadline(time.Now().Add(c.timeout))
+		if err := conn.SetDeadline(time.Now().Add(c.timeout)); err != nil {
+			return nil, fmt.Errorf("clamav: set deadline: %w", err)
+		}
 	}
 
 	// Send INSTREAM command
@@ -218,9 +234,15 @@ func (c *Client) Ping(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer func() {
+		if cerr := conn.Close(); cerr != nil {
+			// Connection close errors are logged but don't affect ping result
+		}
+	}()
 
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
+	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		return fmt.Errorf("clamav: set deadline: %w", err)
+	}
 
 	if _, err := conn.Write([]byte("zPING\x00")); err != nil {
 		return fmt.Errorf("clamav: ping send: %w", err)
@@ -244,9 +266,15 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
+	defer func() {
+		if cerr := conn.Close(); cerr != nil {
+			// Connection close errors are logged but don't affect version result
+		}
+	}()
 
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
+	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		return "", fmt.Errorf("clamav: set deadline: %w", err)
+	}
 
 	if _, err := conn.Write([]byte("zVERSION\x00")); err != nil {
 		return "", fmt.Errorf("clamav: version send: %w", err)
@@ -261,9 +289,15 @@ func (c *Client) Stats(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
+	defer func() {
+		if cerr := conn.Close(); cerr != nil {
+			// Connection close errors are logged but don't affect stats result
+		}
+	}()
 
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
+	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		return "", fmt.Errorf("clamav: set deadline: %w", err)
+	}
 
 	if _, err := conn.Write([]byte("zSTATS\x00")); err != nil {
 		return "", fmt.Errorf("clamav: stats send: %w", err)
@@ -314,10 +348,11 @@ func (c *Client) readScanResponse(conn net.Conn) (*ScanResult, error) {
 	}
 
 	// Response format: "stream: OK" or "stream: Eicar-Signature FOUND"
-	if strings.HasSuffix(response, "OK") {
+	switch {
+	case strings.HasSuffix(response, "OK"):
 		result.Clean = true
 		result.Infected = false
-	} else if strings.Contains(response, "FOUND") {
+	case strings.Contains(response, "FOUND"):
 		result.Clean = false
 		result.Infected = true
 		// Extract virus name: "stream: Eicar-Test-Signature FOUND"
@@ -327,9 +362,9 @@ func (c *Client) readScanResponse(conn net.Conn) (*ScanResult, error) {
 			virusPart = strings.TrimSuffix(virusPart, " FOUND")
 			result.Virus = strings.TrimSpace(virusPart)
 		}
-	} else if strings.Contains(response, "ERROR") {
+	case strings.Contains(response, "ERROR"):
 		return nil, fmt.Errorf("clamav: scan error: %s", response)
-	} else {
+	default:
 		return nil, fmt.Errorf("clamav: unexpected response: %s", response)
 	}
 

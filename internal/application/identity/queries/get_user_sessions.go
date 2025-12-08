@@ -16,9 +16,6 @@ type GetUserSessionsQuery struct {
 	RequestorID uuid.UUID // Who is requesting (for authorization)
 }
 
-// Implement Query interface
-func (GetUserSessionsQuery) isQuery() {}
-
 // GetUserSessionsHandler processes GetUserSessionsQuery requests.
 // It retrieves all active sessions for a user from Redis.
 type GetUserSessionsHandler struct {

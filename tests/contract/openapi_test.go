@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestMain loads the OpenAPI spec once for all tests
+// TestMain loads the OpenAPI spec once for all tests.
 var (
 	loader *openapi3.Loader
 	doc    *openapi3.T
@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// getSpecPath returns the absolute path to the OpenAPI spec
+// getSpecPath returns the absolute path to the OpenAPI spec.
 func getSpecPath() string {
 	// Navigate from tests/contract/ to api/openapi/openapi.yaml
 	dir, err := os.Getwd()
@@ -64,7 +64,7 @@ func getSpecPath() string {
 	return filepath.Join(dir, "..", "..", "api", "openapi", "openapi.yaml")
 }
 
-// TestOpenAPISpecLoads verifies the OpenAPI spec can be loaded and is valid
+// TestOpenAPISpecLoads verifies the OpenAPI spec can be loaded and is valid.
 func TestOpenAPISpecLoads(t *testing.T) {
 	t.Parallel()
 
@@ -74,7 +74,7 @@ func TestOpenAPISpecLoads(t *testing.T) {
 	assert.Equal(t, "1.0.0", doc.Info.Version)
 }
 
-// TestEndpointDefinitions verifies all expected endpoints are defined in the spec
+// TestEndpointDefinitions verifies all expected endpoints are defined in the spec.
 func TestEndpointDefinitions(t *testing.T) {
 	t.Parallel()
 
@@ -132,7 +132,7 @@ func TestEndpointDefinitions(t *testing.T) {
 	}
 }
 
-// TestAuthEndpointsContract tests contract compliance for authentication endpoints
+// TestAuthEndpointsContract tests contract compliance for authentication endpoints.
 func TestAuthEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -209,7 +209,7 @@ func TestAuthEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestUserEndpointsContract tests contract compliance for user endpoints
+// TestUserEndpointsContract tests contract compliance for user endpoints.
 func TestUserEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -271,7 +271,7 @@ func TestUserEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestImageEndpointsContract tests contract compliance for image endpoints
+// TestImageEndpointsContract tests contract compliance for image endpoints.
 func TestImageEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -370,7 +370,7 @@ func TestImageEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestAlbumEndpointsContract tests contract compliance for album endpoints
+// TestAlbumEndpointsContract tests contract compliance for album endpoints.
 func TestAlbumEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -486,7 +486,7 @@ func TestAlbumEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestSocialEndpointsContract tests contract compliance for social endpoints
+// TestSocialEndpointsContract tests contract compliance for social endpoints.
 func TestSocialEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -577,7 +577,7 @@ func TestSocialEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestTagEndpointsContract tests contract compliance for tag endpoints
+// TestTagEndpointsContract tests contract compliance for tag endpoints.
 func TestTagEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -626,7 +626,7 @@ func TestTagEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestUserSessionsEndpointsContract tests contract compliance for user session endpoints
+// TestUserSessionsEndpointsContract tests contract compliance for user session endpoints.
 func TestUserSessionsEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -662,7 +662,7 @@ func TestUserSessionsEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestModerationEndpointsContract tests contract compliance for moderation endpoints
+// TestModerationEndpointsContract tests contract compliance for moderation endpoints.
 func TestModerationEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -759,7 +759,7 @@ func TestModerationEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestExploreEndpointsContract tests contract compliance for explore endpoints
+// TestExploreEndpointsContract tests contract compliance for explore endpoints.
 func TestExploreEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -799,7 +799,7 @@ func TestExploreEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestHealthEndpointsContract tests contract compliance for health endpoints
+// TestHealthEndpointsContract tests contract compliance for health endpoints.
 func TestHealthEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -840,7 +840,7 @@ func TestHealthEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestComponentSchemas verifies all component schemas are properly defined
+// TestComponentSchemas verifies all component schemas are properly defined.
 func TestComponentSchemas(t *testing.T) {
 	t.Parallel()
 
@@ -862,6 +862,8 @@ func TestComponentSchemas(t *testing.T) {
 
 	for _, schemaName := range requiredSchemas {
 		t.Run(schemaName, func(t *testing.T) {
+			t.Parallel()
+
 			schema := doc.Components.Schemas[schemaName]
 			assert.NotNil(t, schema, "Schema %s should be defined in components", schemaName)
 
@@ -872,7 +874,7 @@ func TestComponentSchemas(t *testing.T) {
 	}
 }
 
-// TestProblemDetailSchema validates RFC 7807 error schema
+// TestProblemDetailSchema validates RFC 7807 error schema.
 func TestProblemDetailSchema(t *testing.T) {
 	t.Parallel()
 
@@ -894,7 +896,7 @@ func TestProblemDetailSchema(t *testing.T) {
 	}
 }
 
-// TestSecuritySchemes verifies security schemes are properly defined
+// TestSecuritySchemes verifies security schemes are properly defined.
 func TestSecuritySchemes(t *testing.T) {
 	t.Parallel()
 
@@ -907,7 +909,7 @@ func TestSecuritySchemes(t *testing.T) {
 	assert.Equal(t, "JWT", bearerAuth.Value.BearerFormat)
 }
 
-// TestPaginationParameters verifies pagination parameters are properly defined
+// TestPaginationParameters verifies pagination parameters are properly defined.
 func TestPaginationParameters(t *testing.T) {
 	t.Parallel()
 
@@ -938,6 +940,8 @@ func TestPaginationParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			param := doc.Components.Parameters[tt.paramName]
 			require.NotNil(t, param, "Parameter %s should be defined", tt.paramName)
 			require.NotNil(t, param.Value, "Parameter %s should have value", tt.paramName)
@@ -959,7 +963,7 @@ func TestPaginationParameters(t *testing.T) {
 
 // Helper Functions
 
-// validateEndpointContract validates that an endpoint's contract matches the spec
+// validateEndpointContract validates that an endpoint's contract matches the spec.
 func validateEndpointContract(
 	t *testing.T,
 	path, method string,
@@ -981,9 +985,10 @@ func validateEndpointContract(
 	if requiresAuth {
 		// Check if operation has explicit security or inherits from global
 		hasExplicitSecurity := operation.Security != nil && len(*operation.Security) > 0
-		hasGlobalSecurity := doc.Security != nil && len(doc.Security) > 0
+		hasGlobalSecurity := len(doc.Security) > 0
 
-		if hasExplicitSecurity {
+		switch {
+		case hasExplicitSecurity:
 			// Check if any security requirement includes bearerAuth
 			foundBearer := false
 			for _, secReq := range *operation.Security {
@@ -993,30 +998,29 @@ func validateEndpointContract(
 				}
 			}
 			assert.True(t, foundBearer, "Endpoint %s %s should use bearerAuth (found %d security requirements)", method, path, len(*operation.Security))
-		} else if hasGlobalSecurity {
+		case hasGlobalSecurity:
 			// Inherits from global security
 			secReq := doc.Security[0]
 			_, hasBearer := secReq["bearerAuth"]
 			assert.True(t, hasBearer, "Endpoint %s %s should inherit bearerAuth from global", method, path)
-		} else {
+		default:
 			assert.Fail(t, fmt.Sprintf("Endpoint %s %s should require authentication", method, path))
 		}
-	} else {
+	} else if operation.Security != nil && len(*operation.Security) > 0 {
 		// Public endpoints can have:
 		// 1. Empty security (explicitly override global)
 		// 2. Security with empty object {} (public access)
 		// 3. Security with both {} and bearerAuth (optional auth)
-		if operation.Security != nil && len(*operation.Security) > 0 {
-			// Check if any security requirement is empty {} (public access)
-			hasPublicAccess := false
-			for _, secReq := range *operation.Security {
-				if len(secReq) == 0 {
-					hasPublicAccess = true
-					break
-				}
+
+		// Check if any security requirement is empty {} (public access)
+		hasPublicAccess := false
+		for _, secReq := range *operation.Security {
+			if len(secReq) == 0 {
+				hasPublicAccess = true
+				break
 			}
-			assert.True(t, hasPublicAccess, "Public endpoint %s %s should have {} security requirement for public access", method, path)
 		}
+		assert.True(t, hasPublicAccess, "Public endpoint %s %s should have {} security requirement for public access", method, path)
 	}
 
 	// Validate request schema if provided
@@ -1047,16 +1051,17 @@ func validateEndpointContract(
 
 		if response != nil && response.Value != nil {
 			// Special cases that don't have content
-			if schemaName == "no_content" {
+			switch schemaName {
+			case "no_content":
 				assert.Nil(t, response.Value.Content, "Response %s should have no content for %s %s", statusCodeStr, method, path)
-			} else if schemaName == "image_binary" {
+			case "image_binary":
 				// Image binary response
 				content := response.Value.Content
 				if content != nil {
 					hasImageContent := content.Get("image/jpeg") != nil || content.Get("image/png") != nil
 					assert.True(t, hasImageContent, "Response %s should have image content for %s %s", statusCodeStr, method, path)
 				}
-			} else {
+			default:
 				// JSON responses
 				jsonContent := response.Value.Content.Get("application/json")
 				if jsonContent != nil {
@@ -1072,53 +1077,19 @@ func validateEndpointContract(
 	assert.NotEmpty(t, operation.Tags, "Operation %s %s should have tags", method, path)
 }
 
-// validateRequestSchema validates request body schema structure
-func validateRequestSchema(t *testing.T, schema *openapi3.SchemaRef, expectedFields map[string]interface{}) {
-	t.Helper()
-
-	require.NotNil(t, schema, "Schema should not be nil")
-	require.NotNil(t, schema.Value, "Schema value should not be nil")
-
-	for fieldName, expectedType := range expectedFields {
-		prop, exists := schema.Value.Properties[fieldName]
-		assert.True(t, exists, "Field %s should exist in schema", fieldName)
-
-		if exists && prop != nil && prop.Value != nil {
-			actualType := prop.Value.Type.Slice()[0]
-			assert.Equal(t, expectedType, actualType, "Field %s should have type %s", fieldName, expectedType)
-		}
-	}
-}
-
-// validateResponseSchema validates response schema structure
-func validateResponseSchema(t *testing.T, schema *openapi3.SchemaRef, schemaName string) {
-	t.Helper()
-
-	require.NotNil(t, schema, "Response schema should not be nil")
-
-	// For schema references, verify they exist in components
-	if schema.Ref != "" {
-		refName := extractSchemaName(schema.Ref)
-		componentSchema := doc.Components.Schemas[refName]
-		assert.NotNil(t, componentSchema, "Referenced schema %s should exist in components", refName)
-	} else {
-		assert.NotNil(t, schema.Value, "Inline schema should have value")
-	}
-}
-
-// extractSchemaName extracts schema name from reference string
+// extractSchemaName extracts schema name from reference string.
 func extractSchemaName(ref string) string {
 	// Format: #/components/schemas/SchemaName
 	parts := filepath.Base(ref)
 	return parts
 }
 
-// int64Ptr returns a pointer to an int64 value
+// int64Ptr returns a pointer to an int64 value.
 func int64Ptr(i int64) *int64 {
 	return &i
 }
 
-// TestRequestValidation tests request validation against OpenAPI spec
+// TestRequestValidation tests request validation against OpenAPI spec.
 func TestRequestValidation(t *testing.T) {
 	t.Parallel()
 
@@ -1204,7 +1175,7 @@ func TestRequestValidation(t *testing.T) {
 	}
 }
 
-// mustCreateRequest creates an HTTP request for testing
+// mustCreateRequest creates an HTTP request for testing.
 func mustCreateRequest(t *testing.T, method, path string, body []byte) *http.Request {
 	t.Helper()
 
@@ -1226,7 +1197,7 @@ func mustCreateRequest(t *testing.T, method, path string, body []byte) *http.Req
 	return req
 }
 
-// TestResponseSchemaCompliance validates that all response schemas are properly defined
+// TestResponseSchemaCompliance validates that all response schemas are properly defined.
 func TestResponseSchemaCompliance(t *testing.T) {
 	t.Parallel()
 
@@ -1276,7 +1247,7 @@ func TestResponseSchemaCompliance(t *testing.T) {
 	t.Logf("Found %d unique response schemas in use", len(responseSchemas))
 }
 
-// TestErrorResponseCompliance validates that all error responses follow RFC 7807
+// TestErrorResponseCompliance validates that all error responses follow RFC 7807.
 func TestErrorResponseCompliance(t *testing.T) {
 	t.Parallel()
 
@@ -1329,7 +1300,7 @@ func TestErrorResponseCompliance(t *testing.T) {
 	}
 }
 
-// TestQueryParameterValidation validates query parameter definitions
+// TestQueryParameterValidation validates query parameter definitions.
 func TestQueryParameterValidation(t *testing.T) {
 	t.Parallel()
 
@@ -1435,7 +1406,7 @@ func TestQueryParameterValidation(t *testing.T) {
 	}
 }
 
-// TestOptionalAuthenticationEndpoints validates endpoints with optional authentication
+// TestOptionalAuthenticationEndpoints validates endpoints with optional authentication.
 func TestOptionalAuthenticationEndpoints(t *testing.T) {
 	t.Parallel()
 
@@ -1488,7 +1459,7 @@ func TestOptionalAuthenticationEndpoints(t *testing.T) {
 	}
 }
 
-// TestMediaTypeCompliance validates content types are properly defined
+// TestMediaTypeCompliance validates content types are properly defined.
 func TestMediaTypeCompliance(t *testing.T) {
 	t.Parallel()
 
@@ -1543,7 +1514,7 @@ func TestMediaTypeCompliance(t *testing.T) {
 	}
 }
 
-// TestSchemaRequiredFields validates that required fields are properly marked
+// TestSchemaRequiredFields validates that required fields are properly marked.
 func TestSchemaRequiredFields(t *testing.T) {
 	t.Parallel()
 
@@ -1590,7 +1561,7 @@ func TestSchemaRequiredFields(t *testing.T) {
 	}
 }
 
-// TestEndpointCoverage ensures all paths in spec have corresponding tests
+// TestEndpointCoverage ensures all paths in spec have corresponding tests.
 func TestEndpointCoverage(t *testing.T) {
 	t.Parallel()
 

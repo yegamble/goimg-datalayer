@@ -303,7 +303,7 @@ func LoginRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 }
 
 // checkRateLimit performs the rate limit check using Redis fixed window algorithm.
-// Returns: (allowed bool, info *RateLimitInfo, error)
+// Returns: (allowed bool, info *RateLimitInfo, error).
 func checkRateLimit(
 	ctx context.Context,
 	redisClient *redis.Client,
