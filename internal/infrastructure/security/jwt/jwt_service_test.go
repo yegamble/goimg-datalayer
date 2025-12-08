@@ -264,8 +264,8 @@ func TestService_GenerateAccessToken(t *testing.T) {
 
 	// Check expiration
 	now := time.Now().UTC()
-	assert.True(t, claims.ExpiresAt.Time.After(now))
-	assert.True(t, claims.ExpiresAt.Time.Before(now.Add(16*time.Minute)))
+	assert.True(t, claims.ExpiresAt.After(now))
+	assert.True(t, claims.ExpiresAt.Before(now.Add(16*time.Minute)))
 }
 
 func TestService_GenerateAccessToken_InvalidInputs(t *testing.T) {
@@ -360,8 +360,8 @@ func TestService_GenerateRefreshToken(t *testing.T) {
 	// Check expiration (should be ~7 days)
 	now := time.Now().UTC()
 	expectedExpiry := now.Add(7 * 24 * time.Hour)
-	assert.True(t, claims.ExpiresAt.Time.After(now))
-	assert.True(t, claims.ExpiresAt.Time.Before(expectedExpiry.Add(time.Minute)))
+	assert.True(t, claims.ExpiresAt.After(now))
+	assert.True(t, claims.ExpiresAt.Before(expectedExpiry.Add(time.Minute)))
 }
 
 func TestService_ValidateToken_InvalidToken(t *testing.T) {

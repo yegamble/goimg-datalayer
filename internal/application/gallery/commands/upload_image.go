@@ -30,9 +30,6 @@ type UploadImageCommand struct {
 	Height      int
 }
 
-// Implement Command interface
-func (UploadImageCommand) isCommand() {}
-
 // UploadImageResult represents the result of a successful image upload.
 type UploadImageResult struct {
 	ImageID string

@@ -23,9 +23,6 @@ type RegisterUserCommand struct {
 	UserAgent string
 }
 
-// Implement Command interface from types.go
-func (RegisterUserCommand) isCommand() {}
-
 // RegisterUserHandler processes user registration commands.
 // It orchestrates the registration workflow: validation, uniqueness checks,
 // password hashing, user creation, and event publishing.

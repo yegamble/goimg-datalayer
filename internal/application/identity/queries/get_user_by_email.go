@@ -14,9 +14,6 @@ type GetUserByEmailQuery struct {
 	Email string
 }
 
-// Implement Query interface
-func (GetUserByEmailQuery) isQuery() {}
-
 // GetUserByEmailHandler processes GetUserByEmailQuery requests.
 // It retrieves a user by email and converts it to a DTO.
 type GetUserByEmailHandler struct {

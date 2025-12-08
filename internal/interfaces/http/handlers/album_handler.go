@@ -441,17 +441,7 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 	// 6. Convert query result DTOs to handler DTOs
 	albumDTOs := make([]AlbumDTO, len(result.Albums))
 	for i, album := range result.Albums {
-		albumDTOs[i] = AlbumDTO{
-			ID:           album.ID,
-			OwnerID:      album.OwnerID,
-			Title:        album.Title,
-			Description:  album.Description,
-			Visibility:   album.Visibility,
-			CoverImageID: album.CoverImageID,
-			ImageCount:   album.ImageCount,
-			CreatedAt:    album.CreatedAt,
-			UpdatedAt:    album.UpdatedAt,
-		}
+		albumDTOs[i] = album
 	}
 
 	// 7. Calculate hasMore
@@ -784,14 +774,7 @@ func (h *AlbumHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 func convertVariantDTOs(variants []queries.VariantDTO) []VariantDTO {
 	result := make([]VariantDTO, len(variants))
 	for i, v := range variants {
-		result[i] = VariantDTO{
-			Type:       v.Type,
-			StorageKey: v.StorageKey,
-			Width:      v.Width,
-			Height:     v.Height,
-			FileSize:   v.FileSize,
-			Format:     v.Format,
-		}
+		result[i] = v
 	}
 	return result
 }
@@ -800,10 +783,7 @@ func convertVariantDTOs(variants []queries.VariantDTO) []VariantDTO {
 func convertTagDTOs(tags []queries.TagDTO) []TagDTO {
 	result := make([]TagDTO, len(tags))
 	for i, t := range tags {
-		result[i] = TagDTO{
-			Name: t.Name,
-			Slug: t.Slug,
-		}
+		result[i] = t
 	}
 	return result
 }

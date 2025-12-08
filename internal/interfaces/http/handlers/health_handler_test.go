@@ -16,25 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
 // Mock implementations for testing
-
-// mockRedisClient wraps the real redis.Client to override health check behavior
-type mockRedisClient struct {
-	client           *redis.Client
-	healthCheckError error
-}
-
-func newMockRedisClient(healthCheckError error) *redis.Client {
-	// We can't properly mock redis.Client without a real connection
-	// For unit tests, we'll create a minimal implementation
-	// For integration tests, use real Redis with testcontainers
-	return nil
-}
 
 type mockStorage struct {
 	existsError error

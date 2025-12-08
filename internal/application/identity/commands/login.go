@@ -25,9 +25,6 @@ type LoginCommand struct {
 	UserAgent  string
 }
 
-// Implement Command interface from types.go
-func (LoginCommand) isCommand() {}
-
 // LoginHandler processes login commands.
 // It orchestrates the authentication workflow: credential validation,
 // status checks, token generation, and session creation.

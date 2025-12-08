@@ -31,9 +31,6 @@ type ListImagesQuery struct {
 	SortOrder string // Options: "asc", "desc" (default: desc)
 }
 
-// Implement Query interface
-func (ListImagesQuery) isQuery() {}
-
 // ListImagesResult represents the paginated result of a list query.
 type ListImagesResult struct {
 	Images     []ImageDTO `json:"images"`

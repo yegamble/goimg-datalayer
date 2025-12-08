@@ -16,9 +16,6 @@ type GetUserQuery struct {
 	RequestorID uuid.UUID // Who is requesting (for authorization/audit)
 }
 
-// Implement Query interface
-func (GetUserQuery) isQuery() {}
-
 // GetUserHandler processes GetUserQuery requests.
 // It retrieves a user from the repository and converts it to a DTO.
 type GetUserHandler struct {

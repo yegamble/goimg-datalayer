@@ -981,7 +981,7 @@ func validateEndpointContract(
 	if requiresAuth {
 		// Check if operation has explicit security or inherits from global
 		hasExplicitSecurity := operation.Security != nil && len(*operation.Security) > 0
-		hasGlobalSecurity := doc.Security != nil && len(doc.Security) > 0
+		hasGlobalSecurity := len(doc.Security) > 0
 
 		if hasExplicitSecurity {
 			// Check if any security requirement includes bearerAuth
@@ -1070,40 +1070,6 @@ func validateEndpointContract(
 	assert.NotEmpty(t, operation.Summary, "Operation %s %s should have summary", method, path)
 	assert.NotEmpty(t, operation.OperationID, "Operation %s %s should have operationId", method, path)
 	assert.NotEmpty(t, operation.Tags, "Operation %s %s should have tags", method, path)
-}
-
-// validateRequestSchema validates request body schema structure
-func validateRequestSchema(t *testing.T, schema *openapi3.SchemaRef, expectedFields map[string]interface{}) {
-	t.Helper()
-
-	require.NotNil(t, schema, "Schema should not be nil")
-	require.NotNil(t, schema.Value, "Schema value should not be nil")
-
-	for fieldName, expectedType := range expectedFields {
-		prop, exists := schema.Value.Properties[fieldName]
-		assert.True(t, exists, "Field %s should exist in schema", fieldName)
-
-		if exists && prop != nil && prop.Value != nil {
-			actualType := prop.Value.Type.Slice()[0]
-			assert.Equal(t, expectedType, actualType, "Field %s should have type %s", fieldName, expectedType)
-		}
-	}
-}
-
-// validateResponseSchema validates response schema structure
-func validateResponseSchema(t *testing.T, schema *openapi3.SchemaRef, schemaName string) {
-	t.Helper()
-
-	require.NotNil(t, schema, "Response schema should not be nil")
-
-	// For schema references, verify they exist in components
-	if schema.Ref != "" {
-		refName := extractSchemaName(schema.Ref)
-		componentSchema := doc.Components.Schemas[refName]
-		assert.NotNil(t, componentSchema, "Referenced schema %s should exist in components", refName)
-	} else {
-		assert.NotNil(t, schema.Value, "Inline schema should have value")
-	}
 }
 
 // extractSchemaName extracts schema name from reference string

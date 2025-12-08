@@ -144,7 +144,7 @@ func (s *SessionStore) Revoke(ctx context.Context, sessionID string) error {
 	session, err := s.Get(ctx, sessionID)
 	if err != nil {
 		// Session might already be expired or not exist
-		return nil
+		return fmt.Errorf("get session: %w", err)
 	}
 
 	// Delete session

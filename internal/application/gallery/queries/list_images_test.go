@@ -377,5 +377,4 @@ func TestListImagesHandler_Handle(t *testing.T) {
 // TestListImagesQuery_Interface verifies the query implements the interface.
 func TestListImagesQuery_Interface(t *testing.T) {
 	t.Parallel()
-
 }

@@ -255,7 +255,7 @@ func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 	require.NoError(t, err)
 
 	// This token should not validate because the family was revoked
-	metadata, err = service.ValidateToken(ctx, token2)
+	_, err = service.ValidateToken(ctx, token2)
 	require.Error(t, err)
 }
 

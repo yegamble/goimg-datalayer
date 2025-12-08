@@ -191,19 +191,3 @@ func bimgTypeToString(t bimg.ImageType) string {
 		return "unknown"
 	}
 }
-
-// stringToBimgType converts string format to bimg.ImageType.
-func stringToBimgType(format string) bimg.ImageType {
-	switch format {
-	case "jpeg", "jpg":
-		return bimg.JPEG
-	case "png":
-		return bimg.PNG
-	case "webp":
-		return bimg.WEBP
-	case "gif":
-		return bimg.GIF
-	default:
-		return bimg.UNKNOWN
-	}
-}

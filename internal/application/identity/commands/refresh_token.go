@@ -27,9 +27,6 @@ type RefreshTokenCommand struct {
 	UserAgent    string
 }
 
-// Implement Command interface from types.go
-func (RefreshTokenCommand) isCommand() {}
-
 // RefreshTokenHandler processes token refresh commands.
 // It implements automatic token rotation with replay attack detection.
 //

@@ -24,9 +24,6 @@ type UpdateImageCommand struct {
 	Tags        []string // If non-nil, replaces all existing tags
 }
 
-// Implement Command interface
-func (UpdateImageCommand) isCommand() {}
-
 // UpdateImageResult represents the result of a successful image update.
 type UpdateImageResult struct {
 	ImageID    string
