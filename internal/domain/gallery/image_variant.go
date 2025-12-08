@@ -19,8 +19,8 @@ type ImageVariant struct {
 // - variantType: must be a valid VariantType
 // - storageKey: required
 // - width, height: must be positive
-// - fileSize: must be positive
-// - format: required (normalized to lowercase)
+// - fileSize: must be positive.
+// - format: required (normalized to lowercase).
 func NewImageVariant(
 	variantType VariantType,
 	storageKey string,

@@ -102,8 +102,9 @@ func TestPutBytes_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Verify file exists
+	// Verify file exists.
 	fullPath := storage.fullPath(key)
+	//nolint:gosec // G304: Test helper - path is controlled by test.
 	data, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)

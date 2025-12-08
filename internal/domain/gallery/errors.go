@@ -49,16 +49,16 @@ var (
 	ErrInvalidVisibility  = errors.New("invalid visibility value")
 	ErrInvalidImageStatus = errors.New("invalid image status")
 
-	// Album validation errors
+	// Album validation errors.
 	ErrAlbumTitleRequired = errors.New("album title is required")
 	ErrAlbumTitleTooLong  = errors.New("album title exceeds 255 characters")
 	ErrAlbumDescTooLong   = errors.New("album description exceeds 2000 characters")
 
-	// Comment validation errors
+	// Comment validation errors.
 	ErrCommentRequired = errors.New("comment content is required")
 	ErrCommentTooLong  = errors.New("comment exceeds 1000 characters")
 
-	// Business rule violations
+	// Business rule violations.
 	ErrUnauthorizedAccess  = errors.New("unauthorized to access this resource")
 	ErrCannotModifyDeleted = errors.New("cannot modify deleted image")
 	ErrCannotDeleteFlagged = errors.New("cannot delete flagged image")

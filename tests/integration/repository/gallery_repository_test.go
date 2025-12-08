@@ -39,7 +39,7 @@ func createTestMetadata(title string) gallery.ImageMetadata {
 	return metadata
 }
 
-// createTestImage creates a test image entity
+// createTestImage creates a test image entity.
 func createTestImage(ownerID identity.UserID, title string) *gallery.Image {
 	metadata := createTestMetadata(title)
 	img, err := gallery.NewImage(ownerID, metadata)
@@ -49,7 +49,7 @@ func createTestImage(ownerID identity.UserID, title string) *gallery.Image {
 	return img
 }
 
-// createTestImageWithStatus creates a test image with a specific status
+// createTestImageWithStatus creates a test image with a specific status.
 func createTestImageWithStatus(ownerID identity.UserID, title string, status gallery.ImageStatus) *gallery.Image {
 	img := createTestImage(ownerID, title)
 
@@ -70,7 +70,7 @@ func createTestImageWithStatus(ownerID identity.UserID, title string, status gal
 	return img
 }
 
-// createTestImageWithVisibility creates a test image with specific visibility
+// createTestImageWithVisibility creates a test image with specific visibility.
 func createTestImageWithVisibility(ownerID identity.UserID, title string, visibility gallery.Visibility) *gallery.Image {
 	img := createTestImage(ownerID, title)
 	_ = img.MarkAsActive() // Must be active to change visibility
@@ -78,7 +78,7 @@ func createTestImageWithVisibility(ownerID identity.UserID, title string, visibi
 	return img
 }
 
-// createTestAlbum creates a test album entity
+// createTestAlbum creates a test album entity.
 func createTestAlbum(ownerID identity.UserID, title string) *gallery.Album {
 	album, err := gallery.NewAlbum(ownerID, title)
 	if err != nil {
