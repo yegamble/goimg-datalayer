@@ -265,7 +265,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrTooManyTags,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrTooManyTags)
+				require.ErrorIs(t, err, gallery.ErrTooManyTags)
 				assert.Nil(t, result)
 			},
 		},

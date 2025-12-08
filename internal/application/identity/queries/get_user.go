@@ -43,7 +43,7 @@ func (h *GetUserHandler) Handle(ctx context.Context, q GetUserQuery) (*dto.UserD
 		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
 
-	// Retrieve user from repository
+	// Retrieve user from a repository
 	user, err := h.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("find user by id: %w", err)

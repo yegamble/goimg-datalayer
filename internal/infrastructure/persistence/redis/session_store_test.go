@@ -1,3 +1,4 @@
+//nolint:testpackage // White-box testing required for internal implementation
 package redis
 
 import (

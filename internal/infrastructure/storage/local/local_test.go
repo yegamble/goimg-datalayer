@@ -148,7 +148,7 @@ func TestPut_SizeMismatch(t *testing.T) {
 	// Provide wrong size
 	err := storage.Put(ctx, key, reader, 100, PutOptions{})
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, errSizeMismatch))
+	assert.ErrorIs(t, err, errSizeMismatch)
 	assert.Contains(t, err.Error(), "expected 100 bytes, wrote 9")
 }
 
@@ -223,7 +223,7 @@ func TestGet_NotFound(t *testing.T) {
 	reader, err := storage.Get(ctx, "nonexistent.jpg")
 	assert.Nil(t, reader)
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, errNotFound))
+	assert.ErrorIs(t, err, errNotFound)
 }
 
 // TestGetBytes_Success tests successful retrieval of bytes.
@@ -345,7 +345,7 @@ func TestStat_NotFound(t *testing.T) {
 	info, err := storage.Stat(ctx, "nonexistent.jpg")
 	assert.Nil(t, info)
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, errNotFound))
+	assert.ErrorIs(t, err, errNotFound)
 }
 
 // TestURL_WithBaseURL tests URL generation when baseURL is configured.

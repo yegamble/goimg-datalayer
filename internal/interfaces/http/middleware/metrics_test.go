@@ -99,7 +99,7 @@ func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 
 	// Verify metrics were recorded
 	count := testutil.ToFloat64(collector.httpRequestsTotal.WithLabelValues("GET", "/test", "200"))
-	assert.Equal(t, float64(1), count, "Should record one request")
+	assert.InDelta(t, float64(1), count, 0.001, "Should record one request")
 }
 
 func TestMetricsMiddleware_InFlightRequests(t *testing.T) {

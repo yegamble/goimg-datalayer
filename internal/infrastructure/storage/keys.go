@@ -9,6 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	// Maximum filename length
+	MaxFilenameLength = 200
+
+	// Default fallback filename
+	DefaultFilename = "unnamed.jpg"
+)
+
 var (
 	// validKeyPattern ensures keys only contain safe characters.
 	// Pattern: images/{uuid}/{uuid}/{variant}.{ext}
@@ -153,42 +161,58 @@ func SanitizeFilename(filename string) string {
 	// Remove path components
 	filename = path.Base(filename)
 
-	// Replace dangerous characters
+	// Replace dangerous characters with safe ones
+	sanitized := sanitizeCharacters(filename)
+
+	// Ensure valid filename format
+	return ensureValidFilename(sanitized)
+}
+
+// sanitizeCharacters replaces or removes unsafe characters from a filename
+func sanitizeCharacters(filename string) string {
 	var builder strings.Builder
 	for _, r := range filename {
-		switch {
-		case r >= 'a' && r <= 'z':
+		if isSafeCharacter(r) {
 			builder.WriteRune(r)
-		case r >= 'A' && r <= 'Z':
-			builder.WriteRune(r)
-		case r >= '0' && r <= '9':
-			builder.WriteRune(r)
-		case r == '.' || r == '-' || r == '_':
-			builder.WriteRune(r)
-		case r == ' ':
+		} else if r == ' ' {
 			builder.WriteRune('_')
-		default:
-			// Skip other characters
 		}
+		// Other characters are skipped
 	}
+	return builder.String()
+}
 
-	result := builder.String()
+// isSafeCharacter returns true if the character is safe for filenames
+func isSafeCharacter(r rune) bool {
+	return (r >= 'a' && r <= 'z') ||
+		(r >= 'A' && r <= 'Z') ||
+		(r >= '0' && r <= '9') ||
+		r == '.' || r == '-' || r == '_'
+}
 
+// ensureValidFilename ensures the filename has an extension and valid length
+func ensureValidFilename(filename string) string {
 	// Ensure the filename has an extension
-	if !strings.Contains(result, ".") {
-		result += ".jpg"
+	if !strings.Contains(filename, ".") {
+		filename += ".jpg"
 	}
 
 	// Prevent empty filenames
-	if result == "" || result == "." {
-		result = "unnamed.jpg"
+	if filename == "" || filename == "." {
+		return DefaultFilename
 	}
 
 	// Limit length
-	if len(result) > 200 {
-		ext := path.Ext(result)
-		result = result[:200-len(ext)] + ext
+	if len(filename) > MaxFilenameLength {
+		return truncateFilename(filename)
 	}
 
-	return result
+	return filename
+}
+
+// truncateFilename shortens a filename while preserving its extension
+func truncateFilename(filename string) string {
+	ext := path.Ext(filename)
+	maxNameLength := MaxFilenameLength - len(ext)
+	return filename[:maxNameLength] + ext
 }

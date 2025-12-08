@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -29,7 +30,10 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	}
 	n, err := rw.ResponseWriter.Write(b)
 	rw.bytesWritten += int64(n)
-	return n, err
+	if err != nil {
+		return n, fmt.Errorf("response write: %w", err)
+	}
+	return n, nil
 }
 
 // Logger is a middleware that logs HTTP requests and responses using structured logging.

@@ -2,6 +2,7 @@ package testhelpers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,7 +31,10 @@ func (m *MockUserRepository) FindByID(ctx context.Context, id identity.UserID) (
 	if args.Get(0) != nil {
 		user = args.Get(0).(*identity.User)
 	}
-	return user, args.Error(1)
+	if err := args.Error(1); err != nil {
+		return user, fmt.Errorf("mock FindByID: %w", err)
+	}
+	return user, nil
 }
 
 // FindByEmail retrieves a user by email.
@@ -40,7 +44,10 @@ func (m *MockUserRepository) FindByEmail(ctx context.Context, email identity.Ema
 	if args.Get(0) != nil {
 		user = args.Get(0).(*identity.User)
 	}
-	return user, args.Error(1)
+	if err := args.Error(1); err != nil {
+		return user, fmt.Errorf("mock FindByEmail: %w", err)
+	}
+	return user, nil
 }
 
 // FindByUsername retrieves a user by username.
@@ -50,7 +57,10 @@ func (m *MockUserRepository) FindByUsername(ctx context.Context, username identi
 	if args.Get(0) != nil {
 		user = args.Get(0).(*identity.User)
 	}
-	return user, args.Error(1)
+	if err := args.Error(1); err != nil {
+		return user, fmt.Errorf("mock FindByUsername: %w", err)
+	}
+	return user, nil
 }
 
 // Save persists a user.

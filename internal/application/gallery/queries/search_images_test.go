@@ -1,8 +1,10 @@
+//nolint:testpackage // White-box testing required for internal mocks
 package queries
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -28,17 +30,30 @@ func (m *MockImageRepository) NextID() gallery.ImageID {
 func (m *MockImageRepository) FindByID(ctx context.Context, id gallery.ImageID) (*gallery.Image, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		if err := args.Error(1); err != nil {
+			return nil, fmt.Errorf("mock FindByID: %w", err)
+		}
+		return nil, nil
 	}
-	return args.Get(0).(*gallery.Image), args.Error(1)
+	if err := args.Error(1); err != nil {
+		return args.Get(0).(*gallery.Image), fmt.Errorf("mock FindByID: %w", err)
+	}
+	return args.Get(0).(*gallery.Image), nil
 }
 
 func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	args := m.Called(ctx, ownerID, pagination)
+	count := args.Get(1).(int64)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		if err := args.Error(2); err != nil {
+			return nil, count, fmt.Errorf("mock FindByOwner: %w", err)
+		}
+		return nil, count, nil
 	}
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	if err := args.Error(2); err != nil {
+		return args.Get(0).([]*gallery.Image), count, fmt.Errorf("mock FindByOwner: %w", err)
+	}
+	return args.Get(0).([]*gallery.Image), count, nil
 }
 
 func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
@@ -191,7 +206,7 @@ func TestSearchImagesHandler_Handle_WithTags(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, int64(0), result.TotalCount)
-	assert.Len(t, result.Images, 0)
+	assert.Empty(t, result.Images)
 
 	mockImages.AssertExpectations(t)
 }

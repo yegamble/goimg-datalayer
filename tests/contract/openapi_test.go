@@ -2,6 +2,7 @@ package contract_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -946,11 +947,11 @@ func TestPaginationParameters(t *testing.T) {
 			assert.Equal(t, tt.expectedType, param.Value.Schema.Value.Type.Slice()[0])
 
 			if tt.minimum != nil {
-				assert.Equal(t, float64(*tt.minimum), *param.Value.Schema.Value.Min)
+				assert.InDelta(t, float64(*tt.minimum), *param.Value.Schema.Value.Min, 0.001)
 			}
 
 			if tt.maximum != nil {
-				assert.Equal(t, float64(*tt.maximum), *param.Value.Schema.Value.Max)
+				assert.InDelta(t, float64(*tt.maximum), *param.Value.Schema.Value.Max, 0.001)
 			}
 		})
 	}
@@ -998,7 +999,7 @@ func validateEndpointContract(
 			_, hasBearer := secReq["bearerAuth"]
 			assert.True(t, hasBearer, "Endpoint %s %s should inherit bearerAuth from global", method, path)
 		} else {
-			assert.Fail(t, "Endpoint %s %s should require authentication", method, path)
+			assert.Fail(t, fmt.Sprintf("Endpoint %s %s should require authentication", method, path))
 		}
 	} else {
 		// Public endpoints can have:
@@ -1034,7 +1035,7 @@ func validateEndpointContract(
 				assert.NotNil(t, multipartContent.Schema, "Multipart request should have schema for %s %s", method, path)
 			}
 		} else {
-			assert.Fail(t, "Operation %s %s should have request body but doesn't", method, path)
+			assert.Fail(t, fmt.Sprintf("Operation %s %s should have request body but doesn't", method, path))
 		}
 	}
 
@@ -1211,11 +1212,14 @@ func mustCreateRequest(t *testing.T, method, path string, body []byte) *http.Req
 	var req *http.Request
 	var err error
 
+	ctx := context.Background()
 	if body != nil {
-		req, err = http.NewRequest(method, url, bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
+		req, err = http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
+		if err == nil {
+			req.Header.Set("Content-Type", "application/json")
+		}
 	} else {
-		req, err = http.NewRequest(method, url, nil)
+		req, err = http.NewRequestWithContext(ctx, method, url, nil)
 	}
 
 	require.NoError(t, err)

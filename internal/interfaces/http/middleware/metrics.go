@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -361,7 +362,10 @@ func (mrw *metricsResponseWriter) Write(b []byte) (int, error) {
 	}
 	n, err := mrw.ResponseWriter.Write(b)
 	mrw.bytesWritten += int64(n)
-	return n, err
+	if err != nil {
+		return n, fmt.Errorf("response write: %w", err)
+	}
+	return n, nil
 }
 
 // normalizePathForMetrics converts dynamic paths to static labels for Prometheus.

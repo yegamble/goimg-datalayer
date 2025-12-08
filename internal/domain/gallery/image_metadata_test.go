@@ -564,7 +564,7 @@ func TestImageMetadata_WithDescription(t *testing.T) {
 		updated, err := original.WithDescription("")
 		require.NoError(t, err)
 
-		assert.Equal(t, "", updated.Description())
+		assert.Empty(t, updated.Description())
 	})
 
 	t.Run("description too long", func(t *testing.T) {

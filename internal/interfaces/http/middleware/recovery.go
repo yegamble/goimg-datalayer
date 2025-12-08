@@ -34,16 +34,17 @@ import (
 func Recovery(logger zerolog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
 			defer func() {
 				if rvr := recover(); rvr != nil {
 					// Capture stack trace
 					stackTrace := debug.Stack()
 
 					// Get request ID for correlation
-					requestID := GetRequestID(r.Context())
+					requestID := GetRequestID(ctx)
 
 					// Get user ID if authenticated (for audit purposes)
-					userID, _ := GetUserIDString(r.Context())
+					userID, _ := GetUserIDString(ctx)
 
 					// Build error message from panic value
 					var errMsg string

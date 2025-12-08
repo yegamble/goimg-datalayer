@@ -341,9 +341,9 @@ func TestProcessor_Process_Integration(t *testing.T) {
 	assert.NotEmpty(t, result.Original.Data)
 
 	// Verify dimensions are correct
-	assert.True(t, result.Thumbnail.Width <= 160)
-	assert.True(t, result.Small.Width <= 320)
-	assert.True(t, result.Medium.Width <= 800)
+	assert.LessOrEqual(t, result.Thumbnail.Width, 160)
+	assert.LessOrEqual(t, result.Small.Width, 320)
+	assert.LessOrEqual(t, result.Medium.Width, 800)
 	assert.True(t, result.Large.Width <= 1600)
 
 	// Verify formats
@@ -353,8 +353,8 @@ func TestProcessor_Process_Integration(t *testing.T) {
 	assert.Equal(t, "webp", result.Large.Format)
 
 	// Verify file sizes
-	assert.Greater(t, result.Thumbnail.FileSize, int64(0))
-	assert.Greater(t, result.Small.FileSize, int64(0))
+	assert.Positive(t, result.Thumbnail.FileSize)
+	assert.Positive(t, result.Small.FileSize)
 	assert.Greater(t, result.Medium.FileSize, int64(0))
 	assert.Greater(t, result.Large.FileSize, int64(0))
 	assert.Greater(t, result.Original.FileSize, int64(0))

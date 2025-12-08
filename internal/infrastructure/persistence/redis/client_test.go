@@ -1,3 +1,4 @@
+//nolint:testpackage // White-box testing required for internal implementation
 package redis
 
 import (
@@ -16,7 +17,7 @@ func TestDefaultConfig(t *testing.T) {
 
 	assert.Equal(t, "localhost", cfg.Host)
 	assert.Equal(t, 6379, cfg.Port)
-	assert.Equal(t, "", cfg.Password)
+	assert.Empty(t, cfg.Password)
 	assert.Equal(t, 0, cfg.DB)
 	assert.Equal(t, 10, cfg.PoolSize)
 	assert.Equal(t, 5, cfg.MinIdle)

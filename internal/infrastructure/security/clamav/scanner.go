@@ -122,7 +122,11 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 		chunk := data[i:end]
 
 		// Write 4-byte size prefix (big-endian)
-		size := uint32(len(chunk))
+		chunkLen := len(chunk)
+		if chunkLen > 0x7FFFFFFF { // Validate conversion won't overflow
+			return nil, fmt.Errorf("clamav: chunk size too large: %d", chunkLen)
+		}
+		size := uint32(chunkLen) // #nosec G115 -- validated chunk size is safe
 		sizeBytes := []byte{
 			byte(size >> 24),
 			byte(size >> 16),
@@ -175,7 +179,10 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, size int64) (
 		n, err := reader.Read(buf)
 		if n > 0 {
 			// Write size prefix
-			size := uint32(n)
+			if n > 0x7FFFFFFF { // Validate conversion won't overflow
+				return nil, fmt.Errorf("clamav: read size too large: %d", n)
+			}
+			size := uint32(n) // #nosec G115 -- validated read size is safe
 			sizeBytes := []byte{
 				byte(size >> 24),
 				byte(size >> 16),

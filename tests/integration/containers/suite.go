@@ -16,7 +16,6 @@ type IntegrationTestSuite struct {
 	Redis       *RedisContainer
 	DB          *sqlx.DB
 	RedisClient *redis.Client
-	ctx         context.Context
 	t           *testing.T
 }
 
@@ -55,27 +54,21 @@ func NewIntegrationTestSuite(t *testing.T) *IntegrationTestSuite {
 		Redis:       redisContainer,
 		DB:          postgresContainer.DB,
 		RedisClient: redisContainer.Client,
-		ctx:         ctx,
 		t:           t,
 	}
 }
 
 // CleanupBetweenTests truncates all database tables and flushes Redis.
 // Call this between subtests to ensure isolation.
-func (s *IntegrationTestSuite) CleanupBetweenTests() {
+func (s *IntegrationTestSuite) CleanupBetweenTests(ctx context.Context) {
 	s.t.Helper()
 
 	if s.Postgres != nil {
-		s.Postgres.Cleanup(s.ctx, s.t)
+		s.Postgres.Cleanup(ctx, s.t)
 	}
 	if s.Redis != nil {
-		s.Redis.Cleanup(s.ctx, s.t)
+		s.Redis.Cleanup(ctx, s.t)
 	}
-}
-
-// Context returns the test context.
-func (s *IntegrationTestSuite) Context() context.Context {
-	return s.ctx
 }
 
 // T returns the testing.T instance.

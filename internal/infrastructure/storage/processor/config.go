@@ -4,6 +4,31 @@ package processor
 
 import "github.com/h2non/bimg"
 
+const (
+	// Default memory limit for bimg cache in megabytes
+	DefaultMemoryLimitMB = 256
+
+	// Default maximum number of concurrent processing operations
+	DefaultMaxConcurrentOps = 32
+
+	// Quality settings for image variants
+	DefaultThumbnailQuality = 82
+	DefaultSmallQuality     = 85
+	DefaultMediumQuality    = 85
+	DefaultLargeQuality     = 88
+	DefaultOriginalQuality  = 100
+
+	// Quality bounds
+	MinQuality = 1
+	MaxQuality = 100
+
+	// Variant dimensions (width in pixels)
+	ThumbnailWidth = 160
+	SmallWidth     = 320
+	MediumWidth    = 800
+	LargeWidth     = 1600
+)
+
 // Config defines the image processor configuration.
 type Config struct {
 	// MemoryLimitMB is the maximum memory for bimg cache in megabytes.
@@ -31,39 +56,51 @@ type Config struct {
 // DefaultConfig returns the recommended processor configuration.
 func DefaultConfig() Config {
 	return Config{
-		MemoryLimitMB:    256,
-		MaxConcurrentOps: 32,
+		MemoryLimitMB:    DefaultMemoryLimitMB,
+		MaxConcurrentOps: DefaultMaxConcurrentOps,
 		StripMetadata:    true,
-		ThumbnailQuality: 82,
-		SmallQuality:     85,
-		MediumQuality:    85,
-		LargeQuality:     88,
-		OriginalQuality:  100,
+		ThumbnailQuality: DefaultThumbnailQuality,
+		SmallQuality:     DefaultSmallQuality,
+		MediumQuality:    DefaultMediumQuality,
+		LargeQuality:     DefaultLargeQuality,
+		OriginalQuality:  DefaultOriginalQuality,
 	}
 }
 
 // Validate ensures the configuration is valid.
 func (c Config) Validate() error {
+	if err := c.validateMemory(); err != nil {
+		return err
+	}
+	if err := c.validateQualitySettings(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Config) validateMemory() error {
 	if c.MemoryLimitMB <= 0 {
 		return ErrInvalidConfig
 	}
 	if c.MaxConcurrentOps <= 0 {
 		return ErrInvalidConfig
 	}
-	if c.ThumbnailQuality < 1 || c.ThumbnailQuality > 100 {
-		return ErrInvalidConfig
+	return nil
+}
+
+func (c Config) validateQualitySettings() error {
+	qualities := []int{
+		c.ThumbnailQuality,
+		c.SmallQuality,
+		c.MediumQuality,
+		c.LargeQuality,
+		c.OriginalQuality,
 	}
-	if c.SmallQuality < 1 || c.SmallQuality > 100 {
-		return ErrInvalidConfig
-	}
-	if c.MediumQuality < 1 || c.MediumQuality > 100 {
-		return ErrInvalidConfig
-	}
-	if c.LargeQuality < 1 || c.LargeQuality > 100 {
-		return ErrInvalidConfig
-	}
-	if c.OriginalQuality < 1 || c.OriginalQuality > 100 {
-		return ErrInvalidConfig
+
+	for _, quality := range qualities {
+		if quality < MinQuality || quality > MaxQuality {
+			return ErrInvalidConfig
+		}
 	}
 	return nil
 }
@@ -85,25 +122,25 @@ func (c Config) GetVariantSpec(variantType VariantType) VariantSpec {
 	switch variantType {
 	case VariantThumbnail:
 		return VariantSpec{
-			MaxWidth: 160,
+			MaxWidth: ThumbnailWidth,
 			Format:   bimg.WEBP,
 			Quality:  c.ThumbnailQuality,
 		}
 	case VariantSmall:
 		return VariantSpec{
-			MaxWidth: 320,
+			MaxWidth: SmallWidth,
 			Format:   bimg.WEBP,
 			Quality:  c.SmallQuality,
 		}
 	case VariantMedium:
 		return VariantSpec{
-			MaxWidth: 800,
+			MaxWidth: MediumWidth,
 			Format:   bimg.WEBP,
 			Quality:  c.MediumQuality,
 		}
 	case VariantLarge:
 		return VariantSpec{
-			MaxWidth: 1600,
+			MaxWidth: LargeWidth,
 			Format:   bimg.WEBP,
 			Quality:  c.LargeQuality,
 		}
@@ -117,7 +154,7 @@ func (c Config) GetVariantSpec(variantType VariantType) VariantSpec {
 	default:
 		// Fallback to medium
 		return VariantSpec{
-			MaxWidth: 800,
+			MaxWidth: MediumWidth,
 			Format:   bimg.WEBP,
 			Quality:  c.MediumQuality,
 		}

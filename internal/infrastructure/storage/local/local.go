@@ -313,7 +313,7 @@ func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, 
 	for {
 		select {
 		case <-ctx.Done():
-			return written, ctx.Err()
+			return written, fmt.Errorf("copy interrupted: %w", ctx.Err())
 		default:
 		}
 
@@ -324,7 +324,7 @@ func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, 
 				written += int64(nw)
 			}
 			if werr != nil {
-				return written, werr
+				return written, fmt.Errorf("write failed: %w", werr)
 			}
 			if nr != nw {
 				return written, io.ErrShortWrite
@@ -334,7 +334,7 @@ func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, 
 			if err == io.EOF {
 				return written, nil
 			}
-			return written, err
+			return written, fmt.Errorf("read failed: %w", err)
 		}
 	}
 }

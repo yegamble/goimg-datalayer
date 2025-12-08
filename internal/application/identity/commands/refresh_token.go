@@ -65,6 +65,11 @@ func NewRefreshTokenHandler(
 	}
 }
 
+const (
+	// DefaultTokenExpiryMinutes is the default token expiration in minutes
+	DefaultTokenExpiryMinutes = 15
+)
+
 // Handle executes the token refresh use case.
 //
 // Process flow:
@@ -92,118 +97,141 @@ func NewRefreshTokenHandler(
 //   - ErrSessionNotFound if session no longer exists
 //   - ErrAccountSuspended if user account is suspended
 func (h *RefreshTokenHandler) Handle(ctx context.Context, cmd RefreshTokenCommand) (*dto.TokenPairDTO, error) {
-	// 1. Validate refresh token and retrieve metadata
+	// 1-2. Validate and check for replay
+	metadata, err := h.validateAndCheckReplay(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Verify session
+	if err := h.verifySession(ctx, metadata); err != nil {
+		return nil, err
+	}
+
+	// 4. Load and verify user
+	user, err := h.loadAndVerifyUser(ctx, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5. Detect anomalies (informational only)
+	h.detectAnomalies(metadata, cmd)
+
+	// 6-8. Rotate tokens
+	newAccessToken, newRefreshToken, newMetadata, err := h.rotateTokens(ctx, user, metadata, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	// 9. Update session
+	h.updateSession(ctx, user, metadata, newMetadata, cmd)
+
+	h.logger.Info().
+		Str("user_id", user.ID().String()).
+		Str("session_id", metadata.SessionID).
+		Str("family_id", metadata.FamilyID).
+		Str("ip_address", cmd.IPAddress).
+		Msg("token refreshed successfully")
+
+	// 10. Build response
+	return h.buildTokenResponse(newAccessToken, newRefreshToken), nil
+}
+
+func (h *RefreshTokenHandler) validateAndCheckReplay(ctx context.Context, cmd RefreshTokenCommand) (*services.RefreshTokenMetadata, error) {
 	metadata, err := h.refreshService.ValidateToken(ctx, cmd.RefreshToken)
 	if err != nil {
-		h.logger.Warn().
-			Err(err).
-			Str("ip_address", cmd.IPAddress).
-			Msg("invalid refresh token")
+		h.logger.Warn().Err(err).Str("ip_address", cmd.IPAddress).Msg("invalid refresh token")
 		return nil, fmt.Errorf("%w: %v", appidentity.ErrInvalidToken, err)
 	}
 
-	// Check if token is expired (should be caught by ValidateToken, but double-check)
 	if metadata.ExpiresAt.Before(time.Now().UTC()) {
-		h.logger.Warn().
-			Str("user_id", metadata.UserID).
-			Str("session_id", metadata.SessionID).
-			Msg("refresh token expired")
+		h.logger.Warn().Str("user_id", metadata.UserID).Str("session_id", metadata.SessionID).Msg("refresh token expired")
 		return nil, appidentity.ErrTokenExpired
 	}
 
-	// 2. Check for replay attack (token already used)
 	if metadata.Used {
-		h.logger.Error().
-			Str("user_id", metadata.UserID).
-			Str("session_id", metadata.SessionID).
-			Str("family_id", metadata.FamilyID).
-			Str("ip_address", cmd.IPAddress).
-			Msg("SECURITY: refresh token replay detected - revoking entire family")
-
-		// Revoke entire token family as a security measure
-		if err := h.refreshService.RevokeFamily(ctx, metadata.FamilyID); err != nil {
-			h.logger.Error().
-				Err(err).
-				Str("family_id", metadata.FamilyID).
-				Msg("failed to revoke token family after replay detection")
-		}
-
-		// Revoke session
-		if err := h.sessionStore.Revoke(ctx, metadata.SessionID); err != nil {
-			h.logger.Error().
-				Err(err).
-				Str("session_id", metadata.SessionID).
-				Msg("failed to revoke session after replay detection")
-		}
-
+		h.handleTokenReplay(ctx, metadata, cmd.IPAddress)
 		return nil, appidentity.ErrTokenReplayDetected
 	}
 
-	// 3. Verify session still exists
+	return metadata, nil
+}
+
+func (h *RefreshTokenHandler) handleTokenReplay(ctx context.Context, metadata *services.RefreshTokenMetadata, ipAddress string) {
+	h.logger.Error().
+		Str("user_id", metadata.UserID).
+		Str("session_id", metadata.SessionID).
+		Str("family_id", metadata.FamilyID).
+		Str("ip_address", ipAddress).
+		Msg("SECURITY: refresh token replay detected - revoking entire family")
+
+	_ = h.refreshService.RevokeFamily(ctx, metadata.FamilyID)
+	_ = h.sessionStore.Revoke(ctx, metadata.SessionID)
+}
+
+func (h *RefreshTokenHandler) verifySession(ctx context.Context, metadata *services.RefreshTokenMetadata) error {
 	sessionExists, err := h.sessionStore.Exists(ctx, metadata.SessionID)
 	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("session_id", metadata.SessionID).
-			Msg("failed to check session existence")
-		return nil, fmt.Errorf("check session existence: %w", err)
-	}
-	if !sessionExists {
-		h.logger.Warn().
-			Str("user_id", metadata.UserID).
-			Str("session_id", metadata.SessionID).
-			Msg("refresh token used for non-existent session")
-		return nil, appidentity.ErrSessionNotFound
+		h.logger.Error().Err(err).Str("session_id", metadata.SessionID).Msg("failed to check session existence")
+		return fmt.Errorf("check session existence: %w", err)
 	}
 
-	// 4. Load user and verify account status
+	if !sessionExists {
+		h.logger.Warn().Str("user_id", metadata.UserID).Str("session_id", metadata.SessionID).Msg("refresh token used for non-existent session")
+		return appidentity.ErrSessionNotFound
+	}
+
+	return nil
+}
+
+func (h *RefreshTokenHandler) loadAndVerifyUser(ctx context.Context, metadata *services.RefreshTokenMetadata) (*identity.User, error) {
 	userID, err := identity.ParseUserID(metadata.UserID)
 	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("user_id", metadata.UserID).
-			Msg("invalid user ID in refresh token metadata")
+		h.logger.Error().Err(err).Str("user_id", metadata.UserID).Msg("invalid user ID in refresh token metadata")
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
 	user, err := h.users.FindByID(ctx, userID)
 	if err != nil {
-		if errors.Is(err, identity.ErrUserNotFound) {
-			h.logger.Warn().
-				Str("user_id", metadata.UserID).
-				Msg("refresh token for non-existent user")
-			return nil, appidentity.ErrInvalidToken
-		}
-		h.logger.Error().
-			Err(err).
-			Str("user_id", metadata.UserID).
-			Msg("failed to load user during token refresh")
-		return nil, fmt.Errorf("load user: %w", err)
+		return h.handleUserLoadError(err, metadata)
 	}
 
-	// Verify user can still login
 	if !user.CanLogin() {
-		h.logger.Warn().
-			Str("user_id", user.ID().String()).
-			Str("status", user.Status().String()).
-			Msg("refresh token used for account that cannot login")
-
-		// Revoke session
-		_ = h.sessionStore.Revoke(ctx, metadata.SessionID)
-
-		switch user.Status() {
-		case identity.StatusSuspended:
-			return nil, appidentity.ErrAccountSuspended
-		case identity.StatusDeleted:
-			return nil, appidentity.ErrAccountDeleted
-		default:
-			return nil, appidentity.ErrInvalidToken
-		}
+		return nil, h.handleInactiveUser(ctx, user, metadata)
 	}
 
-	// 5. Detect anomalies (IP/UserAgent changes)
-	// Note: We log anomalies but don't block the request as users may legitimately
-	// change networks (VPN, mobile data, WiFi) or devices
+	return user, nil
+}
+
+func (h *RefreshTokenHandler) handleUserLoadError(err error, metadata *services.RefreshTokenMetadata) (*identity.User, error) {
+	if errors.Is(err, identity.ErrUserNotFound) {
+		h.logger.Warn().Str("user_id", metadata.UserID).Msg("refresh token for non-existent user")
+		return nil, appidentity.ErrInvalidToken
+	}
+
+	h.logger.Error().Err(err).Str("user_id", metadata.UserID).Msg("failed to load user during token refresh")
+	return nil, fmt.Errorf("load user: %w", err)
+}
+
+func (h *RefreshTokenHandler) handleInactiveUser(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata) error {
+	h.logger.Warn().
+		Str("user_id", user.ID().String()).
+		Str("status", user.Status().String()).
+		Msg("refresh token used for account that cannot login")
+
+	_ = h.sessionStore.Revoke(ctx, metadata.SessionID)
+
+	switch user.Status() {
+	case identity.StatusSuspended:
+		return appidentity.ErrAccountSuspended
+	case identity.StatusDeleted:
+		return appidentity.ErrAccountDeleted
+	default:
+		return appidentity.ErrInvalidToken
+	}
+}
+
+func (h *RefreshTokenHandler) detectAnomalies(metadata *services.RefreshTokenMetadata, cmd RefreshTokenCommand) {
 	if h.refreshService.DetectAnomalies(metadata, cmd.IPAddress, cmd.UserAgent) {
 		h.logger.Warn().
 			Str("user_id", metadata.UserID).
@@ -213,54 +241,31 @@ func (h *RefreshTokenHandler) Handle(ctx context.Context, cmd RefreshTokenComman
 			Str("original_ua", metadata.UserAgent).
 			Str("current_ua", cmd.UserAgent).
 			Msg("anomaly detected during token refresh (IP or UserAgent changed)")
-		// Continue processing - this is informational only
 	}
+}
 
-	// 6. Mark current token as used (one-time use enforcement)
+func (h *RefreshTokenHandler) rotateTokens(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata, cmd RefreshTokenCommand) (string, string, *services.RefreshTokenMetadata, error) {
 	if err := h.refreshService.MarkAsUsed(ctx, cmd.RefreshToken); err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("user_id", metadata.UserID).
-			Str("session_id", metadata.SessionID).
-			Msg("failed to mark refresh token as used")
-		return nil, fmt.Errorf("mark token as used: %w", err)
+		h.logger.Error().Err(err).Str("user_id", metadata.UserID).Str("session_id", metadata.SessionID).Msg("failed to mark refresh token as used")
+		return "", "", nil, fmt.Errorf("mark token as used: %w", err)
 	}
 
-	// 7. Generate new access token
-	newAccessToken, err := h.jwtService.GenerateAccessToken(
-		user.ID().String(),
-		user.Email().String(),
-		user.Role().String(),
-		metadata.SessionID,
-	)
+	newAccessToken, err := h.jwtService.GenerateAccessToken(user.ID().String(), user.Email().String(), user.Role().String(), metadata.SessionID)
 	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("user_id", user.ID().String()).
-			Msg("failed to generate new access token")
-		return nil, fmt.Errorf("generate access token: %w", err)
+		h.logger.Error().Err(err).Str("user_id", user.ID().String()).Msg("failed to generate new access token")
+		return "", "", nil, fmt.Errorf("generate access token: %w", err)
 	}
 
-	// 8. Generate new refresh token (rotation with same family)
-	// Parent hash is the current token's hash for lineage tracking
-	newRefreshToken, newMetadata, err := h.refreshService.GenerateToken(
-		ctx,
-		user.ID().String(),
-		metadata.SessionID,
-		metadata.FamilyID,  // Same family for rotation
-		metadata.TokenHash, // Parent is current token
-		cmd.IPAddress,
-		cmd.UserAgent,
-	)
+	newRefreshToken, newMetadata, err := h.refreshService.GenerateToken(ctx, user.ID().String(), metadata.SessionID, metadata.FamilyID, metadata.TokenHash, cmd.IPAddress, cmd.UserAgent)
 	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("user_id", user.ID().String()).
-			Msg("failed to generate new refresh token")
-		return nil, fmt.Errorf("generate refresh token: %w", err)
+		h.logger.Error().Err(err).Str("user_id", user.ID().String()).Msg("failed to generate new refresh token")
+		return "", "", nil, fmt.Errorf("generate refresh token: %w", err)
 	}
 
-	// 9. Update session metadata in Redis (update expiry and last access)
+	return newAccessToken, newRefreshToken, newMetadata, nil
+}
+
+func (h *RefreshTokenHandler) updateSession(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata, newMetadata *services.RefreshTokenMetadata, cmd RefreshTokenCommand) {
 	session := services.Session{
 		SessionID: metadata.SessionID,
 		UserID:    user.ID().String(),
@@ -268,31 +273,21 @@ func (h *RefreshTokenHandler) Handle(ctx context.Context, cmd RefreshTokenComman
 		Role:      user.Role().String(),
 		IP:        cmd.IPAddress,
 		UserAgent: cmd.UserAgent,
-		CreatedAt: metadata.IssuedAt, // Keep original creation time
+		CreatedAt: metadata.IssuedAt,
 		ExpiresAt: newMetadata.ExpiresAt,
 	}
+
 	if err := h.sessionStore.Create(ctx, session); err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("session_id", metadata.SessionID).
-			Msg("failed to update session after token refresh")
-		// Non-critical - continue
+		h.logger.Error().Err(err).Str("session_id", metadata.SessionID).Msg("failed to update session after token refresh")
 	}
+}
 
-	h.logger.Info().
-		Str("user_id", user.ID().String()).
-		Str("session_id", metadata.SessionID).
-		Str("family_id", metadata.FamilyID).
-		Str("ip_address", cmd.IPAddress).
-		Msg("token refreshed successfully")
-
-	// 10. Build response with new token pair
-	expiresAt, err := h.jwtService.GetTokenExpiration(newAccessToken)
+func (h *RefreshTokenHandler) buildTokenResponse(accessToken, refreshToken string) *dto.TokenPairDTO {
+	expiresAt, err := h.jwtService.GetTokenExpiration(accessToken)
 	if err != nil {
-		// Non-critical - use default 15 min
-		expiresAt = time.Now().UTC().Add(15 * time.Minute)
+		expiresAt = time.Now().UTC().Add(DefaultTokenExpiryMinutes * time.Minute)
 	}
 
-	tokenPair := dto.NewTokenPairDTO(newAccessToken, newRefreshToken, expiresAt)
-	return &tokenPair, nil
+	tokenPair := dto.NewTokenPairDTO(accessToken, refreshToken, expiresAt)
+	return &tokenPair
 }

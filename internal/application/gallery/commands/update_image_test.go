@@ -189,7 +189,7 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrInvalidVisibility,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UpdateImageResult, err error) {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrInvalidVisibility)
+				require.ErrorIs(t, err, gallery.ErrInvalidVisibility)
 				assert.Nil(t, result)
 				suite.AssertExpectations(t)
 			},

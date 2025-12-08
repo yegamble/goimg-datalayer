@@ -71,7 +71,7 @@ func NewPostgresContainer(ctx context.Context, t *testing.T) (*PostgresContainer
 	db.SetConnMaxLifetime(5 * time.Minute)
 
 	// Verify connection
-	if err := db.Ping(); err != nil {
+	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
 		_ = postgresContainer.Terminate(ctx)
 		return nil, fmt.Errorf("failed to ping postgres: %w", err)
@@ -132,7 +132,9 @@ func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 		_ = pc.DB.Close()
 	}
 	if pc.Container != nil {
-		return pc.Container.Terminate(ctx)
+		if err := pc.Container.Terminate(ctx); err != nil {
+			return fmt.Errorf("terminate postgres container: %w", err)
+		}
 	}
 	return nil
 }

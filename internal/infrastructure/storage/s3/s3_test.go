@@ -132,7 +132,7 @@ func TestValidateKey_Invalid(t *testing.T) {
 
 			err := validateKey(tt.key)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, tt.wantError), "expected error %v, got %v", tt.wantError, err)
+			assert.ErrorIs(t, err, tt.wantError, "expected error %v, got %v", tt.wantError, err)
 		})
 	}
 }

@@ -84,7 +84,9 @@ func (rc *RedisContainer) Terminate(ctx context.Context) error {
 		_ = rc.Client.Close()
 	}
 	if rc.Container != nil {
-		return rc.Container.Terminate(ctx)
+		if err := rc.Container.Terminate(ctx); err != nil {
+			return fmt.Errorf("terminate redis container: %w", err)
+		}
 	}
 	return nil
 }
@@ -106,19 +108,26 @@ func (rc *RedisContainer) WaitForHealthy(ctx context.Context, t *testing.T) {
 
 // SetKey is a helper to set a key with expiration.
 func (rc *RedisContainer) SetKey(ctx context.Context, key, value string, expiration time.Duration) error {
-	return rc.Client.Set(ctx, key, value, expiration).Err()
+	if err := rc.Client.Set(ctx, key, value, expiration).Err(); err != nil {
+		return fmt.Errorf("redis set key %s: %w", key, err)
+	}
+	return nil
 }
 
 // GetKey is a helper to get a key.
 func (rc *RedisContainer) GetKey(ctx context.Context, key string) (string, error) {
-	return rc.Client.Get(ctx, key).Result()
+	val, err := rc.Client.Get(ctx, key).Result()
+	if err != nil {
+		return "", fmt.Errorf("redis get key %s: %w", key, err)
+	}
+	return val, nil
 }
 
 // KeyExists checks if a key exists.
 func (rc *RedisContainer) KeyExists(ctx context.Context, key string) (bool, error) {
 	result, err := rc.Client.Exists(ctx, key).Result()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("redis check key exists %s: %w", key, err)
 	}
 	return result > 0, nil
 }

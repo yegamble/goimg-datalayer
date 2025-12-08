@@ -295,7 +295,7 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, result)
 				assert.True(t, result.Liked)
-				assert.Greater(t, result.LikeCount, int64(0))
+				assert.Positive(t, result.LikeCount)
 			}
 
 			mocks.images.AssertExpectations(t)

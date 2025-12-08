@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -795,7 +796,7 @@ func parseIntParam(param string, defaultValue int) (int, error) {
 	}
 	value, err := strconv.Atoi(param)
 	if err != nil {
-		return defaultValue, err
+		return defaultValue, fmt.Errorf("parse int param: %w", err)
 	}
 	return value, nil
 }
