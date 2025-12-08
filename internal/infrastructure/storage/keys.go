@@ -189,7 +189,7 @@ func isSafeCharacter(r rune) bool {
 		r == '.' || r == '-' || r == '_'
 }
 
-// ensureValidFilename ensures the filename has an extension and valid length
+// ensureValidFilename ensures the filename has an extension and valid length.
 func ensureValidFilename(filename string) string {
 	// Ensure the filename has an extension
 	if !strings.Contains(filename, ".") {
@@ -209,7 +209,7 @@ func ensureValidFilename(filename string) string {
 	return filename
 }
 
-// truncateFilename shortens a filename while preserving its extension
+// truncateFilename shortens a filename while preserving its extension.
 func truncateFilename(filename string) string {
 	ext := path.Ext(filename)
 	maxNameLength := MaxFilenameLength - len(ext)

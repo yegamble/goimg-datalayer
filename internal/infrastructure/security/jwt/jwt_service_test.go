@@ -44,6 +44,7 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 
 	// Save public key
 	publicKeyPath = filepath.Join(tempDir, "public.pem")
+	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	publicKeyFile, err := os.Create(publicKeyPath)
 	require.NoError(t, err)
 	defer publicKeyFile.Close()

@@ -164,7 +164,7 @@ type LikeResponse struct {
 }
 
 // AddCommentRequest represents the HTTP request body for adding a comment.
-// POST /api/v1/images/{imageID}/comments
+// POST /api/v1/images/{imageID}/comments.
 type AddCommentRequest struct {
 	Content string `json:"content" validate:"required,min=1,max=1000"`
 }

@@ -74,14 +74,16 @@ const (
 	SecretRedisPassword = "REDIS_PASSWORD"
 
 	// Object Storage (S3-compatible)
-	//nolint:gosec // G101: These are environment variable names, not actual credentials
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretS3AccessKey = "S3_ACCESS_KEY"
-	//nolint:gosec // G101: These are environment variable names, not actual credentials
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretS3SecretKey = "S3_SECRET_KEY"
 
 	// IPFS Pinning Services
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretIPFSPinataJWT       = "IPFS_PINATA_JWT"
 	SecretIPFSInfuraProjectID = "IPFS_INFURA_PROJECT_ID"
+	//nolint:gosec // G101: Environment variable name, not actual credentials
 	SecretIPFSInfuraSecret    = "IPFS_INFURA_PROJECT_SECRET"
 
 	// OAuth2 Providers

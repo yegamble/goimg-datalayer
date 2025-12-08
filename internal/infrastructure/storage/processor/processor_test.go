@@ -321,6 +321,7 @@ func TestProcessor_Process_Integration(t *testing.T) {
 		return
 	}
 
+	//nolint:gosec // G304: Test file path from testdata directory (trusted source)
 	testImage, err := os.ReadFile(testImagePath)
 	require.NoError(t, err, "failed to read test image")
 

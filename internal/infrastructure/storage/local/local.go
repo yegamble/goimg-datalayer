@@ -73,7 +73,7 @@ func New(cfg Config) (*LocalStorage, error) {
 	}
 
 	// Ensure base directory exists
-	if err := os.MkdirAll(absPath, 0750); err != nil {
+	if err := os.MkdirAll(absPath, 0o750); err != nil {
 		return nil, fmt.Errorf("local storage: create base dir: %w", err)
 	}
 
@@ -93,7 +93,7 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
-	if err := os.MkdirAll(dir, 0750); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return fmt.Errorf("local mkdir: %w", err)
 	}
 
@@ -134,7 +134,7 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	tempFile = nil // Prevent deferred cleanup
 
 	// Set permissions
-	if err := os.Chmod(tempPath, 0600); err != nil {
+	if err := os.Chmod(tempPath, 0o600); err != nil {
 		if rerr := os.Remove(tempPath); rerr != nil {
 			// Log best-effort cleanup failure
 		}
@@ -164,6 +164,7 @@ func (s *LocalStorage) Get(ctx context.Context, key string) (io.ReadCloser, erro
 	}
 
 	fullPath := s.fullPath(key)
+	//nolint:gosec // G304: File path constructed from validated key (validateKey checks for path traversal)
 	file, err := os.Open(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -286,6 +287,7 @@ func (s *LocalStorage) fullPath(key string) string {
 
 // calculateETag computes the MD5 hash of a file for ETag.
 func (s *LocalStorage) calculateETag(path string) (string, error) {
+	//nolint:gosec // G304: File path from internal method (fullPath), already validated
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("local open for etag: %w", err)
