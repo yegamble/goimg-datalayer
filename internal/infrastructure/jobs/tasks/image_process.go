@@ -208,7 +208,7 @@ func NewImageProcessTaskWithOptions(payload ImageProcessPayload, opts ...asynq.O
 	}
 
 	// Append custom options (they override defaults)
-	allOpts := append(defaultOpts, opts...)
+	defaultOpts = append(defaultOpts, opts...)
 
-	return asynq.NewTask(TypeImageProcess, payloadBytes, allOpts...), nil
+	return asynq.NewTask(TypeImageProcess, payloadBytes, defaultOpts...), nil
 }

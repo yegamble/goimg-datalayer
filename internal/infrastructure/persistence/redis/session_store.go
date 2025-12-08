@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -103,7 +104,7 @@ func (s *SessionStore) Get(ctx context.Context, sessionID string) (*Session, err
 
 	data, err := s.redis.Get(ctx, sessionKey).Result()
 	if err != nil {
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return nil, fmt.Errorf("session not found")
 		}
 		return nil, fmt.Errorf("failed to retrieve session: %w", err)

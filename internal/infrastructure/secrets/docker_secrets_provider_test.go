@@ -18,7 +18,7 @@ func setupTestSecrets(t *testing.T) string {
 
 func writeSecret(t *testing.T, dir, name, value string) {
 	path := filepath.Join(dir, name)
-	err := os.WriteFile(path, []byte(value), 0600)
+	err := os.WriteFile(path, []byte(value), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to write secret %s: %v", name, err)
 	}

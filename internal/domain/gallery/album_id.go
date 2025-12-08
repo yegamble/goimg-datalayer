@@ -33,7 +33,7 @@ func ParseAlbumID(s string) (AlbumID, error) {
 func MustParseAlbumID(s string) AlbumID {
 	id, err := ParseAlbumID(s)
 	if err != nil {
-		panic(err) //nolint:forbidigo // Intentional panic for Must* function
+		panic(err) // Intentional panic for Must* function
 	}
 	return id
 }

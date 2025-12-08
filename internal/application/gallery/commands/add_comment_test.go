@@ -386,12 +386,13 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			commentID, err := handler.Handle(context.Background(), tt.cmd)
 
 			// Assert
-			if tt.assert != nil {
+			switch {
+			case tt.assert != nil:
 				tt.assert(t, mocks, commentID, err)
-			} else if tt.wantErr != nil {
+			case tt.wantErr != nil:
 				require.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, commentID)
-			} else {
+			default:
 				require.NoError(t, err)
 				assert.NotEmpty(t, commentID)
 			}

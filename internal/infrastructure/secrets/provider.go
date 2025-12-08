@@ -59,10 +59,10 @@ func NewProvider(config SecretConfig) (SecretProvider, error) {
 // SecretName constants for all secrets used in the application.
 // This provides type safety and prevents typos when requesting secrets.
 const (
-	// Authentication & Authorization
+	// Authentication & Authorization.
 	SecretJWT = "JWT_SECRET"
 
-	// Database
+	// Database.
 	SecretDBPassword = "DB_PASSWORD"
 
 	// Redis

@@ -138,7 +138,7 @@ func (h *RefreshTokenHandler) validateAndCheckReplay(ctx context.Context, cmd Re
 	metadata, err := h.refreshService.ValidateToken(ctx, cmd.RefreshToken)
 	if err != nil {
 		h.logger.Warn().Err(err).Str("ip_address", cmd.IPAddress).Msg("invalid refresh token")
-		return nil, fmt.Errorf("%w: %v", appidentity.ErrInvalidToken, err)
+		return nil, fmt.Errorf("%w: %w", appidentity.ErrInvalidToken, err)
 	}
 
 	if metadata.ExpiresAt.Before(time.Now().UTC()) {

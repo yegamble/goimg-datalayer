@@ -103,10 +103,12 @@ type PaginatedImagesResponse struct {
 }
 
 // Type aliases for application layer DTOs to avoid duplication.
-type ImageDTO = queries.ImageDTO
-type AlbumDTO = queries.AlbumDTO
-type VariantDTO = queries.VariantDTO
-type TagDTO = queries.TagDTO
+type (
+	ImageDTO   = queries.ImageDTO
+	AlbumDTO   = queries.AlbumDTO
+	VariantDTO = queries.VariantDTO
+	TagDTO     = queries.TagDTO
+)
 
 // ============================================================================
 // Gallery DTOs - Album Management

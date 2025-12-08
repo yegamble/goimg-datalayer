@@ -1001,22 +1001,21 @@ func validateEndpointContract(
 		} else {
 			assert.Fail(t, fmt.Sprintf("Endpoint %s %s should require authentication", method, path))
 		}
-	} else {
+	} else if operation.Security != nil && len(*operation.Security) > 0 {
 		// Public endpoints can have:
 		// 1. Empty security (explicitly override global)
 		// 2. Security with empty object {} (public access)
 		// 3. Security with both {} and bearerAuth (optional auth)
-		if operation.Security != nil && len(*operation.Security) > 0 {
-			// Check if any security requirement is empty {} (public access)
-			hasPublicAccess := false
-			for _, secReq := range *operation.Security {
-				if len(secReq) == 0 {
-					hasPublicAccess = true
-					break
-				}
+
+		// Check if any security requirement is empty {} (public access)
+		hasPublicAccess := false
+		for _, secReq := range *operation.Security {
+			if len(secReq) == 0 {
+				hasPublicAccess = true
+				break
 			}
-			assert.True(t, hasPublicAccess, "Public endpoint %s %s should have {} security requirement for public access", method, path)
 		}
+		assert.True(t, hasPublicAccess, "Public endpoint %s %s should have {} security requirement for public access", method, path)
 	}
 
 	// Validate request schema if provided

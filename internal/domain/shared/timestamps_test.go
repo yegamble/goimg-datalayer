@@ -190,7 +190,6 @@ func TestFormatISO8601_ParseISO8601_RoundTrip(t *testing.T) {
 			// Format then parse
 			formatted := shared.FormatISO8601(tt.input)
 			parsed, err := shared.ParseISO8601(formatted)
-
 			if err != nil {
 				t.Errorf("ParseISO8601() error = %v", err)
 				return

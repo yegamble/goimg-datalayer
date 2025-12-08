@@ -33,7 +33,7 @@ func ParseReportID(s string) (ReportID, error) {
 func MustParseReportID(s string) ReportID {
 	id, err := ParseReportID(s)
 	if err != nil {
-		panic(err) //nolint:forbidigo // Intentional panic for Must* function
+		panic(err) // Intentional panic for Must* function
 	}
 	return id
 }

@@ -214,7 +214,6 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 		}
 		return s.publicKey, nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}

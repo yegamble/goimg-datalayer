@@ -247,12 +247,10 @@ func TestUpload_RejectsMalware(t *testing.T) {
 				require.NotNil(t, result.ScanResult, "Scan result should be populated for malware detection")
 				assert.True(t, result.ScanResult.Infected)
 				assert.Equal(t, tt.expectVirus, result.ScanResult.Virus)
-			} else {
+			} else if result != nil && result.ScanResult != nil {
 				// Clean file may fail other validations, but not malware scan
-				if result != nil && result.ScanResult != nil {
-					assert.False(t, result.ScanResult.Infected)
-					assert.True(t, result.ScanResult.Clean)
-				}
+				assert.False(t, result.ScanResult.Infected)
+				assert.True(t, result.ScanResult.Clean)
 			}
 		})
 	}
@@ -301,13 +299,11 @@ func TestUpload_RejectsPolyglotFile(t *testing.T) {
 
 			// Act
 			result, err := v.Validate(context.Background(), tt.data, "polyglot.jpg")
-
 			// Assert
 			// The validator should detect this through:
 			// 1. MIME sniffing (http.DetectContentType may catch it)
 			// 2. Magic byte validation (strict checking)
 			// 3. Image processing will fail when trying to decode
-
 			// Even if initial validation passes, the file should be caught during
 			// image decoding in the actual upload flow
 			if err != nil {
@@ -729,11 +725,9 @@ func TestUpload_ValidatesMagicBytes(t *testing.T) {
 					assert.ErrorIs(t, err, tt.errorType)
 				}
 				assert.False(t, result.Valid)
-			} else {
+			} else if err != nil && !tt.wantError {
 				// May fail MIME validation, but not magic byte validation
-				if err != nil && !tt.wantError {
-					t.Logf("Unexpected error: %v", err)
-				}
+				t.Logf("Unexpected error: %v", err)
 			}
 		})
 	}

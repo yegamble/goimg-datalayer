@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -233,7 +234,8 @@ func ValidateOwnership(userCtx *UserContext, resourceOwnerID uuid.UUID) bool {
 func FormatValidationErrors(err error) map[string]interface{} {
 	validationErrors := make(map[string]interface{})
 
-	if ve, ok := err.(validator.ValidationErrors); ok {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
 		for _, fe := range ve {
 			validationErrors[fe.Field()] = map[string]string{
 				"tag":   fe.Tag(),

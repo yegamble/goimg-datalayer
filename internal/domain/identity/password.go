@@ -25,42 +25,40 @@ const (
 	saltLen      = 16        // Salt length in bytes
 )
 
-var (
-	// commonPasswords contains a list of commonly used weak passwords.
-	// In production, this should be loaded from a comprehensive external list (e.g., top 10k passwords).
-	commonPasswords = map[string]bool{
-		"password":       true,
-		"password123":    true,
-		"password1234":   true, // 13 chars - for testing weak password detection
-		"123456":         true,
-		"12345678":       true,
-		"123456789012":   true, // 12 chars - for testing weak password detection
-		"qwerty":         true,
-		"qwertyuiop123":  true, // 14 chars - for testing weak password detection
-		"abc123":         true,
-		"monkey":         true,
-		"1234567":        true,
-		"letmein":        true,
-		"trustno1":       true,
-		"dragon":         true,
-		"baseball":       true,
-		"111111":         true,
-		"iloveyou":       true,
-		"master":         true,
-		"sunshine":       true,
-		"ashley":         true,
-		"bailey":         true,
-		"passw0rd":       true,
-		"shadow":         true,
-		"123123":         true,
-		"654321":         true,
-		"superman":       true,
-		"qazwsx":         true,
-		"michael":        true,
-		"football":       true,
-		"welcomehome123": true, // 15 chars - for testing weak password detection
-	}
-)
+// commonPasswords contains a list of commonly used weak passwords.
+// In production, this should be loaded from a comprehensive external list (e.g., top 10k passwords).
+var commonPasswords = map[string]bool{
+	"password":       true,
+	"password123":    true,
+	"password1234":   true, // 13 chars - for testing weak password detection
+	"123456":         true,
+	"12345678":       true,
+	"123456789012":   true, // 12 chars - for testing weak password detection
+	"qwerty":         true,
+	"qwertyuiop123":  true, // 14 chars - for testing weak password detection
+	"abc123":         true,
+	"monkey":         true,
+	"1234567":        true,
+	"letmein":        true,
+	"trustno1":       true,
+	"dragon":         true,
+	"baseball":       true,
+	"111111":         true,
+	"iloveyou":       true,
+	"master":         true,
+	"sunshine":       true,
+	"ashley":         true,
+	"bailey":         true,
+	"passw0rd":       true,
+	"shadow":         true,
+	"123123":         true,
+	"654321":         true,
+	"superman":       true,
+	"qazwsx":         true,
+	"michael":        true,
+	"football":       true,
+	"welcomehome123": true, // 15 chars - for testing weak password detection
+}
 
 // NewPasswordHash creates a new PasswordHash by hashing the plaintext password using Argon2id.
 // The password must be between 12 and 128 characters and cannot be a commonly used weak password.

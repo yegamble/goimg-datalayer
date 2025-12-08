@@ -33,7 +33,7 @@ func ParseBanID(s string) (BanID, error) {
 func MustParseBanID(s string) BanID {
 	id, err := ParseBanID(s)
 	if err != nil {
-		panic(err) //nolint:forbidigo // Intentional panic for Must* function
+		panic(err) // Intentional panic for Must* function
 	}
 	return id
 }

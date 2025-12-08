@@ -111,7 +111,7 @@ func TestPutBytes_Success(t *testing.T) {
 	// Verify permissions
 	info, err := os.Stat(fullPath)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
+	assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
 }
 
 // TestPut_Success tests successful streaming Put operation.

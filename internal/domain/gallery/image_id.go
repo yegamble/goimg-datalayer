@@ -33,7 +33,7 @@ func ParseImageID(s string) (ImageID, error) {
 func MustParseImageID(s string) ImageID {
 	id, err := ParseImageID(s)
 	if err != nil {
-		panic(err) //nolint:forbidigo // Intentional panic for Must* function
+		panic(err) // Intentional panic for Must* function
 	}
 	return id
 }

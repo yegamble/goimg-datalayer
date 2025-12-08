@@ -100,37 +100,33 @@ func (g *KeyGenerator) ValidateKey(key string) error {
 
 // ParseKey extracts components from a storage key.
 // Returns ownerID, imageID, variant, extension, and any error.
-func (g *KeyGenerator) ParseKey(key string) (ownerID, imageID uuid.UUID, variant, ext string, err error) {
+func (g *KeyGenerator) ParseKey(key string) (uuid.UUID, uuid.UUID, string, string, error) {
 	parts := strings.Split(key, "/")
 	if len(parts) != 4 || parts[0] != "images" {
-		err = fmt.Errorf("%w: expected images/{owner}/{image}/{variant}.ext", ErrInvalidKey)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: expected images/{owner}/{image}/{variant}.ext", ErrInvalidKey)
 	}
 
-	ownerID, err = uuid.Parse(parts[1])
+	ownerID, err := uuid.Parse(parts[1])
 	if err != nil {
-		err = fmt.Errorf("%w: invalid owner ID: %v", ErrInvalidKey, err)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: invalid owner ID: %w", ErrInvalidKey, err)
 	}
 
-	imageID, err = uuid.Parse(parts[2])
+	imageID, err := uuid.Parse(parts[2])
 	if err != nil {
-		err = fmt.Errorf("%w: invalid image ID: %v", ErrInvalidKey, err)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: invalid image ID: %w", ErrInvalidKey, err)
 	}
 
 	// Extract variant and extension from filename (e.g., "thumbnail.jpg")
 	filename := parts[3]
-	ext = path.Ext(filename)
-	variant = strings.TrimSuffix(filename, ext)
+	ext := path.Ext(filename)
+	variant := strings.TrimSuffix(filename, ext)
 	ext = strings.TrimPrefix(ext, ".")
 
 	if variant == "" || ext == "" {
-		err = fmt.Errorf("%w: missing variant or extension", ErrInvalidKey)
-		return
+		return uuid.Nil, uuid.Nil, "", "", fmt.Errorf("%w: missing variant or extension", ErrInvalidKey)
 	}
 
-	return
+	return ownerID, imageID, variant, ext, nil
 }
 
 // normalizeFormat converts MIME types and format names to file extensions.

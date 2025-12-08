@@ -22,14 +22,14 @@ func ExampleProcessor() {
 	// Load an image file
 	imageData, err := os.ReadFile("photo.jpg")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	// Process the image to generate all variants
 	ctx := context.Background()
 	result, err := proc.Process(ctx, imageData, "photo.jpg")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	// Print information about generated variants
@@ -110,14 +110,14 @@ func ExampleProcessor_GenerateVariant() {
 
 	imageData, err := os.ReadFile("photo.jpg")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	// Generate just a thumbnail
 	ctx := context.Background()
 	thumbnail, err := proc.GenerateVariant(ctx, imageData, processor.VariantThumbnail)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Printf("Thumbnail: %dx%d, %s, %d bytes\n",
@@ -128,7 +128,7 @@ func ExampleProcessor_GenerateVariant() {
 
 	// Save the thumbnail
 	if err := os.WriteFile("thumbnail.webp", thumbnail.Data, 0644); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }
 
@@ -143,19 +143,19 @@ func ExampleProcessResult_GetVariant() {
 
 	imageData, err := os.ReadFile("photo.jpg")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	ctx := context.Background()
 	result, err := proc.Process(ctx, imageData, "photo.jpg")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	// Get specific variant
 	medium, err := result.GetVariant(processor.VariantMedium)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Printf("Medium variant: %dx%d\n", medium.Width, medium.Height)

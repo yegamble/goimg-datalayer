@@ -62,7 +62,7 @@ func (m *mockStorage) PresignedURL(ctx context.Context, key string, duration tim
 }
 
 func (m *mockStorage) Stat(ctx context.Context, key string) (*storage.ObjectInfo, error) {
-	return nil, nil
+	return nil, errors.New("mock: stat not implemented")
 }
 
 func (m *mockStorage) Provider() string {
