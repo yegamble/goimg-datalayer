@@ -862,6 +862,8 @@ func TestComponentSchemas(t *testing.T) {
 
 	for _, schemaName := range requiredSchemas {
 		t.Run(schemaName, func(t *testing.T) {
+			t.Parallel()
+
 			schema := doc.Components.Schemas[schemaName]
 			assert.NotNil(t, schema, "Schema %s should be defined in components", schemaName)
 
@@ -938,6 +940,8 @@ func TestPaginationParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			param := doc.Components.Parameters[tt.paramName]
 			require.NotNil(t, param, "Parameter %s should be defined", tt.paramName)
 			require.NotNil(t, param.Value, "Parameter %s should have value", tt.paramName)

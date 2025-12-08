@@ -9,6 +9,7 @@ import (
 )
 
 func setupTestSecrets(t *testing.T) string {
+	t.Helper()
 	tmpDir, err := os.MkdirTemp("", "docker-secrets-test-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -17,6 +18,7 @@ func setupTestSecrets(t *testing.T) string {
 }
 
 func writeSecret(t *testing.T, dir, name, value string) {
+	t.Helper()
 	path := filepath.Join(dir, name)
 	err := os.WriteFile(path, []byte(value), 0o600)
 	if err != nil {

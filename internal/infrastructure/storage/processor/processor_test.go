@@ -344,7 +344,7 @@ func TestProcessor_Process_Integration(t *testing.T) {
 	assert.LessOrEqual(t, result.Thumbnail.Width, 160)
 	assert.LessOrEqual(t, result.Small.Width, 320)
 	assert.LessOrEqual(t, result.Medium.Width, 800)
-	assert.True(t, result.Large.Width <= 1600)
+	assert.LessOrEqual(t, result.Large.Width, 1600)
 
 	// Verify formats
 	assert.Equal(t, "webp", result.Thumbnail.Format)
@@ -355,9 +355,9 @@ func TestProcessor_Process_Integration(t *testing.T) {
 	// Verify file sizes
 	assert.Positive(t, result.Thumbnail.FileSize)
 	assert.Positive(t, result.Small.FileSize)
-	assert.Greater(t, result.Medium.FileSize, int64(0))
-	assert.Greater(t, result.Large.FileSize, int64(0))
-	assert.Greater(t, result.Original.FileSize, int64(0))
+	assert.Positive(t, result.Medium.FileSize)
+	assert.Positive(t, result.Large.FileSize)
+	assert.Positive(t, result.Original.FileSize)
 
 	// Verify content types
 	assert.Equal(t, "image/webp", result.Thumbnail.ContentType)
@@ -372,7 +372,9 @@ func TestProcessor_GenerateVariant_InvalidInput(t *testing.T) {
 	cfg := processor.DefaultConfig()
 	p, err := processor.New(cfg)
 	require.NoError(t, err)
-	defer p.Shutdown()
+	t.Cleanup(func() {
+		p.Shutdown()
+	})
 
 	ctx := context.Background()
 
@@ -405,7 +407,7 @@ func TestProcessor_GenerateVariant_InvalidInput(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			// Note: Can't run in parallel because we're using a shared processor
+			t.Parallel()
 
 			_, err := p.GenerateVariant(ctx, tt.input, tt.variantType)
 

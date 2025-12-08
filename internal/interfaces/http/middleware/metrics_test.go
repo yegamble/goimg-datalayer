@@ -167,7 +167,7 @@ func TestMetricsMiddleware_InFlightRequests(t *testing.T) {
 
 	// Assert - in-flight requests should be 1
 	inFlight := testutil.ToFloat64(collector.httpRequestsInFlight)
-	assert.Equal(t, float64(1), inFlight, "Should have 1 request in flight")
+	assert.InDelta(t, float64(1), inFlight, 0.001, "Should have 1 request in flight")
 
 	// Signal handler to complete
 	started <- true
@@ -247,7 +247,7 @@ func TestMetricsMiddleware_DifferentStatusCodes(t *testing.T) {
 
 			// Verify metrics include correct status code
 			count := testutil.ToFloat64(collector.httpRequestsTotal.WithLabelValues("POST", "/test", tc.expectedStatus))
-			assert.Equal(t, float64(1), count, "Should record request with status %s", tc.expectedStatus)
+			assert.InDelta(t, float64(1), count, 0.001, "Should record request with status %s", tc.expectedStatus)
 		})
 	}
 }
@@ -270,13 +270,13 @@ func TestMetricsCollector_RecordImageUpload(t *testing.T) {
 
 	// Assert
 	jpegSuccessCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("success", "jpeg"))
-	assert.Equal(t, float64(1), jpegSuccessCount, "Should record 1 successful JPEG upload")
+	assert.InDelta(t, float64(1), jpegSuccessCount, 0.001, "Should record 1 successful JPEG upload")
 
 	pngSuccessCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("success", "png"))
-	assert.Equal(t, float64(1), pngSuccessCount, "Should record 1 successful PNG upload")
+	assert.InDelta(t, float64(1), pngSuccessCount, 0.001, "Should record 1 successful PNG upload")
 
 	failureCount := testutil.ToFloat64(collector.imageUploadsTotal.WithLabelValues("failure", "jpeg"))
-	assert.Equal(t, float64(1), failureCount, "Should record 1 failed upload")
+	assert.InDelta(t, float64(1), failureCount, 0.001, "Should record 1 failed upload")
 }
 
 func TestMetricsCollector_RecordImageProcessing(t *testing.T) {

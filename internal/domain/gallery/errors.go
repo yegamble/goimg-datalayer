@@ -45,7 +45,7 @@ var (
 	ErrTooManyTags      = errors.New("maximum 20 tags allowed")
 	ErrTagAlreadyExists = errors.New("tag already exists on image")
 
-	// Validation errors - Visibility and Status
+	// Validation errors - Visibility and Status.
 	ErrInvalidVisibility  = errors.New("invalid visibility value")
 	ErrInvalidImageStatus = errors.New("invalid image status")
 

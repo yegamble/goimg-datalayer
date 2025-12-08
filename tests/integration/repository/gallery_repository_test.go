@@ -275,7 +275,7 @@ func TestImageRepository_FindByOwner_EmptyResult(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), total)
-	assert.Len(t, images, 0)
+	assert.Empty(t, images)
 }
 
 func TestImageRepository_FindPublic_OnlyReturnsPublicActiveImages(t *testing.T) {
@@ -882,7 +882,7 @@ func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
 
 	// Assert
 	require.NoError(t, err)
-	assert.Len(t, albums, 0)
+	assert.Empty(t, albums)
 }
 
 func TestAlbumRepository_FindPublic_OnlyReturnsPublicAlbums(t *testing.T) {

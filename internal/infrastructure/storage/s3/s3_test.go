@@ -42,6 +42,8 @@ func TestNew_ConfigValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Note: We can't easily test New() without mocking AWS config loading
 			// So we only test the validation logic by inspecting the code paths
 			if tt.cfg.Bucket == "" {

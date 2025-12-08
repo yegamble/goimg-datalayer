@@ -51,7 +51,7 @@ func NewAlbumHandler(
 }
 
 // Routes registers album routes with the chi router.
-// Returns a chi.Router that can be mounted under /api/v1/albums
+// Returns a chi.Router that can be mounted under /api/v1/albums.
 func (h *AlbumHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

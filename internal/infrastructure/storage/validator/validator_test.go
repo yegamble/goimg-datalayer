@@ -99,7 +99,7 @@ func TestValidateSize_ExceedsLimit(t *testing.T) {
 
 	err := v.validateSize(result)
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrFileTooLarge))
+	assert.ErrorIs(t, err, gallery.ErrFileTooLarge)
 	assert.Contains(t, err.Error(), "2048 bytes exceeds 1024 byte limit")
 }
 
@@ -158,7 +158,7 @@ func TestValidateMIMEType_Invalid(t *testing.T) {
 
 			err := v.validateMIMEType(tt.mimeType)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, gallery.ErrInvalidMimeType))
+			assert.ErrorIs(t, err, gallery.ErrInvalidMimeType)
 		})
 	}
 }
@@ -249,7 +249,7 @@ func TestValidateMagicBytes_Invalid(t *testing.T) {
 
 			err := v.validateMagicBytes(tt.data)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, gallery.ErrInvalidMimeType))
+			assert.ErrorIs(t, err, gallery.ErrInvalidMimeType)
 		})
 	}
 }

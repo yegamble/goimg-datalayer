@@ -216,7 +216,7 @@ func TestPasswordHash_HashFormat(t *testing.T) {
 	// Verify PHC string format: $argon2id$v=19$m=65536,t=2,p=4$<salt>$<hash>
 	parts := strings.Split(encoded, "$")
 	require.Len(t, parts, 6)
-	assert.Equal(t, "", parts[0])
+	assert.Empty(t, parts[0])
 	assert.Equal(t, "argon2id", parts[1])
 	assert.Equal(t, "v=19", parts[2])
 	assert.Equal(t, "m=65536,t=2,p=4", parts[3])
