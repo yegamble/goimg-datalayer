@@ -1,4 +1,4 @@
-package validator
+package validator //nolint:testpackage // Tests access unexported types
 
 import (
 	"bytes"
@@ -362,7 +362,7 @@ func TestValidateDimensions_Invalid(t *testing.T) {
 
 			err := v.ValidateDimensions(tt.width, tt.height)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, tt.wantError), "expected %v, got %v", tt.wantError, err)
+			assert.ErrorIs(t, err, tt.wantError, "expected %v, got %v", tt.wantError, err)
 		})
 	}
 }
@@ -426,7 +426,7 @@ func TestValidate_SizeExceeded(t *testing.T) {
 
 	result, err := v.Validate(context.Background(), data, "large.jpg")
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrFileTooLarge))
+	assert.ErrorIs(t, err, gallery.ErrFileTooLarge)
 	assert.False(t, result.Valid)
 	assert.NotEmpty(t, result.Errors)
 }
@@ -443,7 +443,7 @@ func TestValidate_InvalidMIMEType(t *testing.T) {
 
 	result, err := v.Validate(context.Background(), data, "fake.jpg")
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrInvalidMimeType))
+	assert.ErrorIs(t, err, gallery.ErrInvalidMimeType)
 	assert.False(t, result.Valid)
 	assert.NotEmpty(t, result.Errors)
 }

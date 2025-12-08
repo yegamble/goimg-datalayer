@@ -66,8 +66,8 @@ func TestDefaultConfig(t *testing.T) {
 
 	cfg := DefaultConfig()
 
-	assert.Equal(t, "", cfg.PrivateKeyPath)
-	assert.Equal(t, "", cfg.PublicKeyPath)
+	assert.Empty(t, cfg.PrivateKeyPath)
+	assert.Empty(t, cfg.PublicKeyPath)
 	assert.Equal(t, 15*time.Minute, cfg.AccessTTL)
 	assert.Equal(t, 7*24*time.Hour, cfg.RefreshTTL)
 	assert.Equal(t, "goimg-api", cfg.Issuer)

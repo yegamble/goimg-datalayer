@@ -7,6 +7,12 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+// User profile constraints.
+const (
+	maxDisplayNameLength = 100 // Maximum display name length
+	maxBioLength         = 500 // Maximum bio length
+)
+
 // User is the aggregate root for the Identity bounded context.
 // It represents a user account with authentication and authorization capabilities.
 type User struct {
@@ -150,13 +156,13 @@ func (u *User) ClearEvents() {
 // Emits a UserProfileUpdated event.
 func (u *User) UpdateProfile(displayName, bio string) error {
 	// Validate display name length
-	if len(displayName) > 100 {
-		return fmt.Errorf("display name cannot exceed 100 characters")
+	if len(displayName) > maxDisplayNameLength {
+		return fmt.Errorf("display name cannot exceed %d characters", maxDisplayNameLength)
 	}
 
 	// Validate bio length
-	if len(bio) > 500 {
-		return fmt.Errorf("bio cannot exceed 500 characters")
+	if len(bio) > maxBioLength {
+		return fmt.Errorf("bio cannot exceed %d characters", maxBioLength)
 	}
 
 	u.displayName = displayName

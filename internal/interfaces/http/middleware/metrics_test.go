@@ -1,4 +1,4 @@
-package middleware
+package middleware //nolint:testpackage // Tests access unexported types
 
 import (
 	"net/http"
@@ -326,13 +326,13 @@ func TestMetricsCollector_UpdateDatabaseStats(t *testing.T) {
 
 	// Assert
 	active := testutil.ToFloat64(collector.dbConnectionsActive)
-	assert.Equal(t, float64(10), active)
+	assert.InDelta(t, float64(10), active, 0.0001)
 
 	idle := testutil.ToFloat64(collector.dbConnectionsIdle)
-	assert.Equal(t, float64(5), idle)
+	assert.InDelta(t, float64(5), idle, 0.0001)
 
 	max := testutil.ToFloat64(collector.dbConnectionsMax)
-	assert.Equal(t, float64(25), max)
+	assert.InDelta(t, float64(25), max, 0.0001)
 }
 
 func TestMetricsCollector_UpdateRedisStats(t *testing.T) {

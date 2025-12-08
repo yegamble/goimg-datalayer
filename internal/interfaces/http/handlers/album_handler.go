@@ -395,7 +395,7 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseIntParam(queryParams.Get("limit"), 20)
+	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -405,8 +405,8 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit > 100 {
-		limit = 100
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	// 2. Extract requesting user ID (for authorization - currently unused but may be needed for filtering)
@@ -659,7 +659,7 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseIntParam(queryParams.Get("limit"), 20)
+	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -669,8 +669,8 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit > 100 {
-		limit = 100
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	// 3. Extract requesting user ID (optional)

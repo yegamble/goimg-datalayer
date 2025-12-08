@@ -70,7 +70,7 @@ func TestParseReportReason(t *testing.T) {
 
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, reason)
 			} else {
 				require.NoError(t, err)

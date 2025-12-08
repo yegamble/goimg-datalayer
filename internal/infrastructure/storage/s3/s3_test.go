@@ -1,4 +1,4 @@
-package s3
+package s3 //nolint:testpackage // Tests access unexported types
 
 import (
 	"errors"

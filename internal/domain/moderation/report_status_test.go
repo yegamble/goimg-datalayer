@@ -64,7 +64,7 @@ func TestParseReportStatus(t *testing.T) {
 
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, status)
 			} else {
 				require.NoError(t, err)

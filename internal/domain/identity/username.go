@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+// Username validation constants.
+const (
+	minUsernameLength = 3  // Minimum username length
+	maxUsernameLength = 32 // Maximum username length
+)
+
 // Username is a value object representing a validated username.
 type Username struct {
 	value string
@@ -63,11 +69,11 @@ func NewUsername(value string) (Username, error) {
 		return Username{}, ErrUsernameEmpty
 	}
 
-	if len(value) < 3 {
+	if len(value) < minUsernameLength {
 		return Username{}, ErrUsernameTooShort
 	}
 
-	if len(value) > 32 {
+	if len(value) > maxUsernameLength {
 		return Username{}, ErrUsernameTooLong
 	}
 

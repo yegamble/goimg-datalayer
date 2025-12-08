@@ -1,4 +1,4 @@
-package local
+package local //nolint:testpackage // Tests access unexported types
 
 import (
 	"bytes"

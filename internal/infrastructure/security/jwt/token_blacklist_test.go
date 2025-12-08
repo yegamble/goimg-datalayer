@@ -1,4 +1,4 @@
-package jwt
+package jwt //nolint:testpackage // Tests access unexported fields
 
 import (
 	"context"
@@ -288,7 +288,7 @@ func TestTokenBlacklist_Clear(t *testing.T) {
 	// Verify tokens are blacklisted
 	count, err := blacklist.Count(ctx)
 	require.NoError(t, err)
-	assert.Greater(t, count, int64(0))
+	assert.Positive(t, count)
 
 	// Clear blacklist
 	err = blacklist.Clear(ctx)

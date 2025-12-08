@@ -436,7 +436,7 @@ func TestSessionStore_Clear(t *testing.T) {
 	// Verify sessions exist
 	count, err := store.Count(ctx)
 	require.NoError(t, err)
-	assert.Greater(t, count, int64(0))
+	assert.Positive(t, count)
 
 	// Clear all sessions
 	err = store.Clear(ctx)

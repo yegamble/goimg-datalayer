@@ -73,7 +73,7 @@ func NewRouter(
 	r.Use(middleware.CORS(corsCfg))
 
 	// Timeout middleware (prevent long-running requests)
-	r.Use(chimiddleware.Timeout(30 * time.Second))
+	r.Use(chimiddleware.Timeout(contextTimeout * time.Second))
 
 	// Health check endpoints (no authentication required)
 	// Liveness probe - checks if server is running

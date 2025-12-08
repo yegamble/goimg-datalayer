@@ -329,7 +329,7 @@ func TestReport_Resolve(t *testing.T) {
 		err := report.Resolve(resolverID, "Second resolution")
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, moderation.ErrReportAlreadyResolved)
+		require.ErrorIs(t, err, moderation.ErrReportAlreadyResolved)
 		assert.Equal(t, moderation.StatusResolved, report.Status())
 		assert.Equal(t, "First resolution", report.Resolution())
 	})

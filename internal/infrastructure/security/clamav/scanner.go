@@ -13,6 +13,18 @@ import (
 	"time"
 )
 
+// ClamAV protocol constants.
+const (
+	defaultTimeout      = 30 * time.Second // Default timeout for scan operations
+	commandTimeout      = 5 * time.Second  // Timeout for quick commands (ping, version)
+	defaultChunkSize    = 32 * 1024        // 32KB chunks for streaming
+	maxChunkSize        = 0x7FFFFFFF       // Maximum chunk size (2GB - 1)
+	bitShift24          = 24               // Bit shift for byte 0 in big-endian uint32
+	bitShift16          = 16               // Bit shift for byte 1 in big-endian uint32
+	bitShift8           = 8                // Bit shift for byte 2 in big-endian uint32
+	minResponseParts    = 2                // Minimum parts in response (stream: result)
+)
+
 // ScanResult contains the result of a malware scan.
 type ScanResult struct {
 	// Clean is true if no malware was detected.
@@ -67,7 +79,7 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		TCPAddress: "localhost:3310",
-		Timeout:    30 * time.Second,
+		Timeout:    defaultTimeout,
 	}
 }
 
@@ -77,7 +89,7 @@ func NewClient(cfg Config) (*Client, error) {
 		cfg.TCPAddress = "localhost:3310"
 	}
 	if cfg.Timeout == 0 {
-		cfg.Timeout = 30 * time.Second
+		cfg.Timeout = defaultTimeout
 	}
 
 	return &Client{
@@ -85,7 +97,7 @@ func NewClient(cfg Config) (*Client, error) {
 		timeout: cfg.Timeout,
 		bufferPool: sync.Pool{
 			New: func() interface{} {
-				buf := make([]byte, 32*1024) // 32KB chunks
+				buf := make([]byte, defaultChunkSize)
 				return &buf
 			},
 		},
@@ -121,7 +133,7 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 	}
 
 	// Send data in chunks (clamd protocol: 4-byte size prefix per chunk)
-	chunkSize := 32 * 1024 // 32KB chunks
+	chunkSize := defaultChunkSize
 	for i := 0; i < len(data); i += chunkSize {
 		end := i + chunkSize
 		if end > len(data) {
@@ -131,14 +143,14 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 
 		// Write 4-byte size prefix (big-endian)
 		chunkLen := len(chunk)
-		if chunkLen > 0x7FFFFFFF { // Validate conversion won't overflow
+		if chunkLen > maxChunkSize { // Validate conversion won't overflow
 			return nil, fmt.Errorf("clamav: chunk size too large: %d", chunkLen)
 		}
 		size := uint32(chunkLen) // #nosec G115 -- validated chunk size is safe
 		sizeBytes := []byte{
-			byte(size >> 24),
-			byte(size >> 16),
-			byte(size >> 8),
+			byte(size >> bitShift24),
+			byte(size >> bitShift16),
+			byte(size >> bitShift8),
 			byte(size),
 		}
 		if _, err := conn.Write(sizeBytes); err != nil {
@@ -195,14 +207,14 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, size int64) (
 		n, err := reader.Read(buf)
 		if n > 0 {
 			// Write size prefix
-			if n > 0x7FFFFFFF { // Validate conversion won't overflow
+			if n > maxChunkSize { // Validate conversion won't overflow
 				return nil, fmt.Errorf("clamav: read size too large: %d", n)
 			}
 			size := uint32(n) // #nosec G115 -- validated read size is safe
 			sizeBytes := []byte{
-				byte(size >> 24),
-				byte(size >> 16),
-				byte(size >> 8),
+				byte(size >> bitShift24),
+				byte(size >> bitShift16),
+				byte(size >> bitShift8),
 				byte(size),
 			}
 			if _, werr := conn.Write(sizeBytes); werr != nil {
@@ -240,7 +252,7 @@ func (c *Client) Ping(ctx context.Context) error {
 		}
 	}()
 
-	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+	if err := conn.SetDeadline(time.Now().Add(commandTimeout)); err != nil {
 		return fmt.Errorf("clamav: set deadline: %w", err)
 	}
 
@@ -272,7 +284,7 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 		}
 	}()
 
-	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+	if err := conn.SetDeadline(time.Now().Add(commandTimeout)); err != nil {
 		return "", fmt.Errorf("clamav: set deadline: %w", err)
 	}
 
@@ -295,7 +307,7 @@ func (c *Client) Stats(ctx context.Context) (string, error) {
 		}
 	}()
 
-	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+	if err := conn.SetDeadline(time.Now().Add(commandTimeout)); err != nil {
 		return "", fmt.Errorf("clamav: set deadline: %w", err)
 	}
 
@@ -357,7 +369,7 @@ func (c *Client) readScanResponse(conn net.Conn) (*ScanResult, error) {
 		result.Infected = true
 		// Extract virus name: "stream: Eicar-Test-Signature FOUND"
 		parts := strings.Split(response, ":")
-		if len(parts) >= 2 {
+		if len(parts) >= minResponseParts {
 			virusPart := strings.TrimSpace(parts[1])
 			virusPart = strings.TrimSuffix(virusPart, " FOUND")
 			result.Virus = strings.TrimSpace(virusPart)
