@@ -16,6 +16,8 @@ import (
 )
 
 // generateTestKeys creates RSA key pair for testing
+//
+//nolint:nonamedreturns // Named returns used for assignment in function body
 func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath string) {
 	t.Helper()
 

@@ -468,11 +468,12 @@ func TestLogoutHandler_Handle(t *testing.T) {
 			err := handler.Handle(context.Background(), tt.cmd)
 
 			// Assert
-			if tt.assert != nil {
+			switch {
+			case tt.assert != nil:
 				tt.assert(t, suite, err)
-			} else if tt.wantErr != nil {
+			case tt.wantErr != nil:
 				require.ErrorIs(t, err, tt.wantErr)
-			} else {
+			default:
 				require.NoError(t, err)
 			}
 

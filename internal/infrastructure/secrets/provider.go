@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+// Provider type constants.
+const (
+	providerDockerSecrets = "docker-secrets"
+)
+
 // SecretProvider defines the interface for retrieving secrets from various sources.
 // Implementations can load secrets from environment variables, Docker Secrets,
 // AWS Secrets Manager, HashiCorp Vault, or other secret management systems.
@@ -45,7 +50,7 @@ func NewProvider(config SecretConfig) (SecretProvider, error) {
 	switch config.Provider {
 	case "env", "environment":
 		return NewEnvProvider(), nil
-	case "docker", "docker-secrets":
+	case "docker", providerDockerSecrets:
 		path := config.DockerSecretsPath
 		if path == "" {
 			path = "/run/secrets"

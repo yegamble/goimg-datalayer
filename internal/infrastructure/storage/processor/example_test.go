@@ -9,8 +9,8 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/processor"
 )
 
-// ExampleProcessor demonstrates basic usage of the image processor.
-func ExampleProcessor() {
+// Example_processor demonstrates basic usage of the image processor.
+func Example_processor() {
 	// Create processor with default configuration
 	cfg := processor.DefaultConfig()
 	proc, err := processor.New(cfg)
@@ -73,10 +73,11 @@ func ExampleProcessor() {
 			log.Printf("Failed to save %s: %v\n", name, err)
 		}
 	}
+	// Output:
 }
 
-// ExampleProcessor_customConfig demonstrates using custom configuration.
-func ExampleProcessor_customConfig() {
+// Example_processor_customConfig demonstrates using custom configuration.
+func Example_processor_customConfig() {
 	// Create custom configuration
 	cfg := processor.Config{
 		MemoryLimitMB:    512, // Increase memory limit
@@ -97,10 +98,11 @@ func ExampleProcessor_customConfig() {
 
 	// Use the processor...
 	_ = proc
+	// Output:
 }
 
-// ExampleProcessor_GenerateVariant demonstrates generating a single variant.
-func ExampleProcessor_GenerateVariant() {
+// Example_processor_GenerateVariant demonstrates generating a single variant.
+func Example_processor_GenerateVariant() {
 	cfg := processor.DefaultConfig()
 	proc, err := processor.New(cfg)
 	if err != nil {
@@ -130,10 +132,11 @@ func ExampleProcessor_GenerateVariant() {
 	if err := os.WriteFile("thumbnail.webp", thumbnail.Data, 0644); err != nil {
 		panic(err)
 	}
+	// Output:
 }
 
-// ExampleProcessResult_GetVariant demonstrates accessing specific variants.
-func ExampleProcessResult_GetVariant() {
+// Example_processResult_GetVariant demonstrates accessing specific variants.
+func Example_processResult_GetVariant() {
 	cfg := processor.DefaultConfig()
 	proc, err := processor.New(cfg)
 	if err != nil {
@@ -159,6 +162,7 @@ func ExampleProcessResult_GetVariant() {
 	}
 
 	fmt.Printf("Medium variant: %dx%d\n", medium.Width, medium.Height)
+	// Output:
 }
 
 // ExampleConfig_GetVariantSpec demonstrates getting variant specifications.

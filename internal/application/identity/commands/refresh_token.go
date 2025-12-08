@@ -63,7 +63,7 @@ func NewRefreshTokenHandler(
 }
 
 const (
-	// DefaultTokenExpiryMinutes is the default token expiration in minutes
+	// DefaultTokenExpiryMinutes is the default token expiration in minutes.
 	DefaultTokenExpiryMinutes = 15
 )
 

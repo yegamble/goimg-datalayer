@@ -391,12 +391,13 @@ func TestRegisterUserHandler_Handle(t *testing.T) {
 			result, err := handler.Handle(context.Background(), tt.cmd)
 
 			// Assert
-			if tt.assert != nil {
+			switch {
+			case tt.assert != nil:
 				tt.assert(t, suite, result, err)
-			} else if tt.wantErr != nil {
+			case tt.wantErr != nil:
 				require.ErrorIs(t, err, tt.wantErr)
 				assert.Nil(t, result)
-			} else {
+			default:
 				require.NoError(t, err)
 				require.NotNil(t, result)
 			}

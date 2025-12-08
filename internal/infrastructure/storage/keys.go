@@ -15,11 +15,14 @@ const (
 
 	// Default fallback filename
 	DefaultFilename = "unnamed.jpg"
+
+	// Format constants.
+	formatJPG = "jpg"
 )
 
 var (
 	// validKeyPattern ensures keys only contain safe characters.
-	// Pattern: images/{uuid}/{uuid}/{variant}.{ext}
+	// Pattern: images/{uuid}/{uuid}/{variant}.{ext}.
 	validKeyPattern = regexp.MustCompile(`^images/[a-f0-9-]{36}/[a-f0-9-]{36}/[a-z]+\.(jpg|jpeg|png|gif|webp)$`)
 
 	// validExtensions lists allowed file extensions.
@@ -46,7 +49,7 @@ func NewKeyGenerator() *KeyGenerator {
 // - Organizes by user (enables bulk operations, quota management)
 // - Unique image ID prevents collisions
 // - Variant type distinguishes sizes
-// - Extension for MIME type sniffing
+// - Extension for MIME type sniffing.
 func (g *KeyGenerator) GenerateKey(ownerID, imageID uuid.UUID, variant, format string) string {
 	format = normalizeFormat(format)
 	return fmt.Sprintf(
@@ -132,8 +135,8 @@ func (g *KeyGenerator) ParseKey(key string) (uuid.UUID, uuid.UUID, string, strin
 // normalizeFormat converts MIME types and format names to file extensions.
 func normalizeFormat(format string) string {
 	switch strings.ToLower(format) {
-	case "image/jpeg", "jpeg", "jpg":
-		return "jpg"
+	case "image/jpeg", "jpeg", formatJPG:
+		return formatJPG
 	case "image/png", "png":
 		return "png"
 	case "image/gif", "gif":
@@ -147,7 +150,7 @@ func normalizeFormat(format string) string {
 		if validExtensions["."+format] {
 			return format
 		}
-		return "jpg" // Default fallback
+		return formatJPG // Default fallback
 	}
 }
 

@@ -598,7 +598,7 @@ type infiniteReader struct {
 	count int
 }
 
-func (r *infiniteReader) Read(p []byte) (n int, err error) {
+func (r *infiniteReader) Read(p []byte) (int, error) {
 	r.count++
 	// Fill buffer with data
 	for i := range p {

@@ -6,17 +6,17 @@ import "errors"
 // These errors represent business rule violations and validation failures.
 // Use fmt.Errorf("operation: %w", err) to wrap with additional context.
 var (
-	// Entity not found errors
+	// Entity not found errors.
 	ErrImageNotFound   = errors.New("image not found")
 	ErrAlbumNotFound   = errors.New("album not found")
 	ErrCommentNotFound = errors.New("comment not found")
 
-	// Image lifecycle errors
+	// Image lifecycle errors.
 	ErrImageDeleted    = errors.New("image has been deleted")
 	ErrImageProcessing = errors.New("image is still processing")
 	ErrImageFlagged    = errors.New("image has been flagged for moderation")
 
-	// Security errors
+	// Security errors.
 	ErrMalwareDetected   = errors.New("malware detected in uploaded file")
 	ErrStorageCorruption = errors.New("storage file is missing or corrupted")
 

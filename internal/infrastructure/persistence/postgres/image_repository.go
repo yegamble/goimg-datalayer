@@ -17,6 +17,9 @@ import (
 
 // SQL queries for image operations.
 const (
+	// Query ordering constants.
+	orderByCreatedDesc = " ORDER BY i.created_at DESC"
+
 	sqlInsertImage = `
 		INSERT INTO images (
 			id, owner_id, title, description, storage_provider, storage_key,
@@ -599,16 +602,16 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 		if params.Query != "" {
 			query += " ORDER BY relevance_score DESC, i.created_at DESC"
 		} else {
-			query += " ORDER BY i.created_at DESC"
+			query += orderByCreatedDesc
 		}
 	case gallery.SearchSortByCreatedAt:
-		query += " ORDER BY i.created_at DESC"
+		query += orderByCreatedDesc
 	case gallery.SearchSortByViewCount:
 		query += " ORDER BY i.view_count DESC, i.created_at DESC"
 	case gallery.SearchSortByLikeCount:
 		query += " ORDER BY i.view_count DESC, i.created_at DESC" // Using view_count as proxy for now
 	default:
-		query += " ORDER BY i.created_at DESC"
+		query += orderByCreatedDesc
 	}
 
 	// Add pagination

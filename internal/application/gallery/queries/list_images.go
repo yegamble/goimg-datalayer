@@ -158,7 +158,8 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 	var images []*gallery.Image
 	var totalCount int64
 
-	if tagFilter != nil {
+	switch {
+	case tagFilter != nil:
 		// List by tag (always public only)
 		images, totalCount, err = h.images.FindByTag(ctx, *tagFilter, pagination)
 		if err != nil {
@@ -168,7 +169,7 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 				Msg("failed to list images by tag")
 			return nil, fmt.Errorf("list images by tag: %w", err)
 		}
-	} else if !ownerID.IsZero() {
+	case !ownerID.IsZero():
 		// List by owner
 		images, totalCount, err = h.images.FindByOwner(ctx, ownerID, pagination)
 		if err != nil {
@@ -185,7 +186,7 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 		} else if visibilityFilter != nil {
 			images = filterByVisibility(images, *visibilityFilter)
 		}
-	} else {
+	default:
 		// List public images (no owner filter)
 		images, totalCount, err = h.images.FindPublic(ctx, pagination)
 		if err != nil {

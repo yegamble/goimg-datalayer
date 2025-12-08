@@ -96,7 +96,7 @@ func New(cfg Config, clamavClient clamav.Scanner) *Validator {
 // 4. Dimension check (max 8192x8192)
 // 5. Pixel count check (max 100M pixels)
 // 6. ClamAV malware scan
-// 7. Filename sanitization
+// 7. Filename sanitization.
 func (v *Validator) Validate(ctx context.Context, data []byte, filename string) (*ValidationResult, error) {
 	result := &ValidationResult{
 		FileSize: int64(len(data)),

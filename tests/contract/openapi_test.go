@@ -983,7 +983,8 @@ func validateEndpointContract(
 		hasExplicitSecurity := operation.Security != nil && len(*operation.Security) > 0
 		hasGlobalSecurity := len(doc.Security) > 0
 
-		if hasExplicitSecurity {
+		switch {
+		case hasExplicitSecurity:
 			// Check if any security requirement includes bearerAuth
 			foundBearer := false
 			for _, secReq := range *operation.Security {
@@ -993,12 +994,12 @@ func validateEndpointContract(
 				}
 			}
 			assert.True(t, foundBearer, "Endpoint %s %s should use bearerAuth (found %d security requirements)", method, path, len(*operation.Security))
-		} else if hasGlobalSecurity {
+		case hasGlobalSecurity:
 			// Inherits from global security
 			secReq := doc.Security[0]
 			_, hasBearer := secReq["bearerAuth"]
 			assert.True(t, hasBearer, "Endpoint %s %s should inherit bearerAuth from global", method, path)
-		} else {
+		default:
 			assert.Fail(t, fmt.Sprintf("Endpoint %s %s should require authentication", method, path))
 		}
 	} else if operation.Security != nil && len(*operation.Security) > 0 {
@@ -1046,16 +1047,17 @@ func validateEndpointContract(
 
 		if response != nil && response.Value != nil {
 			// Special cases that don't have content
-			if schemaName == "no_content" {
+			switch schemaName {
+			case "no_content":
 				assert.Nil(t, response.Value.Content, "Response %s should have no content for %s %s", statusCodeStr, method, path)
-			} else if schemaName == "image_binary" {
+			case "image_binary":
 				// Image binary response
 				content := response.Value.Content
 				if content != nil {
 					hasImageContent := content.Get("image/jpeg") != nil || content.Get("image/png") != nil
 					assert.True(t, hasImageContent, "Response %s should have image content for %s %s", statusCodeStr, method, path)
 				}
-			} else {
+			default:
 				// JSON responses
 				jsonContent := response.Value.Content.Get("application/json")
 				if jsonContent != nil {

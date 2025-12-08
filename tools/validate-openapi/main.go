@@ -44,7 +44,7 @@ func main() {
 	fmt.Printf("  Components/Schemas: %d\n", len(doc.Components.Schemas))
 }
 
-// checkForCommonIssues performs additional validation checks
+// checkForCommonIssues performs additional validation checks.
 func checkForCommonIssues(doc *openapi3.T) {
 	warnings := []string{}
 

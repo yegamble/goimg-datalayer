@@ -314,10 +314,11 @@ func (c *Client) readScanResponse(conn net.Conn) (*ScanResult, error) {
 	}
 
 	// Response format: "stream: OK" or "stream: Eicar-Signature FOUND"
-	if strings.HasSuffix(response, "OK") {
+	switch {
+	case strings.HasSuffix(response, "OK"):
 		result.Clean = true
 		result.Infected = false
-	} else if strings.Contains(response, "FOUND") {
+	case strings.Contains(response, "FOUND"):
 		result.Clean = false
 		result.Infected = true
 		// Extract virus name: "stream: Eicar-Test-Signature FOUND"
@@ -327,9 +328,9 @@ func (c *Client) readScanResponse(conn net.Conn) (*ScanResult, error) {
 			virusPart = strings.TrimSuffix(virusPart, " FOUND")
 			result.Virus = strings.TrimSpace(virusPart)
 		}
-	} else if strings.Contains(response, "ERROR") {
+	case strings.Contains(response, "ERROR"):
 		return nil, fmt.Errorf("clamav: scan error: %s", response)
-	} else {
+	default:
 		return nil, fmt.Errorf("clamav: unexpected response: %s", response)
 	}
 
