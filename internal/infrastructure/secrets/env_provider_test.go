@@ -1,4 +1,4 @@
-//nolint:testpackage // White-box testing required for internal implementation
+//nolint:testpackage,goconst // White-box testing required; test strings don't need constants
 package secrets
 
 import (
@@ -35,8 +35,14 @@ func TestEnvProvider_GetSecret(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup
 			if tt.setValue != "" {
-				os.Setenv(tt.secretKey, tt.setValue)
-				defer os.Unsetenv(tt.secretKey)
+				if err := os.Setenv(tt.secretKey, tt.setValue); err != nil {
+					t.Fatalf("failed to set env var: %v", err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.secretKey); err != nil {
+						t.Logf("failed to unset env var: %v", err)
+					}
+				}()
 			}
 
 			// Execute
@@ -93,8 +99,14 @@ func TestEnvProvider_GetSecretWithDefault(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup
 			if tt.setValue != "" {
-				os.Setenv(tt.secretKey, tt.setValue)
-				defer os.Unsetenv(tt.secretKey)
+				if err := os.Setenv(tt.secretKey, tt.setValue); err != nil {
+					t.Fatalf("failed to set env var: %v", err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.secretKey); err != nil {
+						t.Logf("failed to unset env var: %v", err)
+					}
+				}()
 			}
 
 			// Execute
@@ -113,8 +125,14 @@ func TestEnvProvider_MustGetSecret(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("existing secret", func(t *testing.T) {
-		os.Setenv("TEST_MUST_SECRET", "test_value")
-		defer os.Unsetenv("TEST_MUST_SECRET")
+		if err := os.Setenv("TEST_MUST_SECRET", "test_value"); err != nil {
+			t.Fatalf("failed to set env var: %v", err)
+		}
+		defer func() {
+			if err := os.Unsetenv("TEST_MUST_SECRET"); err != nil {
+				t.Logf("failed to unset env var: %v", err)
+			}
+		}()
 
 		got := provider.MustGetSecret(ctx, "TEST_MUST_SECRET")
 		if got != "test_value" {

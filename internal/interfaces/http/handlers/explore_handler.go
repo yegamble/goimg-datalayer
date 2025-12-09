@@ -10,6 +10,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+const (
+	defaultPerPage = 20
+	maxPerPage     = 100
+)
+
 // ExploreHandler handles explore/discovery HTTP endpoints.
 // These endpoints are public and allow anonymous users to discover content.
 type ExploreHandler struct {
@@ -32,6 +37,8 @@ func NewExploreHandler(
 // Returns a chi.Router that can be mounted under /api/v1/explore
 //
 // All routes are public (no authentication required) and only return public images.
+//
+//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *ExploreHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -60,12 +67,12 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), 20)
+	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		perPage = 20
+		perPage = defaultPerPage
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > maxPerPage {
+		perPage = maxPerPage
 	}
 
 	// Calculate offset
@@ -154,12 +161,12 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), 20)
+	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		perPage = 20
+		perPage = defaultPerPage
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > maxPerPage {
+		perPage = maxPerPage
 	}
 
 	// Calculate offset

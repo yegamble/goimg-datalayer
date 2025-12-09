@@ -14,6 +14,16 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
+const (
+	// Default validation limits.
+	defaultMaxFileSizeMB  = 10
+	defaultMaxWidth       = 8192
+	defaultMaxHeight      = 8192
+	defaultMaxPixels      = 100_000_000
+	defaultMinFilenameLen = 12
+	bytesPerMB            = 1024 * 1024
+)
+
 // ValidationResult contains the result of validating an image.
 type ValidationResult struct {
 	// Valid is true if the image passed all validation checks.
@@ -68,10 +78,10 @@ type Config struct {
 // DefaultConfig returns sensible defaults for image validation.
 func DefaultConfig() Config {
 	return Config{
-		MaxFileSize:       10 * 1024 * 1024, // 10MB
-		MaxWidth:          8192,
-		MaxHeight:         8192,
-		MaxPixels:         100_000_000, // 100 million pixels
+		MaxFileSize:       defaultMaxFileSizeMB * bytesPerMB,
+		MaxWidth:          defaultMaxWidth,
+		MaxHeight:         defaultMaxHeight,
+		MaxPixels:         defaultMaxPixels,
 		AllowedMIMETypes:  []string{"image/jpeg", "image/png", "image/gif", "image/webp"},
 		EnableMalwareScan: true,
 	}
@@ -174,7 +184,7 @@ func (v *Validator) validateMIMEType(mimeType string) error {
 
 // validateMagicBytes verifies the file starts with valid image magic bytes.
 func (v *Validator) validateMagicBytes(data []byte) error {
-	if len(data) < 12 {
+	if len(data) < defaultMinFilenameLen {
 		return fmt.Errorf("%w: file too small", gallery.ErrInvalidMimeType)
 	}
 
@@ -189,8 +199,8 @@ func (v *Validator) validateMagicBytes(data []byte) error {
 	for format, magic := range magicBytes {
 		if bytes.HasPrefix(data, magic) {
 			// For WebP, also check for WEBP signature at offset 8
-			if format == "webp" && len(data) >= 12 {
-				if !bytes.Equal(data[8:12], []byte("WEBP")) {
+			if format == "webp" && len(data) >= defaultMinFilenameLen {
+				if !bytes.Equal(data[8:defaultMinFilenameLen], []byte("WEBP")) {
 					continue
 				}
 			}

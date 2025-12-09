@@ -1,3 +1,4 @@
+//nolint:goconst // Test strings don't need constants
 package commands_test
 
 import (
@@ -15,6 +16,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/application/identity/testhelpers"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestLogoutHandler_Handle(t *testing.T) {
 	t.Parallel()
 

@@ -14,6 +14,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestDeleteImageHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -50,6 +51,7 @@ func TestDeleteImageHandler_Handle(t *testing.T) {
 				suite.AssertExpectations(t)
 			},
 		},
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful deletion by moderator",
 			cmd: commands.DeleteImageCommand{
@@ -74,6 +76,7 @@ func TestDeleteImageHandler_Handle(t *testing.T) {
 				suite.AssertExpectations(t)
 			},
 		},
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful deletion by admin",
 			cmd: commands.DeleteImageCommand{
@@ -104,7 +107,7 @@ func TestDeleteImageHandler_Handle(t *testing.T) {
 				ImageID: "invalid-uuid",
 				UserID:  testhelpers.ValidUserID,
 			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+			setup: func(t *testing.T, _ *testhelpers.TestSuite) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
@@ -120,7 +123,7 @@ func TestDeleteImageHandler_Handle(t *testing.T) {
 				ImageID: testhelpers.ValidImageID,
 				UserID:  "invalid-uuid",
 			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+			setup: func(t *testing.T, _ *testhelpers.TestSuite) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,

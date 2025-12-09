@@ -56,6 +56,8 @@ func NewUpdateAlbumHandler(
 //   - ErrAlbumNotFound if album doesn't exist
 //   - Authorization error if user doesn't own the album
 //   - Validation errors from domain value objects
+//
+//nolint:funlen // Command/query handler with sequential validation and business logic
 func (h *UpdateAlbumHandler) Handle(ctx context.Context, cmd UpdateAlbumCommand) error {
 	// 1. Parse IDs
 	albumID, err := gallery.ParseAlbumID(cmd.AlbumID)
@@ -97,50 +99,9 @@ func (h *UpdateAlbumHandler) Handle(ctx context.Context, cmd UpdateAlbumCommand)
 	}
 
 	// 4. Apply updates via domain methods
-	updateNeeded := false
-
-	if cmd.Title != nil && *cmd.Title != album.Title() {
-		if err := album.UpdateTitle(*cmd.Title); err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("title", *cmd.Title).
-				Msg("invalid album title for update")
-			return fmt.Errorf("update title: %w", err)
-		}
-		updateNeeded = true
-	}
-
-	if cmd.Description != nil && *cmd.Description != album.Description() {
-		if err := album.UpdateDescription(*cmd.Description); err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("description", *cmd.Description).
-				Msg("invalid album description for update")
-			return fmt.Errorf("update description: %w", err)
-		}
-		updateNeeded = true
-	}
-
-	if cmd.Visibility != nil {
-		visibility, err := gallery.ParseVisibility(*cmd.Visibility)
-		if err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("visibility", *cmd.Visibility).
-				Msg("invalid visibility for album update")
-			return fmt.Errorf("invalid visibility: %w", err)
-		}
-
-		if visibility != album.Visibility() {
-			if err := album.UpdateVisibility(visibility); err != nil {
-				h.logger.Debug().
-					Err(err).
-					Str("visibility", *cmd.Visibility).
-					Msg("failed to update album visibility")
-				return fmt.Errorf("update visibility: %w", err)
-			}
-			updateNeeded = true
-		}
+	updateNeeded, err := h.applyAlbumUpdates(album, cmd)
+	if err != nil {
+		return err
 	}
 
 	// 5. If no changes, return early
@@ -178,4 +139,74 @@ func (h *UpdateAlbumHandler) Handle(ctx context.Context, cmd UpdateAlbumCommand)
 		Msg("album updated successfully")
 
 	return nil
+}
+
+// applyAlbumUpdates applies all update fields to the album.
+// Returns true if any updates were made, false otherwise.
+func (h *UpdateAlbumHandler) applyAlbumUpdates(album *gallery.Album, cmd UpdateAlbumCommand) (bool, error) {
+	updateNeeded := false
+
+	// Update title if provided and different
+	if cmd.Title != nil && *cmd.Title != album.Title() {
+		if err := album.UpdateTitle(*cmd.Title); err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("title", *cmd.Title).
+				Msg("invalid album title for update")
+			return false, fmt.Errorf("update title: %w", err)
+		}
+		updateNeeded = true
+	}
+
+	// Update description if provided and different
+	if cmd.Description != nil && *cmd.Description != album.Description() {
+		if err := album.UpdateDescription(*cmd.Description); err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("description", *cmd.Description).
+				Msg("invalid album description for update")
+			return false, fmt.Errorf("update description: %w", err)
+		}
+		updateNeeded = true
+	}
+
+	// Update visibility if provided
+	if cmd.Visibility != nil {
+		updated, err := h.updateAlbumVisibility(album, *cmd.Visibility)
+		if err != nil {
+			return false, err
+		}
+		if updated {
+			updateNeeded = true
+		}
+	}
+
+	return updateNeeded, nil
+}
+
+// updateAlbumVisibility updates the album visibility if it has changed.
+// Returns true if the visibility was updated, false otherwise.
+func (h *UpdateAlbumHandler) updateAlbumVisibility(album *gallery.Album, visibilityStr string) (bool, error) {
+	visibility, err := gallery.ParseVisibility(visibilityStr)
+	if err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("visibility", visibilityStr).
+			Msg("invalid visibility for album update")
+		return false, fmt.Errorf("invalid visibility: %w", err)
+	}
+
+	if visibility == album.Visibility() {
+		return false, nil
+	}
+
+	if err := album.UpdateVisibility(visibility); err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("visibility", visibilityStr).
+			Msg("failed to update album visibility")
+		return false, fmt.Errorf("update visibility: %w", err)
+	}
+
+	return true, nil
 }

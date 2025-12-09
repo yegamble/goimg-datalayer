@@ -95,10 +95,16 @@ type ObjectInfo struct {
 type ProviderType string
 
 const (
-	ProviderLocal  ProviderType = "local"
-	ProviderS3     ProviderType = "s3"
-	ProviderSpaces ProviderType = "spaces" // DigitalOcean Spaces
-	ProviderB2     ProviderType = "b2"     // Backblaze B2
-	ProviderMinIO  ProviderType = "minio"
-	ProviderIPFS   ProviderType = "ipfs" // Future
+	// ProviderLocal uses local filesystem storage.
+	ProviderLocal ProviderType = "local"
+	// ProviderS3 uses Amazon S3 storage.
+	ProviderS3 ProviderType = "s3"
+	// ProviderSpaces uses DigitalOcean Spaces storage.
+	ProviderSpaces ProviderType = "spaces"
+	// ProviderB2 uses Backblaze B2 storage.
+	ProviderB2 ProviderType = "b2"
+	// ProviderMinIO uses MinIO object storage.
+	ProviderMinIO ProviderType = "minio"
+	// ProviderIPFS uses IPFS distributed storage (future).
+	ProviderIPFS ProviderType = "ipfs"
 )

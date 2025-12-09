@@ -52,7 +52,9 @@ func TestTokenBlacklist_Add(t *testing.T) {
 	expiresAt := time.Now().UTC().Add(5 * time.Minute)
 
 	// Clean up after test
-	defer blacklist.Remove(ctx, tokenID)
+	defer func() {
+		_ = blacklist.Remove(ctx, tokenID)
+	}()
 
 	// Add token to blacklist
 	err := blacklist.Add(ctx, tokenID, expiresAt)
@@ -127,7 +129,9 @@ func TestTokenBlacklist_Add_WithTTL(t *testing.T) {
 	expiresAt := time.Now().UTC().Add(2 * time.Second)
 
 	// Clean up after test
-	defer blacklist.Remove(ctx, tokenID)
+	defer func() {
+		_ = blacklist.Remove(ctx, tokenID)
+	}()
 
 	// Add token to blacklist
 	err := blacklist.Add(ctx, tokenID, expiresAt)
@@ -167,7 +171,9 @@ func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up after test
-	defer blacklist.Remove(ctx, tokenID)
+	defer func() {
+		_ = blacklist.Remove(ctx, tokenID)
+	}()
 
 	// Token should be blacklisted now
 	isBlacklisted, err = blacklist.IsBlacklisted(ctx, tokenID)
@@ -262,7 +268,9 @@ func TestTokenBlacklist_Count(t *testing.T) {
 	}
 
 	// Clean up after test
-	defer blacklist.Clear(ctx)
+	defer func() {
+		_ = blacklist.Clear(ctx)
+	}()
 
 	// Count should be 5
 	count, err = blacklist.Count(ctx)
@@ -312,7 +320,9 @@ func TestTokenBlacklist_MultipleTokens(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up after test
-	defer blacklist.Clear(ctx)
+	defer func() {
+		_ = blacklist.Clear(ctx)
+	}()
 
 	// Add multiple tokens
 	expiresAt := time.Now().UTC().Add(5 * time.Minute)

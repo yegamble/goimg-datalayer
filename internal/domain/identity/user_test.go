@@ -10,6 +10,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewUser(t *testing.T) {
 	t.Parallel()
 
@@ -196,7 +197,7 @@ func TestUser_ChangeRole(t *testing.T) {
 		err = user.ChangeRole(identity.RoleUser)
 		require.NoError(t, err)
 
-		assert.Len(t, user.Events(), 0)
+		assert.Empty(t, user.Events())
 	})
 
 	t.Run("fails with invalid role", func(t *testing.T) {
@@ -248,7 +249,7 @@ func TestUser_Suspend(t *testing.T) {
 		err = user.Suspend("Second suspension")
 		require.NoError(t, err)
 
-		assert.Len(t, user.Events(), 0)
+		assert.Empty(t, user.Events())
 	})
 
 	t.Run("fails when user is deleted", func(t *testing.T) {
@@ -301,7 +302,7 @@ func TestUser_Activate(t *testing.T) {
 		err := user.Activate()
 		require.NoError(t, err)
 
-		assert.Len(t, user.Events(), 0)
+		assert.Empty(t, user.Events())
 	})
 
 	t.Run("fails when user is deleted", func(t *testing.T) {
@@ -452,5 +453,5 @@ func TestUser_ClearEvents(t *testing.T) {
 	assert.Len(t, user.Events(), 1)
 
 	user.ClearEvents()
-	assert.Len(t, user.Events(), 0)
+	assert.Empty(t, user.Events())
 }

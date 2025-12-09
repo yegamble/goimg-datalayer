@@ -13,9 +13,13 @@ import (
 type SearchSortBy string
 
 const (
+	// SearchSortByRelevance sorts by search relevance score.
 	SearchSortByRelevance SearchSortBy = "relevance"
+	// SearchSortByCreatedAt sorts by creation timestamp.
 	SearchSortByCreatedAt SearchSortBy = "created_at"
+	// SearchSortByViewCount sorts by view count.
 	SearchSortByViewCount SearchSortBy = "view_count"
+	// SearchSortByLikeCount sorts by like count.
 	SearchSortByLikeCount SearchSortBy = "like_count"
 )
 

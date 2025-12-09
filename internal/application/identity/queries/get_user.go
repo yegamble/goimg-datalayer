@@ -1,3 +1,4 @@
+// Package queries implements read operations for the identity bounded context.
 package queries
 
 import (

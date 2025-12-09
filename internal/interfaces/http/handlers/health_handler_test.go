@@ -1,4 +1,5 @@
-package handlers //nolint:testpackage // Tests access unexported types
+//nolint:testpackage,goconst // Tests access unexported types; test strings don't need constants
+package handlers
 
 import (
 	"context"

@@ -63,7 +63,7 @@ func NewTokenPairDTO(accessToken, refreshToken string, expiresAt time.Time) Toke
 
 // CreateUserDTO represents the request to create a new user account.
 type CreateUserDTO struct {
-	Email    string `json:"email" validate:"required,email,max=255"`
+	Email    string `json:"email"    validate:"required,email,max=255"`
 	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
 	Password string `json:"password" validate:"required,min=8,max=128"`
 }
@@ -72,7 +72,7 @@ type CreateUserDTO struct {
 type LoginDTO struct {
 	// Identifier can be either email or username
 	Identifier string `json:"identifier" validate:"required"`
-	Password   string `json:"password" validate:"required"`
+	Password   string `json:"password"   validate:"required"`
 	IP         string `json:"-"` // Not from request body, set by middleware
 	UserAgent  string `json:"-"` // Not from request body, set by middleware
 }
@@ -88,13 +88,13 @@ type RefreshTokenDTO struct {
 // All fields are optional (pointer types indicate this).
 type UpdateUserDTO struct {
 	DisplayName *string `json:"display_name,omitempty" validate:"omitempty,max=100"`
-	Bio         *string `json:"bio,omitempty" validate:"omitempty,max=500"`
+	Bio         *string `json:"bio,omitempty"          validate:"omitempty,max=500"`
 }
 
 // ChangePasswordDTO represents the request to change a user's password.
 type ChangePasswordDTO struct {
 	CurrentPassword string `json:"current_password" validate:"required"`
-	NewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
+	NewPassword     string `json:"new_password"     validate:"required,min=8,max=128"`
 }
 
 // SessionDTO represents an active user session in API responses.
@@ -109,11 +109,11 @@ type SessionDTO struct {
 
 // ListUsersDTO represents the request to list users with filters and pagination.
 type ListUsersDTO struct {
-	Role   *string `json:"role" validate:"omitempty,oneof=user moderator admin"`
+	Role   *string `json:"role"   validate:"omitempty,oneof=user moderator admin"`
 	Status *string `json:"status" validate:"omitempty,oneof=pending active suspended deleted"`
 	Search string  `json:"search" validate:"omitempty,max=255"`
 	Offset int     `json:"offset" validate:"min=0"`
-	Limit  int     `json:"limit" validate:"min=1,max=100"`
+	Limit  int     `json:"limit"  validate:"min=1,max=100"`
 }
 
 // ListUsersResultDTO represents the paginated response for listing users.

@@ -10,6 +10,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewUsername(t *testing.T) {
 	t.Parallel()
 

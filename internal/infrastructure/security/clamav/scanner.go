@@ -15,14 +15,14 @@ import (
 
 // ClamAV protocol constants.
 const (
-	defaultTimeout      = 30 * time.Second // Default timeout for scan operations
-	commandTimeout      = 5 * time.Second  // Timeout for quick commands (ping, version)
-	defaultChunkSize    = 32 * 1024        // 32KB chunks for streaming
-	maxChunkSize        = 0x7FFFFFFF       // Maximum chunk size (2GB - 1)
-	bitShift24          = 24               // Bit shift for byte 0 in big-endian uint32
-	bitShift16          = 16               // Bit shift for byte 1 in big-endian uint32
-	bitShift8           = 8                // Bit shift for byte 2 in big-endian uint32
-	minResponseParts    = 2                // Minimum parts in response (stream: result)
+	defaultTimeout   = 30 * time.Second // Default timeout for scan operations
+	commandTimeout   = 5 * time.Second  // Timeout for quick commands (ping, version)
+	defaultChunkSize = 32 * 1024        // 32KB chunks for streaming
+	maxChunkSize     = 0x7FFFFFFF       // Maximum chunk size (2GB - 1)
+	bitShift24       = 24               // Bit shift for byte 0 in big-endian uint32
+	bitShift16       = 16               // Bit shift for byte 1 in big-endian uint32
+	bitShift8        = 8                // Bit shift for byte 2 in big-endian uint32
+	minResponseParts = 2                // Minimum parts in response (stream: result)
 )
 
 // ScanResult contains the result of a malware scan.
@@ -105,6 +105,8 @@ func NewClient(cfg Config) (*Client, error) {
 }
 
 // Scan checks data for malware.
+//
+//nolint:cyclop // ClamAV protocol requires sequential steps: connection, command, chunking, size handling, and response parsing
 func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 	conn, err := c.dial(ctx)
 	if err != nil {
@@ -171,7 +173,9 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 }
 
 // ScanReader checks a stream for malware.
-func (c *Client) ScanReader(ctx context.Context, reader io.Reader, size int64) (*ScanResult, error) {
+//
+//nolint:cyclop // ClamAV streaming protocol requires sequential steps: connection, command, chunked streaming, and response parsing
+func (c *Client) ScanReader(ctx context.Context, reader io.Reader, _ int64) (*ScanResult, error) {
 	conn, err := c.dial(ctx)
 	if err != nil {
 		return nil, err

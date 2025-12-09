@@ -15,7 +15,11 @@ func TestNewSessionStore(t *testing.T) {
 	t.Parallel()
 
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 
@@ -38,13 +42,21 @@ func createTestSession(userID string) Session {
 
 func TestSessionStore_Create(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() {
+		if err := store.Clear(ctx); err != nil {
+			t.Logf("failed to clear sessions: %v", err)
+		}
+	}()
 
 	session := createTestSession("user-123")
 
@@ -72,7 +84,11 @@ func TestSessionStore_Create_InvalidSession(t *testing.T) {
 	t.Parallel()
 
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
@@ -135,13 +151,21 @@ func TestSessionStore_Create_InvalidSession(t *testing.T) {
 
 func TestSessionStore_Get(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() {
+		if err := store.Clear(ctx); err != nil {
+			t.Logf("failed to clear sessions: %v", err)
+		}
+	}()
 
 	session := createTestSession("user-123")
 
@@ -158,7 +182,11 @@ func TestSessionStore_Get(t *testing.T) {
 
 func TestSessionStore_Get_NotFound(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
@@ -174,7 +202,11 @@ func TestSessionStore_Get_EmptySessionID(t *testing.T) {
 	t.Parallel()
 
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
@@ -188,13 +220,21 @@ func TestSessionStore_Get_EmptySessionID(t *testing.T) {
 
 func TestSessionStore_Exists(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Logf("failed to close client: %v", err)
+		}
+	}()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() {
+		if err := store.Clear(ctx); err != nil {
+			t.Logf("failed to clear sessions: %v", err)
+		}
+	}()
 
 	session := createTestSession("user-123")
 

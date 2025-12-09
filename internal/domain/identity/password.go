@@ -18,14 +18,14 @@ type PasswordHash struct {
 
 // Password validation and hashing constants.
 const (
-	minPasswordLength  = 12       // Minimum password length
-	maxPasswordLength  = 128      // Maximum password length
-	argonHashPartCount = 6        // Number of parts in Argon2id hash format
-	argonTime          = 2        // Number of iterations
+	minPasswordLength  = 12        // Minimum password length
+	maxPasswordLength  = 128       // Maximum password length
+	argonHashPartCount = 6         // Number of parts in Argon2id hash format
+	argonTime          = 2         // Number of iterations
 	argonMemory        = 64 * 1024 // 64 MB memory cost
-	argonThreads       = 4        // Number of parallel threads
-	argonKeyLen        = 32       // Output key length in bytes
-	saltLen            = 16       // Salt length in bytes
+	argonThreads       = 4         // Number of parallel threads
+	argonKeyLen        = 32        // Output key length in bytes
+	saltLen            = 16        // Salt length in bytes
 )
 
 // commonPasswords contains a list of commonly used weak passwords.

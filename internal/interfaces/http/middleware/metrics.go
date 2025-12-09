@@ -154,7 +154,7 @@ func NewMetricsCollector() *MetricsCollector {
 		usersTotal: promauto.NewGauge(
 			prometheus.GaugeOpts{
 				Namespace: "goimg",
-				Name:      "users_total",
+				Name:      "users",
 				Help:      "Total number of registered users",
 			},
 		),
@@ -162,7 +162,7 @@ func NewMetricsCollector() *MetricsCollector {
 		imagesTotal: promauto.NewGauge(
 			prometheus.GaugeOpts{
 				Namespace: "goimg",
-				Name:      "images_total",
+				Name:      "images",
 				Help:      "Total number of uploaded images",
 			},
 		),
@@ -170,7 +170,7 @@ func NewMetricsCollector() *MetricsCollector {
 		activeSessionsTotal: promauto.NewGauge(
 			prometheus.GaugeOpts{
 				Namespace: "goimg",
-				Name:      "active_sessions_total",
+				Name:      "active_sessions",
 				Help:      "Number of active user sessions",
 			},
 		),
@@ -430,11 +430,11 @@ func (mc *MetricsCollector) RecordImageProcessing(operation string, duration flo
 // Parameters:
 //   - active: Number of connections currently in use
 //   - idle: Number of idle connections in the pool
-//   - max: Maximum allowed connections (configured)
-func (mc *MetricsCollector) UpdateDatabaseStats(active, idle, max int) {
+//   - maxConn: Maximum allowed connections (configured)
+func (mc *MetricsCollector) UpdateDatabaseStats(active, idle, maxConn int) {
 	mc.dbConnectionsActive.Set(float64(active))
 	mc.dbConnectionsIdle.Set(float64(idle))
-	mc.dbConnectionsMax.Set(float64(max))
+	mc.dbConnectionsMax.Set(float64(maxConn))
 }
 
 // UpdateRedisStats updates Redis connection pool metrics.

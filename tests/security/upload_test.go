@@ -17,6 +17,8 @@ import (
 
 // TestUpload_RejectsOversizedFile verifies files exceeding 10MB are rejected.
 // Security Control: File size validation prevents DoS via resource exhaustion.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestUpload_RejectsOversizedFile(t *testing.T) {
 	t.Parallel()
 
@@ -86,7 +88,7 @@ func TestUpload_RejectsOversizedFile(t *testing.T) {
 			// Assert
 			if tt.expectError {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrFileTooLarge)
+				require.ErrorIs(t, err, gallery.ErrFileTooLarge)
 				assert.False(t, result.Valid)
 				assert.Contains(t, result.Errors, err.Error())
 			} else {
@@ -164,7 +166,7 @@ func TestUpload_ValidatesMIMEByContent(t *testing.T) {
 			} else {
 				require.Error(t, err)
 				if tt.expectedError != nil {
-					assert.ErrorIs(t, err, tt.expectedError)
+					require.ErrorIs(t, err, tt.expectedError)
 				}
 				assert.False(t, result.Valid)
 			}
@@ -176,6 +178,8 @@ func TestUpload_ValidatesMIMEByContent(t *testing.T) {
 // Security Control: Malware scanning prevents upload of infected files.
 // Note: EICAR test file is rejected at MIME validation (defense in depth).
 // This test verifies the malware scanner is invoked for valid image types.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestUpload_RejectsMalware(t *testing.T) {
 	t.Parallel()
 
@@ -241,7 +245,7 @@ func TestUpload_RejectsMalware(t *testing.T) {
 			// Assert
 			if tt.expectMalware {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrMalwareDetected)
+				require.ErrorIs(t, err, gallery.ErrMalwareDetected)
 				require.NotNil(t, result)
 				assert.False(t, result.Valid)
 				require.NotNil(t, result.ScanResult, "Scan result should be populated for malware detection")
@@ -323,6 +327,8 @@ func TestUpload_RejectsPolyglotFile(t *testing.T) {
 
 // TestUpload_SanitizesFilename verifies path traversal attempts are prevented.
 // Security Control: Filename sanitization prevents directory traversal attacks.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestUpload_SanitizesFilename(t *testing.T) {
 	t.Parallel()
 
@@ -435,6 +441,8 @@ func TestUpload_SanitizesFilename(t *testing.T) {
 
 // TestUpload_EnforcesDimensionLimits verifies image dimensions are validated.
 // Security Control: Dimension limits prevent decompression bomb attacks.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestUpload_EnforcesDimensionLimits(t *testing.T) {
 	t.Parallel()
 
@@ -536,6 +544,8 @@ func TestUpload_EnforcesDimensionLimits(t *testing.T) {
 
 // TestUpload_EnforcesPixelCountLimit verifies total pixel count is validated.
 // Security Control: Pixel count limit prevents memory exhaustion via decompression bombs.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestUpload_EnforcesPixelCountLimit(t *testing.T) {
 	t.Parallel()
 
@@ -722,7 +732,7 @@ func TestUpload_ValidatesMagicBytes(t *testing.T) {
 			if tt.wantError {
 				require.Error(t, err)
 				if tt.errorType != nil {
-					assert.ErrorIs(t, err, tt.errorType)
+					require.ErrorIs(t, err, tt.errorType)
 				}
 				assert.False(t, result.Valid)
 			} else if err != nil && !tt.wantError {

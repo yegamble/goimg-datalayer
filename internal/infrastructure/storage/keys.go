@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	// Maximum filename length
+	// MaxFilenameLength is the maximum allowed filename length.
 	MaxFilenameLength = 200
 
-	// Default fallback filename
+	// DefaultFilename is the default fallback filename.
 	DefaultFilename = "unnamed.jpg"
 
 	// Format constants.

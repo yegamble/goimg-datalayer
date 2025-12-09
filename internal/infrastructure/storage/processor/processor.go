@@ -7,6 +7,11 @@ import (
 	"github.com/h2non/bimg"
 )
 
+const (
+	// Bytes per megabyte for memory calculations.
+	bytesPerMB = 1024 * 1024
+)
+
 // Processor handles image processing operations using libvips (via bimg).
 // It provides variant generation, EXIF stripping, and format conversion.
 type Processor struct {
@@ -21,7 +26,7 @@ func New(cfg Config) (*Processor, error) {
 	}
 
 	// Initialize bimg/libvips memory settings
-	bimg.VipsCacheSetMaxMem(cfg.MemoryLimitMB * 1024 * 1024)
+	bimg.VipsCacheSetMaxMem(cfg.MemoryLimitMB * bytesPerMB)
 	bimg.VipsCacheSetMax(0) // Disable operation cache (use memory limit only)
 
 	// Create semaphore for limiting concurrent operations
@@ -41,7 +46,9 @@ func New(cfg Config) (*Processor, error) {
 // 4. Re-encode original through libvips (prevent polyglot exploits)
 //
 // Returns a ProcessResult containing all variants.
-func (p *Processor) Process(ctx context.Context, input []byte, filename string) (*ProcessResult, error) {
+//
+//nolint:cyclop // Image processing pipeline requires sequential steps: validation, metadata extraction, variant generation, and error handling
+func (p *Processor) Process(ctx context.Context, input []byte, _ string) (*ProcessResult, error) {
 	// Acquire semaphore slot (limits concurrent operations)
 	select {
 	case p.semaphore <- struct{}{}:
@@ -121,6 +128,8 @@ func (p *Processor) Process(ctx context.Context, input []byte, filename string) 
 // GenerateVariant generates a single image variant from the input data.
 // The variant is processed according to the configuration (size, format, quality).
 // EXIF metadata is always stripped for security/privacy.
+//
+//nolint:cyclop // Variant generation requires format-specific processing logic with multiple conditional branches
 func (p *Processor) GenerateVariant(ctx context.Context, input []byte, variant VariantType) (*VariantData, error) {
 	if !variant.IsValid() {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidVariantType, variant)

@@ -41,12 +41,14 @@ func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 		httpRequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "test_http_requests_total",
+				Help: "Total number of HTTP requests",
 			},
 			[]string{"method", "path", "status"},
 		),
 		httpRequestDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test_http_request_duration_seconds",
+				Help:    "Duration of HTTP requests in seconds",
 				Buckets: []float64{0.001, 0.01, 0.1, 1, 10},
 			},
 			[]string{"method", "path", "status"},
@@ -54,11 +56,13 @@ func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 		httpRequestsInFlight: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test_http_requests_in_flight",
+				Help: "Number of HTTP requests currently being processed",
 			},
 		),
 		httpRequestSize: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test_http_request_size_bytes",
+				Help:    "Size of HTTP request bodies in bytes",
 				Buckets: []float64{1024, 10240, 102400},
 			},
 			[]string{"method", "path"},
@@ -66,6 +70,7 @@ func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 		httpResponseSize: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test_http_response_size_bytes",
+				Help:    "Size of HTTP response bodies in bytes",
 				Buckets: []float64{1024, 10240, 102400},
 			},
 			[]string{"method", "path", "status"},
@@ -108,12 +113,14 @@ func TestMetricsMiddleware_InFlightRequests(t *testing.T) {
 		httpRequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "test2_http_requests_total",
+				Help: "Total number of HTTP requests",
 			},
 			[]string{"method", "path", "status"},
 		),
 		httpRequestDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test2_http_request_duration_seconds",
+				Help:    "Duration of HTTP requests in seconds",
 				Buckets: []float64{0.001, 0.01, 0.1, 1, 10},
 			},
 			[]string{"method", "path", "status"},
@@ -121,11 +128,13 @@ func TestMetricsMiddleware_InFlightRequests(t *testing.T) {
 		httpRequestsInFlight: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test2_http_requests_in_flight",
+				Help: "Number of HTTP requests currently being processed",
 			},
 		),
 		httpRequestSize: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test2_http_request_size_bytes",
+				Help:    "Size of HTTP request bodies in bytes",
 				Buckets: []float64{1024, 10240, 102400},
 			},
 			[]string{"method", "path"},
@@ -133,6 +142,7 @@ func TestMetricsMiddleware_InFlightRequests(t *testing.T) {
 		httpResponseSize: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test2_http_response_size_bytes",
+				Help:    "Size of HTTP response bodies in bytes",
 				Buckets: []float64{1024, 10240, 102400},
 			},
 			[]string{"method", "path", "status"},
@@ -197,12 +207,14 @@ func TestMetricsMiddleware_DifferentStatusCodes(t *testing.T) {
 				httpRequestsTotal: prometheus.NewCounterVec(
 					prometheus.CounterOpts{
 						Name: "test3_http_requests_total",
+						Help: "Total number of HTTP requests",
 					},
 					[]string{"method", "path", "status"},
 				),
 				httpRequestDuration: prometheus.NewHistogramVec(
 					prometheus.HistogramOpts{
 						Name:    "test3_http_request_duration_seconds",
+						Help:    "Duration of HTTP requests in seconds",
 						Buckets: []float64{0.001, 0.01, 0.1, 1, 10},
 					},
 					[]string{"method", "path", "status"},
@@ -210,11 +222,13 @@ func TestMetricsMiddleware_DifferentStatusCodes(t *testing.T) {
 				httpRequestsInFlight: prometheus.NewGauge(
 					prometheus.GaugeOpts{
 						Name: "test3_http_requests_in_flight",
+						Help: "Number of HTTP requests currently being processed",
 					},
 				),
 				httpRequestSize: prometheus.NewHistogramVec(
 					prometheus.HistogramOpts{
 						Name:    "test3_http_request_size_bytes",
+						Help:    "Size of HTTP request bodies in bytes",
 						Buckets: []float64{1024, 10240, 102400},
 					},
 					[]string{"method", "path"},
@@ -222,6 +236,7 @@ func TestMetricsMiddleware_DifferentStatusCodes(t *testing.T) {
 				httpResponseSize: prometheus.NewHistogramVec(
 					prometheus.HistogramOpts{
 						Name:    "test3_http_response_size_bytes",
+						Help:    "Size of HTTP response bodies in bytes",
 						Buckets: []float64{1024, 10240, 102400},
 					},
 					[]string{"method", "path", "status"},
@@ -258,6 +273,7 @@ func TestMetricsCollector_RecordImageUpload(t *testing.T) {
 		imageUploadsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "test_image_uploads_total",
+				Help: "Total number of image uploads",
 			},
 			[]string{"status", "format"},
 		),
@@ -285,6 +301,7 @@ func TestMetricsCollector_RecordImageProcessing(t *testing.T) {
 		imageProcessingDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "test_image_processing_duration_seconds",
+				Help:    "Duration of image processing operations in seconds",
 				Buckets: []float64{0.01, 0.1, 1, 10},
 			},
 			[]string{"operation"},
@@ -307,16 +324,19 @@ func TestMetricsCollector_UpdateDatabaseStats(t *testing.T) {
 		dbConnectionsActive: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test_db_connections_active",
+				Help: "Number of active database connections",
 			},
 		),
 		dbConnectionsIdle: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test_db_connections_idle",
+				Help: "Number of idle database connections",
 			},
 		),
 		dbConnectionsMax: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test_db_connections_max",
+				Help: "Maximum number of allowed database connections",
 			},
 		),
 	}
@@ -341,6 +361,7 @@ func TestMetricsCollector_UpdateRedisStats(t *testing.T) {
 		redisConnectionsActive: prometheus.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "test_redis_connections_active",
+				Help: "Number of active Redis connections",
 			},
 		),
 	}
@@ -350,7 +371,7 @@ func TestMetricsCollector_UpdateRedisStats(t *testing.T) {
 
 	// Assert
 	active := testutil.ToFloat64(collector.redisConnectionsActive)
-	assert.Equal(t, float64(8), active)
+	assert.InDelta(t, float64(8), active, 0.01)
 }
 
 func TestMetricsCollector_RecordCacheHitMiss(t *testing.T) {
@@ -359,12 +380,14 @@ func TestMetricsCollector_RecordCacheHitMiss(t *testing.T) {
 		redisHits: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "test_redis_cache_hits_total",
+				Help: "Total number of Redis cache hits",
 			},
 			[]string{"operation"},
 		),
 		redisMisses: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "test_redis_cache_misses_total",
+				Help: "Total number of Redis cache misses",
 			},
 			[]string{"operation"},
 		),
@@ -377,10 +400,10 @@ func TestMetricsCollector_RecordCacheHitMiss(t *testing.T) {
 
 	// Assert
 	hits := testutil.ToFloat64(collector.redisHits.WithLabelValues("get"))
-	assert.Equal(t, float64(2), hits)
+	assert.InDelta(t, float64(2), hits, 0.01)
 
 	misses := testutil.ToFloat64(collector.redisMisses.WithLabelValues("get"))
-	assert.Equal(t, float64(1), misses)
+	assert.InDelta(t, float64(1), misses, 0.01)
 }
 
 func TestNormalizePathForMetrics(t *testing.T) {

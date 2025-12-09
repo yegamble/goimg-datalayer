@@ -1,3 +1,4 @@
+// Package commands implements write operations for the identity bounded context.
 package commands
 
 import (

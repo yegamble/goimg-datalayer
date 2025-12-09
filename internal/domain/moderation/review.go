@@ -7,6 +7,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+const (
+	// Maximum length for review notes.
+	maxReviewNotesLength = 2000
+)
+
 // Review is an entity representing an audit trail of moderation decisions.
 // It records the action taken by a moderator when reviewing a report.
 //
@@ -41,7 +46,7 @@ func NewReview(
 	if !action.IsValid() {
 		return nil, ErrInvalidReviewAction
 	}
-	if len(notes) > 2000 {
+	if len(notes) > maxReviewNotesLength {
 		return nil, ErrNotesTooLong
 	}
 

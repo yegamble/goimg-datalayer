@@ -11,7 +11,7 @@ import (
 // RegisterRequest represents the HTTP request body for user registration.
 // POST /api/v1/auth/register.
 type RegisterRequest struct {
-	Email    string `json:"email" validate:"required,email,max=255"`
+	Email    string `json:"email"    validate:"required,email,max=255"`
 	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
 	Password string `json:"password" validate:"required,min=12,max=128"`
 }
@@ -21,7 +21,7 @@ type RegisterRequest struct {
 //
 // Identifier can be either email or username.
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email"    validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -48,7 +48,7 @@ type LogoutRequest struct {
 // Only provided fields will be updated.
 type UpdateUserRequest struct {
 	DisplayName *string `json:"display_name,omitempty" validate:"omitempty,max=100"`
-	Bio         *string `json:"bio,omitempty" validate:"omitempty,max=500"`
+	Bio         *string `json:"bio,omitempty"          validate:"omitempty,max=500"`
 }
 
 // DeleteUserRequest represents the HTTP request body for deleting a user account.
@@ -87,10 +87,10 @@ type UploadImageResponse struct {
 //
 // All fields are optional. Only provided fields will be updated.
 type UpdateImageRequest struct {
-	Title       *string  `json:"title,omitempty" validate:"omitempty,max=255"`
+	Title       *string  `json:"title,omitempty"       validate:"omitempty,max=255"`
 	Description *string  `json:"description,omitempty" validate:"omitempty,max=2000"`
-	Visibility  *string  `json:"visibility,omitempty" validate:"omitempty,oneof=public private unlisted"`
-	Tags        []string `json:"tags,omitempty" validate:"omitempty,dive,max=50"`
+	Visibility  *string  `json:"visibility,omitempty"  validate:"omitempty,oneof=public private unlisted"`
+	Tags        []string `json:"tags,omitempty"        validate:"omitempty,dive,max=50"`
 }
 
 // PaginatedImagesResponse represents a paginated list of images.
@@ -117,9 +117,9 @@ type (
 // CreateAlbumRequest represents the HTTP request body for creating an album.
 // POST /api/v1/albums.
 type CreateAlbumRequest struct {
-	Title       string `json:"title" validate:"required,max=255"`
+	Title       string `json:"title"                 validate:"required,max=255"`
 	Description string `json:"description,omitempty" validate:"omitempty,max=2000"`
-	Visibility  string `json:"visibility,omitempty" validate:"omitempty,oneof=public private unlisted"`
+	Visibility  string `json:"visibility,omitempty"  validate:"omitempty,oneof=public private unlisted"`
 }
 
 // UpdateAlbumRequest represents the HTTP request body for updating album metadata.
@@ -127,9 +127,9 @@ type CreateAlbumRequest struct {
 //
 // All fields are optional. Only provided fields will be updated.
 type UpdateAlbumRequest struct {
-	Title        *string `json:"title,omitempty" validate:"omitempty,max=255"`
-	Description  *string `json:"description,omitempty" validate:"omitempty,max=2000"`
-	Visibility   *string `json:"visibility,omitempty" validate:"omitempty,oneof=public private unlisted"`
+	Title        *string `json:"title,omitempty"          validate:"omitempty,max=255"`
+	Description  *string `json:"description,omitempty"    validate:"omitempty,max=2000"`
+	Visibility   *string `json:"visibility,omitempty"     validate:"omitempty,oneof=public private unlisted"`
 	CoverImageID *string `json:"cover_image_id,omitempty" validate:"omitempty,uuid"`
 }
 

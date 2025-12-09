@@ -166,6 +166,8 @@ func problemTypeURL(status int) string {
 //	    middleware.WriteError(w, r, status, title, detail)
 //	    return
 //	}
+//
+//nolint:cyclop // Comprehensive error mapping requires checking all domain error types and HTTP status codes
 func MapDomainError(err error) (int, string, string) {
 	// Define common error types (should be imported from domain layer)
 	// For now, using error message matching as a fallback approach

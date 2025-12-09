@@ -71,6 +71,8 @@ func NewUpdateImageHandler(
 //   - ErrImageNotFound if image doesn't exist
 //   - ErrUnauthorizedAccess if user doesn't own image
 //   - Validation errors from domain value objects
+//
+//nolint:cyclop // Command handler requires sequential validation: image ID, user ID, ownership, and multiple field updates
 func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand) (*UpdateImageResult, error) {
 	// 1. Parse and validate IDs
 	imageID, err := gallery.ParseImageID(cmd.ImageID)
@@ -121,91 +123,22 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 	var updatedFields []string
 
 	// 4. Update metadata if provided
-	if cmd.Title != nil || cmd.Description != nil {
-		title := image.Metadata().Title()
-		description := image.Metadata().Description()
-
-		if cmd.Title != nil {
-			title = *cmd.Title
-			updatedFields = append(updatedFields, "title")
-		}
-		if cmd.Description != nil {
-			description = *cmd.Description
-			updatedFields = append(updatedFields, "description")
-		}
-
-		if err := image.UpdateMetadata(title, description); err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("image_id", imageID.String()).
-				Msg("invalid metadata during image update")
-			return nil, fmt.Errorf("update metadata: %w", err)
-		}
+	if err := h.updateMetadata(image, cmd, &updatedFields); err != nil {
+		return nil, err
 	}
 
 	// 5. Update visibility if provided
-	if cmd.Visibility != nil {
-		visibility, err := gallery.ParseVisibility(*cmd.Visibility)
-		if err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("visibility", *cmd.Visibility).
-				Msg("invalid visibility during image update")
-			return nil, fmt.Errorf("invalid visibility: %w", err)
-		}
-
-		if err := image.UpdateVisibility(visibility); err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("image_id", imageID.String()).
-				Str("visibility", visibility.String()).
-				Msg("failed to update visibility")
-			return nil, fmt.Errorf("update visibility: %w", err)
-		}
-		updatedFields = append(updatedFields, "visibility")
+	if err := h.updateVisibility(image, imageID, cmd, &updatedFields); err != nil {
+		return nil, err
 	}
 
 	// 6. Update tags if provided (replace all existing tags)
-	var tagsAdded, tagsRemoved int
-	if cmd.Tags != nil {
-		// Remove all existing tags
-		existingTags := image.Tags()
-		for _, tag := range existingTags {
-			if err := image.RemoveTag(tag); err != nil {
-				h.logger.Debug().
-					Err(err).
-					Str("tag", tag.String()).
-					Msg("failed to remove existing tag")
-				// Continue removing other tags
-			} else {
-				tagsRemoved++
-			}
-		}
-
-		// Add new tags
-		for _, tagName := range cmd.Tags {
-			tag, err := gallery.NewTag(tagName)
-			if err != nil {
-				h.logger.Debug().
-					Err(err).
-					Str("tag", tagName).
-					Msg("invalid tag during image update")
-				return nil, fmt.Errorf("invalid tag '%s': %w", tagName, err)
-			}
-
-			if err := image.AddTag(tag); err != nil {
-				h.logger.Debug().
-					Err(err).
-					Str("tag", tagName).
-					Msg("failed to add tag to image")
-				return nil, fmt.Errorf("add tag '%s': %w", tagName, err)
-			}
-			tagsAdded++
-		}
-
-		if tagsAdded > 0 || tagsRemoved > 0 {
-			updatedFields = append(updatedFields, "tags")
-		}
+	tagsAdded, tagsRemoved, err := h.updateImageTags(image, cmd.Tags)
+	if err != nil {
+		return nil, err
+	}
+	if tagsAdded > 0 || tagsRemoved > 0 {
+		updatedFields = append(updatedFields, "tags")
 	}
 
 	// Check if any updates were made
@@ -254,4 +187,127 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 		TagsAdded:  tagsAdded,
 		TagsRemove: tagsRemoved,
 	}, nil
+}
+
+// updateMetadata updates the image metadata (title and description) if provided.
+func (h *UpdateImageHandler) updateMetadata(image *gallery.Image, cmd UpdateImageCommand, updatedFields *[]string) error {
+	if cmd.Title == nil && cmd.Description == nil {
+		return nil
+	}
+
+	title := image.Metadata().Title()
+	description := image.Metadata().Description()
+
+	if cmd.Title != nil {
+		title = *cmd.Title
+		*updatedFields = append(*updatedFields, "title")
+	}
+	if cmd.Description != nil {
+		description = *cmd.Description
+		*updatedFields = append(*updatedFields, "description")
+	}
+
+	if err := image.UpdateMetadata(title, description); err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("image_id", image.ID().String()).
+			Msg("invalid metadata during image update")
+		return fmt.Errorf("update metadata: %w", err)
+	}
+
+	return nil
+}
+
+// updateVisibility updates the image visibility if provided.
+func (h *UpdateImageHandler) updateVisibility(image *gallery.Image, imageID gallery.ImageID, cmd UpdateImageCommand, updatedFields *[]string) error {
+	if cmd.Visibility == nil {
+		return nil
+	}
+
+	visibility, err := gallery.ParseVisibility(*cmd.Visibility)
+	if err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("visibility", *cmd.Visibility).
+			Msg("invalid visibility during image update")
+		return fmt.Errorf("invalid visibility: %w", err)
+	}
+
+	if err := image.UpdateVisibility(visibility); err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("image_id", imageID.String()).
+			Str("visibility", visibility.String()).
+			Msg("failed to update visibility")
+		return fmt.Errorf("update visibility: %w", err)
+	}
+
+	*updatedFields = append(*updatedFields, "visibility")
+	return nil
+}
+
+// updateImageTags replaces all tags on an image with new tags.
+// Returns the number of tags added and removed.
+func (h *UpdateImageHandler) updateImageTags(image *gallery.Image, newTags []string) (int, int, error) {
+	if newTags == nil {
+		return 0, 0, nil
+	}
+
+	// Remove all existing tags
+	tagsRemoved := h.removeAllTags(image)
+
+	// Add new tags
+	tagsAdded, err := h.addNewTags(image, newTags)
+	if err != nil {
+		return 0, tagsRemoved, err
+	}
+
+	return tagsAdded, tagsRemoved, nil
+}
+
+// removeAllTags removes all existing tags from an image.
+func (h *UpdateImageHandler) removeAllTags(image *gallery.Image) int {
+	existingTags := image.Tags()
+	tagsRemoved := 0
+
+	for _, tag := range existingTags {
+		if err := image.RemoveTag(tag); err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("tag", tag.String()).
+				Msg("failed to remove existing tag")
+			// Continue removing other tags
+		} else {
+			tagsRemoved++
+		}
+	}
+
+	return tagsRemoved
+}
+
+// addNewTags adds new tags to an image.
+func (h *UpdateImageHandler) addNewTags(image *gallery.Image, tagNames []string) (int, error) {
+	tagsAdded := 0
+
+	for _, tagName := range tagNames {
+		tag, err := gallery.NewTag(tagName)
+		if err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("tag", tagName).
+				Msg("invalid tag during image update")
+			return tagsAdded, fmt.Errorf("invalid tag '%s': %w", tagName, err)
+		}
+
+		if err := image.AddTag(tag); err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("tag", tagName).
+				Msg("failed to add tag to image")
+			return tagsAdded, fmt.Errorf("add tag '%s': %w", tagName, err)
+		}
+		tagsAdded++
+	}
+
+	return tagsAdded, nil
 }

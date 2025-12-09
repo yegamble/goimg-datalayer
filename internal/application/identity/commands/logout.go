@@ -128,8 +128,8 @@ func (h *LogoutHandler) handleSingleLogout(
 				Str("user_id", userID.String()).
 				Str("session_id", sessionID).
 				Msg("failed to get token expiration during logout")
-			// Use default TTL of 15 minutes if extraction fails
-			expiresAt = time.Now().UTC().Add(15 * time.Minute)
+			// Use default TTL if extraction fails
+			expiresAt = time.Now().UTC().Add(defaultTokenExpirationMinutes * time.Minute)
 		}
 
 		// 3. Add access token to blacklist with TTL = remaining lifetime

@@ -22,8 +22,8 @@ const (
 	TokenTypeRefresh TokenType = "refresh"
 
 	// JWT configuration defaults and constraints.
-	defaultAccessTTL = 15 * time.Minute   // Default access token TTL
-	minKeySize       = 4096               // Minimum RSA key size in bits (OWASP 2024)
+	defaultAccessTTL = 15 * time.Minute // Default access token TTL
+	minKeySize       = 4096             // Minimum RSA key size in bits (OWASP 2024)
 )
 
 // Config holds JWT service configuration.
@@ -111,6 +111,8 @@ func NewService(cfg Config) (*Service, error) {
 }
 
 // GenerateAccessToken generates a new access token for the given user.
+//
+//nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
 		return "", fmt.Errorf("user id cannot be empty")
@@ -158,6 +160,8 @@ func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (st
 }
 
 // GenerateRefreshToken generates a new refresh token for the given user.
+//
+//nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateRefreshToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
 		return "", fmt.Errorf("user id cannot be empty")

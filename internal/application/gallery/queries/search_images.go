@@ -63,6 +63,8 @@ func NewSearchImagesHandler(images gallery.ImageRepository) *SearchImagesHandler
 //   - Owner filtering
 //   - Multiple sort options: relevance, created_at, view_count, like_count
 //   - Pagination with total count
+//
+//nolint:cyclop // Query handler requires complex search criteria parsing: pagination, tags, visibility, owner, and sort options
 func (h *SearchImagesHandler) Handle(ctx context.Context, q SearchImagesQuery) (*SearchImagesResult, error) {
 	// 1. Validate and create pagination
 	pagination, err := shared.NewPagination(q.Page, q.PerPage)

@@ -390,7 +390,7 @@ func TestImage_Getters(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
+	require.NoError(t, img.MarkAsActive())
 
 	assert.False(t, img.ID().IsZero())
 	assert.False(t, img.OwnerID().IsZero())
@@ -413,7 +413,7 @@ func TestImage_IsViewable(t *testing.T) {
 
 	assert.False(t, img.IsViewable())
 
-	img.MarkAsActive()
+	require.NoError(t, img.MarkAsActive())
 	assert.True(t, img.IsViewable())
 }
 
@@ -430,7 +430,7 @@ func TestImage_Flag(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
+	require.NoError(t, img.MarkAsActive())
 
 	err := img.Flag()
 
@@ -479,7 +479,7 @@ func TestImage_EventManagement(t *testing.T) {
 	img := createTestImage(t)
 
 	// Events were cleared in createTestImage, create a new one
-	img.MarkAsActive()
+	_ = img.MarkAsActive()
 	assert.Len(t, img.Events(), 1)
 
 	img.ClearEvents()
@@ -508,7 +508,7 @@ func TestImage_UpdateVisibility_NoChange(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
+	_ = img.MarkAsActive()
 
 	err := img.UpdateVisibility(gallery.VisibilityPrivate)
 
@@ -520,7 +520,7 @@ func TestImage_UpdateMetadata_NoChange(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
+	_ = img.MarkAsActive()
 
 	originalTitle := img.Metadata().Title()
 	originalDesc := img.Metadata().Description()

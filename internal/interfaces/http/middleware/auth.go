@@ -12,6 +12,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt"
 )
 
+const (
+	// Expected number of parts in Bearer token header.
+	bearerTokenParts = 2
+)
+
 // JWTServiceInterface defines the interface for JWT token operations.
 // This allows for dependency injection and testing with mocks.
 type JWTServiceInterface interface {
@@ -89,182 +94,40 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			ctx := r.Context()
 			requestID := GetRequestID(ctx)
 
-			// Step 1: Extract Bearer token from Authorization header
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
+			// Step 1: Extract and parse Bearer token
+			tokenString, err := extractBearerToken(r, cfg)
+			if err != nil {
 				if cfg.Optional {
-					// Optional auth - continue without user context
 					next.ServeHTTP(w, r)
 					return
 				}
-
-				cfg.Logger.Warn().
-					Str("event", "auth_missing").
-					Str("path", r.URL.Path).
-					Str("request_id", requestID).
-					Msg("missing authorization header")
-
-				WriteError(w, r,
-					http.StatusUnauthorized,
-					"Unauthorized",
-					"Missing authorization header. Expected: Authorization: Bearer <token>",
-				)
+				logAndRespondAuthError(w, r, cfg, requestID, err)
 				return
 			}
 
-			// Step 2: Parse "Bearer <token>" format
-			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("invalid_format")
-				}
-				handleAuthError(w, r, cfg, "invalid_format", "Invalid authorization header format. Expected: Authorization: Bearer <token>")
-				return
-			}
-
-			if !strings.EqualFold(parts[0], "Bearer") {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("invalid_scheme")
-				}
-				handleAuthError(w, r, cfg, "invalid_scheme", "Invalid authorization scheme. Expected: Bearer")
-				return
-			}
-
-			tokenString := parts[1]
-			if tokenString == "" {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("empty_token")
-				}
-				handleAuthError(w, r, cfg, "empty_token", "Authorization token is empty")
-				return
-			}
-
-			// Step 3: Extract token ID (fast operation, no crypto)
-			tokenID, err := cfg.JWTService.ExtractTokenID(tokenString)
+			// Step 2: Extract token ID and check blacklist
+			_, err = checkTokenBlacklist(ctx, tokenString, cfg)
 			if err != nil {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("token_parse_failed")
-				}
-				handleAuthError(w, r, cfg, "token_parse_failed", "Invalid token format")
+				logAndRespondAuthError(w, r, cfg, requestID, err)
 				return
 			}
 
-			// Step 4: Check blacklist (Redis lookup ~1ms)
-			// This check is done BEFORE expensive signature verification
-			isBlacklisted, err := cfg.TokenBlacklist.IsBlacklisted(ctx, tokenID)
+			// Step 3: Validate token and verify type
+			claims, err := validateTokenAndType(tokenString, cfg, requestID)
 			if err != nil {
-				cfg.Logger.Error().
-					Err(err).
-					Str("event", "blacklist_check_failed").
-					Str("request_id", requestID).
-					Msg("failed to check token blacklist")
-
-				WriteError(w, r,
-					http.StatusInternalServerError,
-					"Internal Server Error",
-					"Authentication service temporarily unavailable",
-				)
+				logAndRespondAuthError(w, r, cfg, requestID, err)
 				return
 			}
 
-			if isBlacklisted {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("token_revoked")
-				}
-
-				cfg.Logger.Warn().
-					Str("event", "token_blacklisted").
-					Str("token_id", tokenID).
-					Str("path", r.URL.Path).
-					Str("request_id", requestID).
-					Msg("attempt to use blacklisted token")
-
-				WriteError(w, r,
-					http.StatusUnauthorized,
-					"Unauthorized",
-					"Token has been revoked. Please log in again.",
-				)
-				return
-			}
-
-			// Step 5: Validate token signature and claims (RS256 verification ~5-10ms)
-			claims, err := cfg.JWTService.ValidateToken(tokenString)
+			// Step 4: Parse UUIDs from claims
+			userID, sessionID, err := parseClaimsUUIDs(claims, cfg.Logger, requestID)
 			if err != nil {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("token_invalid")
-				}
-
-				cfg.Logger.Warn().
-					Err(err).
-					Str("event", "token_validation_failed").
-					Str("path", r.URL.Path).
-					Str("request_id", requestID).
-					Msg("invalid token")
-
-				handleAuthError(w, r, cfg, "token_invalid", "Invalid or expired token. Please log in again.")
+				WriteError(w, r, http.StatusUnauthorized, "Unauthorized", "Invalid token claims")
 				return
 			}
 
-			// Step 6: Verify token type (must be access token)
-			if claims.TokenType != jwt.TokenTypeAccess {
-				if cfg.MetricsCollector != nil {
-					cfg.MetricsCollector.RecordAuthFailure("wrong_token_type")
-				}
-
-				cfg.Logger.Warn().
-					Str("event", "wrong_token_type").
-					Str("token_type", string(claims.TokenType)).
-					Str("path", r.URL.Path).
-					Str("request_id", requestID).
-					Msg("wrong token type used for authentication")
-
-				WriteError(w, r,
-					http.StatusUnauthorized,
-					"Unauthorized",
-					"Invalid token type. Access token required.",
-				)
-				return
-			}
-
-			// Step 7: Parse UUIDs from claims
-			userID, err := uuid.Parse(claims.UserID)
-			if err != nil {
-				cfg.Logger.Error().
-					Err(err).
-					Str("event", "invalid_user_id").
-					Str("user_id", claims.UserID).
-					Str("request_id", requestID).
-					Msg("invalid user ID in token claims")
-
-				WriteError(w, r,
-					http.StatusUnauthorized,
-					"Unauthorized",
-					"Invalid token claims",
-				)
-				return
-			}
-
-			sessionID, err := uuid.Parse(claims.SessionID)
-			if err != nil {
-				cfg.Logger.Error().
-					Err(err).
-					Str("event", "invalid_session_id").
-					Str("session_id", claims.SessionID).
-					Str("request_id", requestID).
-					Msg("invalid session ID in token claims")
-
-				WriteError(w, r,
-					http.StatusUnauthorized,
-					"Unauthorized",
-					"Invalid token claims",
-				)
-				return
-			}
-
-			// Step 8: Set user context for downstream handlers
+			// Step 5: Set user context and continue
 			ctx = SetUserContext(ctx, userID, claims.Email, claims.Role, sessionID)
-
-			// Step 9: Log successful authentication
 			cfg.Logger.Debug().
 				Str("event", "auth_success").
 				Str("user_id", claims.UserID).
@@ -273,38 +136,206 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 				Str("request_id", requestID).
 				Msg("request authenticated")
 
-			// Continue with authenticated context
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-// handleAuthError handles authentication errors based on Optional flag.
-func handleAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConfig, event, message string) {
-	requestID := GetRequestID(r.Context())
+// authError represents an authentication error with event type and message.
+type authError struct {
+	event   string
+	message string
+	status  int
+}
 
-	if cfg.Optional {
-		// Optional auth - log and continue without user context
-		cfg.Logger.Debug().
-			Str("event", event).
-			Str("path", r.URL.Path).
+func (e *authError) Error() string {
+	return e.message
+}
+
+// extractBearerToken extracts and validates the Bearer token from the Authorization header.
+func extractBearerToken(r *http.Request, cfg AuthConfig) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", &authError{
+			event:   "auth_missing",
+			message: "Missing authorization header. Expected: Authorization: Bearer <token>",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	parts := strings.SplitN(authHeader, " ", bearerTokenParts)
+	if len(parts) != bearerTokenParts {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("invalid_format")
+		}
+		return "", &authError{
+			event:   "invalid_format",
+			message: "Invalid authorization header format. Expected: Authorization: Bearer <token>",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	if !strings.EqualFold(parts[0], "Bearer") {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("invalid_scheme")
+		}
+		return "", &authError{
+			event:   "invalid_scheme",
+			message: "Invalid authorization scheme. Expected: Bearer",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	tokenString := parts[1]
+	if tokenString == "" {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("empty_token")
+		}
+		return "", &authError{
+			event:   "empty_token",
+			message: "Authorization token is empty",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	return tokenString, nil
+}
+
+// checkTokenBlacklist extracts token ID and verifies it's not blacklisted.
+func checkTokenBlacklist(ctx context.Context, tokenString string, cfg AuthConfig) (string, error) {
+	tokenID, err := cfg.JWTService.ExtractTokenID(tokenString)
+	if err != nil {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("token_parse_failed")
+		}
+		return "", &authError{
+			event:   "token_parse_failed",
+			message: "Invalid token format",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	isBlacklisted, err := cfg.TokenBlacklist.IsBlacklisted(ctx, tokenID)
+	if err != nil {
+		return "", &authError{
+			event:   "blacklist_check_failed",
+			message: "Authentication service temporarily unavailable",
+			status:  http.StatusInternalServerError,
+		}
+	}
+
+	if isBlacklisted {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("token_revoked")
+		}
+		return "", &authError{
+			event:   "token_blacklisted",
+			message: "Token has been revoked. Please log in again.",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	return tokenID, nil
+}
+
+// validateTokenAndType validates the JWT token and verifies it's an access token.
+func validateTokenAndType(tokenString string, cfg AuthConfig, _ string) (*jwt.Claims, error) {
+	claims, err := cfg.JWTService.ValidateToken(tokenString)
+	if err != nil {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("token_invalid")
+		}
+		return nil, &authError{
+			event:   "token_validation_failed",
+			message: "Invalid or expired token. Please log in again.",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	if claims.TokenType != jwt.TokenTypeAccess {
+		if cfg.MetricsCollector != nil {
+			cfg.MetricsCollector.RecordAuthFailure("wrong_token_type")
+		}
+		return nil, &authError{
+			event:   "wrong_token_type",
+			message: "Invalid token type. Access token required.",
+			status:  http.StatusUnauthorized,
+		}
+	}
+
+	return claims, nil
+}
+
+// parseClaimsUUIDs parses and validates UUIDs from JWT claims.
+func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID string) (uuid.UUID, uuid.UUID, error) {
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("event", "invalid_user_id").
+			Str("user_id", claims.UserID).
 			Str("request_id", requestID).
-			Msg("optional authentication failed")
+			Msg("invalid user ID in token claims")
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
 
-		// Continue without user context
-		// Handler can check GetUserID(ctx) to see if authenticated
-		// This is a placeholder - the caller should handle this
+	sessionID, err := uuid.Parse(claims.SessionID)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("event", "invalid_session_id").
+			Str("session_id", claims.SessionID).
+			Str("request_id", requestID).
+			Msg("invalid session ID in token claims")
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	return userID, sessionID, nil
+}
+
+// logAndRespondAuthError logs and responds with appropriate auth error.
+func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConfig, requestID string, err error) {
+	authErr, ok := err.(*authError)
+	if !ok {
+		// Generic error handling
+		cfg.Logger.Error().
+			Err(err).
+			Str("request_id", requestID).
+			Msg("authentication error")
+		WriteError(w, r, http.StatusUnauthorized, "Unauthorized", "Authentication failed")
 		return
 	}
 
-	// Required auth - log and return error
-	cfg.Logger.Warn().
-		Str("event", event).
-		Str("path", r.URL.Path).
-		Str("request_id", requestID).
-		Msg("authentication failed")
+	// Log based on severity
+	if authErr.status >= 500 {
+		cfg.Logger.Error().
+			Str("event", authErr.event).
+			Str("path", r.URL.Path).
+			Str("request_id", requestID).
+			Msg(authErr.message)
+	} else {
+		cfg.Logger.Warn().
+			Str("event", authErr.event).
+			Str("path", r.URL.Path).
+			Str("request_id", requestID).
+			Msg(authErr.message)
+	}
 
-	WriteError(w, r, http.StatusUnauthorized, "Unauthorized", message)
+	WriteError(w, r, authErr.status, getErrorTitle(authErr.status), authErr.message)
+}
+
+// getErrorTitle returns appropriate error title for HTTP status code.
+func getErrorTitle(status int) string {
+	switch status {
+	case http.StatusUnauthorized:
+		return "Unauthorized"
+	case http.StatusForbidden:
+		return "Forbidden"
+	case http.StatusInternalServerError:
+		return "Internal Server Error"
+	default:
+		return "Error"
+	}
 }
 
 // RequireRole creates a middleware that enforces role-based access control (RBAC).

@@ -52,6 +52,8 @@ func NewDeleteAlbumHandler(
 //   - nil on success (idempotent - no error if album already deleted)
 //   - ErrAlbumNotFound if album doesn't exist
 //   - Authorization error if user doesn't own the album
+//
+//nolint:funlen // Command/query handler with sequential validation and business logic
 func (h *DeleteAlbumHandler) Handle(ctx context.Context, cmd DeleteAlbumCommand) error {
 	// 1. Parse IDs
 	albumID, err := gallery.ParseAlbumID(cmd.AlbumID)

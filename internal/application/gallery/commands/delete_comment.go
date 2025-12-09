@@ -65,6 +65,8 @@ func NewDeleteCommentHandler(
 //   - ErrUserNotFound if user doesn't exist
 //   - ErrCommentNotFound if comment doesn't exist
 //   - ErrUnauthorizedAccess if user is not authorized to delete
+//
+//nolint:cyclop // Command handler requires sequential validation: comment ID, user ID, permission checks, and deletion
 func (h *DeleteCommentHandler) Handle(ctx context.Context, cmd DeleteCommentCommand) error {
 	// 1. Parse comment ID
 	commentID, err := gallery.ParseCommentID(cmd.CommentID)

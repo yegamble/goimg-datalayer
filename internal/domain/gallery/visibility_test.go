@@ -9,6 +9,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestParseVisibility(t *testing.T) {
 	t.Parallel()
 

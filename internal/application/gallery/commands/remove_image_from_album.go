@@ -56,6 +56,8 @@ func NewRemoveImageFromAlbumHandler(
 //   - nil on success (idempotent - no error if image wasn't in album)
 //   - ErrAlbumNotFound if album doesn't exist
 //   - Authorization error if user doesn't own the album
+//
+//nolint:funlen // Command/query handler with sequential validation and business logic
 func (h *RemoveImageFromAlbumHandler) Handle(ctx context.Context, cmd RemoveImageFromAlbumCommand) error {
 	// 1. Parse IDs
 	albumID, err := gallery.ParseAlbumID(cmd.AlbumID)

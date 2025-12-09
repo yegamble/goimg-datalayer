@@ -56,6 +56,8 @@ func NewSocialHandler(
 //   - 403: Image is not accessible to user
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -124,6 +126,8 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 //   - 401: Not authenticated
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -280,6 +284,8 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 //   - 403: User is not the comment author (or admin/moderator)
 //   - 404: Comment not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -343,6 +349,8 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 //   - 400: Invalid parameters
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:cyclop // HTTP handler requires parsing pagination parameters, validation, query delegation, and response mapping
 func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

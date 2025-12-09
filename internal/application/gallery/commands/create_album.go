@@ -59,6 +59,8 @@ func NewCreateAlbumHandler(
 //   - AlbumID string on successful creation
 //   - Validation errors from domain value objects
 //   - ErrUserNotFound if user doesn't exist
+//
+//nolint:cyclop // Command handler requires sequential validation: user ID, name, description, and persistence
 func (h *CreateAlbumHandler) Handle(ctx context.Context, cmd CreateAlbumCommand) (string, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)

@@ -10,6 +10,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewTag(t *testing.T) {
 	t.Parallel()
 
@@ -240,6 +241,7 @@ func TestMustNewTag(t *testing.T) {
 	})
 }
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestTag_SlugGeneration(t *testing.T) {
 	t.Parallel()
 

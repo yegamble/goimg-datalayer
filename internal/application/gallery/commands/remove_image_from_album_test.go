@@ -15,6 +15,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestRemoveImageFromAlbumHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -50,7 +51,7 @@ func TestRemoveImageFromAlbumHandler_Handle(t *testing.T) {
 				ImageID: testhelpers.ValidImageID,
 				UserID:  testhelpers.ValidUserID,
 			},
-			setup:   func(t *testing.T, mocks *removeImageTestMocks) {},
+			setup:   func(_ *testing.T, _ *removeImageTestMocks) {},
 			wantErr: "invalid album id",
 		},
 		{
@@ -60,7 +61,7 @@ func TestRemoveImageFromAlbumHandler_Handle(t *testing.T) {
 				ImageID: "invalid-uuid",
 				UserID:  testhelpers.ValidUserID,
 			},
-			setup:   func(t *testing.T, mocks *removeImageTestMocks) {},
+			setup:   func(_ *testing.T, _ *removeImageTestMocks) {},
 			wantErr: "invalid image id",
 		},
 		{
@@ -70,7 +71,7 @@ func TestRemoveImageFromAlbumHandler_Handle(t *testing.T) {
 				ImageID: testhelpers.ValidImageID,
 				UserID:  "invalid-uuid",
 			},
-			setup:   func(t *testing.T, mocks *removeImageTestMocks) {},
+			setup:   func(_ *testing.T, _ *removeImageTestMocks) {},
 			wantErr: "invalid user id",
 		},
 		{

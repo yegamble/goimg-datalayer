@@ -369,6 +369,8 @@ func TestPutOptions(t *testing.T) {
 }
 
 // TestConfig_DefaultValues tests default configuration values.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestConfig_DefaultValues(t *testing.T) {
 	t.Parallel()
 

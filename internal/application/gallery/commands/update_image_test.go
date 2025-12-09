@@ -14,6 +14,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestUpdateImageHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -105,7 +106,7 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 				UserID:  testhelpers.ValidUserID,
 				Title:   &newTitle,
 			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+			setup: func(t *testing.T, _ *testhelpers.TestSuite) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
@@ -122,7 +123,7 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 				UserID:  "invalid-uuid",
 				Title:   &newTitle,
 			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+			setup: func(t *testing.T, _ *testhelpers.TestSuite) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,

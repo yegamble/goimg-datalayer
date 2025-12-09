@@ -15,6 +15,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+const (
+	// Default token expiration fallback.
+	defaultTokenExpirationMinutes = 15
+)
+
 // LoginCommand represents the intent to authenticate a user.
 // The identifier can be either an email address or username.
 // IPAddress and UserAgent are captured for security auditing and anomaly detection.
@@ -81,6 +86,8 @@ func NewLoginHandler(
 //   - ErrInvalidCredentials if credentials are wrong or user not found
 //   - ErrAccountSuspended if account is suspended
 //   - ErrAccountDeleted if account is deleted
+//
+//nolint:cyclop // Command handler requires sequential authentication: identifier lookup, password verify, status checks, and token generation
 func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthResponseDTO, error) {
 	// 1. Parse identifier and find user
 	// Try email first, then username
@@ -196,8 +203,8 @@ func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthR
 	// 8. Build response with tokens and user data
 	expiresAt, err := h.jwtService.GetTokenExpiration(accessToken)
 	if err != nil {
-		// Non-critical - use default 15 min
-		expiresAt = time.Now().UTC().Add(15 * time.Minute)
+		// Non-critical - use default
+		expiresAt = time.Now().UTC().Add(defaultTokenExpirationMinutes * time.Minute)
 	}
 
 	tokens := dto.NewTokenPairDTO(accessToken, refreshToken, expiresAt)

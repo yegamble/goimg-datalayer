@@ -15,6 +15,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestUnlikeImageHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -24,6 +25,7 @@ func TestUnlikeImageHandler_Handle(t *testing.T) {
 		setup   func(t *testing.T, mocks *unlikeTestMocks)
 		wantErr string
 	}{
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful unlike",
 			cmd: commands.UnlikeImageCommand{
@@ -134,6 +136,7 @@ func TestUnlikeImageHandler_Handle(t *testing.T) {
 			},
 			wantErr: "check has liked",
 		},
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "unlike failure",
 			cmd: commands.UnlikeImageCommand{

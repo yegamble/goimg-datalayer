@@ -1,4 +1,4 @@
-//nolint:testpackage // White-box testing required for internal implementation
+//nolint:testpackage,goconst // White-box testing required; test strings don't need constants
 package jwt
 
 import (
@@ -33,7 +33,11 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	privateKeyFile, err := os.Create(privateKeyPath)
 	require.NoError(t, err)
-	defer privateKeyFile.Close()
+	defer func() {
+		if err := privateKeyFile.Close(); err != nil {
+			t.Logf("failed to close private key file: %v", err)
+		}
+	}()
 
 	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
 	err = pem.Encode(privateKeyFile, &pem.Block{
@@ -47,7 +51,11 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	publicKeyFile, err := os.Create(publicKeyPath)
 	require.NoError(t, err)
-	defer publicKeyFile.Close()
+	defer func() {
+		if err := publicKeyFile.Close(); err != nil {
+			t.Logf("failed to close public key file: %v", err)
+		}
+	}()
 
 	publicKeyBytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	require.NoError(t, err)
