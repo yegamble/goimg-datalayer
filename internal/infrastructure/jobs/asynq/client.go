@@ -1,3 +1,5 @@
+// Package asynq provides Redis-backed background job processing using the Asynq library.
+// It implements task enqueuing (client) and processing (server) for asynchronous operations.
 package asynq
 
 import (
@@ -85,13 +87,17 @@ func (c *Client) EnqueueTask(ctx context.Context, taskType string, payload inter
 }
 
 // EnqueueTaskWithDelay enqueues a task to be processed after the specified delay.
-func (c *Client) EnqueueTaskWithDelay(ctx context.Context, taskType string, payload interface{}, delay time.Duration, opts ...asynq.Option) error {
+func (c *Client) EnqueueTaskWithDelay(
+	ctx context.Context, taskType string, payload interface{}, delay time.Duration, opts ...asynq.Option,
+) error {
 	opts = append(opts, asynq.ProcessIn(delay))
 	return c.EnqueueTask(ctx, taskType, payload, opts...)
 }
 
 // EnqueueTaskAt enqueues a task to be processed at the specified time.
-func (c *Client) EnqueueTaskAt(ctx context.Context, taskType string, payload interface{}, processAt time.Time, opts ...asynq.Option) error {
+func (c *Client) EnqueueTaskAt(
+	ctx context.Context, taskType string, payload interface{}, processAt time.Time, opts ...asynq.Option,
+) error {
 	opts = append(opts, asynq.ProcessAt(processAt))
 	return c.EnqueueTask(ctx, taskType, payload, opts...)
 }
@@ -111,7 +117,7 @@ func (c *Client) Close() error {
 }
 
 // Ping verifies the Redis connection is active.
-func (c *Client) Ping(ctx context.Context) error {
+func (c *Client) Ping(_ context.Context) error {
 	// Asynq doesn't expose a direct ping method, so we'll try a simple operation
 	// This is a workaround; in production, you might want to use a Redis client directly
 	return nil

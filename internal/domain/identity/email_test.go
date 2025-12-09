@@ -10,7 +10,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewEmail(t *testing.T) {
 	t.Parallel()
 
@@ -196,7 +195,6 @@ func TestEmail_IsEmpty(t *testing.T) {
 	})
 }
 
-//nolint:dupl // Value object Equals tests follow intentionally similar patterns
 func TestEmail_Equals(t *testing.T) {
 	t.Parallel()
 

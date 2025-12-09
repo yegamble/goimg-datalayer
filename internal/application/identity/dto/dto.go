@@ -1,3 +1,4 @@
+// Package dto provides data transfer objects for identity operations.
 package dto
 
 import (

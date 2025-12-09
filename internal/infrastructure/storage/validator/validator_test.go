@@ -1,4 +1,4 @@
-package validator //nolint:testpackage // Tests access unexported types
+package validator
 
 import (
 	"bytes"

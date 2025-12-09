@@ -16,7 +16,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestLikeImageHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -26,7 +25,6 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 		setup   func(t *testing.T, mocks *likeTestMocks)
 		wantErr string
 	}{
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful like",
 			cmd: commands.LikeImageCommand{
@@ -154,7 +152,6 @@ func TestLikeImageHandler_Handle(t *testing.T) {
 			},
 			wantErr: "check has liked",
 		},
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "like creation failure",
 			cmd: commands.LikeImageCommand{

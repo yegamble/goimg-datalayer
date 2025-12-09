@@ -16,6 +16,13 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+const (
+	// maxUploadSizeMB is the maximum allowed multipart form size in megabytes.
+	maxUploadSizeMB = 50
+	// megabyteShift is the bit shift to convert megabytes to bytes (1 MB = 1 << 20 bytes).
+	megabyteShift = 20
+)
+
 // ImageHandler handles image-related HTTP endpoints.
 // It delegates to application layer command and query handlers for business logic.
 type ImageHandler struct {
@@ -67,8 +74,6 @@ func NewImageHandler(
 //
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered
 // separately in router.go with optional authentication.
-//
-//nolint:ireturn // chi.Router is the standard return type for chi route mounting
 func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -102,6 +107,8 @@ func (h *ImageHandler) Routes() chi.Router {
 //   - 415: Unsupported media type
 //   - 429: Upload rate limit exceeded
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -117,8 +124,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Parse multipart form (limit to 50MB in memory)
-	if err := r.ParseMultipartForm(50 << 20); err != nil {
+	// 2. Parse multipart form (limit to configured max size in memory)
+	if err := r.ParseMultipartForm(maxUploadSizeMB << megabyteShift); err != nil {
 		h.logger.Debug().Err(err).Msg("failed to parse multipart form")
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -285,6 +292,8 @@ func (h *ImageHandler) Get(w http.ResponseWriter, r *http.Request) {
 //   - 403: User is not the owner
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -447,6 +456,8 @@ func (h *ImageHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // Errors:
 //   - 400: Invalid query parameters
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -469,7 +480,7 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseIntParam(queryParams.Get("limit"), 20)
+	limit, err := parseIntParam(queryParams.Get("limit"), defaultPerPage)
 	if err != nil {
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -479,8 +490,8 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit > 100 {
-		limit = 100 // Max page size
+	if limit > maxPerPage {
+		limit = maxPerPage // Max page size
 	}
 
 	// 2. Extract requesting user ID (for authorization)
@@ -549,7 +560,7 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 //   - 400: Invalid query parameters
 //   - 500: Internal server error
 //
-//nolint:cyclop // HTTP handler requires parsing and validating multiple query parameters with error handling
+//nolint:funlen,cyclop // HTTP handler with multiple query parameters and validation.
 func (h *ImageHandler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -585,12 +596,12 @@ func (h *ImageHandler) Search(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), 20)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		perPage = 20
+		perPage = defaultPerPage
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > maxPerPage {
+		perPage = maxPerPage
 	}
 
 	// 2. Build search query
@@ -658,7 +669,9 @@ func (h *ImageHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 //   - 404: Image or variant not found
 //   - 500: Internal server error
 //
-//nolint:cyclop // HTTP handler requires parsing variant type, authorization checks, storage retrieval, and content type handling
+// and content type handling
+//
+//nolint:funlen,cyclop // HTTP handler with variant parsing, authorization, and storage.
 func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

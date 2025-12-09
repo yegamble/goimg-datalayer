@@ -1,4 +1,4 @@
-package jwt //nolint:testpackage // Tests access unexported fields
+package jwt
 
 import (
 	"context"

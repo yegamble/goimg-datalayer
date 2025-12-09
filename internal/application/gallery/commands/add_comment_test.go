@@ -16,7 +16,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestAddCommentHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -27,7 +26,6 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 		wantErr error
 		assert  func(t *testing.T, mocks *commentTestMocks, commentID string, err error)
 	}{
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful comment addition",
 			cmd: commands.AddCommentCommand{
@@ -71,7 +69,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
-			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+			assert: func(t *testing.T, _ *commentTestMocks, commentID string, err error) {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "invalid user id")
 				assert.Empty(t, commentID)
@@ -88,7 +86,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
-			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+			assert: func(t *testing.T, _ *commentTestMocks, commentID string, err error) {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "invalid image id")
 				assert.Empty(t, commentID)
@@ -191,8 +189,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrCommentRequired,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
 				t.Helper()
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrCommentRequired)
+				require.ErrorIs(t, err, gallery.ErrCommentRequired)
 				assert.Empty(t, commentID)
 				mocks.users.AssertExpectations(t)
 				mocks.images.AssertExpectations(t)
@@ -225,7 +222,6 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				mocks.images.AssertExpectations(t)
 			},
 		},
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "sanitizes HTML content",
 			cmd: commands.AddCommentCommand{
@@ -280,6 +276,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "save comment")
 				assert.Empty(t, commentID)
@@ -310,6 +307,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "get comment count")
 				assert.Empty(t, commentID)
@@ -341,6 +339,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "update image comment count")
 				assert.Empty(t, commentID)
@@ -373,6 +372,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				// Should still succeed even if event publishing fails
 				require.NoError(t, err)
 				assert.NotEmpty(t, commentID)

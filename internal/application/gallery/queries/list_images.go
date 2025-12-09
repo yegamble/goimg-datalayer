@@ -239,7 +239,9 @@ func (h *ListImagesHandler) loadImagesByTag(ctx context.Context, params *queryPa
 }
 
 // loadImagesByOwner loads images filtered by owner with visibility filtering.
-func (h *ListImagesHandler) loadImagesByOwner(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
+func (h *ListImagesHandler) loadImagesByOwner(
+	ctx context.Context, params *queryParams,
+) ([]*gallery.Image, int64, error) {
 	images, totalCount, err := h.images.FindByOwner(ctx, params.ownerID, params.pagination)
 	if err != nil {
 		h.logger.Error().
@@ -255,7 +257,9 @@ func (h *ListImagesHandler) loadImagesByOwner(ctx context.Context, params *query
 }
 
 // loadPublicImages loads all public images.
-func (h *ListImagesHandler) loadPublicImages(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
+func (h *ListImagesHandler) loadPublicImages(
+	ctx context.Context, params *queryParams,
+) ([]*gallery.Image, int64, error) {
 	images, totalCount, err := h.images.FindPublic(ctx, params.pagination)
 	if err != nil {
 		h.logger.Error().

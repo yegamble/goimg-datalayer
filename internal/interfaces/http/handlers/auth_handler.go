@@ -49,8 +49,6 @@ func NewAuthHandler(
 // Usage:
 //
 //	r.Mount("/api/v1/auth", authHandler.Routes())
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *AuthHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -316,7 +314,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 // mapErrorAndRespond maps application/domain errors to HTTP responses using RFC 7807 Problem Details.
 // This centralizes error mapping logic for consistency across all auth endpoints.
 //
-//nolint:cyclop // Comprehensive error mapping requires checking all possible authentication error types
+//nolint:funlen,cyclop // Comprehensive error mapping for all authentication error types.
 func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request, err error, operation string) {
 	h.logger.Error().
 		Err(err).

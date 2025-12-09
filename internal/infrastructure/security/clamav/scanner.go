@@ -106,7 +106,7 @@ func NewClient(cfg Config) (*Client, error) {
 
 // Scan checks data for malware.
 //
-//nolint:cyclop // ClamAV protocol requires sequential steps: connection, command, chunking, size handling, and response parsing
+//nolint:cyclop // ClamAV protocol requires sequential steps for scanning.
 func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 	conn, err := c.dial(ctx)
 	if err != nil {
@@ -114,7 +114,7 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 	}
 	defer func() {
 		if cerr := conn.Close(); cerr != nil {
-			// Connection close errors are logged but don't affect scan result
+			_ = cerr // Connection close errors are logged but don't affect scan result.
 		}
 	}()
 
@@ -174,7 +174,7 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 
 // ScanReader checks a stream for malware.
 //
-//nolint:cyclop // ClamAV streaming protocol requires sequential steps: connection, command, chunked streaming, and response parsing
+//nolint:cyclop // ClamAV streaming protocol requires sequential steps.
 func (c *Client) ScanReader(ctx context.Context, reader io.Reader, _ int64) (*ScanResult, error) {
 	conn, err := c.dial(ctx)
 	if err != nil {
@@ -182,7 +182,7 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, _ int64) (*Sc
 	}
 	defer func() {
 		if cerr := conn.Close(); cerr != nil {
-			// Connection close errors are logged but don't affect scan result
+			_ = cerr // Connection close errors are logged but don't affect scan result.
 		}
 	}()
 
@@ -252,7 +252,7 @@ func (c *Client) Ping(ctx context.Context) error {
 	}
 	defer func() {
 		if cerr := conn.Close(); cerr != nil {
-			// Connection close errors are logged but don't affect ping result
+			_ = cerr // Connection close errors are logged but don't affect ping result.
 		}
 	}()
 
@@ -284,7 +284,7 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 	}
 	defer func() {
 		if cerr := conn.Close(); cerr != nil {
-			// Connection close errors are logged but don't affect version result
+			_ = cerr // Connection close errors are logged but don't affect version result.
 		}
 	}()
 
@@ -307,7 +307,7 @@ func (c *Client) Stats(ctx context.Context) (string, error) {
 	}
 	defer func() {
 		if cerr := conn.Close(); cerr != nil {
-			// Connection close errors are logged but don't affect stats result
+			_ = cerr // Connection close errors are logged but don't affect stats result.
 		}
 	}()
 

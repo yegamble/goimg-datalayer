@@ -52,8 +52,6 @@ func NewUserHandler(
 //	    r.Use(middleware.JWTAuth)
 //	    r.Mount("/api/v1/users", userHandler.Routes())
 //	})
-//
-//nolint:ireturn // chi.Router is the standard return type for chi route mounting
 func (h *UserHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -135,6 +133,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 //   - 403: Not authorized to update this user
 //   - 404: User not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -229,6 +229,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 //   - 403: Not authorized to delete this user
 //   - 404: User not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

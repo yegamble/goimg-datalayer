@@ -1,4 +1,3 @@
-//nolint:testpackage,goconst // White-box testing required; test strings don't need constants
 package jwt
 
 import (
@@ -30,7 +29,6 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 
 	// Save private key
 	privateKeyPath = filepath.Join(tempDir, "private.pem")
-	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	privateKeyFile, err := os.Create(privateKeyPath)
 	require.NoError(t, err)
 	defer func() {
@@ -48,7 +46,6 @@ func generateTestKeys(t *testing.T, bits int) (privateKeyPath, publicKeyPath str
 
 	// Save public key
 	publicKeyPath = filepath.Join(tempDir, "public.pem")
-	//nolint:gosec // G304: Test file path is generated safely in temp directory
 	publicKeyFile, err := os.Create(publicKeyPath)
 	require.NoError(t, err)
 	defer func() {

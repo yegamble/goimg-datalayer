@@ -70,7 +70,7 @@ func NewUnlikeImageHandler(
 //   - ErrUserNotFound if user doesn't exist
 //   - ErrImageNotFound if image doesn't exist
 //
-//nolint:cyclop // Command handler requires sequential validation: user ID, image ID, permissions, like status, and persistence
+//nolint:funlen,cyclop // Sequential validation of user ID, image ID, permissions, like status, and persistence.
 func (h *UnlikeImageHandler) Handle(ctx context.Context, cmd UnlikeImageCommand) (*UnlikeImageResult, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)

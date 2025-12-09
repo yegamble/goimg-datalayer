@@ -12,7 +12,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewReport(t *testing.T) {
 	t.Parallel()
 
@@ -149,7 +148,6 @@ func TestReconstructReport(t *testing.T) {
 	assert.Empty(t, report.Events())
 }
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestReport_StartReview(t *testing.T) {
 	t.Parallel()
 
@@ -215,7 +213,6 @@ func TestReport_StartReview(t *testing.T) {
 		assert.ErrorIs(t, err, moderation.ErrReportInTerminalState)
 		assert.Equal(t, moderation.StatusDismissed, report.Status())
 	})
-	//nolint:funlen // Table-driven test with comprehensive test cases
 }
 
 func TestReport_Resolve(t *testing.T) {

@@ -1,7 +1,9 @@
+// Package middleware provides HTTP security middleware for authentication, authorization, and request protection.
 package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,6 +17,8 @@ import (
 const (
 	// Expected number of parts in Bearer token header.
 	bearerTokenParts = 2
+	// httpInternalServerError is the status code threshold for server errors.
+	httpInternalServerError = 500
 )
 
 // JWTServiceInterface defines the interface for JWT token operations.
@@ -276,7 +280,7 @@ func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID strin
 			Str("user_id", claims.UserID).
 			Str("request_id", requestID).
 			Msg("invalid user ID in token claims")
-		return uuid.UUID{}, uuid.UUID{}, err
+		return uuid.UUID{}, uuid.UUID{}, fmt.Errorf("parse user ID: %w", err)
 	}
 
 	sessionID, err := uuid.Parse(claims.SessionID)
@@ -287,7 +291,7 @@ func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID strin
 			Str("session_id", claims.SessionID).
 			Str("request_id", requestID).
 			Msg("invalid session ID in token claims")
-		return uuid.UUID{}, uuid.UUID{}, err
+		return uuid.UUID{}, uuid.UUID{}, fmt.Errorf("parse session ID: %w", err)
 	}
 
 	return userID, sessionID, nil
@@ -295,8 +299,8 @@ func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID strin
 
 // logAndRespondAuthError logs and responds with appropriate auth error.
 func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConfig, requestID string, err error) {
-	authErr, ok := err.(*authError)
-	if !ok {
+	var authErr *authError
+	if !errors.As(err, &authErr) {
 		// Generic error handling
 		cfg.Logger.Error().
 			Err(err).
@@ -307,7 +311,7 @@ func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConf
 	}
 
 	// Log based on severity
-	if authErr.status >= 500 {
+	if authErr.status >= httpInternalServerError {
 		cfg.Logger.Error().
 			Str("event", authErr.event).
 			Str("path", r.URL.Path).
@@ -361,7 +365,9 @@ func getErrorTitle(status int) string {
 //	    r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
 //	    r.Post("/images/{id}/moderate", handlers.Moderation.ModerateImage)
 //	})
-func RequireRole(logger zerolog.Logger, metricsCollector *MetricsCollector, requiredRole string) func(http.Handler) http.Handler {
+func RequireRole(
+	logger zerolog.Logger, metricsCollector *MetricsCollector, requiredRole string,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -421,7 +427,9 @@ func RequireRole(logger zerolog.Logger, metricsCollector *MetricsCollector, requ
 // Usage:
 //
 //	r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
-func RequireAnyRole(logger zerolog.Logger, metricsCollector *MetricsCollector, allowedRoles ...string) func(http.Handler) http.Handler {
+func RequireAnyRole(
+	logger zerolog.Logger, metricsCollector *MetricsCollector, allowedRoles ...string,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()

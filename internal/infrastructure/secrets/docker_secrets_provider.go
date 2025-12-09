@@ -1,3 +1,4 @@
+// Package secrets provides secret management using Docker secrets and environment variables.
 package secrets
 
 import (
@@ -52,7 +53,7 @@ func NewDockerSecretsProvider(secretsPath string) *DockerSecretsProvider {
 
 // GetSecret retrieves a secret from a Docker Secret file.
 // Returns an error if the file does not exist or cannot be read.
-func (p *DockerSecretsProvider) GetSecret(ctx context.Context, name string) (string, error) {
+func (p *DockerSecretsProvider) GetSecret(_ context.Context, name string) (string, error) {
 	// Check cache first
 	if value, ok := p.cache[name]; ok {
 		log.Debug().
@@ -133,7 +134,7 @@ func (p *DockerSecretsProvider) ProviderName() string {
 // ValidateRequiredSecrets checks that all required secrets are present.
 // Returns an error listing all missing secrets, or nil if all are present.
 // This should be called during application initialization.
-func (p *DockerSecretsProvider) ValidateRequiredSecrets(ctx context.Context) error {
+func (p *DockerSecretsProvider) ValidateRequiredSecrets(_ context.Context) error {
 	missing := make([]string, 0)
 
 	for _, name := range RequiredSecrets() {
@@ -165,7 +166,7 @@ func (p *DockerSecretsProvider) ValidateRequiredSecrets(ctx context.Context) err
 // ListAvailableSecrets returns information about which secrets are available.
 // This is useful for debugging configuration issues.
 // WARNING: Never log the actual secret values!
-func (p *DockerSecretsProvider) ListAvailableSecrets(ctx context.Context) map[string]bool {
+func (p *DockerSecretsProvider) ListAvailableSecrets(_ context.Context) map[string]bool {
 	secrets := make(map[string]bool)
 
 	// Check required secrets

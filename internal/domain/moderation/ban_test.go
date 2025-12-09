@@ -1,4 +1,3 @@
-//nolint:goconst // Test strings don't need constants
 package moderation_test
 
 import (

@@ -539,7 +539,7 @@ func (r *ImageRepository) Search(ctx context.Context, params gallery.SearchParam
 
 // buildSearchQuery constructs a dynamic SQL query based on search parameters.
 //
-//nolint:cyclop // Query builder requires conditional logic for multiple search filters: query, tags, visibility, owner, and sort
+//nolint:funlen,cyclop // Conditional logic for multiple search filters: query, tags, visibility, owner, sort.
 func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string, string, []interface{}) {
 	query := sqlSearchImagesBase
 	countQuery := "SELECT COUNT(DISTINCT i.id) FROM images i"

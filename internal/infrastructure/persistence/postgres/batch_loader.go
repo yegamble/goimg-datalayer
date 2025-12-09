@@ -17,7 +17,9 @@ import (
 // This function reduces it to 1 query by using WHERE image_id = ANY($1).
 //
 // Performance impact: 50x reduction in database round trips.
-func batchLoadVariants(ctx context.Context, db *sqlx.DB, imageIDs []gallery.ImageID) (map[string][]gallery.ImageVariant, error) {
+func batchLoadVariants(
+	ctx context.Context, db *sqlx.DB, imageIDs []gallery.ImageID,
+) (map[string][]gallery.ImageVariant, error) {
 	if len(imageIDs) == 0 {
 		return make(map[string][]gallery.ImageVariant), nil
 	}

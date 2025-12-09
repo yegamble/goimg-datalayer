@@ -37,8 +37,6 @@ func NewExploreHandler(
 // Returns a chi.Router that can be mounted under /api/v1/explore
 //
 // All routes are public (no authentication required) and only return public images.
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *ExploreHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -135,6 +133,8 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 // Response: Paginated list of public images sorted by like_count DESC
 // Errors:
 //   - 400: Invalid query parameters
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

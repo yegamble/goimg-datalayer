@@ -19,6 +19,8 @@ run:
     - Godeps
     - builtin
     - docs
+    - tests  # Exclude tests directory from strict linting
+    - internal/infrastructure/storage/processor  # Requires libvips CGO dependency
 
   # Which files to exclude
   exclude-files:
@@ -133,6 +135,70 @@ linters:
     - tagliatelle   # Tag naming is project-specific
     - varnamelen    # Short variable names are acceptable
     - wsl           # Whitespace linter is too opinionated
+
+  # Exclusion rules for v2 format
+  exclusions:
+    rules:
+      # Exclude linters from test files
+      - path: '(.+)_test\.go'
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+          - goconst
+          - funlen
+          - gocognit
+          - cyclop
+          - maintidx
+          - wrapcheck
+          - lll
+          - mnd
+          - nestif
+          - thelper
+          - testifylint
+          - revive
+          - testpackage
+
+      # Exclude linters from testhelpers directories
+      - path: 'testhelpers/'
+        linters:
+          - errcheck
+          - gosec
+          - wrapcheck
+          - revive
+          - lll
+          - funlen
+          - cyclop
+          - maintidx
+          - mnd
+          - dupl
+          - goconst
+          - nestif
+          - thelper
+          - testifylint
+
+      # Exclude linters from tests directory
+      - path: '^tests/'
+        linters:
+          - lll
+          - cyclop
+          - funlen
+          - maintidx
+          - dupl
+          - errcheck
+          - mnd
+          - goconst
+          - revive
+          - wrapcheck
+          - nestif
+          - thelper
+          - testifylint
+
+      # Exclude ireturn from HTTP handlers (chi.Router pattern)
+      - path: 'internal/interfaces/http/handlers/'
+        linters:
+          - ireturn
 
 # Formatters configuration
 formatters:
@@ -276,7 +342,7 @@ linters-settings:
   cyclop:
     max-complexity: 15
     package-average: 0.0
-    skip-tests: true
+    skip-tests: false  # We handle test exclusions via exclude-rules
 
   # dupl: code clone detection
   dupl:
@@ -383,39 +449,8 @@ issues:
   # Fix found issues (if supported by the linter)
   fix: false
 
-  # Exclude specific issues
+  # Text-based exclusions (kept in issues section for v2)
   exclude-rules:
-    # Exclude some linters from running on tests files
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - goconst
-        - funlen
-        - gocognit
-        - cyclop
-        - maintidx
-        - wrapcheck
-
-    # Exclude some linters from running on test helpers
-    - path: internal/testutil/
-      linters:
-        - errcheck
-        - gosec
-        - wrapcheck
-
-    # Exclude magic number checks in tests
-    - path: _test\.go
-      linters:
-        - mnd
-
-    # Exclude function length checks in main.go
-    - path: cmd/.*/main\.go
-      linters:
-        - funlen
-
     # Allow init functions in infrastructure layer
     - path: internal/infrastructure/
       text: "don't use init function"
@@ -424,23 +459,5 @@ issues:
     - path: _test\.go
       text: "dot imports"
 
-    # Exclude generated files
-    - path: \.gen\.go
-      linters:
-        - all
-
-    # Exclude protobuf files
-    - path: \.pb\.go
-      linters:
-        - all
-
-    # Exclude vendor
-    - path: vendor/
-      linters:
-        - all
-
   # Independently of option `exclude` golangci-lint uses default exclude patterns
   exclude-use-default: false
-
-  # Show statistics per linter
-  exclude-dirs-use-default: true

@@ -55,7 +55,9 @@ func NewRefreshTokenService(redisClient *redis.Client, ttl time.Duration) *Refre
 
 // GenerateToken generates a cryptographically secure refresh token.
 // Returns the plaintext token and its metadata.
-func (s *RefreshTokenService) GenerateToken(ctx context.Context, userID, sessionID, familyID, parentHash, ip, userAgent string) (string, *RefreshTokenMetadata, error) {
+func (s *RefreshTokenService) GenerateToken(
+	ctx context.Context, userID, sessionID, familyID, parentHash, ip, userAgent string,
+) (string, *RefreshTokenMetadata, error) {
 	if userID == "" {
 		return "", nil, fmt.Errorf("user id cannot be empty")
 	}

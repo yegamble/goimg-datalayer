@@ -1,3 +1,5 @@
+//go:build cgo
+
 package tasks
 
 import (
@@ -47,16 +49,6 @@ type ImageProcessHandler struct {
 	processor *processor.Processor
 	storage   Storage
 	logger    zerolog.Logger
-}
-
-// Storage defines the interface for retrieving and storing image data.
-// This is implemented by the storage layer (local, S3, etc.).
-type Storage interface {
-	// Get retrieves data by key.
-	Get(ctx context.Context, key string) ([]byte, error)
-
-	// Put stores data with the given key.
-	Put(ctx context.Context, key string, data []byte) error
 }
 
 // NewImageProcessHandler creates a new image processing task handler.

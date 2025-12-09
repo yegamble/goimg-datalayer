@@ -64,7 +64,7 @@ func NewRegisterUserHandler(
 //   - ErrUsernameAlreadyExists if username is taken
 //   - Validation errors from domain value objects
 //
-//nolint:cyclop // Command handler requires sequential validation: email, username, uniqueness checks, password hashing, and persistence
+//nolint:funlen,cyclop // Sequential validation: email, username, uniqueness, password hashing, and persistence.
 func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserCommand) (*dto.UserDTO, error) {
 	// 1. Convert primitives to domain value objects (validation happens here)
 	email, err := identity.NewEmail(cmd.Email)

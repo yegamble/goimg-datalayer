@@ -14,6 +14,13 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
+const (
+	// healthCheckTimeout is the maximum time to wait for each dependency health check.
+	healthCheckTimeout = 5 * time.Second
+	// millisecondConversion is the multiplier to convert seconds to milliseconds.
+	millisecondConversion = 1000
+)
+
 // HealthHandler handles health check endpoints for monitoring and orchestration.
 // It provides liveness and readiness probes for Kubernetes/Docker health checks.
 type HealthHandler struct {
@@ -82,7 +89,7 @@ type CheckDetails struct {
 //	  "status": "ok",
 //	  "timestamp": "2024-12-05T12:00:00Z"
 //	}
-func (h *HealthHandler) Liveness(w http.ResponseWriter, r *http.Request) {
+func (h *HealthHandler) Liveness(w http.ResponseWriter, _ *http.Request) {
 	response := LivenessResponse{
 		Status:    "ok",
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
@@ -149,6 +156,8 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, r *http.Request) {
 //	    "clamav": {"status": "up", "latency_ms": 2.5}
 //	  }
 //	}
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -229,13 +238,13 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 // checkDatabase verifies PostgreSQL database connectivity and measures latency.
 // Returns CheckDetails with status and latency, plus latency as a separate value for logging.
 func (h *HealthHandler) checkDatabase(ctx context.Context) (CheckDetails, float64) {
-	// Create a context with 5 second timeout for health check
-	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// Create a context with timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
 	defer cancel()
 
 	start := time.Now()
 	err := postgres.HealthCheck(checkCtx, h.db)
-	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+	latency := time.Since(start).Seconds() * millisecondConversion // Convert to milliseconds
 
 	if err != nil {
 		h.logger.Warn().
@@ -259,15 +268,15 @@ func (h *HealthHandler) checkDatabase(ctx context.Context) (CheckDetails, float6
 // checkRedis verifies Redis connectivity and measures latency.
 // Returns CheckDetails with status and latency, plus latency as a separate value for logging.
 func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) {
-	// Create a context with 5 second timeout for health check
-	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// Create a context with timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
 	defer cancel()
 
 	start := time.Now()
 
 	// Handle nil redis client
 	if h.redis == nil {
-		latency := time.Since(start).Seconds() * 1000
+		latency := time.Since(start).Seconds() * millisecondConversion
 		h.logger.Warn().
 			Float64("latency_ms", latency).
 			Msg("redis client is nil")
@@ -280,7 +289,7 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 	}
 
 	err := h.redis.HealthCheck(checkCtx)
-	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+	latency := time.Since(start).Seconds() * millisecondConversion // Convert to milliseconds
 
 	if err != nil {
 		h.logger.Warn().
@@ -304,8 +313,8 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 // checkStorage verifies storage provider connectivity and measures latency.
 // Returns CheckDetails with status and latency, plus latency as a separate value for logging.
 func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64) {
-	// Create a context with 5 second timeout for health check
-	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// Create a context with timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
 	defer cancel()
 
 	start := time.Now()
@@ -313,7 +322,7 @@ func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64
 	// We just check if the storage is accessible by testing Exists operation
 	healthCheckKey := "health-check-probe"
 	_, err := h.storage.Exists(checkCtx, healthCheckKey)
-	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+	latency := time.Since(start).Seconds() * millisecondConversion // Convert to milliseconds
 
 	if err != nil {
 		h.logger.Warn().
@@ -338,13 +347,13 @@ func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64
 // checkClamAV verifies ClamAV daemon connectivity and measures latency.
 // Returns CheckDetails with status and latency, plus latency as a separate value for logging.
 func (h *HealthHandler) checkClamAV(ctx context.Context) (CheckDetails, float64) {
-	// Create a context with 5 second timeout for health check
-	checkCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// Create a context with timeout for health check
+	checkCtx, cancel := context.WithTimeout(ctx, healthCheckTimeout)
 	defer cancel()
 
 	start := time.Now()
 	err := h.clamav.Ping(checkCtx)
-	latency := time.Since(start).Seconds() * 1000 // Convert to milliseconds
+	latency := time.Since(start).Seconds() * millisecondConversion // Convert to milliseconds
 
 	if err != nil {
 		h.logger.Warn().

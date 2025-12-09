@@ -964,8 +964,6 @@ func TestPaginationParameters(t *testing.T) {
 // Helper Functions
 
 // validateEndpointContract validates that an endpoint's contract matches the spec.
-//
-//nolint:gocognit // Contract test helper requires comprehensive validation of all endpoint aspects
 func validateEndpointContract(
 	t *testing.T,
 	path, method string,
@@ -1200,8 +1198,6 @@ func mustCreateRequest(t *testing.T, method, path string, body []byte) *http.Req
 }
 
 // TestResponseSchemaCompliance validates that all response schemas are properly defined.
-//
-//nolint:cyclop // Contract test requires comprehensive schema validation across all endpoints
 func TestResponseSchemaCompliance(t *testing.T) {
 	t.Parallel()
 
@@ -1252,8 +1248,6 @@ func TestResponseSchemaCompliance(t *testing.T) {
 }
 
 // TestErrorResponseCompliance validates that all error responses follow RFC 7807.
-//
-//nolint:gocognit // Contract test requires validating RFC 7807 compliance for all error responses across all endpoints
 func TestErrorResponseCompliance(t *testing.T) {
 	t.Parallel()
 
@@ -1276,16 +1270,16 @@ func TestErrorResponseCompliance(t *testing.T) {
 
 				// Error responses should use application/problem+json or application/json
 				jsonContent := response.Value.Content.Get("application/json")
-				problemJsonContent := response.Value.Content.Get("application/problem+json")
+				problemJSONContent := response.Value.Content.Get("application/problem+json")
 
-				if jsonContent == nil && problemJsonContent == nil {
+				if jsonContent == nil && problemJSONContent == nil {
 					continue
 				}
 
 				// Verify it references ProblemDetail schema
 				content := jsonContent
 				if content == nil {
-					content = problemJsonContent
+					content = problemJSONContent
 				}
 
 				if content.Schema != nil && content.Schema.Ref != "" {
@@ -1307,8 +1301,6 @@ func TestErrorResponseCompliance(t *testing.T) {
 }
 
 // TestQueryParameterValidation validates query parameter definitions.
-//
-//nolint:gocognit // Contract test requires validating query parameter definitions for all endpoints
 func TestQueryParameterValidation(t *testing.T) {
 	t.Parallel()
 
@@ -1468,8 +1460,6 @@ func TestOptionalAuthenticationEndpoints(t *testing.T) {
 }
 
 // TestMediaTypeCompliance validates content types are properly defined.
-//
-//nolint:gocognit // Contract test requires validating media types for all request/response bodies across all endpoints
 func TestMediaTypeCompliance(t *testing.T) {
 	t.Parallel()
 

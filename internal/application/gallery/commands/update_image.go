@@ -72,7 +72,7 @@ func NewUpdateImageHandler(
 //   - ErrUnauthorizedAccess if user doesn't own image
 //   - Validation errors from domain value objects
 //
-//nolint:cyclop // Command handler requires sequential validation: image ID, user ID, ownership, and multiple field updates
+//nolint:funlen,cyclop // Sequential validation of image ID, user ID, ownership, and multiple field updates.
 func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand) (*UpdateImageResult, error) {
 	// 1. Parse and validate IDs
 	imageID, err := gallery.ParseImageID(cmd.ImageID)
@@ -190,7 +190,9 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 }
 
 // updateMetadata updates the image metadata (title and description) if provided.
-func (h *UpdateImageHandler) updateMetadata(image *gallery.Image, cmd UpdateImageCommand, updatedFields *[]string) error {
+func (h *UpdateImageHandler) updateMetadata(
+	image *gallery.Image, cmd UpdateImageCommand, updatedFields *[]string,
+) error {
 	if cmd.Title == nil && cmd.Description == nil {
 		return nil
 	}
@@ -219,7 +221,9 @@ func (h *UpdateImageHandler) updateMetadata(image *gallery.Image, cmd UpdateImag
 }
 
 // updateVisibility updates the image visibility if provided.
-func (h *UpdateImageHandler) updateVisibility(image *gallery.Image, imageID gallery.ImageID, cmd UpdateImageCommand, updatedFields *[]string) error {
+func (h *UpdateImageHandler) updateVisibility(
+	image *gallery.Image, imageID gallery.ImageID, cmd UpdateImageCommand, updatedFields *[]string,
+) error {
 	if cmd.Visibility == nil {
 		return nil
 	}

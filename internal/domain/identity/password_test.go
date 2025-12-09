@@ -1,4 +1,3 @@
-//nolint:goconst // Test strings don't need constants
 package identity_test
 
 import (
@@ -11,7 +10,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewPasswordHash(t *testing.T) {
 	t.Parallel()
 

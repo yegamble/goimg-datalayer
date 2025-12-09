@@ -83,23 +83,23 @@ func RevokedSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 
 // WithIPAddress returns a copy of the fixture with custom IP address.
 func (f *SessionFixture) WithIPAddress(ip string) *SessionFixture {
-	copy := *f
-	copy.IPAddress = ip
-	return &copy
+	clone := *f
+	clone.IPAddress = ip
+	return &clone
 }
 
 // WithUserAgent returns a copy of the fixture with custom user agent.
 func (f *SessionFixture) WithUserAgent(ua string) *SessionFixture {
-	copy := *f
-	copy.UserAgent = ua
-	return &copy
+	clone := *f
+	clone.UserAgent = ua
+	return &clone
 }
 
 // WithExpiresAt returns a copy of the fixture with custom expiration.
 func (f *SessionFixture) WithExpiresAt(expiresAt time.Time) *SessionFixture {
-	copy := *f
-	copy.ExpiresAt = expiresAt
-	return &copy
+	clone := *f
+	clone.ExpiresAt = expiresAt
+	return &clone
 }
 
 // UniqueSession generates a session fixture with unique ID and token.

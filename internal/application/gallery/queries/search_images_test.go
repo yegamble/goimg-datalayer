@@ -1,4 +1,3 @@
-//nolint:testpackage // White-box testing required for internal mocks
 package queries
 
 import (
@@ -103,7 +102,6 @@ func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID
 	return args.Bool(0), args.Error(1)
 }
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestSearchImagesHandler_Handle_Success(t *testing.T) {
 	t.Parallel()
 

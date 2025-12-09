@@ -1,3 +1,4 @@
+// Package handlers provides HTTP request handlers for the API endpoints.
 package handlers
 
 import (
@@ -52,8 +53,6 @@ func NewAlbumHandler(
 
 // Routes registers album routes with the chi router.
 // Returns a chi.Router that can be mounted under /api/v1/albums.
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *AlbumHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -78,6 +77,8 @@ func (h *AlbumHandler) Routes() chi.Router {
 //   - 400: Invalid request data
 //   - 401: Not authenticated
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *AlbumHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -223,6 +224,8 @@ func (h *AlbumHandler) Get(w http.ResponseWriter, r *http.Request) {
 //   - 403: User is not the owner
 //   - 404: Album not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -382,6 +385,8 @@ func (h *AlbumHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // Errors:
 //   - 400: Invalid query parameters
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -638,6 +643,8 @@ func (h *AlbumHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {
 //   - 403: Album is private and user is not the owner
 //   - 404: Album not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

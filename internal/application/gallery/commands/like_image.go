@@ -73,7 +73,7 @@ func NewLikeImageHandler(
 //   - ErrImageNotFound if image doesn't exist
 //   - ErrUnauthorizedAccess if image is not visible to user
 //
-//nolint:cyclop // Command handler requires sequential validation: user ID, image ID, permissions, like status, and persistence
+//nolint:funlen,cyclop // Sequential validation of user ID, image ID, permissions, like status, and persistence.
 func (h *LikeImageHandler) Handle(ctx context.Context, cmd LikeImageCommand) (*LikeImageResult, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)
