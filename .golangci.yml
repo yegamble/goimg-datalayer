@@ -158,6 +158,7 @@ linters:
           - thelper
           - testifylint
           - revive
+          - testpackage
 
       # Exclude linters from testhelpers directories
       - path: 'testhelpers/'
@@ -193,6 +194,11 @@ linters:
           - nestif
           - thelper
           - testifylint
+
+      # Exclude ireturn from HTTP handlers (chi.Router pattern)
+      - path: 'internal/interfaces/http/handlers/'
+        linters:
+          - ireturn
 
 # Formatters configuration
 formatters:

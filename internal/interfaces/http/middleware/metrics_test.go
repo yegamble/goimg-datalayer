@@ -1,4 +1,4 @@
-package middleware //nolint:testpackage // Tests access unexported types
+package middleware
 
 import (
 	"net/http"

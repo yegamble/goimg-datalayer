@@ -49,8 +49,6 @@ func NewAuthHandler(
 // Usage:
 //
 //	r.Mount("/api/v1/auth", authHandler.Routes())
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *AuthHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

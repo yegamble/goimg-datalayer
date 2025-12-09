@@ -1,3 +1,4 @@
+// Package secrets provides secret management using Docker secrets and environment variables.
 package secrets
 
 import (

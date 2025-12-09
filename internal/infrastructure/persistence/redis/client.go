@@ -1,3 +1,4 @@
+// Package redis provides Redis client and session store implementations.
 package redis
 
 import (

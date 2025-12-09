@@ -1,3 +1,4 @@
+// Package handlers provides HTTP request handlers for the API endpoints.
 package handlers
 
 import (
@@ -52,8 +53,6 @@ func NewAlbumHandler(
 
 // Routes registers album routes with the chi router.
 // Returns a chi.Router that can be mounted under /api/v1/albums.
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *AlbumHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

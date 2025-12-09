@@ -1,4 +1,3 @@
-//nolint:testpackage // White-box testing required for internal mocks
 package commands
 
 import (
@@ -31,17 +30,17 @@ func (m *MockAlbumRepository) NextID() gallery.AlbumID {
 func (m *MockAlbumRepository) FindByID(ctx context.Context, id gallery.AlbumID) (*gallery.Album, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
-		return nil, args.Error(1) //nolint:wrapcheck
+		return nil, args.Error(1)
 	}
-	return args.Get(0).(*gallery.Album), args.Error(1) //nolint:wrapcheck
+	return args.Get(0).(*gallery.Album), args.Error(1)
 }
 
 func (m *MockAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID) ([]*gallery.Album, error) {
 	args := m.Called(ctx, ownerID)
 	if args.Get(0) == nil {
-		return nil, args.Error(1) //nolint:wrapcheck
+		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*gallery.Album), args.Error(1) //nolint:wrapcheck
+	return args.Get(0).([]*gallery.Album), args.Error(1)
 }
 
 func (m *MockAlbumRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Album, int64, error) {
@@ -132,7 +131,6 @@ func (m *MockEventPublisher) Publish(ctx context.Context, event shared.DomainEve
 	return args.Error(0)
 }
 
-//nolint:dupl // Test setup intentionally similar across test cases
 func TestCreateAlbumHandler_Handle_Success(t *testing.T) {
 	t.Parallel()
 
@@ -325,7 +323,6 @@ func TestCreateAlbumHandler_Handle_SaveError(t *testing.T) {
 	mockPublisher.AssertNotCalled(t, "Publish")
 }
 
-//nolint:dupl // Test setup intentionally similar across test cases
 func TestCreateAlbumHandler_Handle_WithDescription(t *testing.T) {
 	t.Parallel()
 

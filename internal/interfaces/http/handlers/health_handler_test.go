@@ -1,4 +1,3 @@
-//nolint:testpackage,goconst // Tests access unexported types; test strings don't need constants
 package handlers
 
 import (

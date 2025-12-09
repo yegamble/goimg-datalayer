@@ -74,8 +74,6 @@ func NewImageHandler(
 //
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered
 // separately in router.go with optional authentication.
-//
-//nolint:ireturn // chi.Router is the standard return type for chi route mounting
 func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

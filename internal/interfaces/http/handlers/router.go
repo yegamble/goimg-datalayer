@@ -40,7 +40,7 @@ type MiddlewareConfig struct {
 //   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
 //
-//nolint:ireturn,funlen // Router setup returns interface for testing flexibility.
+//nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
 	authHandler *AuthHandler,
 	userHandler *UserHandler,

@@ -1,3 +1,4 @@
+// Package commands provides command handlers for gallery operations.
 package commands
 
 import (

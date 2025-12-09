@@ -37,8 +37,6 @@ func NewExploreHandler(
 // Returns a chi.Router that can be mounted under /api/v1/explore
 //
 // All routes are public (no authentication required) and only return public images.
-//
-//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *ExploreHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

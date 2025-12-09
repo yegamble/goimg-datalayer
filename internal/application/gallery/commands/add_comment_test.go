@@ -16,7 +16,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestAddCommentHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -27,7 +26,6 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 		wantErr error
 		assert  func(t *testing.T, mocks *commentTestMocks, commentID string, err error)
 	}{
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful comment addition",
 			cmd: commands.AddCommentCommand{
@@ -224,7 +222,6 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				mocks.images.AssertExpectations(t)
 			},
 		},
-		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "sanitizes HTML content",
 			cmd: commands.AddCommentCommand{

@@ -10,7 +10,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestImageEvents_EventType(t *testing.T) {
 	t.Parallel()
 
@@ -117,7 +116,6 @@ func TestImageEvents_EventType(t *testing.T) {
 	}
 }
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestAlbumEvents_EventType(t *testing.T) {
 	t.Parallel()
 

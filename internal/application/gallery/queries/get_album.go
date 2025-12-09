@@ -1,3 +1,4 @@
+// Package queries provides query handlers for gallery read operations.
 package queries
 
 import (

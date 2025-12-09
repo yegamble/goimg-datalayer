@@ -143,30 +143,30 @@ func (f *UserFixture) ToEntity(t *testing.T) *identity.User {
 
 // WithEmail returns a copy of the fixture with a custom email.
 func (f *UserFixture) WithEmail(email string) *UserFixture {
-	copy := *f
-	copy.Email = email
-	return &copy
+	clone := *f
+	clone.Email = email
+	return &clone
 }
 
 // WithUsername returns a copy of the fixture with a custom username.
 func (f *UserFixture) WithUsername(username string) *UserFixture {
-	copy := *f
-	copy.Username = username
-	return &copy
+	clone := *f
+	clone.Username = username
+	return &clone
 }
 
 // WithRole returns a copy of the fixture with a custom role.
 func (f *UserFixture) WithRole(role identity.Role) *UserFixture {
-	copy := *f
-	copy.Role = role
-	return &copy
+	clone := *f
+	clone.Role = role
+	return &clone
 }
 
 // WithStatus returns a copy of the fixture with a custom status.
 func (f *UserFixture) WithStatus(status identity.UserStatus) *UserFixture {
-	copy := *f
-	copy.Status = status
-	return &copy
+	clone := *f
+	clone.Status = status
+	return &clone
 }
 
 // UniqueUser generates a user fixture with unique email and username.

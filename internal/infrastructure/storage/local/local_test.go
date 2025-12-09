@@ -1,4 +1,3 @@
-//nolint:testpackage,goconst // Tests access unexported types; test strings don't need constants
 package local
 
 import (
@@ -104,7 +103,6 @@ func TestPutBytes_Success(t *testing.T) {
 
 	// Verify file exists.
 	fullPath := storage.fullPath(key)
-	//nolint:gosec // G304: Test helper - path is controlled by test.
 	data, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)

@@ -1,4 +1,3 @@
-//nolint:testpackage,goconst // White-box testing required; test strings don't need constants
 package secrets
 
 import (

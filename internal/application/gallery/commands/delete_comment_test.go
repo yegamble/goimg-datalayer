@@ -16,7 +16,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestDeleteCommentHandler_Handle(t *testing.T) {
 	t.Parallel()
 

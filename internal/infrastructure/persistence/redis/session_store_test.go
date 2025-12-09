@@ -1,4 +1,3 @@
-//nolint:testpackage // White-box testing required for internal implementation
 package redis
 
 import (
@@ -84,11 +83,11 @@ func TestSessionStore_Create_InvalidSession(t *testing.T) {
 	t.Parallel()
 
 	client := getTestClient(t)
-	defer func() {
+	t.Cleanup(func() {
 		if err := client.Close(); err != nil {
 			t.Logf("failed to close client: %v", err)
 		}
-	}()
+	})
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()

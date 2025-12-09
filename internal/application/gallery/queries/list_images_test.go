@@ -15,7 +15,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
-//nolint:funlen // Table-driven test with comprehensive test cases
 func TestListImagesHandler_Handle(t *testing.T) {
 	t.Parallel()
 
