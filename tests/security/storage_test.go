@@ -13,6 +13,8 @@ import (
 
 // TestStorage_PreventsPathTraversal verifies keys with ".." are rejected.
 // Security Control: Path traversal prevention protects against directory escape attacks.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestStorage_PreventsPathTraversal(t *testing.T) {
 	t.Parallel()
 
@@ -146,6 +148,8 @@ func TestStorage_GeneratesNonGuessableKeys(t *testing.T) {
 
 // TestStorage_ValidatesKeyFormat verifies invalid key formats are rejected.
 // Security Control: Strict key format validation prevents injection attacks.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestStorage_ValidatesKeyFormat(t *testing.T) {
 	t.Parallel()
 
@@ -245,6 +249,8 @@ func TestStorage_ValidatesKeyFormat(t *testing.T) {
 
 // TestStorage_ParseKey verifies key parsing extracts correct components.
 // Security Control: Validates key components before use in storage operations.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestStorage_ParseKey(t *testing.T) {
 	t.Parallel()
 
@@ -335,6 +341,8 @@ func TestStorage_ParseKey(t *testing.T) {
 
 // TestStorage_SanitizeFilename verifies dangerous characters are removed from filenames.
 // Security Control: Prevents stored filenames from containing executable or special characters.
+//
+//nolint:funlen // Security test with comprehensive attack scenarios
 func TestStorage_SanitizeFilename(t *testing.T) {
 	t.Parallel()
 

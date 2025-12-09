@@ -5,28 +5,36 @@ package processor
 import "github.com/h2non/bimg"
 
 const (
-	// Default memory limit for bimg cache in megabytes
+	// DefaultMemoryLimitMB is the default memory limit for bimg cache in megabytes.
 	DefaultMemoryLimitMB = 256
 
-	// Default maximum number of concurrent processing operations
+	// DefaultMaxConcurrentOps is the default maximum number of concurrent processing operations.
 	DefaultMaxConcurrentOps = 32
 
-	// Quality settings for image variants
+	// DefaultThumbnailQuality is the quality setting for thumbnail variants.
 	DefaultThumbnailQuality = 82
-	DefaultSmallQuality     = 85
-	DefaultMediumQuality    = 85
-	DefaultLargeQuality     = 88
-	DefaultOriginalQuality  = 100
+	// DefaultSmallQuality is the quality setting for small variants.
+	DefaultSmallQuality = 85
+	// DefaultMediumQuality is the quality setting for medium variants.
+	DefaultMediumQuality = 85
+	// DefaultLargeQuality is the quality setting for large variants.
+	DefaultLargeQuality = 88
+	// DefaultOriginalQuality is the quality setting for original variants.
+	DefaultOriginalQuality = 100
 
-	// Quality bounds
+	// MinQuality is the minimum allowed quality value.
 	MinQuality = 1
+	// MaxQuality is the maximum allowed quality value.
 	MaxQuality = 100
 
-	// Variant dimensions (width in pixels)
+	// ThumbnailWidth is the width in pixels for thumbnail variants.
 	ThumbnailWidth = 160
-	SmallWidth     = 320
-	MediumWidth    = 800
-	LargeWidth     = 1600
+	// SmallWidth is the width in pixels for small variants.
+	SmallWidth = 320
+	// MediumWidth is the width in pixels for medium variants.
+	MediumWidth = 800
+	// LargeWidth is the width in pixels for large variants.
+	LargeWidth = 1600
 )
 
 // Config defines the image processor configuration.
@@ -177,6 +185,8 @@ func IsSupportedFormat(format string) bool {
 }
 
 // bimgTypeToString converts bimg.ImageType to string format.
+//
+//nolint:cyclop // Exhaustive switch mapping all supported bimg image format types
 func bimgTypeToString(t bimg.ImageType) string {
 	switch t {
 	case bimg.JPEG:

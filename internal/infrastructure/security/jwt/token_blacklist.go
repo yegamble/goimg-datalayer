@@ -11,6 +11,9 @@ import (
 const (
 	// blacklistKeyPrefix is the Redis key prefix for blacklisted tokens.
 	blacklistKeyPrefix = "goimg:blacklist:"
+
+	// redisScanCount is the count parameter for Redis SCAN operations.
+	redisScanCount = 100
 )
 
 // TokenBlacklist manages revoked JWT tokens using Redis.
@@ -104,7 +107,7 @@ func (b *TokenBlacklist) Count(ctx context.Context) (int64, error) {
 		var keys []string
 		var err error
 
-		keys, cursor, err = b.redis.Scan(ctx, cursor, blacklistKeyPrefix+"*", 100).Result()
+		keys, cursor, err = b.redis.Scan(ctx, cursor, blacklistKeyPrefix+"*", redisScanCount).Result()
 		if err != nil {
 			return 0, fmt.Errorf("failed to scan blacklist keys: %w", err)
 		}
@@ -130,7 +133,7 @@ func (b *TokenBlacklist) Clear(ctx context.Context) error {
 		var keys []string
 		var err error
 
-		keys, cursor, err = b.redis.Scan(ctx, cursor, blacklistKeyPrefix+"*", 100).Result()
+		keys, cursor, err = b.redis.Scan(ctx, cursor, blacklistKeyPrefix+"*", redisScanCount).Result()
 		if err != nil {
 			return fmt.Errorf("failed to scan blacklist keys: %w", err)
 		}

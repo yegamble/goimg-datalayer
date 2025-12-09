@@ -1,3 +1,4 @@
+// Package identity implements application-layer use cases for authentication and user management.
 package identity
 
 import "errors"

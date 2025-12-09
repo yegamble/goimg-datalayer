@@ -82,6 +82,8 @@ func NewUploadImageHandler(
 //   - UploadImageResult on successful upload
 //   - Validation errors from domain value objects
 //   - Storage errors if upload fails
+//
+//nolint:cyclop // Command handler requires sequential steps: validation, virus scan, storage, metadata, and persistence
 func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand) (*UploadImageResult, error) {
 	// 1. Parse and validate user ID
 	ownerID, err := identity.ParseUserID(cmd.UserID)
@@ -93,32 +95,9 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
 
-	// 2. Validate file size and MIME type
-	if cmd.FileSize <= 0 {
-		return nil, fmt.Errorf("invalid file size: must be positive")
-	}
-
-	if cmd.FileSize > gallery.MaxFileSize {
-		return nil, fmt.Errorf("%w: %d bytes exceeds maximum of %d",
-			gallery.ErrFileTooLarge, cmd.FileSize, gallery.MaxFileSize)
-	}
-
-	if !gallery.SupportedMimeTypes[cmd.MimeType] {
-		return nil, fmt.Errorf("%w: '%s' is not supported",
-			gallery.ErrInvalidMimeType, cmd.MimeType)
-	}
-
-	// 3. Parse visibility setting (validation only - image starts as private)
-	// Image defaults to private during processing and will be updated after processing completes
-	if cmd.Visibility != "" {
-		_, err = gallery.ParseVisibility(cmd.Visibility)
-		if err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("visibility", cmd.Visibility).
-				Msg("invalid visibility during image upload")
-			return nil, fmt.Errorf("invalid visibility: %w", err)
-		}
+	// 2. Validate file and visibility
+	if err := h.validateUploadInput(cmd); err != nil {
+		return nil, err
 	}
 
 	// 4. Generate image ID and storage key
@@ -168,29 +147,12 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	}
 
 	// Set visibility if provided (defaults to private in NewImage)
-	if cmd.Visibility != "" {
-		// Image starts as private; visibility will be updated after processing completes
-		// For now, store the desired visibility but keep it private until active
-	}
+	// Note: Image starts as private; visibility will be updated after processing completes.
+	// For now, store the desired visibility but keep it private until active.
 
 	// 7. Parse and add tags to image
-	for _, tagName := range cmd.Tags {
-		tag, err := gallery.NewTag(tagName)
-		if err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("tag", tagName).
-				Msg("invalid tag during image upload")
-			return nil, fmt.Errorf("invalid tag '%s': %w", tagName, err)
-		}
-
-		if err := image.AddTag(tag); err != nil {
-			h.logger.Debug().
-				Err(err).
-				Str("tag", tagName).
-				Msg("failed to add tag to image")
-			return nil, fmt.Errorf("add tag '%s': %w", tagName, err)
-		}
+	if err := h.addTagsToImage(image, cmd.Tags); err != nil {
+		return nil, err
 	}
 
 	// 8. Persist image to repository
@@ -236,4 +198,60 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 		Status:  gallery.StatusProcessing.String(),
 		Message: "Image uploaded and queued for processing",
 	}, nil
+}
+
+// validateUploadInput validates file size, MIME type, and visibility.
+func (h *UploadImageHandler) validateUploadInput(cmd UploadImageCommand) error {
+	// Validate file size
+	if cmd.FileSize <= 0 {
+		return fmt.Errorf("invalid file size: must be positive")
+	}
+
+	if cmd.FileSize > gallery.MaxFileSize {
+		return fmt.Errorf("%w: %d bytes exceeds maximum of %d",
+			gallery.ErrFileTooLarge, cmd.FileSize, gallery.MaxFileSize)
+	}
+
+	// Validate MIME type
+	if !gallery.SupportedMimeTypes[cmd.MimeType] {
+		return fmt.Errorf("%w: '%s' is not supported",
+			gallery.ErrInvalidMimeType, cmd.MimeType)
+	}
+
+	// Validate visibility if provided
+	if cmd.Visibility != "" {
+		_, err := gallery.ParseVisibility(cmd.Visibility)
+		if err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("visibility", cmd.Visibility).
+				Msg("invalid visibility during image upload")
+			return fmt.Errorf("invalid visibility: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// addTagsToImage parses and adds tags to an image.
+func (h *UploadImageHandler) addTagsToImage(image *gallery.Image, tagNames []string) error {
+	for _, tagName := range tagNames {
+		tag, err := gallery.NewTag(tagName)
+		if err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("tag", tagName).
+				Msg("invalid tag during image upload")
+			return fmt.Errorf("invalid tag '%s': %w", tagName, err)
+		}
+
+		if err := image.AddTag(tag); err != nil {
+			h.logger.Debug().
+				Err(err).
+				Str("tag", tagName).
+				Msg("failed to add tag to image")
+			return fmt.Errorf("add tag '%s': %w", tagName, err)
+		}
+	}
+	return nil
 }

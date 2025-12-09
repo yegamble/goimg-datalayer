@@ -8,6 +8,18 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	// Default Redis configuration values.
+	defaultRedisPort      = 6379
+	defaultPoolSize       = 10
+	defaultMinIdle        = 5
+	defaultMaxRetry       = 3
+	defaultTimeoutSec     = 5
+	poolTimeoutMultiplier = 2
+	connMaxIdleTimeMin    = 5
+	connMaxLifetimeMin    = 30
+)
+
 // Config holds Redis connection configuration.
 type Config struct {
 	Host     string        // Redis server host (e.g., "localhost")
@@ -24,13 +36,13 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		Host:     "localhost",
-		Port:     6379,
+		Port:     defaultRedisPort,
 		Password: "",
 		DB:       0,
-		PoolSize: 10,
-		MinIdle:  5,
-		MaxRetry: 3,
-		Timeout:  5 * time.Second,
+		PoolSize: defaultPoolSize,
+		MinIdle:  defaultMinIdle,
+		MaxRetry: defaultMaxRetry,
+		Timeout:  defaultTimeoutSec * time.Second,
 	}
 }
 
@@ -64,9 +76,9 @@ func NewClient(cfg Config) (*Client, error) {
 		WriteTimeout: cfg.Timeout,
 
 		// Connection pool settings for optimal performance
-		PoolTimeout:     cfg.Timeout * 2,
-		ConnMaxIdleTime: 5 * time.Minute,
-		ConnMaxLifetime: 30 * time.Minute,
+		PoolTimeout:     cfg.Timeout * poolTimeoutMultiplier,
+		ConnMaxIdleTime: connMaxIdleTimeMin * time.Minute,
+		ConnMaxLifetime: connMaxLifetimeMin * time.Minute,
 	})
 
 	client := &Client{rdb: rdb}

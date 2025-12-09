@@ -16,13 +16,16 @@ type PasswordHash struct {
 	hash string
 }
 
-// Argon2id parameters following OWASP 2024 recommendations.
+// Password validation and hashing constants.
 const (
-	argonTime    = 2         // Number of iterations
-	argonMemory  = 64 * 1024 // 64 MB memory cost
-	argonThreads = 4         // Number of parallel threads
-	argonKeyLen  = 32        // Output key length in bytes
-	saltLen      = 16        // Salt length in bytes
+	minPasswordLength  = 12        // Minimum password length
+	maxPasswordLength  = 128       // Maximum password length
+	argonHashPartCount = 6         // Number of parts in Argon2id hash format
+	argonTime          = 2         // Number of iterations
+	argonMemory        = 64 * 1024 // 64 MB memory cost
+	argonThreads       = 4         // Number of parallel threads
+	argonKeyLen        = 32        // Output key length in bytes
+	saltLen            = 16        // Salt length in bytes
 )
 
 // commonPasswords contains a list of commonly used weak passwords.
@@ -68,11 +71,11 @@ func NewPasswordHash(plaintext string) (PasswordHash, error) {
 		return PasswordHash{}, ErrPasswordEmpty
 	}
 
-	if len(plaintext) < 12 {
+	if len(plaintext) < minPasswordLength {
 		return PasswordHash{}, ErrPasswordTooShort
 	}
 
-	if len(plaintext) > 128 {
+	if len(plaintext) > maxPasswordLength {
 		return PasswordHash{}, ErrPasswordTooLong
 	}
 
@@ -135,7 +138,7 @@ func (p PasswordHash) Verify(plaintext string) error {
 
 	// Parse the encoded hash to extract parameters
 	parts := strings.Split(p.hash, "$")
-	if len(parts) != 6 {
+	if len(parts) != argonHashPartCount {
 		return fmt.Errorf("invalid password hash format")
 	}
 

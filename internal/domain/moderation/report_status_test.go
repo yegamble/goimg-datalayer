@@ -8,6 +8,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestParseReportStatus(t *testing.T) {
 	t.Parallel()
 
@@ -64,7 +65,7 @@ func TestParseReportStatus(t *testing.T) {
 
 			if tt.wantErr != nil {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, tt.wantErr)
 				assert.Empty(t, status)
 			} else {
 				require.NoError(t, err)

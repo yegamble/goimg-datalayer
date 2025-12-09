@@ -7,6 +7,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewPagination(t *testing.T) {
 	t.Parallel()
 
@@ -289,6 +290,7 @@ func TestPagination_Limit(t *testing.T) {
 	}
 }
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestPagination_TotalPages(t *testing.T) {
 	t.Parallel()
 

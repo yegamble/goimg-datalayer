@@ -20,6 +20,10 @@ const (
 	TokenTypeAccess TokenType = "access"
 	// TokenTypeRefresh represents a refresh token used for obtaining new access tokens.
 	TokenTypeRefresh TokenType = "refresh"
+
+	// JWT configuration defaults and constraints.
+	defaultAccessTTL = 15 * time.Minute // Default access token TTL
+	minKeySize       = 4096             // Minimum RSA key size in bits (OWASP 2024)
 )
 
 // Config holds JWT service configuration.
@@ -36,7 +40,7 @@ func DefaultConfig() Config {
 	return Config{
 		PrivateKeyPath: "",
 		PublicKeyPath:  "",
-		AccessTTL:      15 * time.Minute,
+		AccessTTL:      defaultAccessTTL,
 		RefreshTTL:     7 * 24 * time.Hour, // 7 days
 		Issuer:         "goimg-api",
 	}
@@ -95,8 +99,8 @@ func NewService(cfg Config) (*Service, error) {
 	}
 
 	// Validate key size (must be at least 4096 bits for security)
-	if privateKey.N.BitLen() < 4096 {
-		return nil, fmt.Errorf("private key must be at least 4096 bits (got %d bits)", privateKey.N.BitLen())
+	if privateKey.N.BitLen() < minKeySize {
+		return nil, fmt.Errorf("private key must be at least %d bits (got %d bits)", minKeySize, privateKey.N.BitLen())
 	}
 
 	return &Service{
@@ -107,6 +111,8 @@ func NewService(cfg Config) (*Service, error) {
 }
 
 // GenerateAccessToken generates a new access token for the given user.
+//
+//nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
 		return "", fmt.Errorf("user id cannot be empty")
@@ -154,6 +160,8 @@ func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (st
 }
 
 // GenerateRefreshToken generates a new refresh token for the given user.
+//
+//nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateRefreshToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
 		return "", fmt.Errorf("user id cannot be empty")

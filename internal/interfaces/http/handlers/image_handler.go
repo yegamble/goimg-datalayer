@@ -67,6 +67,8 @@ func NewImageHandler(
 //
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered
 // separately in router.go with optional authentication.
+//
+//nolint:ireturn // chi.Router is the standard return type for chi route mounting
 func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -222,6 +224,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 //   - 403: Image is private and user is not the owner
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard HTTP handler pattern - duplication is intentional for clarity
 func (h *ImageHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -544,6 +548,8 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 // Errors:
 //   - 400: Invalid query parameters
 //   - 500: Internal server error
+//
+//nolint:cyclop // HTTP handler requires parsing and validating multiple query parameters with error handling
 func (h *ImageHandler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -651,6 +657,8 @@ func (h *ImageHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 //   - 403: Image is private and user is not the owner
 //   - 404: Image or variant not found
 //   - 500: Internal server error
+//
+//nolint:cyclop // HTTP handler requires parsing variant type, authorization checks, storage retrieval, and content type handling
 func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

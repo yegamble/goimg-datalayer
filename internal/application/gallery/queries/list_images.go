@@ -11,6 +11,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+const (
+	// Maximum page size for image listings.
+	maxPageSize = 100
+)
+
 // ListImagesQuery retrieves a paginated list of images with filtering options.
 // This is a read-only operation that respects visibility rules.
 type ListImagesQuery struct {
@@ -71,12 +76,60 @@ func NewListImagesHandler(
 //   - Validation errors for invalid parameters
 func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*ListImagesResult, error) {
 	// 1. Validate and parse query parameters
+	params, err := h.parseQueryParams(q)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Load images based on filters
+	images, totalCount, err := h.loadImages(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Convert to DTOs
+	imageDTOs := h.buildImageDTOs(images)
+
+	// 4. Build result with pagination metadata
+	result := &ListImagesResult{
+		Images:     imageDTOs,
+		TotalCount: totalCount,
+		Offset:     params.offset,
+		Limit:      params.limit,
+		HasMore:    int64(params.offset+params.limit) < totalCount,
+	}
+
+	h.logger.Debug().
+		Str("owner_id", q.OwnerID).
+		Str("requesting_user_id", q.RequestingUserID).
+		Str("tag", q.Tag).
+		Int("offset", params.offset).
+		Int("limit", params.limit).
+		Int("results", len(imageDTOs)).
+		Int64("total_count", totalCount).
+		Msg("images listed successfully")
+
+	return result, nil
+}
+
+// queryParams holds parsed query parameters for image listing.
+type queryParams struct {
+	ownerID          identity.UserID
+	requestingUserID identity.UserID
+	visibilityFilter *gallery.Visibility
+	tagFilter        *gallery.Tag
+	pagination       shared.Pagination
+	offset           int
+	limit            int
+}
+
+// parseQueryParams validates and parses all query parameters.
+func (h *ListImagesHandler) parseQueryParams(q ListImagesQuery) (*queryParams, error) {
+	params := &queryParams{}
 
 	// Parse owner ID if provided
-	var ownerID identity.UserID
 	if q.OwnerID != "" {
-		var err error
-		ownerID, err = identity.ParseUserID(q.OwnerID)
+		ownerID, err := identity.ParseUserID(q.OwnerID)
 		if err != nil {
 			h.logger.Debug().
 				Err(err).
@@ -84,13 +137,12 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 				Msg("invalid owner id in list query")
 			return nil, fmt.Errorf("invalid owner id: %w", err)
 		}
+		params.ownerID = ownerID
 	}
 
 	// Parse requesting user ID if provided
-	var requestingUserID identity.UserID
 	if q.RequestingUserID != "" {
-		var err error
-		requestingUserID, err = identity.ParseUserID(q.RequestingUserID)
+		requestingUserID, err := identity.ParseUserID(q.RequestingUserID)
 		if err != nil {
 			h.logger.Debug().
 				Err(err).
@@ -98,10 +150,10 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 				Msg("invalid requesting user id in list query")
 			return nil, fmt.Errorf("invalid requesting user id: %w", err)
 		}
+		params.requestingUserID = requestingUserID
 	}
 
 	// Parse visibility filter if provided
-	var visibilityFilter *gallery.Visibility
 	if q.Visibility != "" {
 		visibility, err := gallery.ParseVisibility(q.Visibility)
 		if err != nil {
@@ -111,11 +163,10 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 				Msg("invalid visibility filter in list query")
 			return nil, fmt.Errorf("invalid visibility: %w", err)
 		}
-		visibilityFilter = &visibility
+		params.visibilityFilter = &visibility
 	}
 
 	// Parse tag filter if provided
-	var tagFilter *gallery.Tag
 	if q.Tag != "" {
 		tag, err := gallery.NewTag(q.Tag)
 		if err != nil {
@@ -125,21 +176,26 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 				Msg("invalid tag filter in list query")
 			return nil, fmt.Errorf("invalid tag: %w", err)
 		}
-		tagFilter = &tag
+		params.tagFilter = &tag
 	}
 
-	// Validate and set pagination defaults
-	offset := q.Offset
+	// Validate and set pagination
+	params.offset, params.limit, params.pagination = h.normalizePagination(q.Offset, q.Limit)
+
+	return params, nil
+}
+
+// normalizePagination validates and normalizes pagination parameters.
+func (h *ListImagesHandler) normalizePagination(offset, limit int) (int, int, shared.Pagination) {
 	if offset < 0 {
 		offset = 0
 	}
 
-	limit := q.Limit
 	if limit <= 0 {
 		limit = 20 // Default page size
 	}
-	if limit > 100 {
-		limit = 100 // Max page size
+	if limit > maxPageSize {
+		limit = maxPageSize
 	}
 
 	// Convert offset/limit to page-based pagination
@@ -154,81 +210,85 @@ func (h *ListImagesHandler) Handle(ctx context.Context, q ListImagesQuery) (*Lis
 		pagination = shared.DefaultPagination()
 	}
 
-	// 2. Determine which repository method to use based on filters
-	var images []*gallery.Image
-	var totalCount int64
+	return offset, limit, pagination
+}
 
+// loadImages loads images from repository based on query parameters.
+func (h *ListImagesHandler) loadImages(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
 	switch {
-	case tagFilter != nil:
-		// List by tag (always public only)
-		images, totalCount, err = h.images.FindByTag(ctx, *tagFilter, pagination)
-		if err != nil {
-			h.logger.Error().
-				Err(err).
-				Str("tag", q.Tag).
-				Msg("failed to list images by tag")
-			return nil, fmt.Errorf("list images by tag: %w", err)
-		}
-	case !ownerID.IsZero():
-		// List by owner
-		images, totalCount, err = h.images.FindByOwner(ctx, ownerID, pagination)
-		if err != nil {
-			h.logger.Error().
-				Err(err).
-				Str("owner_id", ownerID.String()).
-				Msg("failed to list images by owner")
-			return nil, fmt.Errorf("list images by owner: %w", err)
-		}
-
-		// Filter by visibility if requester is not the owner
-		if !requestingUserID.IsZero() && !ownerID.Equals(requestingUserID) {
-			images = filterByVisibility(images, gallery.VisibilityPublic)
-		} else if visibilityFilter != nil {
-			images = filterByVisibility(images, *visibilityFilter)
-		}
+	case params.tagFilter != nil:
+		return h.loadImagesByTag(ctx, params)
+	case !params.ownerID.IsZero():
+		return h.loadImagesByOwner(ctx, params)
 	default:
-		// List public images (no owner filter)
-		images, totalCount, err = h.images.FindPublic(ctx, pagination)
-		if err != nil {
-			h.logger.Error().
-				Err(err).
-				Msg("failed to list public images")
-			return nil, fmt.Errorf("list public images: %w", err)
-		}
+		return h.loadPublicImages(ctx, params)
+	}
+}
+
+// loadImagesByTag loads images filtered by tag.
+func (h *ListImagesHandler) loadImagesByTag(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
+	images, totalCount, err := h.images.FindByTag(ctx, *params.tagFilter, params.pagination)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("tag", params.tagFilter.String()).
+			Msg("failed to list images by tag")
+		return nil, 0, fmt.Errorf("list images by tag: %w", err)
+	}
+	return images, totalCount, nil
+}
+
+// loadImagesByOwner loads images filtered by owner with visibility filtering.
+func (h *ListImagesHandler) loadImagesByOwner(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
+	images, totalCount, err := h.images.FindByOwner(ctx, params.ownerID, params.pagination)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("owner_id", params.ownerID.String()).
+			Msg("failed to list images by owner")
+		return nil, 0, fmt.Errorf("list images by owner: %w", err)
 	}
 
-	// 3. Convert to DTOs
+	// Apply visibility filtering
+	images = h.applyVisibilityFilter(images, params)
+	return images, totalCount, nil
+}
+
+// loadPublicImages loads all public images.
+func (h *ListImagesHandler) loadPublicImages(ctx context.Context, params *queryParams) ([]*gallery.Image, int64, error) {
+	images, totalCount, err := h.images.FindPublic(ctx, params.pagination)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Msg("failed to list public images")
+		return nil, 0, fmt.Errorf("list public images: %w", err)
+	}
+	return images, totalCount, nil
+}
+
+// applyVisibilityFilter applies visibility filtering based on requester.
+func (h *ListImagesHandler) applyVisibilityFilter(images []*gallery.Image, params *queryParams) []*gallery.Image {
+	// Filter by visibility if requester is not the owner
+	if !params.requestingUserID.IsZero() && !params.ownerID.Equals(params.requestingUserID) {
+		return filterByVisibility(images, gallery.VisibilityPublic)
+	}
+	if params.visibilityFilter != nil {
+		return filterByVisibility(images, *params.visibilityFilter)
+	}
+	return images
+}
+
+// buildImageDTOs converts images to DTOs, filtering out non-viewable images.
+func (h *ListImagesHandler) buildImageDTOs(images []*gallery.Image) []ImageDTO {
 	imageDTOs := make([]ImageDTO, 0, len(images))
 	for _, image := range images {
-		// Skip deleted or non-viewable images
 		if !image.IsViewable() {
 			continue
 		}
-
 		dto := ImageToDTO(image)
 		imageDTOs = append(imageDTOs, *dto)
 	}
-
-	// 4. Build result with pagination metadata
-	result := &ListImagesResult{
-		Images:     imageDTOs,
-		TotalCount: totalCount,
-		Offset:     offset,
-		Limit:      limit,
-		HasMore:    int64(offset+limit) < totalCount,
-	}
-
-	h.logger.Debug().
-		Str("owner_id", q.OwnerID).
-		Str("requesting_user_id", q.RequestingUserID).
-		Str("tag", q.Tag).
-		Int("offset", offset).
-		Int("limit", limit).
-		Int("results", len(imageDTOs)).
-		Int64("total_count", totalCount).
-		Msg("images listed successfully")
-
-	return result, nil
+	return imageDTOs
 }
 
 // filterByVisibility filters images by visibility setting.

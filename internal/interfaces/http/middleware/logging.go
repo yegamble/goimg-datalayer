@@ -122,11 +122,11 @@ func Logger(logger zerolog.Logger) func(http.Handler) http.Handler {
 // logLevelForStatus returns the appropriate log level based on HTTP status code.
 func logLevelForStatus(status int) zerolog.Level {
 	switch {
-	case status >= 500:
+	case status >= httpStatusServerError:
 		return zerolog.ErrorLevel // Server errors
-	case status >= 400:
+	case status >= httpStatusClientError:
 		return zerolog.WarnLevel // Client errors
-	case status >= 300:
+	case status >= httpStatusRedirect:
 		return zerolog.InfoLevel // Redirects
 	default:
 		return zerolog.InfoLevel // Success

@@ -15,6 +15,8 @@ const (
 	sessionKeyPrefix = "goimg:session:"
 	// userSessionsKeyPrefix is the Redis key prefix for tracking all sessions for a user.
 	userSessionsKeyPrefix = "goimg:user:sessions:"
+	// scanBatchSize is the number of keys to fetch per SCAN operation.
+	scanBatchSize = 100
 )
 
 // Session represents user session metadata stored in Redis.
@@ -242,7 +244,7 @@ func (s *SessionStore) Count(ctx context.Context) (int64, error) {
 		var keys []string
 		var err error
 
-		keys, cursor, err = s.redis.Scan(ctx, cursor, sessionKeyPrefix+"*", 100).Result()
+		keys, cursor, err = s.redis.Scan(ctx, cursor, sessionKeyPrefix+"*", scanBatchSize).Result()
 		if err != nil {
 			return 0, fmt.Errorf("failed to scan session keys: %w", err)
 		}
@@ -260,6 +262,8 @@ func (s *SessionStore) Count(ctx context.Context) (int64, error) {
 
 // Clear removes all sessions (for testing purposes).
 // WARNING: This uses SCAN and DEL which may be slow for large session stores.
+//
+//nolint:cyclop // Test utility requires iterating multiple key patterns with proper error handling
 func (s *SessionStore) Clear(ctx context.Context) error {
 	var cursor uint64
 
@@ -268,7 +272,7 @@ func (s *SessionStore) Clear(ctx context.Context) error {
 		var keys []string
 		var err error
 
-		keys, cursor, err = s.redis.Scan(ctx, cursor, sessionKeyPrefix+"*", 100).Result()
+		keys, cursor, err = s.redis.Scan(ctx, cursor, sessionKeyPrefix+"*", scanBatchSize).Result()
 		if err != nil {
 			return fmt.Errorf("failed to scan session keys: %w", err)
 		}
@@ -291,7 +295,7 @@ func (s *SessionStore) Clear(ctx context.Context) error {
 		var keys []string
 		var err error
 
-		keys, cursor, err = s.redis.Scan(ctx, cursor, userSessionsKeyPrefix+"*", 100).Result()
+		keys, cursor, err = s.redis.Scan(ctx, cursor, userSessionsKeyPrefix+"*", scanBatchSize).Result()
 		if err != nil {
 			return fmt.Errorf("failed to scan user session keys: %w", err)
 		}

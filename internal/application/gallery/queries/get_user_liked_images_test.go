@@ -16,6 +16,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -91,7 +92,7 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Len(t, result.Images, 0)
+		assert.Empty(t, result.Images)
 		assert.Equal(t, int64(0), result.Total)
 		mockLikeRepo.AssertExpectations(t)
 		mockImageRepo.AssertNotCalled(t, "FindByID")

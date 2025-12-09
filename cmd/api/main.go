@@ -1,3 +1,4 @@
+// Package main is the entry point for the goimg API server.
 package main
 
 import "log"

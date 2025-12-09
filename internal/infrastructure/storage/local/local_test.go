@@ -1,9 +1,9 @@
+//nolint:testpackage,goconst // Tests access unexported types; test strings don't need constants
 package local
 
 import (
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -207,7 +207,11 @@ func TestGet_Success(t *testing.T) {
 	// Retrieve data
 	reader, err := storage.Get(ctx, key)
 	require.NoError(t, err)
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			t.Logf("failed to close reader: %v", err)
+		}
+	}()
 
 	retrieved, err := io.ReadAll(reader)
 	require.NoError(t, err)
@@ -397,7 +401,7 @@ func TestPresignedURL_NotSupported(t *testing.T) {
 	url, err := storage.PresignedURL(ctx, "test.jpg", time.Hour)
 	assert.Equal(t, "", url)
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, errNotSupported))
+	assert.ErrorIs(t, err, errNotSupported)
 }
 
 // TestProvider tests the Provider method.
@@ -480,7 +484,7 @@ func TestValidateKey_Invalid(t *testing.T) {
 
 			err := validateKey(tt.key)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, tt.wantError), "expected error %v, got %v", tt.wantError, err)
+			assert.ErrorIs(t, err, tt.wantError, "expected error %v, got %v", tt.wantError, err)
 		})
 	}
 }

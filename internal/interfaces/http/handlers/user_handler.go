@@ -52,6 +52,8 @@ func NewUserHandler(
 //	    r.Use(middleware.JWTAuth)
 //	    r.Mount("/api/v1/users", userHandler.Routes())
 //	})
+//
+//nolint:ireturn // chi.Router is the standard return type for chi route mounting
 func (h *UserHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 

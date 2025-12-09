@@ -132,48 +132,12 @@ func (h *GetImageHandler) Handle(ctx context.Context, q GetImageQuery) (*ImageDT
 	}
 
 	// 3. Check visibility and authorization
-	if !q.IncrementViewOnly {
-		// Check if image is viewable based on status
-		if !image.IsViewable() {
-			h.logger.Debug().
-				Str("image_id", imageID.String()).
-				Str("status", image.Status().String()).
-				Msg("image not viewable")
-			return nil, gallery.ErrImageNotFound // Don't leak that it exists
-		}
-
-		// Check visibility rules
-		visibility := image.Visibility()
-		isOwner := !requestingUserID.IsZero() && image.IsOwnedBy(requestingUserID)
-
-		// Private images can only be viewed by owner
-		if visibility.IsPrivate() && !isOwner {
-			h.logger.Debug().
-				Str("image_id", imageID.String()).
-				Str("visibility", visibility.String()).
-				Bool("is_owner", isOwner).
-				Msg("unauthorized access to private image")
-			return nil, gallery.ErrUnauthorizedAccess
-		}
+	if err := h.checkImageAuthorization(image, imageID, requestingUserID, q.IncrementViewOnly); err != nil {
+		return nil, err
 	}
 
 	// 4. Increment view count if appropriate
-	// Only increment for public/unlisted images, and only if not the owner viewing
-	shouldIncrementViews := q.IncrementViewOnly ||
-		(!requestingUserID.IsZero() && !image.IsOwnedBy(requestingUserID) &&
-			(image.Visibility().IsPublic() || image.Visibility() == gallery.VisibilityUnlisted))
-
-	if shouldIncrementViews {
-		image.IncrementViews()
-		// Save updated view count asynchronously (don't block on this)
-		if err := h.images.Save(ctx, image); err != nil {
-			h.logger.Error().
-				Err(err).
-				Str("image_id", imageID.String()).
-				Msg("failed to save view count increment")
-			// Don't fail the request if view count save fails
-		}
-	}
+	shouldIncrementViews := h.handleViewCount(ctx, image, imageID, requestingUserID, q.IncrementViewOnly)
 
 	// 5. Convert to DTO and return
 	dto := ImageToDTO(image)
@@ -187,7 +151,6 @@ func (h *GetImageHandler) Handle(ctx context.Context, q GetImageQuery) (*ImageDT
 	return dto, nil
 }
 
-// imageToDTO converts a domain Image to an ImageDTO.
 // ImageToDTO converts a domain Image entity to an ImageDTO for API responses.
 // This is a public function so it can be reused by other handlers.
 func ImageToDTO(image *gallery.Image) *ImageDTO {
@@ -237,4 +200,71 @@ func ImageToDTO(image *gallery.Image) *ImageDTO {
 		CreatedAt:        image.CreatedAt().Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:        image.UpdatedAt().Format("2006-01-02T15:04:05Z07:00"),
 	}
+}
+
+// checkImageAuthorization verifies if the requesting user can view the image.
+func (h *GetImageHandler) checkImageAuthorization(
+	image *gallery.Image,
+	imageID gallery.ImageID,
+	requestingUserID identity.UserID,
+	incrementViewOnly bool,
+) error {
+	if incrementViewOnly {
+		return nil
+	}
+
+	// Check if image is viewable based on status
+	if !image.IsViewable() {
+		h.logger.Debug().
+			Str("image_id", imageID.String()).
+			Str("status", image.Status().String()).
+			Msg("image not viewable")
+		return gallery.ErrImageNotFound // Don't leak that it exists
+	}
+
+	// Check visibility rules
+	visibility := image.Visibility()
+	isOwner := !requestingUserID.IsZero() && image.IsOwnedBy(requestingUserID)
+
+	// Private images can only be viewed by owner
+	if visibility.IsPrivate() && !isOwner {
+		h.logger.Debug().
+			Str("image_id", imageID.String()).
+			Str("visibility", visibility.String()).
+			Bool("is_owner", isOwner).
+			Msg("unauthorized access to private image")
+		return gallery.ErrUnauthorizedAccess
+	}
+
+	return nil
+}
+
+// handleViewCount increments view count if appropriate and returns whether views were incremented.
+func (h *GetImageHandler) handleViewCount(
+	ctx context.Context,
+	image *gallery.Image,
+	imageID gallery.ImageID,
+	requestingUserID identity.UserID,
+	incrementViewOnly bool,
+) bool {
+	// Only increment for public/unlisted images, and only if not the owner viewing
+	shouldIncrementViews := incrementViewOnly ||
+		(!requestingUserID.IsZero() && !image.IsOwnedBy(requestingUserID) &&
+			(image.Visibility().IsPublic() || image.Visibility() == gallery.VisibilityUnlisted))
+
+	if !shouldIncrementViews {
+		return false
+	}
+
+	image.IncrementViews()
+	// Save updated view count asynchronously (don't block on this)
+	if err := h.images.Save(ctx, image); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID.String()).
+			Msg("failed to save view count increment")
+		// Don't fail the request if view count save fails
+	}
+
+	return true
 }

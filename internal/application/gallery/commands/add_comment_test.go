@@ -16,6 +16,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestAddCommentHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -26,6 +27,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 		wantErr error
 		assert  func(t *testing.T, mocks *commentTestMocks, commentID string, err error)
 	}{
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "successful comment addition",
 			cmd: commands.AddCommentCommand{
@@ -34,6 +36,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "This is a great image!",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -48,6 +51,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.NoError(t, err)
 				assert.NotEmpty(t, commentID)
 				mocks.users.AssertExpectations(t)
@@ -63,7 +67,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				ImageID: testhelpers.ValidImageID,
 				Content: "Test comment",
 			},
-			setup: func(t *testing.T, mocks *commentTestMocks) {
+			setup: func(t *testing.T, _ *commentTestMocks) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
@@ -80,7 +84,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				ImageID: "invalid-uuid",
 				Content: "Test comment",
 			},
-			setup: func(t *testing.T, mocks *commentTestMocks) {
+			setup: func(t *testing.T, _ *commentTestMocks) {
 				// No mocks - should fail validation
 			},
 			wantErr: nil,
@@ -98,12 +102,14 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				mocks.users.On("FindByID", mock.Anything, userID).
 					Return(nil, fmt.Errorf("user not found")).Once()
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "find user")
 				assert.Empty(t, commentID)
@@ -118,6 +124,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -128,6 +135,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "find image")
 				assert.Empty(t, commentID)
@@ -143,6 +151,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				differentUserID, _ := identity.ParseUserID("550e8400-e29b-41d4-a716-446655440001")
 				user := testhelpers.ValidUser(t)
 				image := testhelpers.ValidImage(t)
@@ -154,6 +163,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: gallery.ErrUnauthorizedAccess,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.ErrorIs(t, err, gallery.ErrUnauthorizedAccess)
 				assert.Empty(t, commentID)
@@ -169,6 +179,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "   ", // Only whitespace
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -179,6 +190,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: gallery.ErrCommentRequired,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.ErrorIs(t, err, gallery.ErrCommentRequired)
 				assert.Empty(t, commentID)
@@ -194,6 +206,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: string(make([]byte, gallery.MaxCommentLength+1)), // Exceeds max length
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -204,6 +217,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: gallery.ErrCommentTooLong,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.Error(t, err)
 				assert.ErrorIs(t, err, gallery.ErrCommentTooLong)
 				assert.Empty(t, commentID)
@@ -211,6 +225,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				mocks.images.AssertExpectations(t)
 			},
 		},
+		//nolint:dupl // Test setup intentionally similar across test cases
 		{
 			name: "sanitizes HTML content",
 			cmd: commands.AddCommentCommand{
@@ -219,6 +234,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "<script>alert('xss')</script>Nice picture!",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -234,6 +250,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, mocks *commentTestMocks, commentID string, err error) {
+				t.Helper()
 				require.NoError(t, err)
 				assert.NotEmpty(t, commentID)
 				mocks.users.AssertExpectations(t)
@@ -250,6 +267,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -278,6 +296,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -307,6 +326,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)
@@ -337,6 +357,7 @@ func TestAddCommentHandler_Handle(t *testing.T) {
 				Content: "Test comment",
 			},
 			setup: func(t *testing.T, mocks *commentTestMocks) {
+				t.Helper()
 				userID := testhelpers.ValidUserIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				user := testhelpers.ValidUser(t)

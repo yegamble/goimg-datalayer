@@ -52,6 +52,8 @@ func NewAlbumHandler(
 
 // Routes registers album routes with the chi router.
 // Returns a chi.Router that can be mounted under /api/v1/albums.
+//
+//nolint:ireturn // Returning chi.Router interface is chi's standard pattern for sub-routers
 func (h *AlbumHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
@@ -160,6 +162,8 @@ func (h *AlbumHandler) Create(w http.ResponseWriter, r *http.Request) {
 //   - 403: Album is private and user is not the owner
 //   - 404: Album not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard HTTP handler pattern - duplication is intentional for clarity
 func (h *AlbumHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -316,6 +320,8 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 //   - 403: User is not the owner
 //   - 404: Album not found
 //   - 500: Internal server error
+//
+//nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *AlbumHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -395,7 +401,7 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseIntParam(queryParams.Get("limit"), 20)
+	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -405,8 +411,8 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit > 100 {
-		limit = 100
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	// 2. Extract requesting user ID (for authorization - currently unused but may be needed for filtering)
@@ -659,7 +665,7 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseIntParam(queryParams.Get("limit"), 20)
+	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
@@ -669,8 +675,8 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if limit > 100 {
-		limit = 100
+	if limit > maxLimit {
+		limit = maxLimit
 	}
 
 	// 3. Extract requesting user ID (optional)

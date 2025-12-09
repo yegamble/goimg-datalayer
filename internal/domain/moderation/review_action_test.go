@@ -8,6 +8,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestParseReviewAction(t *testing.T) {
 	t.Parallel()
 

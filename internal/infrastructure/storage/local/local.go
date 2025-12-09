@@ -26,6 +26,14 @@ var (
 	errSizeMismatch  = errors.New("storage: size mismatch")
 )
 
+const (
+	// File and directory permissions.
+	dirPermissions  = 0o750 // rwxr-x---
+	filePermissions = 0o600 // rw-------
+	// Buffer size for streaming operations.
+	bufferSize = 32 * 1024 // 32KB
+)
+
 // ObjectInfo contains metadata about a stored object.
 type ObjectInfo struct {
 	Key          string
@@ -73,7 +81,7 @@ func New(cfg Config) (*LocalStorage, error) {
 	}
 
 	// Ensure base directory exists
-	if err := os.MkdirAll(absPath, 0o750); err != nil {
+	if err := os.MkdirAll(absPath, dirPermissions); err != nil {
 		return nil, fmt.Errorf("local storage: create base dir: %w", err)
 	}
 
@@ -84,6 +92,8 @@ func New(cfg Config) (*LocalStorage, error) {
 }
 
 // Put stores data at the given key using streaming.
+//
+//nolint:cyclop // Storage operation requires sequential steps: validation, directory creation, temp file handling, streaming, and finalization
 func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts PutOptions) error {
 	if err := validateKey(key); err != nil {
 		return err
@@ -93,7 +103,7 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
-	if err := os.MkdirAll(dir, 0o750); err != nil {
+	if err := os.MkdirAll(dir, dirPermissions); err != nil {
 		return fmt.Errorf("local mkdir: %w", err)
 	}
 
@@ -134,7 +144,7 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	tempFile = nil // Prevent deferred cleanup
 
 	// Set permissions
-	if err := os.Chmod(tempPath, 0o600); err != nil {
+	if err := os.Chmod(tempPath, filePermissions); err != nil {
 		if rerr := os.Remove(tempPath); rerr != nil {
 			// Log best-effort cleanup failure
 		}
@@ -326,7 +336,7 @@ func validateKey(key string) error {
 
 // copyWithContext copies data with context cancellation support.
 func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
-	buf := make([]byte, 32*1024) // 32KB buffer
+	buf := make([]byte, bufferSize)
 	var written int64
 
 	for {

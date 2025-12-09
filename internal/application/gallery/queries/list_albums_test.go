@@ -15,6 +15,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestListAlbumsHandler_Handle(t *testing.T) {
 	t.Parallel()
 
@@ -107,7 +108,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Len(t, result.Albums, 0)
+		assert.Empty(t, result.Albums)
 		assert.Equal(t, int64(0), result.TotalCount)
 		mockAlbumRepo.AssertExpectations(t)
 	})

@@ -9,6 +9,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+const (
+	// Maximum length for report description and resolution.
+	maxReportTextLength = 1000
+)
+
 // Report is the aggregate root for content reports.
 // It represents a user's report of inappropriate or problematic content.
 //
@@ -58,7 +63,7 @@ func NewReport(
 	if description == "" {
 		return nil, ErrDescriptionEmpty
 	}
-	if len(description) > 1000 {
+	if len(description) > maxReportTextLength {
 		return nil, ErrDescriptionTooLong
 	}
 
@@ -205,7 +210,7 @@ func (r *Report) Resolve(resolverID identity.UserID, resolution string) error {
 	if resolution == "" {
 		return ErrResolutionRequired
 	}
-	if len(resolution) > 1000 {
+	if len(resolution) > maxReportTextLength {
 		return ErrResolutionTooLong
 	}
 

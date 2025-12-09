@@ -1,4 +1,4 @@
-package validator
+package validator //nolint:testpackage // Tests access unexported types
 
 import (
 	"bytes"
@@ -98,8 +98,7 @@ func TestValidateSize_ExceedsLimit(t *testing.T) {
 	}
 
 	err := v.validateSize(result)
-	require.Error(t, err)
-	assert.ErrorIs(t, err, gallery.ErrFileTooLarge)
+	require.ErrorIs(t, err, gallery.ErrFileTooLarge)
 	assert.Contains(t, err.Error(), "2048 bytes exceeds 1024 byte limit")
 }
 
@@ -362,7 +361,7 @@ func TestValidateDimensions_Invalid(t *testing.T) {
 
 			err := v.ValidateDimensions(tt.width, tt.height)
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, tt.wantError), "expected %v, got %v", tt.wantError, err)
+			assert.ErrorIs(t, err, tt.wantError, "expected %v, got %v", tt.wantError, err)
 		})
 	}
 }
@@ -425,8 +424,7 @@ func TestValidate_SizeExceeded(t *testing.T) {
 	v := New(cfg, nil)
 
 	result, err := v.Validate(context.Background(), data, "large.jpg")
-	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrFileTooLarge))
+	require.ErrorIs(t, err, gallery.ErrFileTooLarge)
 	assert.False(t, result.Valid)
 	assert.NotEmpty(t, result.Errors)
 }
@@ -443,7 +441,7 @@ func TestValidate_InvalidMIMEType(t *testing.T) {
 
 	result, err := v.Validate(context.Background(), data, "fake.jpg")
 	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrInvalidMimeType))
+	assert.ErrorIs(t, err, gallery.ErrInvalidMimeType)
 	assert.False(t, result.Valid)
 	assert.NotEmpty(t, result.Errors)
 }
@@ -516,8 +514,7 @@ func TestValidate_MalwareDetected(t *testing.T) {
 	v := New(cfg, mockScanner)
 
 	result, err := v.Validate(context.Background(), jpegData, "malware.jpg")
-	require.Error(t, err)
-	assert.True(t, errors.Is(err, gallery.ErrMalwareDetected))
+	require.ErrorIs(t, err, gallery.ErrMalwareDetected)
 	assert.False(t, result.Valid)
 	assert.NotEmpty(t, result.Errors)
 	assert.NotNil(t, result.ScanResult)
@@ -676,15 +673,15 @@ type mockClamAVScanner struct {
 	scanError  error
 }
 
-func (m *mockClamAVScanner) Scan(ctx context.Context, data []byte) (*clamav.ScanResult, error) {
+func (m *mockClamAVScanner) Scan(_ context.Context, data []byte) (*clamav.ScanResult, error) {
 	return m.scanResult, m.scanError
 }
 
-func (m *mockClamAVScanner) ScanReader(ctx context.Context, reader io.Reader, size int64) (*clamav.ScanResult, error) {
+func (m *mockClamAVScanner) ScanReader(_ context.Context, reader io.Reader, size int64) (*clamav.ScanResult, error) {
 	return m.scanResult, m.scanError
 }
 
-func (m *mockClamAVScanner) Ping(ctx context.Context) error {
+func (m *mockClamAVScanner) Ping(_ context.Context) error {
 	if m.scanError != nil {
 		return m.scanError
 	}

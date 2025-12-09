@@ -73,6 +73,8 @@ func NewAddCommentHandler(
 //   - ErrUnauthorizedAccess if image is not visible to user
 //   - ErrCommentRequired if content is empty after sanitization
 //   - ErrCommentTooLong if content exceeds maximum length
+//
+//nolint:cyclop // Command handler requires sequential validation: user ID, image ID, permissions, content, and persistence
 func (h *AddCommentHandler) Handle(ctx context.Context, cmd AddCommentCommand) (string, error) {
 	// 1. Parse user ID
 	userID, err := identity.ParseUserID(cmd.UserID)

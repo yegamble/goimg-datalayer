@@ -52,7 +52,7 @@ func TestRequireOwnership_Success(t *testing.T) {
 
 	handler := middleware.RequireOwnership(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		_, _ = w.Write([]byte("success"))
 	}))
 
 	// Create request
@@ -274,7 +274,7 @@ func TestRequireOwnership_AdminBypass(t *testing.T) {
 
 	handler := middleware.RequireOwnership(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("admin access"))
+		_, _ = w.Write([]byte("admin access"))
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/images/"+resourceID.String(), nil)
@@ -318,7 +318,7 @@ func TestRequireOwnership_ModeratorBypass(t *testing.T) {
 
 	handler := middleware.RequireOwnership(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("moderator access"))
+		_, _ = w.Write([]byte("moderator access"))
 	}))
 
 	req := httptest.NewRequest(http.MethodDelete, "/comments/"+resourceID.String(), nil)

@@ -10,6 +10,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestNewImageMetadata(t *testing.T) {
 	t.Parallel()
 

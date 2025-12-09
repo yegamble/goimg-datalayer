@@ -39,6 +39,8 @@ type MiddlewareConfig struct {
 //   - Public routes: /api/v1/auth/* (no authentication)
 //   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
+//
+//nolint:ireturn // Returning chi.Router interface allows flexibility in testing and composition
 func NewRouter(
 	authHandler *AuthHandler,
 	userHandler *UserHandler,
@@ -73,7 +75,7 @@ func NewRouter(
 	r.Use(middleware.CORS(corsCfg))
 
 	// Timeout middleware (prevent long-running requests)
-	r.Use(chimiddleware.Timeout(30 * time.Second))
+	r.Use(chimiddleware.Timeout(contextTimeout * time.Second))
 
 	// Health check endpoints (no authentication required)
 	// Liveness probe - checks if server is running

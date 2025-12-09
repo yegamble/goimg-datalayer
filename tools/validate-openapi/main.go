@@ -9,8 +9,13 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+const (
+	// Minimum number of arguments required (program name + spec file).
+	minArgsRequired = 2
+)
+
 func main() {
-	if len(os.Args) < 2 {
+	if len(os.Args) < minArgsRequired {
 		fmt.Fprintf(os.Stderr, "Usage: %s <openapi-spec-file>\n", os.Args[0])
 		os.Exit(1)
 	}
@@ -50,6 +55,8 @@ func main() {
 }
 
 // checkForCommonIssues performs additional validation checks.
+//
+//nolint:cyclop // OpenAPI validation tool requires checking multiple common issues
 func checkForCommonIssues(doc *openapi3.T) {
 	warnings := []string{}
 

@@ -1,4 +1,4 @@
-package jwt
+package jwt //nolint:testpackage // Tests access unexported fields
 
 import (
 	"context"
@@ -14,7 +14,7 @@ func TestNewRefreshTokenService(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	ttl := 7 * 24 * time.Hour
 	service := NewRefreshTokenService(client, ttl)
@@ -26,7 +26,7 @@ func TestNewRefreshTokenService(t *testing.T) {
 
 func TestRefreshTokenService_GenerateToken(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -54,8 +54,8 @@ func TestRefreshTokenService_GenerateToken(t *testing.T) {
 	assert.True(t, metadata.ExpiresAt.After(metadata.IssuedAt))
 
 	// Clean up
-	service.RevokeToken(ctx, token)
-	service.RevokeFamily(ctx, familyID)
+	_ = service.RevokeToken(ctx, token)
+	_ = service.RevokeFamily(ctx, familyID)
 }
 
 func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
@@ -63,7 +63,7 @@ func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
 
 	client := getTestRedisClient(t)
 	t.Cleanup(func() {
-		client.Close()
+		_ = client.Close()
 	})
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
@@ -120,8 +120,12 @@ func TestRefreshTokenService_ValidateToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer service.RevokeToken(ctx, token)
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() {
+		_ = service.RevokeToken(ctx, token)
+	}()
+	defer func() {
+		_ = service.RevokeFamily(ctx, familyID)
+	}()
 
 	// Validate token
 	metadata, err := service.ValidateToken(ctx, token)
@@ -138,7 +142,7 @@ func TestRefreshTokenService_ValidateToken_InvalidToken(t *testing.T) {
 
 	client := getTestRedisClient(t)
 	t.Cleanup(func() {
-		client.Close()
+		_ = client.Close()
 	})
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
@@ -191,8 +195,12 @@ func TestRefreshTokenService_MarkAsUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer service.RevokeToken(ctx, token)
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() {
+		_ = service.RevokeToken(ctx, token)
+	}()
+	defer func() {
+		_ = service.RevokeFamily(ctx, familyID)
+	}()
 
 	// Token should not be used initially
 	metadata, err := service.ValidateToken(ctx, token)
@@ -240,7 +248,7 @@ func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() { _ = service.RevokeFamily(ctx, familyID) }()
 
 	// Mark as used
 	err = service.MarkAsUsed(ctx, token)
@@ -279,7 +287,7 @@ func TestRefreshTokenService_RevokeToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up family
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() { _ = service.RevokeFamily(ctx, familyID) }()
 
 	// Token should be valid
 	_, err = service.ValidateToken(ctx, token)
@@ -471,7 +479,7 @@ func TestRefreshTokenService_TokenRotation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() { _ = service.RevokeFamily(ctx, familyID) }()
 
 	// Mark first token as used
 	err = service.MarkAsUsed(ctx, token1)
@@ -510,7 +518,7 @@ func TestRefreshTokenService_TokenExpiration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer service.RevokeFamily(ctx, familyID)
+	defer func() { _ = service.RevokeFamily(ctx, familyID) }()
 
 	// Token should be valid initially
 	_, err = service.ValidateToken(ctx, token)

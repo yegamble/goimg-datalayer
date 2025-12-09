@@ -2,6 +2,14 @@ package gallery
 
 import "fmt"
 
+const (
+	// Maximum width in pixels for each variant type.
+	variantThumbnailMaxWidth = 150
+	variantSmallMaxWidth     = 320
+	variantMediumMaxWidth    = 800
+	variantLargeMaxWidth     = 1600
+)
+
 // VariantType defines the different size variants of an image.
 // Each variant has a maximum width, and the height is scaled proportionally.
 type VariantType string
@@ -61,13 +69,13 @@ func (v VariantType) IsValid() bool {
 func (v VariantType) MaxWidth() int {
 	switch v {
 	case VariantThumbnail:
-		return 150
+		return variantThumbnailMaxWidth
 	case VariantSmall:
-		return 320
+		return variantSmallMaxWidth
 	case VariantMedium:
-		return 800
+		return variantMediumMaxWidth
 	case VariantLarge:
-		return 1600
+		return variantLargeMaxWidth
 	case VariantOriginal:
 		return 0 // No limit
 	default:

@@ -7,6 +7,11 @@ import (
 	"github.com/go-chi/cors"
 )
 
+const (
+	// Default CORS preflight cache duration in seconds (1 hour).
+	defaultCORSMaxAge = 3600
+)
+
 // CORSConfig holds configuration for Cross-Origin Resource Sharing (CORS).
 type CORSConfig struct {
 	// AllowedOrigins is a list of origins that are allowed to make cross-origin requests.
@@ -91,7 +96,7 @@ func DefaultCORSConfig() CORSConfig {
 		AllowCredentials: true,
 
 		// Cache preflight responses for 1 hour
-		MaxAge: 3600,
+		MaxAge: defaultCORSMaxAge,
 	}
 }
 

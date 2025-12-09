@@ -8,6 +8,11 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+const (
+	// Maximum length for ban reason.
+	maxBanReasonLength = 500
+)
+
 // Ban is the aggregate root for user bans.
 // It represents a temporary or permanent restriction placed on a user.
 //
@@ -49,7 +54,7 @@ func NewBan(
 	if reason == "" {
 		return nil, ErrReasonRequired
 	}
-	if len(reason) > 500 {
+	if len(reason) > maxBanReasonLength {
 		return nil, ErrReasonTooLong
 	}
 

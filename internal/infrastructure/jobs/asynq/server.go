@@ -9,6 +9,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const (
+	// Default server configuration values.
+	defaultConcurrency        = 10
+	defaultShutdownTimeoutSec = 30
+)
+
 // Server wraps the asynq.Server for background job processing.
 // It provides configuration and lifecycle management for task workers.
 type Server struct {
@@ -62,10 +68,10 @@ func DefaultServerConfig(redisAddr string, logger zerolog.Logger) ServerConfig {
 		RedisAddr:       redisAddr,
 		RedisPassword:   "",
 		RedisDB:         0,
-		Concurrency:     10,
+		Concurrency:     defaultConcurrency,
 		Queues:          map[string]int{"default": 1},
 		StrictPriority:  false,
-		ShutdownTimeout: 30 * time.Second,
+		ShutdownTimeout: defaultShutdownTimeoutSec * time.Second,
 		Logger:          logger,
 		RetryDelayFunc:  nil, // Use asynq default
 		ErrorHandler:    nil, // No custom handler
@@ -80,13 +86,13 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 
 	// Apply defaults
 	if cfg.Concurrency <= 0 {
-		cfg.Concurrency = 10
+		cfg.Concurrency = defaultConcurrency
 	}
 	if len(cfg.Queues) == 0 {
 		cfg.Queues = map[string]int{"default": 1}
 	}
 	if cfg.ShutdownTimeout <= 0 {
-		cfg.ShutdownTimeout = 30 * time.Second
+		cfg.ShutdownTimeout = defaultShutdownTimeoutSec * time.Second
 	}
 
 	redisOpt := asynq.RedisClientOpt{

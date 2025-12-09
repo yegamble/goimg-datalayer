@@ -49,6 +49,8 @@ func NewExampleCommandHandler(userRepo identity.UserRepository) *ExampleCommandH
 }
 
 // Handle executes the command.
+//
+//nolint:cyclop // Test example command handler demonstrates full validation flow
 func (h *ExampleCommandHandler) Handle(ctx context.Context, cmd ExampleCommand) (identity.UserID, error) {
 	// Validate command
 	if err := cmd.Validate(); err != nil {
@@ -99,6 +101,8 @@ func (h *ExampleCommandHandler) Handle(ctx context.Context, cmd ExampleCommand) 
 
 // TestExampleCommand demonstrates comprehensive table-driven testing pattern.
 // This is the recommended pattern for all command handler tests.
+//
+//nolint:funlen // Table-driven test with comprehensive test cases
 func TestExampleCommand_Handle(t *testing.T) {
 	t.Parallel()
 

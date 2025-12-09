@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+// Email validation constants.
+const (
+	maxEmailLength = 255 // Maximum length for email addresses per RFC 5321
+	emailPartCount = 2   // Number of parts in a valid email (local@domain)
+)
+
 // Email is a value object representing a validated email address.
 type Email struct {
 	value string
@@ -41,7 +47,7 @@ func NewEmail(value string) (Email, error) {
 		return Email{}, ErrEmailEmpty
 	}
 
-	if len(value) > 255 {
+	if len(value) > maxEmailLength {
 		return Email{}, ErrEmailTooLong
 	}
 
@@ -81,7 +87,7 @@ func (e Email) Equals(other Email) bool {
 // extractDomain extracts the domain part from an email address.
 func extractDomain(email string) string {
 	parts := strings.Split(email, "@")
-	if len(parts) != 2 {
+	if len(parts) != emailPartCount {
 		return ""
 	}
 	return parts[1]
