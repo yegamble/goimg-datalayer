@@ -34,6 +34,7 @@ func TestAddImageToAlbumHandler_Handle(t *testing.T) {
 				UserID:  testhelpers.ValidUserID,
 			},
 			setup: func(t *testing.T, mocks *albumImageTestMocks) {
+				t.Helper()
 				albumID := testhelpers.ValidAlbumIDParsed()
 				imageID := testhelpers.ValidImageIDParsed()
 				album := testhelpers.ValidAlbum(t)
@@ -99,6 +100,7 @@ func TestAddImageToAlbumHandler_Handle(t *testing.T) {
 				UserID:  "550e8400-e29b-41d4-a716-446655440001", // Different user
 			},
 			setup: func(t *testing.T, mocks *albumImageTestMocks) {
+				t.Helper()
 				albumID := testhelpers.ValidAlbumIDParsed()
 				album := testhelpers.ValidAlbum(t)
 

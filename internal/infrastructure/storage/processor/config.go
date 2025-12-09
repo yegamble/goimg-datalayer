@@ -1,3 +1,5 @@
+//go:build cgo
+
 // Package processor provides image processing capabilities using bimg (libvips).
 // It handles variant generation, EXIF stripping, and format conversion.
 package processor

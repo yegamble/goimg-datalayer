@@ -135,6 +135,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 //   - 403: Not authorized to update this user
 //   - 404: User not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -229,6 +231,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 //   - 403: Not authorized to delete this user
 //   - 404: User not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

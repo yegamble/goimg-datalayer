@@ -58,6 +58,8 @@ type MetricsCollector struct {
 //   - image: Image processing metrics (uploads, processing time)
 //   - database: PostgreSQL connection pool metrics
 //   - redis: Redis connection and cache metrics
+//
+//nolint:funlen // Metrics collector initialization with Prometheus.
 func NewMetricsCollector() *MetricsCollector {
 	return &MetricsCollector{
 		// HTTP Metrics
@@ -485,7 +487,10 @@ func (mc *MetricsCollector) RecordStorageOperation(provider, operation string, s
 //   - imagesTotal: Total number of uploaded images
 //   - activeSessions: Number of active user sessions
 //   - storageBytesUsed: Total storage space used in bytes
-func (mc *MetricsCollector) UpdateBusinessMetrics(usersTotal, imagesTotal, activeSessions int64, storageBytesUsed int64) {
+func (mc *MetricsCollector) UpdateBusinessMetrics(
+	usersTotal, imagesTotal, activeSessions int64,
+	storageBytesUsed int64,
+) {
 	mc.usersTotal.Set(float64(usersTotal))
 	mc.imagesTotal.Set(float64(imagesTotal))
 	mc.activeSessionsTotal.Set(float64(activeSessions))

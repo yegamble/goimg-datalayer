@@ -184,7 +184,7 @@ func TestURL_WithPublicURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &S3Storage{
+			s := &Storage{
 				publicURL: tt.publicURL,
 				bucket:    tt.bucket,
 			}
@@ -291,15 +291,15 @@ func TestIsAccessDeniedError(t *testing.T) {
 func TestProvider(t *testing.T) {
 	t.Parallel()
 
-	s := &S3Storage{
+	s := &Storage{
 		bucket: "test-bucket",
 	}
 
 	assert.Equal(t, "s3", s.Provider())
 }
 
-// TestS3Storage_PresignedURLDuration tests presigned URL duration handling.
-func TestS3Storage_PresignedURLDuration(t *testing.T) {
+// TestStorage_PresignedURLDuration tests presigned URL duration handling.
+func TestStorage_PresignedURLDuration(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

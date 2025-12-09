@@ -26,6 +26,11 @@ var (
 	errPathTraversal = errors.New("storage: path traversal detected")
 )
 
+const (
+	// defaultPresignedURLExpiry is the default duration for presigned URLs.
+	defaultPresignedURLExpiry = 15 * time.Minute
+)
+
 // ObjectInfo contains metadata about a stored object.
 type ObjectInfo struct {
 	Key          string
@@ -42,8 +47,8 @@ type PutOptions struct {
 	Metadata     map[string]string
 }
 
-// S3Storage implements the Storage interface using AWS S3 or S3-compatible services.
-type S3Storage struct {
+// Storage implements the storage interface using AWS S3 or S3-compatible services.
+type Storage struct {
 	client    *s3.Client
 	presigner *s3.PresignClient
 	bucket    string
@@ -79,7 +84,7 @@ type Config struct {
 }
 
 // New creates a new S3 storage client.
-func New(ctx context.Context, cfg Config) (*S3Storage, error) {
+func New(ctx context.Context, cfg Config) (*Storage, error) {
 	if cfg.Bucket == "" {
 		return nil, fmt.Errorf("s3: bucket name required")
 	}
@@ -87,7 +92,7 @@ func New(ctx context.Context, cfg Config) (*S3Storage, error) {
 		cfg.Region = "us-east-1"
 	}
 	if cfg.PresignedURLExpiry == 0 {
-		cfg.PresignedURLExpiry = 15 * time.Minute
+		cfg.PresignedURLExpiry = defaultPresignedURLExpiry
 	}
 
 	// Build AWS config
@@ -111,7 +116,7 @@ func New(ctx context.Context, cfg Config) (*S3Storage, error) {
 		o.UsePathStyle = cfg.ForcePathStyle
 	})
 
-	return &S3Storage{
+	return &Storage{
 		client:    client,
 		presigner: s3.NewPresignClient(client),
 		bucket:    cfg.Bucket,
@@ -121,7 +126,7 @@ func New(ctx context.Context, cfg Config) (*S3Storage, error) {
 }
 
 // Put uploads data to S3 using streaming.
-func (s *S3Storage) Put(ctx context.Context, key string, data io.Reader, size int64, opts PutOptions) error {
+func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int64, opts PutOptions) error {
 	if err := validateKey(key); err != nil {
 		return err
 	}
@@ -149,12 +154,12 @@ func (s *S3Storage) Put(ctx context.Context, key string, data io.Reader, size in
 }
 
 // PutBytes uploads small data to S3.
-func (s *S3Storage) PutBytes(ctx context.Context, key string, data []byte, opts PutOptions) error {
+func (s *Storage) PutBytes(ctx context.Context, key string, data []byte, opts PutOptions) error {
 	return s.Put(ctx, key, bytes.NewReader(data), int64(len(data)), opts)
 }
 
 // Get retrieves data from S3 as a streaming reader.
-func (s *S3Storage) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+func (s *Storage) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	if err := validateKey(key); err != nil {
 		return nil, err
 	}
@@ -177,7 +182,7 @@ func (s *S3Storage) Get(ctx context.Context, key string) (io.ReadCloser, error) 
 }
 
 // GetBytes retrieves small data fully into memory.
-func (s *S3Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
+func (s *Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	reader, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
@@ -185,6 +190,7 @@ func (s *S3Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	defer func() {
 		if cerr := reader.Close(); cerr != nil {
 			// Log close error but return read result
+			_ = cerr
 		}
 	}()
 
@@ -197,7 +203,7 @@ func (s *S3Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 }
 
 // Delete removes an object from S3.
-func (s *S3Storage) Delete(ctx context.Context, key string) error {
+func (s *Storage) Delete(ctx context.Context, key string) error {
 	if err := validateKey(key); err != nil {
 		return err
 	}
@@ -214,7 +220,7 @@ func (s *S3Storage) Delete(ctx context.Context, key string) error {
 }
 
 // Exists checks if an object exists in S3.
-func (s *S3Storage) Exists(ctx context.Context, key string) (bool, error) {
+func (s *Storage) Exists(ctx context.Context, key string) (bool, error) {
 	if err := validateKey(key); err != nil {
 		return false, err
 	}
@@ -234,7 +240,7 @@ func (s *S3Storage) Exists(ctx context.Context, key string) (bool, error) {
 }
 
 // URL returns the public URL for a key.
-func (s *S3Storage) URL(key string) string {
+func (s *Storage) URL(key string) string {
 	if s.publicURL != "" {
 		return fmt.Sprintf("%s/%s", strings.TrimSuffix(s.publicURL, "/"), key)
 	}
@@ -242,7 +248,7 @@ func (s *S3Storage) URL(key string) string {
 }
 
 // PresignedURL generates a temporary signed URL.
-func (s *S3Storage) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
+func (s *Storage) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
 	if err := validateKey(key); err != nil {
 		return "", err
 	}
@@ -265,7 +271,7 @@ func (s *S3Storage) PresignedURL(ctx context.Context, key string, duration time.
 }
 
 // Stat returns metadata about an object.
-func (s *S3Storage) Stat(ctx context.Context, key string) (*ObjectInfo, error) {
+func (s *Storage) Stat(ctx context.Context, key string) (*ObjectInfo, error) {
 	if err := validateKey(key); err != nil {
 		return nil, err
 	}
@@ -293,7 +299,7 @@ func (s *S3Storage) Stat(ctx context.Context, key string) (*ObjectInfo, error) {
 }
 
 // Provider returns the provider type name.
-func (s *S3Storage) Provider() string {
+func (s *Storage) Provider() string {
 	return "s3"
 }
 

@@ -135,6 +135,8 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 // Response: Paginated list of public images sorted by like_count DESC
 // Errors:
 //   - 400: Invalid query parameters
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

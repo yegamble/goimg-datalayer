@@ -88,7 +88,7 @@ func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 	// Create a test handler that returns 200 OK
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK"))
 	})
 
 	wrappedHandler := middleware(testHandler)
@@ -351,8 +351,8 @@ func TestMetricsCollector_UpdateDatabaseStats(t *testing.T) {
 	idle := testutil.ToFloat64(collector.dbConnectionsIdle)
 	assert.InDelta(t, float64(5), idle, 0.0001)
 
-	max := testutil.ToFloat64(collector.dbConnectionsMax)
-	assert.InDelta(t, float64(25), max, 0.0001)
+	maxConns := testutil.ToFloat64(collector.dbConnectionsMax)
+	assert.InDelta(t, float64(25), maxConns, 0.0001)
 }
 
 func TestMetricsCollector_UpdateRedisStats(t *testing.T) {

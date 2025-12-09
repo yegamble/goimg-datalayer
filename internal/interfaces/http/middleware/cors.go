@@ -136,7 +136,7 @@ func DevelopmentCORSConfig() CORSConfig {
 		// CANNOT be true when AllowedOrigins = "*" (browser security policy)
 		AllowCredentials: false,
 
-		MaxAge: 3600,
+		MaxAge: defaultCORSMaxAge,
 	}
 }
 

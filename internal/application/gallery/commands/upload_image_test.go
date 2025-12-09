@@ -116,7 +116,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrFileTooLarge,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrFileTooLarge)
+				require.ErrorIs(t, err, gallery.ErrFileTooLarge)
 				assert.Nil(t, result)
 			},
 		},
@@ -157,8 +157,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			},
 			wantErr: gallery.ErrInvalidMimeType,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrInvalidMimeType)
+				require.ErrorIs(t, err, gallery.ErrInvalidMimeType)
 				assert.Nil(t, result)
 			},
 		},
@@ -233,8 +232,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			},
 			wantErr: gallery.ErrTagTooShort,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
-				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrTagTooShort)
+				require.ErrorIs(t, err, gallery.ErrTagTooShort)
 				assert.Nil(t, result)
 			},
 		},

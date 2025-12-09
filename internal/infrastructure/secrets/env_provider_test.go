@@ -158,8 +158,8 @@ func TestEnvProvider_ValidateRequiredSecrets(t *testing.T) {
 	t.Run("all required secrets present", func(t *testing.T) {
 		// Set all required secrets
 		for _, name := range RequiredSecrets() {
-			os.Setenv(name, "test_value")
-			defer os.Unsetenv(name)
+			_ = os.Setenv(name, "test_value")
+			defer func(n string) { _ = os.Unsetenv(n) }(name)
 		}
 
 		err := provider.ValidateRequiredSecrets(ctx)
@@ -171,7 +171,7 @@ func TestEnvProvider_ValidateRequiredSecrets(t *testing.T) {
 	t.Run("missing required secret", func(t *testing.T) {
 		// Clear all secrets
 		for _, name := range RequiredSecrets() {
-			os.Unsetenv(name)
+			_ = os.Unsetenv(name)
 		}
 
 		err := provider.ValidateRequiredSecrets(ctx)

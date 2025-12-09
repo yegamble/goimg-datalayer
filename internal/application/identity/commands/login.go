@@ -87,7 +87,7 @@ func NewLoginHandler(
 //   - ErrAccountSuspended if account is suspended
 //   - ErrAccountDeleted if account is deleted
 //
-//nolint:cyclop // Command handler requires sequential authentication: identifier lookup, password verify, status checks, and token generation
+//nolint:funlen,cyclop // Sequential authentication: identifier lookup, password verify, status, and token gen.
 func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthResponseDTO, error) {
 	// 1. Parse identifier and find user
 	// Try email first, then username

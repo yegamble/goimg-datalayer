@@ -1,3 +1,4 @@
+// Package tasks provides background job handlers for image processing and malware scanning.
 package tasks
 
 import (
@@ -64,6 +65,8 @@ func NewImageScanHandler(
 
 // ProcessTask implements asynq.Handler interface.
 // It scans the image for malware using ClamAV.
+//
+//nolint:funlen // Background job handler with validation and response.
 func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error {
 	// Parse payload
 	var payload ImageScanPayload

@@ -257,7 +257,7 @@ func TestSessionStore_Exists_EmptySessionID(t *testing.T) {
 	t.Parallel()
 
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
@@ -271,13 +271,13 @@ func TestSessionStore_Exists_EmptySessionID(t *testing.T) {
 
 func TestSessionStore_Revoke(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() { _ = store.Clear(ctx) }()
 
 	session := createTestSession("user-123")
 
@@ -302,7 +302,7 @@ func TestSessionStore_Revoke(t *testing.T) {
 
 func TestSessionStore_Revoke_NonexistentSession(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
@@ -314,13 +314,13 @@ func TestSessionStore_Revoke_NonexistentSession(t *testing.T) {
 
 func TestSessionStore_RevokeAll(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() { _ = store.Clear(ctx) }()
 
 	userID := "user-123"
 
@@ -368,13 +368,13 @@ func TestSessionStore_RevokeAll_EmptyUserID(t *testing.T) {
 
 func TestSessionStore_GetUserSessions(t *testing.T) {
 	client := getTestClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	store := NewSessionStore(client.UnderlyingClient())
 	ctx := context.Background()
 
 	// Clear sessions before test
-	defer store.Clear(ctx)
+	defer func() { _ = store.Clear(ctx) }()
 
 	userID := "user-123"
 

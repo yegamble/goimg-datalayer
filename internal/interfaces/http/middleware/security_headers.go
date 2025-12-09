@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+const (
+	// hstsMaxAgeOneYear is the HSTS max-age value for one year in seconds.
+	hstsMaxAgeOneYear = 31536000
+)
+
 // SecurityHeadersConfig holds configuration for security headers middleware.
 type SecurityHeadersConfig struct {
 	// EnableHSTS enables HTTP Strict Transport Security header (production only)
@@ -25,11 +30,12 @@ type SecurityHeadersConfig struct {
 func DefaultSecurityHeadersConfig(isProd bool) SecurityHeadersConfig {
 	return SecurityHeadersConfig{
 		EnableHSTS:            isProd, // Only enable HSTS in production
-		HSTSMaxAge:            31536000,
+		HSTSMaxAge:            hstsMaxAgeOneYear,
 		HSTSIncludeSubDomains: true,
 		HSTSPreload:           false, // Only enable after submitting to preload list
-		CSPDirectives:         "default-src 'self'; img-src 'self' data: https:; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'",
-		FrameOptions:          "DENY",
+		CSPDirectives: "default-src 'self'; img-src 'self' data: https:; script-src 'self'; " +
+			"style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'",
+		FrameOptions: "DENY",
 	}
 }
 
@@ -87,7 +93,10 @@ func SecurityHeaders(cfg SecurityHeadersConfig) func(http.Handler) http.Handler 
 			// Permissions-Policy: Restricts access to browser features and APIs
 			// Disables dangerous features like geolocation, camera, microphone
 			// () = feature disabled for all origins (including same-origin)
-			w.Header().Set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()")
+			w.Header().Set("Permissions-Policy",
+				"geolocation=(), microphone=(), camera=(), payment=(), usb=(), "+
+					"magnetometer=(), gyroscope=(), accelerometer=()",
+			)
 
 			next.ServeHTTP(w, r)
 		})

@@ -64,7 +64,7 @@ func NewSearchImagesHandler(images gallery.ImageRepository) *SearchImagesHandler
 //   - Multiple sort options: relevance, created_at, view_count, like_count
 //   - Pagination with total count
 //
-//nolint:cyclop // Query handler requires complex search criteria parsing: pagination, tags, visibility, owner, and sort options
+//nolint:funlen,cyclop // Complex search criteria parsing: pagination, tags, visibility, owner, and sort options.
 func (h *SearchImagesHandler) Handle(ctx context.Context, q SearchImagesQuery) (*SearchImagesResult, error) {
 	// 1. Validate and create pagination
 	pagination, err := shared.NewPagination(q.Page, q.PerPage)
@@ -118,7 +118,10 @@ func (h *SearchImagesHandler) Handle(ctx context.Context, q SearchImagesQuery) (
 			gallery.SearchSortByLikeCount: true,
 		}
 		if !validSorts[sortBy] {
-			return nil, fmt.Errorf("invalid sort parameter: %s (must be one of: relevance, created_at, view_count, like_count)", q.SortBy)
+			return nil, fmt.Errorf(
+				"invalid sort parameter: %s (must be one of: relevance, created_at, view_count, like_count)",
+				q.SortBy,
+			)
 		}
 	}
 

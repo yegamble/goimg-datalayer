@@ -50,9 +50,9 @@ type PutOptions struct {
 	Metadata     map[string]string
 }
 
-// LocalStorage implements the Storage interface using the local filesystem.
+// Storage implements the storage interface using the local filesystem.
 // All operations are atomic using temp files + rename pattern.
-type LocalStorage struct {
+type Storage struct {
 	basePath string
 	baseURL  string
 }
@@ -69,7 +69,7 @@ type Config struct {
 }
 
 // New creates a new local filesystem storage provider.
-func New(cfg Config) (*LocalStorage, error) {
+func New(cfg Config) (*Storage, error) {
 	if cfg.BasePath == "" {
 		return nil, fmt.Errorf("local storage: base path required")
 	}
@@ -85,7 +85,7 @@ func New(cfg Config) (*LocalStorage, error) {
 		return nil, fmt.Errorf("local storage: create base dir: %w", err)
 	}
 
-	return &LocalStorage{
+	return &Storage{
 		basePath: absPath,
 		baseURL:  cfg.BaseURL,
 	}, nil
@@ -93,8 +93,8 @@ func New(cfg Config) (*LocalStorage, error) {
 
 // Put stores data at the given key using streaming.
 //
-//nolint:cyclop // Storage operation requires sequential steps: validation, directory creation, temp file handling, streaming, and finalization
-func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts PutOptions) error {
+//nolint:cyclop // Sequential steps: validation, directory creation, temp file, streaming, finalization.
+func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int64, _ PutOptions) error {
 	if err := validateKey(key); err != nil {
 		return err
 	}
@@ -118,10 +118,12 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	defer func() {
 		if tempFile != nil {
 			if cerr := tempFile.Close(); cerr != nil {
-				// Log close error but continue with cleanup
+				// Best-effort cleanup: ignore close error
+				_ = cerr
 			}
 			if rerr := os.Remove(tempPath); rerr != nil {
-				// Log remove error but continue
+				// Best-effort cleanup: ignore remove error
+				_ = rerr
 			}
 		}
 	}()
@@ -146,7 +148,8 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	// Set permissions
 	if err := os.Chmod(tempPath, filePermissions); err != nil {
 		if rerr := os.Remove(tempPath); rerr != nil {
-			// Log best-effort cleanup failure
+			// Best-effort cleanup: ignore remove error
+			_ = rerr
 		}
 		return fmt.Errorf("local chmod: %w", err)
 	}
@@ -154,7 +157,8 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 	// Atomic rename
 	if err := os.Rename(tempPath, fullPath); err != nil {
 		if rerr := os.Remove(tempPath); rerr != nil {
-			// Log best-effort cleanup failure
+			// Best-effort cleanup: ignore remove error
+			_ = rerr
 		}
 		return fmt.Errorf("local rename: %w", err)
 	}
@@ -163,12 +167,12 @@ func (s *LocalStorage) Put(ctx context.Context, key string, data io.Reader, size
 }
 
 // PutBytes is a convenience method for storing small in-memory data.
-func (s *LocalStorage) PutBytes(ctx context.Context, key string, data []byte, opts PutOptions) error {
+func (s *Storage) PutBytes(ctx context.Context, key string, data []byte, opts PutOptions) error {
 	return s.Put(ctx, key, bytes.NewReader(data), int64(len(data)), opts)
 }
 
 // Get retrieves data from storage as a streaming reader.
-func (s *LocalStorage) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
 	if err := validateKey(key); err != nil {
 		return nil, err
 	}
@@ -190,7 +194,7 @@ func (s *LocalStorage) Get(ctx context.Context, key string) (io.ReadCloser, erro
 }
 
 // GetBytes retrieves data fully into memory.
-func (s *LocalStorage) GetBytes(ctx context.Context, key string) ([]byte, error) {
+func (s *Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	reader, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
@@ -198,6 +202,7 @@ func (s *LocalStorage) GetBytes(ctx context.Context, key string) ([]byte, error)
 	defer func() {
 		if cerr := reader.Close(); cerr != nil {
 			// Log close error but return read result
+			_ = cerr
 		}
 	}()
 
@@ -210,7 +215,7 @@ func (s *LocalStorage) GetBytes(ctx context.Context, key string) ([]byte, error)
 }
 
 // Delete removes an object from storage.
-func (s *LocalStorage) Delete(ctx context.Context, key string) error {
+func (s *Storage) Delete(_ context.Context, key string) error {
 	if err := validateKey(key); err != nil {
 		return err
 	}
@@ -225,7 +230,7 @@ func (s *LocalStorage) Delete(ctx context.Context, key string) error {
 }
 
 // Exists checks if an object exists at the given key.
-func (s *LocalStorage) Exists(ctx context.Context, key string) (bool, error) {
+func (s *Storage) Exists(_ context.Context, key string) (bool, error) {
 	if err := validateKey(key); err != nil {
 		return false, err
 	}
@@ -243,7 +248,7 @@ func (s *LocalStorage) Exists(ctx context.Context, key string) (bool, error) {
 }
 
 // URL returns the public URL for a key.
-func (s *LocalStorage) URL(key string) string {
+func (s *Storage) URL(key string) string {
 	if s.baseURL == "" {
 		return ""
 	}
@@ -251,12 +256,12 @@ func (s *LocalStorage) URL(key string) string {
 }
 
 // PresignedURL is not supported for local storage.
-func (s *LocalStorage) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
+func (s *Storage) PresignedURL(_ context.Context, _ string, _ time.Duration) (string, error) {
 	return "", errNotSupported
 }
 
 // Stat returns metadata about a stored object.
-func (s *LocalStorage) Stat(ctx context.Context, key string) (*ObjectInfo, error) {
+func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
 	if err := validateKey(key); err != nil {
 		return nil, err
 	}
@@ -286,17 +291,17 @@ func (s *LocalStorage) Stat(ctx context.Context, key string) (*ObjectInfo, error
 }
 
 // Provider returns the provider type name.
-func (s *LocalStorage) Provider() string {
+func (s *Storage) Provider() string {
 	return "local"
 }
 
 // fullPath returns the full filesystem path for a storage key.
-func (s *LocalStorage) fullPath(key string) string {
+func (s *Storage) fullPath(key string) string {
 	return filepath.Join(s.basePath, key)
 }
 
 // calculateETag computes the MD5 hash of a file for ETag.
-func (s *LocalStorage) calculateETag(path string) (string, error) {
+func (s *Storage) calculateETag(path string) (string, error) {
 	//nolint:gosec // G304: File path from internal method (fullPath), already validated
 	file, err := os.Open(path)
 	if err != nil {
@@ -305,6 +310,7 @@ func (s *LocalStorage) calculateETag(path string) (string, error) {
 	defer func() {
 		if cerr := file.Close(); cerr != nil {
 			// Log close error but return hash result
+			_ = cerr
 		}
 	}()
 

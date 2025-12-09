@@ -1,3 +1,4 @@
+// Package services provides application-level services for identity operations.
 package services
 
 import (
@@ -204,7 +205,9 @@ type JWTClaims struct {
 // This handles cryptographically secure refresh tokens with rotation.
 type RefreshTokenService interface {
 	// GenerateToken creates a new refresh token with metadata.
-	GenerateToken(ctx context.Context, userID, sessionID, familyID, parentHash, ip, userAgent string) (string, *RefreshTokenMetadata, error)
+	GenerateToken(
+		ctx context.Context, userID, sessionID, familyID, parentHash, ip, userAgent string,
+	) (string, *RefreshTokenMetadata, error)
 
 	// ValidateToken validates a refresh token and returns its metadata.
 	ValidateToken(ctx context.Context, token string) (*RefreshTokenMetadata, error)

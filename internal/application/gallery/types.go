@@ -1,3 +1,5 @@
+// Package gallery provides application layer types and interfaces for the gallery bounded context.
+// This includes command/query patterns, handlers, and application service interfaces.
 package gallery
 
 import (

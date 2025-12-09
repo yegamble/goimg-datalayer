@@ -62,7 +62,7 @@ func NewAddImageToAlbumHandler(
 //   - Authorization error if user doesn't own the album or image
 //   - Error if image is already in the album
 //
-//nolint:cyclop // Command handler requires sequential validation: album ID, image ID, ownership checks, and persistence
+//nolint:funlen,cyclop // Command handler with sequential validation and persistence.
 func (h *AddImageToAlbumHandler) Handle(ctx context.Context, cmd AddImageToAlbumCommand) error {
 	// 1. Parse IDs
 	albumID, err := gallery.ParseAlbumID(cmd.AlbumID)

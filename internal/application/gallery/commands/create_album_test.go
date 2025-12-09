@@ -4,6 +4,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -45,15 +46,21 @@ func (m *MockAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.
 
 func (m *MockAlbumRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Album, int64, error) {
 	args := m.Called(ctx, pagination)
-	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+	if err := args.Error(2); err != nil {
+		return nil, 0, fmt.Errorf("find public albums: %w", err)
 	}
-	return args.Get(0).([]*gallery.Album), args.Get(1).(int64), args.Error(2)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), nil
+	}
+	return args.Get(0).([]*gallery.Album), args.Get(1).(int64), nil
 }
 
 func (m *MockAlbumRepository) Save(ctx context.Context, album *gallery.Album) error {
 	args := m.Called(ctx, album)
-	return args.Error(0)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("save album: %w", err)
+	}
+	return nil
 }
 
 func (m *MockAlbumRepository) Delete(ctx context.Context, id gallery.AlbumID) error {

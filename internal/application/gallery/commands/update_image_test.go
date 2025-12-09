@@ -148,7 +148,7 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrImageNotFound,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UpdateImageResult, err error) {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrImageNotFound)
+				require.ErrorIs(t, err, gallery.ErrImageNotFound)
 				assert.Nil(t, result)
 				suite.AssertExpectations(t)
 			},
@@ -169,7 +169,7 @@ func TestUpdateImageHandler_Handle(t *testing.T) {
 			wantErr: gallery.ErrUnauthorizedAccess,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UpdateImageResult, err error) {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, gallery.ErrUnauthorizedAccess)
+				require.ErrorIs(t, err, gallery.ErrUnauthorizedAccess)
 				assert.Nil(t, result)
 				suite.AssertExpectations(t)
 			},

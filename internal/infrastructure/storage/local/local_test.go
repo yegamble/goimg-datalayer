@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestNew_Success tests successful creation of LocalStorage.
+// TestNew_Success tests successful creation of Storage.
 func TestNew_Success(t *testing.T) {
 	t.Parallel()
 
@@ -388,7 +388,7 @@ func TestURL_WithoutBaseURL(t *testing.T) {
 	key := "test.jpg"
 	url := storage.URL(key)
 
-	assert.Equal(t, "", url)
+	assert.Empty(t, url)
 }
 
 // TestPresignedURL_NotSupported tests that presigned URLs are not supported.
@@ -399,7 +399,7 @@ func TestPresignedURL_NotSupported(t *testing.T) {
 	ctx := context.Background()
 
 	url, err := storage.PresignedURL(ctx, "test.jpg", time.Hour)
-	assert.Equal(t, "", url)
+	assert.Empty(t, url)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errNotSupported)
 }
@@ -583,8 +583,8 @@ func TestAtomicWrite(t *testing.T) {
 	assert.Equal(t, 1, fileCount, "should have exactly one file, no temp files")
 }
 
-// setupTestStorage creates a LocalStorage instance for testing.
-func setupTestStorage(t *testing.T) *LocalStorage {
+// setupTestStorage creates a Storage instance for testing.
+func setupTestStorage(t *testing.T) *Storage {
 	t.Helper()
 
 	tempDir := t.TempDir()

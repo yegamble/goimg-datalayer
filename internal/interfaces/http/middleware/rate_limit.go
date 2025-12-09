@@ -11,6 +11,15 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const (
+	// defaultGlobalLimit is the default rate limit for unauthenticated requests (per IP).
+	defaultGlobalLimit = 100
+	// defaultAuthLimit is the default rate limit for authenticated requests (per user).
+	defaultAuthLimit = 300
+	// defaultLoginLimit is the default rate limit for login attempts (per IP).
+	defaultLoginLimit = 5
+)
+
 // RateLimiterConfig holds configuration for rate limiting middleware.
 type RateLimiterConfig struct {
 	// RedisClient is the Redis client for storing rate limit counters.
@@ -48,9 +57,9 @@ type RateLimiterConfig struct {
 func DefaultRateLimiterConfig(redisClient *redis.Client, logger zerolog.Logger) RateLimiterConfig {
 	return RateLimiterConfig{
 		RedisClient: redisClient,
-		GlobalLimit: 100,
-		AuthLimit:   300,
-		LoginLimit:  5,
+		GlobalLimit: defaultGlobalLimit,
+		AuthLimit:   defaultAuthLimit,
+		LoginLimit:  defaultLoginLimit,
 		WindowSize:  time.Minute,
 		Logger:      logger,
 		TrustProxy:  false,
@@ -160,6 +169,8 @@ func RateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 //	    r.Use(middleware.AuthRateLimiter(cfg))
 //	    // Protected routes here
 //	})
+//
+//nolint:funlen // Rate limiting middleware with Redis.
 func AuthRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -286,7 +297,10 @@ func LoginRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 				WriteErrorWithExtensions(w, r,
 					http.StatusTooManyRequests,
 					"Too Many Login Attempts",
-					fmt.Sprintf("You have exceeded the login attempt limit of %d per %s. Please try again later.", cfg.LoginLimit, cfg.WindowSize),
+					fmt.Sprintf(
+						"You have exceeded the login attempt limit of %d per %s. Please try again later.",
+						cfg.LoginLimit, cfg.WindowSize,
+					),
 					map[string]interface{}{
 						"limit":      info.Limit,
 						"remaining":  info.Remaining,
@@ -374,6 +388,8 @@ func setRateLimitHeaders(w http.ResponseWriter, info *RateLimitInfo) {
 // Usage:
 //
 //	r.With(middleware.UploadRateLimiter(cfg)).Post("/api/v1/images", handlers.Image.Upload)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
 func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	// Default upload limit: 50 uploads per hour
 	uploadLimit := 50
@@ -432,7 +448,10 @@ func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 				WriteErrorWithExtensions(w, r,
 					http.StatusTooManyRequests,
 					"Upload Limit Exceeded",
-					fmt.Sprintf("You have exceeded the upload limit of %d uploads per %s. Please try again later.", uploadLimit, uploadWindow),
+					fmt.Sprintf(
+						"You have exceeded the upload limit of %d uploads per %s. Please try again later.",
+						uploadLimit, uploadWindow,
+					),
 					map[string]interface{}{
 						"limit":      info.Limit,
 						"remaining":  info.Remaining,

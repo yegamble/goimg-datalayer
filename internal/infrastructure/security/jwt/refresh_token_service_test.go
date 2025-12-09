@@ -106,7 +106,7 @@ func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
 
 func TestRefreshTokenService_ValidateToken(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -181,7 +181,7 @@ func TestRefreshTokenService_ValidateToken_InvalidToken(t *testing.T) {
 
 func TestRefreshTokenService_MarkAsUsed(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -221,7 +221,7 @@ func TestRefreshTokenService_MarkAsUsed_EmptyToken(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -234,7 +234,7 @@ func TestRefreshTokenService_MarkAsUsed_EmptyToken(t *testing.T) {
 
 func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -273,7 +273,7 @@ func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 
 func TestRefreshTokenService_RevokeToken(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -307,7 +307,7 @@ func TestRefreshTokenService_RevokeToken_EmptyToken(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -320,7 +320,7 @@ func TestRefreshTokenService_RevokeToken_EmptyToken(t *testing.T) {
 
 func TestRefreshTokenService_RevokeFamily(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -359,7 +359,7 @@ func TestRefreshTokenService_RevokeFamily_EmptyFamilyID(t *testing.T) {
 	t.Parallel()
 
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -465,7 +465,7 @@ func TestRefreshTokenService_DetectAnomalies(t *testing.T) {
 
 func TestRefreshTokenService_TokenRotation(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -503,7 +503,7 @@ func TestRefreshTokenService_TokenRotation(t *testing.T) {
 
 func TestRefreshTokenService_TokenExpiration(t *testing.T) {
 	client := getTestRedisClient(t)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Create service with short TTL for testing
 	service := NewRefreshTokenService(client, 2*time.Second)

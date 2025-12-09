@@ -134,7 +134,9 @@ func (h *RefreshTokenHandler) Handle(ctx context.Context, cmd RefreshTokenComman
 	return h.buildTokenResponse(newAccessToken, newRefreshToken), nil
 }
 
-func (h *RefreshTokenHandler) validateAndCheckReplay(ctx context.Context, cmd RefreshTokenCommand) (*services.RefreshTokenMetadata, error) {
+func (h *RefreshTokenHandler) validateAndCheckReplay(
+	ctx context.Context, cmd RefreshTokenCommand,
+) (*services.RefreshTokenMetadata, error) {
 	metadata, err := h.refreshService.ValidateToken(ctx, cmd.RefreshToken)
 	if err != nil {
 		h.logger.Warn().Err(err).Str("ip_address", cmd.IPAddress).Msg("invalid refresh token")
@@ -154,7 +156,11 @@ func (h *RefreshTokenHandler) validateAndCheckReplay(ctx context.Context, cmd Re
 	return metadata, nil
 }
 
-func (h *RefreshTokenHandler) handleTokenReplay(ctx context.Context, metadata *services.RefreshTokenMetadata, ipAddress string) {
+func (h *RefreshTokenHandler) handleTokenReplay(
+	ctx context.Context,
+	metadata *services.RefreshTokenMetadata,
+	ipAddress string,
+) {
 	h.logger.Error().
 		Str("user_id", metadata.UserID).
 		Str("session_id", metadata.SessionID).
@@ -174,14 +180,19 @@ func (h *RefreshTokenHandler) verifySession(ctx context.Context, metadata *servi
 	}
 
 	if !sessionExists {
-		h.logger.Warn().Str("user_id", metadata.UserID).Str("session_id", metadata.SessionID).Msg("refresh token used for non-existent session")
+		h.logger.Warn().
+			Str("user_id", metadata.UserID).
+			Str("session_id", metadata.SessionID).
+			Msg("refresh token used for non-existent session")
 		return appidentity.ErrSessionNotFound
 	}
 
 	return nil
 }
 
-func (h *RefreshTokenHandler) loadAndVerifyUser(ctx context.Context, metadata *services.RefreshTokenMetadata) (*identity.User, error) {
+func (h *RefreshTokenHandler) loadAndVerifyUser(
+	ctx context.Context, metadata *services.RefreshTokenMetadata,
+) (*identity.User, error) {
 	userID, err := identity.ParseUserID(metadata.UserID)
 	if err != nil {
 		h.logger.Error().Err(err).Str("user_id", metadata.UserID).Msg("invalid user ID in refresh token metadata")
@@ -200,7 +211,9 @@ func (h *RefreshTokenHandler) loadAndVerifyUser(ctx context.Context, metadata *s
 	return user, nil
 }
 
-func (h *RefreshTokenHandler) handleUserLoadError(err error, metadata *services.RefreshTokenMetadata) (*identity.User, error) {
+func (h *RefreshTokenHandler) handleUserLoadError(
+	err error, metadata *services.RefreshTokenMetadata,
+) (*identity.User, error) {
 	if errors.Is(err, identity.ErrUserNotFound) {
 		h.logger.Warn().Str("user_id", metadata.UserID).Msg("refresh token for non-existent user")
 		return nil, appidentity.ErrInvalidToken
@@ -210,7 +223,9 @@ func (h *RefreshTokenHandler) handleUserLoadError(err error, metadata *services.
 	return nil, fmt.Errorf("load user: %w", err)
 }
 
-func (h *RefreshTokenHandler) handleInactiveUser(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata) error {
+func (h *RefreshTokenHandler) handleInactiveUser(
+	ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata,
+) error {
 	h.logger.Warn().
 		Str("user_id", user.ID().String()).
 		Str("status", user.Status().String()).
@@ -244,19 +259,33 @@ func (h *RefreshTokenHandler) detectAnomalies(metadata *services.RefreshTokenMet
 	}
 }
 
-func (h *RefreshTokenHandler) rotateTokens(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata, cmd RefreshTokenCommand) (string, string, *services.RefreshTokenMetadata, error) {
+func (h *RefreshTokenHandler) rotateTokens(
+	ctx context.Context,
+	user *identity.User,
+	metadata *services.RefreshTokenMetadata,
+	cmd RefreshTokenCommand,
+) (string, string, *services.RefreshTokenMetadata, error) {
 	if err := h.refreshService.MarkAsUsed(ctx, cmd.RefreshToken); err != nil {
-		h.logger.Error().Err(err).Str("user_id", metadata.UserID).Str("session_id", metadata.SessionID).Msg("failed to mark refresh token as used")
+		h.logger.Error().
+			Err(err).
+			Str("user_id", metadata.UserID).
+			Str("session_id", metadata.SessionID).
+			Msg("failed to mark refresh token as used")
 		return "", "", nil, fmt.Errorf("mark token as used: %w", err)
 	}
 
-	newAccessToken, err := h.jwtService.GenerateAccessToken(user.ID().String(), user.Email().String(), user.Role().String(), metadata.SessionID)
+	newAccessToken, err := h.jwtService.GenerateAccessToken(
+		user.ID().String(), user.Email().String(), user.Role().String(), metadata.SessionID,
+	)
 	if err != nil {
 		h.logger.Error().Err(err).Str("user_id", user.ID().String()).Msg("failed to generate new access token")
 		return "", "", nil, fmt.Errorf("generate access token: %w", err)
 	}
 
-	newRefreshToken, newMetadata, err := h.refreshService.GenerateToken(ctx, user.ID().String(), metadata.SessionID, metadata.FamilyID, metadata.TokenHash, cmd.IPAddress, cmd.UserAgent)
+	newRefreshToken, newMetadata, err := h.refreshService.GenerateToken(
+		ctx, user.ID().String(), metadata.SessionID, metadata.FamilyID,
+		metadata.TokenHash, cmd.IPAddress, cmd.UserAgent,
+	)
 	if err != nil {
 		h.logger.Error().Err(err).Str("user_id", user.ID().String()).Msg("failed to generate new refresh token")
 		return "", "", nil, fmt.Errorf("generate refresh token: %w", err)
@@ -265,7 +294,13 @@ func (h *RefreshTokenHandler) rotateTokens(ctx context.Context, user *identity.U
 	return newAccessToken, newRefreshToken, newMetadata, nil
 }
 
-func (h *RefreshTokenHandler) updateSession(ctx context.Context, user *identity.User, metadata *services.RefreshTokenMetadata, newMetadata *services.RefreshTokenMetadata, cmd RefreshTokenCommand) {
+func (h *RefreshTokenHandler) updateSession(
+	ctx context.Context,
+	user *identity.User,
+	metadata *services.RefreshTokenMetadata,
+	newMetadata *services.RefreshTokenMetadata,
+	cmd RefreshTokenCommand,
+) {
 	session := services.Session{
 		SessionID: metadata.SessionID,
 		UserID:    user.ID().String(),

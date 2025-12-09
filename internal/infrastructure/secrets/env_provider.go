@@ -27,7 +27,7 @@ func NewEnvProvider() *EnvProvider {
 
 // GetSecret retrieves a secret from an environment variable.
 // Returns an error if the environment variable is not set.
-func (p *EnvProvider) GetSecret(ctx context.Context, name string) (string, error) {
+func (p *EnvProvider) GetSecret(_ context.Context, name string) (string, error) {
 	value := os.Getenv(name)
 	if value == "" {
 		return "", fmt.Errorf("secret %s not found in environment variables", name)
@@ -43,7 +43,7 @@ func (p *EnvProvider) GetSecret(ctx context.Context, name string) (string, error
 
 // GetSecretWithDefault retrieves a secret from an environment variable,
 // returning the default value if not set.
-func (p *EnvProvider) GetSecretWithDefault(ctx context.Context, name, defaultValue string) string {
+func (p *EnvProvider) GetSecretWithDefault(_ context.Context, name, defaultValue string) string {
 	value := os.Getenv(name)
 	if value == "" {
 		if defaultValue != "" {
@@ -85,7 +85,7 @@ func (p *EnvProvider) ProviderName() string {
 // ValidateRequiredSecrets checks that all required secrets are present.
 // Returns an error listing all missing secrets, or nil if all are present.
 // This should be called during application initialization.
-func (p *EnvProvider) ValidateRequiredSecrets(ctx context.Context) error {
+func (p *EnvProvider) ValidateRequiredSecrets(_ context.Context) error {
 	missing := make([]string, 0)
 
 	for _, name := range RequiredSecrets() {
@@ -109,7 +109,7 @@ func (p *EnvProvider) ValidateRequiredSecrets(ctx context.Context) error {
 // ListAvailableSecrets returns information about which secrets are available.
 // This is useful for debugging configuration issues.
 // WARNING: Never log the actual secret values!
-func (p *EnvProvider) ListAvailableSecrets(ctx context.Context) map[string]bool {
+func (p *EnvProvider) ListAvailableSecrets(_ context.Context) map[string]bool {
 	secrets := make(map[string]bool)
 
 	// Check required secrets

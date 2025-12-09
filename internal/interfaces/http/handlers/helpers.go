@@ -204,7 +204,8 @@ func GetUserAgent(r *http.Request) string {
 // Usage:
 //
 //	if !ValidateOwnership(userCtx, resourceOwnerID) {
-//	    middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "You do not have permission to access this resource")
+//	    middleware.WriteError(w, r, http.StatusForbidden, "Forbidden",
+//	        "You do not have permission to access this resource")
 //	    return
 //	}
 func ValidateOwnership(userCtx *UserContext, resourceOwnerID uuid.UUID) bool {
@@ -228,7 +229,8 @@ func ValidateOwnership(userCtx *UserContext, resourceOwnerID uuid.UUID) bool {
 //
 //	if err := validate.Struct(req); err != nil {
 //	    validationErrors := FormatValidationErrors(err)
-//	    middleware.WriteErrorWithExtensions(w, r, http.StatusBadRequest, "Validation Failed", "Invalid request data", validationErrors)
+//	    middleware.WriteErrorWithExtensions(w, r, http.StatusBadRequest, "Validation Failed",
+//	        "Invalid request data", validationErrors)
 //	    return
 //	}
 func FormatValidationErrors(err error) map[string]interface{} {

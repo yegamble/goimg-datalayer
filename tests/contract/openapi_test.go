@@ -1276,16 +1276,16 @@ func TestErrorResponseCompliance(t *testing.T) {
 
 				// Error responses should use application/problem+json or application/json
 				jsonContent := response.Value.Content.Get("application/json")
-				problemJsonContent := response.Value.Content.Get("application/problem+json")
+				problemJSONContent := response.Value.Content.Get("application/problem+json")
 
-				if jsonContent == nil && problemJsonContent == nil {
+				if jsonContent == nil && problemJSONContent == nil {
 					continue
 				}
 
 				// Verify it references ProblemDetail schema
 				content := jsonContent
 				if content == nil {
-					content = problemJsonContent
+					content = problemJSONContent
 				}
 
 				if content.Schema != nil && content.Schema.Ref != "" {

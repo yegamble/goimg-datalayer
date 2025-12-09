@@ -102,13 +102,17 @@ type PaginatedImagesResponse struct {
 	HasMore    bool       `json:"has_more"`
 }
 
-// Type aliases for application layer DTOs to avoid duplication.
-type (
-	ImageDTO   = queries.ImageDTO
-	AlbumDTO   = queries.AlbumDTO
-	VariantDTO = queries.VariantDTO
-	TagDTO     = queries.TagDTO
-)
+// ImageDTO is an alias for the application layer ImageDTO to avoid duplication.
+type ImageDTO = queries.ImageDTO
+
+// AlbumDTO is an alias for the application layer AlbumDTO to avoid duplication.
+type AlbumDTO = queries.AlbumDTO
+
+// VariantDTO is an alias for the application layer VariantDTO to avoid duplication.
+type VariantDTO = queries.VariantDTO
+
+// TagDTO is an alias for the application layer TagDTO to avoid duplication.
+type TagDTO = queries.TagDTO
 
 // ============================================================================
 // Gallery DTOs - Album Management

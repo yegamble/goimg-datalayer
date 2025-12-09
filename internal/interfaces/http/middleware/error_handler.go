@@ -87,7 +87,11 @@ func WriteError(w http.ResponseWriter, r *http.Request, status int, title string
 //	        "remaining": 0,
 //	        "retryAfter": 42,
 //	    })
-func WriteErrorWithExtensions(w http.ResponseWriter, r *http.Request, status int, title string, detail string, extensions map[string]interface{}) {
+func WriteErrorWithExtensions(
+	w http.ResponseWriter, r *http.Request,
+	status int, title string, detail string,
+	extensions map[string]interface{},
+) {
 	problem := ProblemDetails{
 		Type:       problemTypeURL(status),
 		Title:      title,
@@ -175,12 +179,14 @@ func MapDomainError(err error) (int, string, string) {
 	errMsg := err.Error()
 
 	// Authentication errors (401)
-	if errors.Is(err, ErrUnauthorized) || containsAny(errMsg, "unauthorized", "invalid credentials", "authentication failed") {
+	if errors.Is(err, ErrUnauthorized) ||
+		containsAny(errMsg, "unauthorized", "invalid credentials", "authentication failed") {
 		return http.StatusUnauthorized, "Unauthorized", "Invalid or missing authentication credentials"
 	}
 
 	// Authorization errors (403)
-	if errors.Is(err, ErrForbidden) || containsAny(errMsg, "forbidden", "insufficient permissions", "access denied") {
+	if errors.Is(err, ErrForbidden) ||
+		containsAny(errMsg, "forbidden", "insufficient permissions", "access denied") {
 		return http.StatusForbidden, "Forbidden", "You do not have permission to access this resource"
 	}
 
@@ -190,7 +196,8 @@ func MapDomainError(err error) (int, string, string) {
 	}
 
 	// Conflict errors (409) - duplicate entries, optimistic lock failures
-	if errors.Is(err, ErrConflict) || containsAny(errMsg, "already exists", "duplicate", "conflict", "concurrent modification") {
+	if errors.Is(err, ErrConflict) ||
+		containsAny(errMsg, "already exists", "duplicate", "conflict", "concurrent modification") {
 		return http.StatusConflict, "Conflict", "The request conflicts with the current state of the resource"
 	}
 

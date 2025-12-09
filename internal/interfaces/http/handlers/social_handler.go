@@ -198,6 +198,8 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 //   - 403: Image is not accessible to user
 //   - 404: Image not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -350,7 +352,9 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 //   - 404: Image not found
 //   - 500: Internal server error
 //
-//nolint:cyclop // HTTP handler requires parsing pagination parameters, validation, query delegation, and response mapping
+// and response mapping
+//
+//nolint:funlen,cyclop // HTTP handler with pagination, validation, and response mapping.
 func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -373,12 +377,12 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), 20)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		perPage = 20
+		perPage = defaultPerPage
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > maxPerPage {
+		perPage = maxPerPage
 	}
 
 	sortOrder := queryParams.Get("sort_order")
@@ -449,6 +453,8 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 //   - 400: Invalid parameters
 //   - 404: User not found
 //   - 500: Internal server error
+//
+//nolint:funlen // HTTP handler with validation and response.
 func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -471,12 +477,12 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), 20)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		perPage = 20
+		perPage = defaultPerPage
 	}
-	if perPage > 100 {
-		perPage = 100
+	if perPage > maxPerPage {
+		perPage = maxPerPage
 	}
 
 	// 3. Build query

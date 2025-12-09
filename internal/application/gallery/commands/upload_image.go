@@ -83,7 +83,7 @@ func NewUploadImageHandler(
 //   - Validation errors from domain value objects
 //   - Storage errors if upload fails
 //
-//nolint:cyclop // Command handler requires sequential steps: validation, virus scan, storage, metadata, and persistence
+//nolint:funlen,cyclop // Command handler with validation, virus scan, storage, and persistence.
 func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand) (*UploadImageResult, error) {
 	// 1. Parse and validate user ID
 	ownerID, err := identity.ParseUserID(cmd.UserID)

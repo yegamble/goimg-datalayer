@@ -72,7 +72,7 @@ func NewDeleteImageHandler(
 //   - ErrUnauthorizedAccess if user lacks permission
 //   - ErrCannotDeleteFlagged if image is flagged for moderation
 //
-//nolint:cyclop // Command handler requires sequential validation: image ID, user ID, ownership, moderation status, and deletion
+//nolint:funlen,cyclop // Sequential validation of image ID, user ID, ownership, moderation status, and deletion.
 func (h *DeleteImageHandler) Handle(ctx context.Context, cmd DeleteImageCommand) (*DeleteImageResult, error) {
 	// 1. Parse and validate IDs
 	imageID, err := gallery.ParseImageID(cmd.ImageID)

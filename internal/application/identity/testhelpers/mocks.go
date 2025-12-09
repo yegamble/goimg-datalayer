@@ -66,13 +66,19 @@ func (m *MockUserRepository) FindByUsername(ctx context.Context, username identi
 // Save persists a user.
 func (m *MockUserRepository) Save(ctx context.Context, user *identity.User) error {
 	args := m.Called(ctx, user)
-	return args.Error(0)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Save: %w", err)
+	}
+	return nil
 }
 
 // Delete removes a user.
 func (m *MockUserRepository) Delete(ctx context.Context, id identity.UserID) error {
 	args := m.Called(ctx, id)
-	return args.Error(0)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Delete: %w", err)
+	}
+	return nil
 }
 
 // MockJWTService is a mock implementation of services.JWTService.
@@ -99,7 +105,10 @@ func (m *MockJWTService) ValidateToken(tokenString string) (*services.JWTClaims,
 	if args.Get(0) != nil {
 		claims = args.Get(0).(*services.JWTClaims)
 	}
-	return claims, args.Error(1)
+	if err := args.Error(1); err != nil {
+		return claims, fmt.Errorf("mock ValidateToken: %w", err)
+	}
+	return claims, nil
 }
 
 // ExtractTokenID extracts the JWT ID without full validation.
@@ -111,7 +120,10 @@ func (m *MockJWTService) ExtractTokenID(tokenString string) (string, error) {
 // GetTokenExpiration extracts the expiration time without full validation.
 func (m *MockJWTService) GetTokenExpiration(tokenString string) (time.Time, error) {
 	args := m.Called(tokenString)
-	return args.Get(0).(time.Time), args.Error(1)
+	if err := args.Error(1); err != nil {
+		return time.Time{}, fmt.Errorf("get token expiration: %w", err)
+	}
+	return args.Get(0).(time.Time), nil
 }
 
 // MockRefreshTokenService is a mock implementation of services.RefreshTokenService.
@@ -139,13 +151,19 @@ func (m *MockRefreshTokenService) ValidateToken(ctx context.Context, token strin
 	if args.Get(0) != nil {
 		metadata = args.Get(0).(*services.RefreshTokenMetadata)
 	}
-	return metadata, args.Error(1)
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("validate token: %w", err)
+	}
+	return metadata, nil
 }
 
 // MarkAsUsed marks a refresh token as used.
 func (m *MockRefreshTokenService) MarkAsUsed(ctx context.Context, token string) error {
 	args := m.Called(ctx, token)
-	return args.Error(0)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mark as used: %w", err)
+	}
+	return nil
 }
 
 // RevokeToken revokes a single refresh token.

@@ -535,9 +535,10 @@ func TestImage_MarkAsActive_Idempotent(t *testing.T) {
 	t.Parallel()
 
 	img := createTestImage(t)
-	img.MarkAsActive()
-
 	err := img.MarkAsActive()
+	require.NoError(t, err)
+
+	err = img.MarkAsActive()
 
 	require.NoError(t, err)
 	assert.Equal(t, gallery.StatusActive, img.Status())
