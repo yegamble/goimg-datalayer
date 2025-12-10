@@ -48,8 +48,6 @@ func New(cfg Config) (*Processor, error) {
 // 4. Re-encode original through libvips (prevent polyglot exploits)
 //
 // Returns a ProcessResult containing all variants.
-//
-//nolint:cyclop // Image processing pipeline requires sequential steps: validation, metadata extraction, variant generation, and error handling
 func (p *Processor) Process(ctx context.Context, input []byte, _ string) (*ProcessResult, error) {
 	// Acquire semaphore slot (limits concurrent operations)
 	select {
@@ -59,41 +57,77 @@ func (p *Processor) Process(ctx context.Context, input []byte, _ string) (*Proce
 		return nil, fmt.Errorf("context cancelled: %w", ctx.Err())
 	}
 
-	// Step 1: Decode and validate image
+	// Step 1: Validate image dimensions
+	size, err := p.validateImageDimensions(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 2: Detect and validate format
+	originalFormat, err := p.detectAndValidateFormat(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 3: Generate all variants
+	result, err := p.generateAllVariants(ctx, input, originalFormat, size)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// validateImageDimensions validates the image can be decoded and has valid dimensions.
+func (p *Processor) validateImageDimensions(input []byte) (bimg.ImageSize, error) {
 	img := bimg.NewImage(input)
 	size, err := img.Size()
 	if err != nil {
-		return nil, fmt.Errorf("decode image: %w: %w", ErrProcessingFailed, err)
+		return bimg.ImageSize{}, fmt.Errorf("decode image: %w: %w", ErrProcessingFailed, err)
 	}
 
 	// Validate dimensions
 	if size.Width <= 0 || size.Height <= 0 {
-		return nil, fmt.Errorf("%w: %dx%d", ErrInvalidDimensions, size.Width, size.Height)
+		return bimg.ImageSize{}, fmt.Errorf("%w: %dx%d", ErrInvalidDimensions, size.Width, size.Height)
 	}
 
 	// Minimum dimension check (avoid processing tiny images)
 	if size.Width < 10 || size.Height < 10 {
-		return nil, fmt.Errorf("%w: minimum 10x10 pixels required", ErrImageTooSmall)
+		return bimg.ImageSize{}, fmt.Errorf("%w: minimum 10x10 pixels required", ErrImageTooSmall)
 	}
 
-	// Detect format
+	return size, nil
+}
+
+// detectAndValidateFormat detects the image format and ensures it's supported.
+func (p *Processor) detectAndValidateFormat(input []byte) (string, error) {
+	img := bimg.NewImage(input)
 	imgType := img.Type()
 	if imgType == "" {
-		return nil, fmt.Errorf("%w: could not detect format", ErrUnsupportedFormat)
+		return "", fmt.Errorf("%w: could not detect format", ErrUnsupportedFormat)
 	}
 
 	originalFormat := bimgTypeToString(bimg.DetermineImageType(input))
 	if !IsSupportedFormat(originalFormat) {
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedFormat, originalFormat)
+		return "", fmt.Errorf("%w: %s", ErrUnsupportedFormat, originalFormat)
 	}
 
+	return originalFormat, nil
+}
+
+// generateAllVariants generates all image variants and returns the result.
+func (p *Processor) generateAllVariants(
+	ctx context.Context,
+	input []byte,
+	originalFormat string,
+	size bimg.ImageSize,
+) (*ProcessResult, error) {
 	result := &ProcessResult{
 		OriginalFormat: originalFormat,
 		OriginalWidth:  size.Width,
 		OriginalHeight: size.Height,
 	}
 
-	// Step 2 & 3: Generate all variants
 	// Process in order: thumbnail, small, medium, large, original
 	variantTypes := []VariantType{
 		VariantThumbnail,
@@ -130,8 +164,6 @@ func (p *Processor) Process(ctx context.Context, input []byte, _ string) (*Proce
 // GenerateVariant generates a single image variant from the input data.
 // The variant is processed according to the configuration (size, format, quality).
 // EXIF metadata is always stripped for security/privacy.
-//
-//nolint:cyclop // Variant generation requires format-specific processing logic with multiple conditional branches
 func (p *Processor) GenerateVariant(ctx context.Context, input []byte, variant VariantType) (*VariantData, error) {
 	if !variant.IsValid() {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidVariantType, variant)
@@ -156,40 +188,67 @@ func (p *Processor) GenerateVariant(ctx context.Context, input []byte, variant V
 		return nil, fmt.Errorf("get image size: %w", err)
 	}
 
+	// For original variant, use special processing
+	if variant == VariantOriginal {
+		return p.processOriginalVariant(input, img, size, spec)
+	}
+
+	// For standard variants, apply resize and format conversion
+	return p.processStandardVariant(input, img, size, spec)
+}
+
+// processOriginalVariant processes the original variant by re-encoding through libvips.
+func (p *Processor) processOriginalVariant(
+	input []byte,
+	img *bimg.Image,
+	size bimg.ImageSize,
+	spec VariantSpec,
+) (*VariantData, error) {
+	// Keep original dimensions, just re-encode through libvips
+	originalType := bimg.DetermineImageType(input)
+
+	options := bimg.Options{
+		Quality:        spec.Quality,
+		StripMetadata:  p.config.StripMetadata,
+		Interpretation: bimg.InterpretationSRGB,
+		Type:           originalType,
+	}
+
+	// Re-encode to prevent polyglot exploits
+	processed, err := img.Process(options)
+	if err != nil {
+		return nil, fmt.Errorf("re-encode original: %w", err)
+	}
+
+	format := bimgTypeToString(originalType)
+	return &VariantData{
+		Data:        processed,
+		Width:       size.Width,
+		Height:      size.Height,
+		Format:      format,
+		ContentType: formatToContentType(format),
+		FileSize:    int64(len(processed)),
+	}, nil
+}
+
+// processStandardVariant processes a standard variant with resize and format conversion.
+func (p *Processor) processStandardVariant(
+	input []byte,
+	img *bimg.Image,
+	size bimg.ImageSize,
+	spec VariantSpec,
+) (*VariantData, error) {
 	// Prepare processing options
 	options := bimg.Options{
 		Quality:        spec.Quality,
 		StripMetadata:  p.config.StripMetadata,
-		Interpretation: bimg.InterpretationSRGB, // Ensure sRGB color space
+		Interpretation: bimg.InterpretationSRGB,
+		Type:           spec.Format,
 	}
 
 	// Handle animated GIFs (extract first frame)
 	if bimg.DetermineImageType(input) == bimg.GIF {
-		// For GIFs, we extract the first frame and convert to static image
 		options.Type = spec.Format
-	}
-
-	// For original variant, re-encode with original format
-	if variant == VariantOriginal {
-		// Keep original dimensions, just re-encode through libvips
-		originalType := bimg.DetermineImageType(input)
-		options.Type = originalType
-
-		// Re-encode to prevent polyglot exploits
-		processed, err := img.Process(options)
-		if err != nil {
-			return nil, fmt.Errorf("re-encode original: %w", err)
-		}
-
-		format := bimgTypeToString(originalType)
-		return &VariantData{
-			Data:        processed,
-			Width:       size.Width,
-			Height:      size.Height,
-			Format:      format,
-			ContentType: formatToContentType(format),
-			FileSize:    int64(len(processed)),
-		}, nil
 	}
 
 	// Calculate resize dimensions (preserve aspect ratio)
@@ -206,9 +265,6 @@ func (p *Processor) GenerateVariant(ctx context.Context, input []byte, variant V
 		options.Enlarge = false // Never enlarge images
 		options.Force = false   // Preserve aspect ratio
 	}
-
-	// Set output format (WebP for variants)
-	options.Type = spec.Format
 
 	// Process the image
 	processed, err := img.Process(options)

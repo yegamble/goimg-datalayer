@@ -85,20 +85,10 @@ func (h *ImageProcessHandler) ProcessTask(ctx context.Context, t *asynq.Task) er
 		Msg("starting image processing")
 
 	// Step 1: Retrieve original image from storage
-	imageData, err := h.storage.Get(ctx, payload.StorageKey)
+	imageData, err := h.retrieveImageFromStorage(ctx, &payload)
 	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("image_id", payload.ImageID).
-			Str("storage_key", payload.StorageKey).
-			Msg("failed to retrieve image from storage")
-		return fmt.Errorf("retrieve image %s: %w", payload.StorageKey, err)
+		return err
 	}
-
-	h.logger.Debug().
-		Str("image_id", payload.ImageID).
-		Int("size_bytes", len(imageData)).
-		Msg("retrieved image from storage")
 
 	// Step 2: Process image and generate variants
 	result, err := h.processor.Process(ctx, imageData, payload.OriginalFilename)
@@ -119,6 +109,48 @@ func (h *ImageProcessHandler) ProcessTask(ctx context.Context, t *asynq.Task) er
 		Msg("image processed successfully")
 
 	// Step 3: Store variants
+	if err := h.storeImageVariants(ctx, &payload, result); err != nil {
+		return err
+	}
+
+	duration := time.Since(startTime)
+	h.logger.Info().
+		Str("image_id", payload.ImageID).
+		Dur("duration_ms", duration).
+		Msg("image processing completed")
+
+	return nil
+}
+
+// retrieveImageFromStorage retrieves the original image from storage.
+func (h *ImageProcessHandler) retrieveImageFromStorage(
+	ctx context.Context,
+	payload *ImageProcessPayload,
+) ([]byte, error) {
+	imageData, err := h.storage.Get(ctx, payload.StorageKey)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Str("storage_key", payload.StorageKey).
+			Msg("failed to retrieve image from storage")
+		return nil, fmt.Errorf("retrieve image %s: %w", payload.StorageKey, err)
+	}
+
+	h.logger.Debug().
+		Str("image_id", payload.ImageID).
+		Int("size_bytes", len(imageData)).
+		Msg("retrieved image from storage")
+
+	return imageData, nil
+}
+
+// storeImageVariants stores all processed image variants to storage.
+func (h *ImageProcessHandler) storeImageVariants(
+	ctx context.Context,
+	payload *ImageProcessPayload,
+	result *processor.ProcessResult,
+) error {
 	variants := map[string][]byte{
 		"thumbnail": result.Thumbnail.Data,
 		"small":     result.Small.Data,
@@ -146,13 +178,6 @@ func (h *ImageProcessHandler) ProcessTask(ctx context.Context, t *asynq.Task) er
 			Int("size_bytes", len(variantData)).
 			Msg("stored image variant")
 	}
-
-	duration := time.Since(startTime)
-	h.logger.Info().
-		Str("image_id", payload.ImageID).
-		Dur("duration_ms", duration).
-		Int("variants_count", len(variants)).
-		Msg("image processing completed")
 
 	return nil
 }
