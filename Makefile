@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
 
 # Default target
 help:
@@ -19,6 +19,7 @@ help:
 	@echo "  load-test-upload  - Run upload flow load test"
 	@echo "  load-test-social  - Run social interactions load test"
 	@echo "  coverage-domain   - Generate HTML coverage report for domain layer"
+	@echo "  fmt               - Format Go source code"
 	@echo "  lint              - Run golangci-lint"
 	@echo "  generate          - Run code generation (oapi-codegen)"
 	@echo "  migrate-up        - Apply pending database migrations"
@@ -165,6 +166,12 @@ load-test-social:
 		exit 1; \
 	fi
 	@k6 run tests/load/social-flow.js
+
+# Formatting
+fmt:
+	@echo "Formatting Go source code..."
+	@go fmt ./...
+	@echo "Formatting complete"
 
 # Linting
 lint:
