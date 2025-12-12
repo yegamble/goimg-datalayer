@@ -19,6 +19,12 @@ const (
 	healthCheckTimeout = 5 * time.Second
 	// millisecondConversion is the multiplier to convert seconds to milliseconds.
 	millisecondConversion = 1000
+
+	// Health check status constants.
+	statusUp       = "up"
+	statusDown     = "down"
+	statusOK       = "ok"
+	statusDegraded = "degraded"
 )
 
 // HealthHandler handles health check endpoints for monitoring and orchestration.
@@ -179,24 +185,24 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	// Determine overall status with graceful degradation
 	// Critical dependencies: database, storage, ClamAV
 	// Non-critical: Redis (caching/sessions)
-	criticalDown := dbStatus.Status == "down" ||
-		storageStatus.Status == "down" ||
-		clamavStatus.Status == "down"
+	criticalDown := dbStatus.Status == statusDown ||
+		storageStatus.Status == statusDown ||
+		clamavStatus.Status == statusDown
 
-	redisDown := redisStatus.Status == "down"
+	redisDown := redisStatus.Status == statusDown
 
 	var status string
 	var httpStatus int
 
 	switch {
 	case criticalDown:
-		status = "down"
+		status = statusDown
 		httpStatus = http.StatusServiceUnavailable
 	case redisDown:
-		status = "degraded"
+		status = statusDegraded
 		httpStatus = http.StatusOK // Still accepting traffic
 	default:
-		status = "ok"
+		status = statusOK
 		httpStatus = http.StatusOK
 	}
 
@@ -213,16 +219,16 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 		Float64("redis_latency_ms", redisLatency).
 		Float64("storage_latency_ms", storageLatency).
 		Float64("clamav_latency_ms", clamavLatency).
-		Bool("database_healthy", dbStatus.Status == "up").
-		Bool("redis_healthy", redisStatus.Status == "up").
-		Bool("storage_healthy", storageStatus.Status == "up").
-		Bool("clamav_healthy", clamavStatus.Status == "up").
+		Bool("database_healthy", dbStatus.Status == statusUp).
+		Bool("redis_healthy", redisStatus.Status == statusUp).
+		Bool("storage_healthy", storageStatus.Status == statusUp).
+		Bool("clamav_healthy", clamavStatus.Status == statusUp).
 		Logger()
 
 	switch status {
-	case "down":
+	case statusDown:
 		logEvent.Warn().Msg("readiness check failed: service down")
-	case "degraded":
+	case statusDegraded:
 		logEvent.Warn().Msg("readiness check degraded: non-critical dependency down")
 	default:
 		logEvent.Debug().Msg("readiness check succeeded")
@@ -253,14 +259,14 @@ func (h *HealthHandler) checkDatabase(ctx context.Context) (CheckDetails, float6
 			Msg("database health check failed")
 
 		return CheckDetails{
-			Status:    "down",
+			Status:    statusDown,
 			LatencyMs: latency,
 			Error:     err.Error(),
 		}, latency
 	}
 
 	return CheckDetails{
-		Status:    "up",
+		Status:    statusUp,
 		LatencyMs: latency,
 	}, latency
 }
@@ -282,7 +288,7 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 			Msg("redis client is nil")
 
 		return CheckDetails{
-			Status:    "down",
+			Status:    statusDown,
 			LatencyMs: latency,
 			Error:     "redis client not configured",
 		}, latency
@@ -298,14 +304,14 @@ func (h *HealthHandler) checkRedis(ctx context.Context) (CheckDetails, float64) 
 			Msg("redis health check failed")
 
 		return CheckDetails{
-			Status:    "down",
+			Status:    statusDown,
 			LatencyMs: latency,
 			Error:     err.Error(),
 		}, latency
 	}
 
 	return CheckDetails{
-		Status:    "up",
+		Status:    statusUp,
 		LatencyMs: latency,
 	}, latency
 }
@@ -332,14 +338,14 @@ func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64
 			Msg("storage health check failed")
 
 		return CheckDetails{
-			Status:    "down",
+			Status:    statusDown,
 			LatencyMs: latency,
 			Error:     err.Error(),
 		}, latency
 	}
 
 	return CheckDetails{
-		Status:    "up",
+		Status:    statusUp,
 		LatencyMs: latency,
 	}, latency
 }
@@ -362,14 +368,14 @@ func (h *HealthHandler) checkClamAV(ctx context.Context) (CheckDetails, float64)
 			Msg("clamav health check failed")
 
 		return CheckDetails{
-			Status:    "down",
+			Status:    statusDown,
 			LatencyMs: latency,
 			Error:     err.Error(),
 		}, latency
 	}
 
 	return CheckDetails{
-		Status:    "up",
+		Status:    statusUp,
 		LatencyMs: latency,
 	}, latency
 }
