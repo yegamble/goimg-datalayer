@@ -200,6 +200,11 @@ linters:
         linters:
           - ireturn
 
+      # Exclude ireturn from secrets provider (factory pattern intentionally returns interface)
+      - path: 'internal/infrastructure/secrets/provider.go'
+        linters:
+          - ireturn
+
 # Formatters configuration
 formatters:
   enable:

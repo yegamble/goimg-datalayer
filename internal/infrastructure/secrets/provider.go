@@ -46,8 +46,6 @@ type SecretConfig struct {
 
 // NewProvider creates a SecretProvider based on the configuration.
 // It selects the appropriate provider implementation based on the Provider field.
-//
-//nolint:ireturn // Returning interface is intentional - allows swapping providers without changing call sites
 func NewProvider(config SecretConfig) (SecretProvider, error) {
 	switch config.Provider {
 	case "env", "environment":
