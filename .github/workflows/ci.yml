@@ -481,11 +481,18 @@ jobs:
             echo "OpenAPI spec not found, skipping validation (expected in Sprint 1 Week 2)"
           fi
 
-      - name: Validate OpenAPI spec
+      - name: Set up Node.js for Spectral
         if: steps.check_openapi.outputs.exists == 'true'
-        uses: char0n/swagger-editor-validate@d16c61ab5afd355c4f8fafe8d92d438e177e3a2e # v1.3.2
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          definition-file: api/openapi/openapi.yaml
+          node-version: '20'
+
+      - name: Validate OpenAPI spec with Spectral
+        if: steps.check_openapi.outputs.exists == 'true'
+        run: |
+          npx @stoplight/spectral-cli@6.11.1 lint api/openapi/openapi.yaml \
+            --format stylish \
+            --fail-severity error
 
       - name: Check for OpenAPI spec drift
         if: steps.check_openapi.outputs.exists == 'true'
