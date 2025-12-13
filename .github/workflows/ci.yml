@@ -481,11 +481,11 @@ jobs:
             echo "OpenAPI spec not found, skipping validation (expected in Sprint 1 Week 2)"
           fi
 
-      - name: Validate OpenAPI spec
+      - name: Validate OpenAPI spec with Spectral
         if: steps.check_openapi.outputs.exists == 'true'
-        uses: char0n/swagger-editor-validate@d16c61ab5afd355c4f8fafe8d92d438e177e3a2e # v1.3.2
+        uses: stoplightio/spectral-action@a8cf48e40dfe41c9cb9e34ad1395262ee1e797ca # v0.8.10
         with:
-          definition-file: api/openapi/openapi.yaml
+          file_glob: api/openapi/openapi.yaml
 
       - name: Check for OpenAPI spec drift
         if: steps.check_openapi.outputs.exists == 'true'
