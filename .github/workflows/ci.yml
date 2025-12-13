@@ -491,6 +491,7 @@ jobs:
         if: steps.check_openapi.outputs.exists == 'true'
         run: |
           npx @stoplight/spectral-cli@6.11.1 lint api/openapi/openapi.yaml \
+            --ruleset spectral:oas \
             --format stylish \
             --fail-severity error
 
