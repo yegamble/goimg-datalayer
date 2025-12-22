@@ -49,6 +49,25 @@ runs:
         DATABASE_URL: ${{ inputs.database-url }}
       run: |
         if [ -d "migrations" ] || [ -d "db/migrations" ]; then
+          # Parse DATABASE_URL and export individual variables for Makefile compatibility
+          # Format: postgresql://user:password@host:port/dbname?sslmode=disable
+          if [ -n "$DATABASE_URL" ]; then
+            # Extract components from DATABASE_URL
+            export DB_USER=$(echo "$DATABASE_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
+            export DB_PASSWORD=$(echo "$DATABASE_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+            export DB_HOST=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+            export DB_PORT=$(echo "$DATABASE_URL" | sed -n 's|.*:\([0-9]*\)/.*|\1|p')
+            export DB_NAME=$(echo "$DATABASE_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
+            export DB_SSL_MODE=$(echo "$DATABASE_URL" | sed -n 's|.*sslmode=\([^&]*\).*|\1|p')
+
+            echo "Database configuration:"
+            echo "  Host: $DB_HOST"
+            echo "  Port: $DB_PORT"
+            echo "  User: $DB_USER"
+            echo "  Database: $DB_NAME"
+            echo "  SSL Mode: ${DB_SSL_MODE:-disable}"
+          fi
+
           if [ -f "Makefile" ] && grep -q "migrate-up" Makefile; then
             echo "Running database migrations via Makefile..."
             make migrate-up || {
