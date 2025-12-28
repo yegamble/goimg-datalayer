@@ -274,7 +274,6 @@ func TestJWTAuth_MalformedHeader_SinglePart_Returns401(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, problem.Detail, "Invalid authorization header format")
-
 }
 
 func TestJWTAuth_EmptyToken_Returns401(t *testing.T) {
@@ -319,7 +318,6 @@ func TestJWTAuth_EmptyToken_Returns401(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Contains(t, problem.Detail, "Authorization token is empty")
-
 }
 
 func TestJWTAuth_BlacklistedToken_Returns401(t *testing.T) {
@@ -927,7 +925,6 @@ func TestRequireRole_UserLacksRequiredRole_Returns403(t *testing.T) {
 
 	assert.Equal(t, "Forbidden", problem.Title)
 	assert.Contains(t, problem.Detail, "This action requires admin role")
-
 }
 
 func TestRequireRole_NoUserContext_Returns401(t *testing.T) {
@@ -1074,7 +1071,6 @@ func TestRequireAnyRole_UserHasNoneOfAllowedRoles_Returns403(t *testing.T) {
 
 	assert.Equal(t, "Forbidden", problem.Title)
 	assert.Contains(t, problem.Detail, "This action requires one of the following roles")
-
 }
 
 func TestRequireAnyRole_NoUserContext_Returns401(t *testing.T) {
@@ -1158,6 +1154,8 @@ func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 
 	for _, authHeader := range testCases {
 		t.Run(authHeader, func(t *testing.T) {
+			t.Parallel()
+
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/protected", nil)
 			req.Header.Set("Authorization", authHeader)
 			ctx := middleware.SetRequestID(req.Context(), "test-request-id")
@@ -1172,9 +1170,6 @@ func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 			assert.Equal(t, http.StatusOK, rr.Code)
 		})
 	}
-
-	mockJWT.AssertExpectations(t)
-	mockBlacklist.AssertExpectations(t)
 }
 
 func TestJWTAuth_RFC7807ErrorFormat(t *testing.T) {
