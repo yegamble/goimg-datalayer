@@ -52,6 +52,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libvips-dev
 
+      - name: Download and verify dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Check go.mod and go.sum are in sync
+        run: |
+          go mod tidy
+          if ! git diff --quiet go.mod go.sum; then
+            echo "ERROR: go.mod and go.sum are out of sync"
+            echo "Run 'go mod tidy' locally and commit the changes"
+            git diff go.mod go.sum
+            exit 1
+          fi
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
