@@ -26,16 +26,21 @@ require (
 )
 
 require (
+	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/containerd/containerd v1.7.11 // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/opencontainers/runc v1.1.10 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.11 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	golang.org/x/time v0.8.0 // indirect
@@ -108,7 +113,6 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/rs/zerolog v1.34.0
 	github.com/sethvargo/go-retry v0.2.4 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
