@@ -1,7 +1,7 @@
 # Sprint 10: Security Enhancements - Implementation Plan
 
-> **Status**: Planning Phase
-> **Start Date**: TBD (Post-Launch)
+> **Status**: IN PROGRESS
+> **Start Date**: 2026-01-06
 > **Duration**: 2 weeks
 > **Focus**: Random Login Delay & HIBP Password Validation
 

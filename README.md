@@ -4,9 +4,9 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **GO FOR LAUNCH** ✅ - All MVP development complete, production deployment approved
+**Current Phase**: **Phase 2 - Security Enhancements** - MVP complete, Phase 2 development in progress
 
-**Phase 2 Development**: Starting - Advanced features and security enhancements
+**Sprint 10**: IN PROGRESS - Random login delay and HIBP password check
 
 **Completed Sprints**:
 
@@ -437,11 +437,11 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 8 | Integration, Testing & Security Hardening | 2 weeks | **COMPLETE** ✅ |
 | 9 | MVP Polish & Launch Prep | 2 weeks | **COMPLETE** ✅ GO FOR LAUNCH |
 
-### Phase 2: Advanced Features (STARTING)
+### Phase 2: Advanced Features (IN PROGRESS)
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
-| 10 | Security Enhancements | High | **NEXT** |
+| 10 | Security Enhancements | High | **IN PROGRESS** |
 | | - Random login delay (timing attack mitigation) | | |
 | | - HIBP password check | | |
 | 11 | Two-Factor Authentication | High | Planned |
