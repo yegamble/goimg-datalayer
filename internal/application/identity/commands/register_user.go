@@ -27,22 +27,26 @@ type RegisterUserCommand struct {
 // It orchestrates the registration workflow: validation, uniqueness checks,
 // password hashing, user creation, and event publishing.
 type RegisterUserHandler struct {
-	users          identity.UserRepository
-	eventPublisher appidentity.EventPublisher
-	logger         *zerolog.Logger
+	users           identity.UserRepository
+	eventPublisher  appidentity.EventPublisher
+	passwordChecker identity.PasswordSecurityChecker // Optional: checks if password is compromised
+	logger          *zerolog.Logger
 }
 
 // NewRegisterUserHandler creates a new RegisterUserHandler with the given dependencies.
 // All dependencies are injected via constructor for testability and maintainability.
+// The passwordChecker is optional and can be nil (password breach checking will be skipped).
 func NewRegisterUserHandler(
 	users identity.UserRepository,
 	eventPublisher appidentity.EventPublisher,
+	passwordChecker identity.PasswordSecurityChecker,
 	logger *zerolog.Logger,
 ) *RegisterUserHandler {
 	return &RegisterUserHandler{
-		users:          users,
-		eventPublisher: eventPublisher,
-		logger:         logger,
+		users:           users,
+		eventPublisher:  eventPublisher,
+		passwordChecker: passwordChecker,
+		logger:          logger,
 	}
 }
 
@@ -52,16 +56,18 @@ func NewRegisterUserHandler(
 //  1. Convert DTOs to domain value objects (validation happens here)
 //  2. Check email uniqueness (business rule)
 //  3. Check username uniqueness (business rule)
-//  4. Hash password using Argon2id
-//  5. Create User aggregate via domain factory
-//  6. Persist user via repository
-//  7. Publish domain events after successful save
-//  8. Return UserDTO (without password hash)
+//  4. Check if password is compromised in data breaches (optional)
+//  5. Hash password using Argon2id
+//  6. Create User aggregate via domain factory
+//  7. Persist user via repository
+//  8. Publish domain events after successful save
+//  9. Return UserDTO (without password hash)
 //
 // Returns:
 //   - UserDTO on successful registration
 //   - ErrEmailAlreadyExists if email is taken
 //   - ErrUsernameAlreadyExists if username is taken
+//   - ErrPasswordCompromised if password found in breach database
 //   - Validation errors from domain value objects
 //
 //nolint:funlen,cyclop // Sequential validation: email, username, uniqueness, password hashing, and persistence.
@@ -117,7 +123,26 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return nil, appidentity.ErrUsernameAlreadyExists
 	}
 
-	// 4. Hash password using Argon2id (application layer concern)
+	// 4. Check if password is compromised (optional security check)
+	// This uses the HIBP API with k-anonymity to check if the password
+	// has appeared in known data breaches without transmitting the full password.
+	if h.passwordChecker != nil {
+		compromised, err := h.passwordChecker.IsCompromised(ctx, cmd.Password)
+		if err != nil {
+			// Fail open: if the check fails, log warning but allow registration
+			// This ensures service availability is prioritized over perfect security
+			h.logger.Warn().
+				Err(err).
+				Msg("password breach check failed - allowing registration")
+		} else if compromised {
+			// Password found in breach database - reject registration
+			h.logger.Debug().
+				Msg("registration attempt with compromised password")
+			return nil, appidentity.ErrPasswordCompromised
+		}
+	}
+
+	// 5. Hash password using Argon2id (application layer concern)
 	passwordHash, err := identity.NewPasswordHash(cmd.Password)
 	if err != nil {
 		h.logger.Debug().
@@ -126,7 +151,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return nil, fmt.Errorf("invalid password: %w", err)
 	}
 
-	// 5. Create User aggregate via domain factory
+	// 6. Create User aggregate via domain factory
 	user, err := identity.NewUser(email, username, passwordHash)
 	if err != nil {
 		h.logger.Error().
@@ -137,7 +162,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 
-	// 6. Persist user to repository
+	// 7. Persist user to repository
 	if err := h.users.Save(ctx, user); err != nil {
 		h.logger.Error().
 			Err(err).
@@ -148,7 +173,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return nil, fmt.Errorf("save user: %w", err)
 	}
 
-	// 7. Publish domain events AFTER successful save
+	// 8. Publish domain events AFTER successful save
 	// Event publishing failures should NOT fail the registration
 	for _, event := range user.Events() {
 		if err := h.eventPublisher.Publish(ctx, event); err != nil {
@@ -169,7 +194,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		Str("user_agent", cmd.UserAgent).
 		Msg("user registered successfully")
 
-	// 8. Convert to DTO (exclude password hash)
+	// 9. Convert to DTO (exclude password hash)
 	userDTO := dto.FromDomain(user)
 	return &userDTO, nil
 }
