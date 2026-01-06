@@ -444,7 +444,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 10 | Security Enhancements | High | **IN PROGRESS** |
 | | - Random login delay (timing attack mitigation) | | ✅ Implemented |
 | | - HIBP password check | | ✅ Implemented |
-| | - Prometheus metrics, OpenAPI spec update | | ⏳ Remaining |
+| | - Prometheus metrics, OpenAPI spec update | | ✅ Implemented |
 | 11 | Two-Factor Authentication | High | Planned |
 | | - TOTP implementation | | |
 | | - Unusual login notifications | | |

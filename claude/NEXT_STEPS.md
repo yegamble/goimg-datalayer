@@ -159,25 +159,28 @@ The goimg-datalayer backend is **production-ready** and has been **APPROVED FOR 
 
 Features deferred to Phase 2:
 
-| Feature | Priority | Sprint | Plan |
-|---------|----------|--------|------|
-| Random login delay (timing attack mitigation) | High | 10 | [Sprint 10 Plan](/home/user/goimg-datalayer/claude/sprint_10_plan.md) |
-| HIBP password check | High | 10 | [Sprint 10 Plan](/home/user/goimg-datalayer/claude/sprint_10_plan.md) |
-| Two-factor authentication (TOTP) | High | 11 | TBD |
-| OAuth providers (Google, GitHub) | Medium | 11-12 | TBD |
-| Follow users / Activity feeds | Medium | 12 | TBD |
-| Email notifications (SMTP) | Medium | 12 | TBD |
-| IPFS storage integration | Medium | 13 | TBD |
-| Unusual login notifications | Medium | 11 | TBD |
-| SIEM integration | Medium | 11 | TBD |
+| Feature | Priority | Sprint | Status |
+|---------|----------|--------|--------|
+| Random login delay (timing attack mitigation) | High | 10 | ✅ COMPLETE |
+| HIBP password check | High | 10 | ✅ COMPLETE |
+| Prometheus metrics (security) | High | 10 | ✅ COMPLETE |
+| Two-factor authentication (TOTP) | High | 11 | Planned |
+| OAuth providers (Google, GitHub) | Medium | 11-12 | Planned |
+| Follow users / Activity feeds | Medium | 12 | Planned |
+| Email notifications (SMTP) | Medium | 12 | Planned |
+| IPFS storage integration | Medium | 13 | Planned |
+| Unusual login notifications | Medium | 11 | Planned |
+| SIEM integration | Medium | 11 | Planned |
 
-**Sprint 10 (Security Enhancements) is now ready for implementation** with a comprehensive 80KB+ implementation plan covering:
-- Random login delay (100-300ms) for timing attack mitigation
-- HIBP password check with k-anonymity API integration
-- Complete test strategy with unit, integration, and E2E tests
-- Security validation checklist and penetration test scenarios
-- Performance monitoring and alerting configuration
-- Detailed implementation timeline with task breakdown
+**Sprint 10 (Security Enhancements) is nearly complete**:
+- ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
+- ✅ HIBP password check with k-anonymity API integration - IMPLEMENTED
+- ✅ Prometheus metrics for security monitoring - IMPLEMENTED
+- ✅ OpenAPI spec updated with password_compromised error - IMPLEMENTED
+- ✅ E2E tests for compromised password rejection - IMPLEMENTED
+- ✅ Security Gate S10 passed (8/8 controls) - VERIFIED
+- ⏳ CI verification for 85%+ coverage - Pending
+- ⏳ Load testing for p95 latency - Pending
 
 ---
 
