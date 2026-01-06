@@ -36,7 +36,7 @@
 | Prometheus Metrics | ✅ DONE | `goimg_auth_login_delay_seconds`, `goimg_security_hibp_checks_total`, `goimg_security_hibp_check_duration_seconds` |
 | OpenAPI Spec | ✅ DONE | `password_compromised` error added to registration endpoint |
 | E2E Tests | ✅ DONE | Newman tests for compromised password rejection |
-| Security Gate S10 | ✅ DONE | All 8 controls passed (timing leak fixed in S10-AUTH-003) |
+| Security Gate S10 | ✅ DONE | 8 of 10 controls passed (2 pending: S10-TEST-001, S10-PERF-001; timing leak fixed in S10-AUTH-003) |
 | Documentation | ✅ DONE | Sprint 10 docs updated |
 
 ### Security Gate S10 Status
