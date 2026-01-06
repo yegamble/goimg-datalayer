@@ -593,7 +593,6 @@ func (mc *MetricsCollector) RecordLoginDelay(delaySeconds float64) {
 //   - "clean": Password is not compromised
 //   - "compromised": Password found in HIBP database
 //   - "error": Check failed due to error
-//   - "cache_hit": Result retrieved from cache
 //   - "skipped": Check was skipped (e.g., feature disabled)
 //
 // Sprint 10: HIBP password check metric
