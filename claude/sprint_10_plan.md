@@ -1,6 +1,6 @@
 # Sprint 10: Security Enhancements - Implementation Plan
 
-> **Status**: IN PROGRESS
+> **Status**: CORE FEATURES COMPLETE
 > **Start Date**: 2026-01-06
 > **Duration**: 2 weeks
 > **Focus**: Random Login Delay & HIBP Password Validation
@@ -11,10 +11,24 @@
 
 Sprint 10 implements two critical security enhancements deferred from MVP:
 
-1. **Random Login Delay**: Timing attack mitigation for authentication to prevent credential enumeration through response time analysis
-2. **HIBP Password Check**: Integration with "Have I Been Pwned" API using k-anonymity to reject compromised passwords
+1. **Random Login Delay**: ✅ COMPLETE - Timing attack mitigation for authentication to prevent credential enumeration through response time analysis
+2. **HIBP Password Check**: ✅ COMPLETE - Integration with "Have I Been Pwned" API using k-anonymity to reject compromised passwords
 
 Both features enhance defense-in-depth without significantly impacting legitimate user experience.
+
+### Implementation Summary (2026-01-06)
+
+**Feature 1: Random Login Delay**
+- `internal/application/identity/timing.go` - Core timing functions using crypto/rand
+- `internal/application/identity/timing_test.go` - Comprehensive tests
+- `internal/application/identity/commands/login.go` - Integration via defer pattern
+
+**Feature 2: HIBP Password Check**
+- `internal/domain/identity/errors.go` - ErrPasswordCompromised domain error
+- `internal/infrastructure/security/hibp_client.go` - Enhanced with config, caching, fail-open
+- `internal/infrastructure/security/password_cache.go` - Redis and in-memory cache implementations
+- `internal/infrastructure/security/password_cache_test.go` - Comprehensive tests
+- `internal/interfaces/http/handlers/auth_handler.go` - HTTP error mapping
 
 ---
 
@@ -31,8 +45,8 @@ Both features enhance defense-in-depth without significantly impacting legitimat
 **Current Implementation Status**:
 - ✅ Already using `crypto/subtle.ConstantTimeCompare` in `password.go:160`
 - ✅ Argon2id hashing with constant-time verification
-- ❌ No random delay to mask overall response time
-- ❌ Failed logins return faster than successful ones (token generation time)
+- ✅ Random delay (100-300ms) implemented in `timing.go`
+- ✅ Delay applied via defer to ALL login code paths (success, failure, error)
 
 **Mitigation Strategy** ([source](https://github.com/globaleaks/GlobaLeaks/issues/264)):
 - Add random delay (100-300ms) to all authentication attempts
