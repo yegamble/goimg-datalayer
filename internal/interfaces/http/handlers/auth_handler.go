@@ -400,6 +400,13 @@ func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 			"Session not found or expired",
 		)
 
+	case errors.Is(err, identity.ErrPasswordCompromised):
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Password Compromised",
+			"This password has been found in a data breach and cannot be used. Please choose a different, stronger password.",
+		)
+
 	case errors.Is(err, identity.ErrEmailInvalid),
 		errors.Is(err, identity.ErrEmailEmpty),
 		errors.Is(err, identity.ErrEmailTooLong),
