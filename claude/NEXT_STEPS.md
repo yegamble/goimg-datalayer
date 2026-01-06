@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-06
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 10 - Security Enhancements (COMPLETE ✅)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE - All 10/10 controls passed
+> **Current Sprint**: Sprint 11 - Two-Factor Authentication (IN PROGRESS)
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 starting
 
 ---
 
@@ -166,13 +166,13 @@ Features deferred to Phase 2:
 | Random login delay (timing attack mitigation) | High | 10 | ✅ COMPLETE |
 | HIBP password check | High | 10 | ✅ COMPLETE |
 | Prometheus metrics (security) | High | 10 | ✅ COMPLETE |
-| Two-factor authentication (TOTP) | High | 11 | Planned |
-| OAuth providers (Google, GitHub) | Medium | 11-12 | Planned |
+| Two-factor authentication (TOTP) | High | 11 | **IN PROGRESS** |
+| Backup codes for 2FA | High | 11 | Planned |
+| Unusual login notifications | High | 11 | Planned |
+| OAuth providers (Google, GitHub) | Medium | 12 | Planned |
 | Follow users / Activity feeds | Medium | 12 | Planned |
 | Email notifications (SMTP) | Medium | 12 | Planned |
 | IPFS storage integration | Medium | 13 | Planned |
-| Unusual login notifications | Medium | 11 | Planned |
-| SIEM integration | Medium | 11 | Planned |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -183,6 +183,51 @@ Features deferred to Phase 2:
 - ✅ Security Gate S10 passed (10/10 controls) - ALL VERIFIED
 - ✅ Test coverage: 90.9% (target: 85%) - EXCEEDED
 - ✅ p95 latency: 289ms (target: <500ms) - VERIFIED
+
+---
+
+## Sprint 11: Two-Factor Authentication (IN PROGRESS)
+
+**Sprint Goal**: Implement TOTP-based two-factor authentication with backup codes and unusual login notifications.
+
+### Planned Features
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| TOTP Setup | P0 | Generate TOTP secrets, QR codes for authenticator apps |
+| TOTP Verification | P0 | Verify TOTP codes during login |
+| Backup Codes | P0 | Generate and verify one-time backup codes |
+| 2FA Management | P1 | Enable/disable 2FA, regenerate backup codes |
+| Unusual Login Detection | P1 | Detect logins from new devices/locations |
+| Login Notifications | P2 | Email notifications for new device logins |
+
+### Technical Implementation
+
+**TOTP Library**: Consider `github.com/pquerna/otp` (industry standard)
+
+**Database Changes**:
+- `user_totp_secrets` table (encrypted secret, enabled flag)
+- `user_backup_codes` table (hashed codes, used flag)
+- `user_devices` table (device fingerprint, last seen)
+
+**Endpoints**:
+- `POST /auth/2fa/setup` - Generate TOTP secret and QR code
+- `POST /auth/2fa/verify` - Verify TOTP code to enable 2FA
+- `DELETE /auth/2fa` - Disable 2FA (requires password)
+- `POST /auth/2fa/backup-codes` - Generate new backup codes
+- `POST /auth/login/2fa` - Submit 2FA code during login
+
+### Security Requirements (Gate S11)
+
+| Control | Requirement |
+|---------|-------------|
+| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) |
+| S11-2FA-002 | Backup codes hashed (bcrypt/Argon2id) |
+| S11-2FA-003 | Rate limiting on 2FA verification (5/min) |
+| S11-2FA-004 | Session elevation after 2FA completion |
+| S11-2FA-005 | Audit logging for all 2FA events |
+
+See `/claude/sprint_11_plan.md` for detailed implementation plan.
 
 ---
 
@@ -217,4 +262,4 @@ Features deferred to Phase 2:
 
 ---
 
-**Project Status**: **GO FOR LAUNCH**
+**Project Status**: **Phase 2 Active** - Sprint 11 (2FA) in progress
