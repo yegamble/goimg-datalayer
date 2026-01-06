@@ -33,6 +33,8 @@ var (
 	ErrPasswordTooLong = errors.New("password cannot exceed 128 characters")
 	// ErrPasswordWeak indicates the password is too common.
 	ErrPasswordWeak = errors.New("password is too common")
+	// ErrPasswordCompromised indicates the password has been found in a data breach.
+	ErrPasswordCompromised = errors.New("password has been found in a data breach and cannot be used")
 	// ErrPasswordMismatch indicates the password does not match the stored hash.
 	ErrPasswordMismatch = errors.New("password does not match")
 

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
@@ -22,13 +24,45 @@ const (
 	// HIBP uses k-anonymity with 5-character prefixes for privacy.
 	hibpHashPrefixLen = 5
 
-	// hibpTimeout is the maximum time to wait for HIBP API response.
-	hibpTimeout = 5 * time.Second
-
 	// hibpUserAgent is the User-Agent header sent to HIBP API.
 	// HIBP requests identification via User-Agent for fair use policy.
 	hibpUserAgent = "goimg-datalayer/1.0"
+
+	// Default configuration values
+	defaultTimeout  = 5 * time.Second
+	defaultCacheTTL = 24 * time.Hour
 )
+
+// HIBPConfig holds configuration for HIBP password checking.
+type HIBPConfig struct {
+	// Enabled determines whether HIBP checks are performed.
+	// When false, IsCompromised always returns (false, nil).
+	Enabled bool
+
+	// Timeout is the maximum time to wait for HIBP API response.
+	// Default: 5 seconds
+	Timeout time.Duration
+
+	// CacheTTL is the time-to-live for cached negative results (password not pwned).
+	// Positive results (pwned passwords) are cached indefinitely.
+	// Default: 24 hours
+	CacheTTL time.Duration
+
+	// FailOpen determines behavior when HIBP API is unavailable.
+	// - true: Allow registration/password change (default, prioritizes availability)
+	// - false: Block registration/password change (prioritizes security)
+	FailOpen bool
+}
+
+// DefaultHIBPConfig returns the default HIBP configuration.
+func DefaultHIBPConfig() HIBPConfig {
+	return HIBPConfig{
+		Enabled:  true,
+		Timeout:  defaultTimeout,
+		CacheTTL: defaultCacheTTL,
+		FailOpen: true,
+	}
+}
 
 // HIBPClient implements PasswordSecurityChecker using the Have I Been Pwned API.
 // It uses k-anonymity to check passwords without transmitting the full password or hash.
@@ -44,21 +78,53 @@ const (
 //
 // Security properties:
 //   - Privacy: Full hash never sent to HIBP
-//   - Fail-open: API failures don't block user registration
+//   - Fail-open: Configurable behavior when API is unavailable
+//   - Caching: Optional caching reduces API calls
 //   - No logging: Passwords never logged
-//   - Timeout: 5-second timeout prevents hanging
+//   - Timeout: Configurable timeout prevents hanging
 type HIBPClient struct {
 	httpClient *http.Client
 	apiURL     string
+	config     HIBPConfig
+	cache      PasswordCache // Optional: nil if no caching
+	logger     *zerolog.Logger
 }
 
 // NewHIBPClient creates a new HIBP password checker with default configuration.
+// For backward compatibility, uses default config and no caching.
 func NewHIBPClient() *HIBPClient {
+	config := DefaultHIBPConfig()
 	return &HIBPClient{
 		httpClient: &http.Client{
-			Timeout: hibpTimeout,
+			Timeout: config.Timeout,
 		},
 		apiURL: hibpAPIURL,
+		config: config,
+		cache:  nil,
+		logger: nil,
+	}
+}
+
+// NewHIBPClientWithConfig creates a new HIBP password checker with custom configuration.
+// The cache parameter is optional (can be nil).
+// The logger parameter is optional (can be nil).
+func NewHIBPClientWithConfig(config HIBPConfig, cache PasswordCache, logger *zerolog.Logger) *HIBPClient {
+	// Apply defaults for zero values
+	if config.Timeout == 0 {
+		config.Timeout = defaultTimeout
+	}
+	if config.CacheTTL == 0 {
+		config.CacheTTL = defaultCacheTTL
+	}
+
+	return &HIBPClient{
+		httpClient: &http.Client{
+			Timeout: config.Timeout,
+		},
+		apiURL: hibpAPIURL,
+		config: config,
+		cache:  cache,
+		logger: logger,
 	}
 }
 
@@ -68,21 +134,33 @@ var _ identity.PasswordSecurityChecker = (*HIBPClient)(nil)
 // IsCompromised checks if a password has been found in known data breaches using HIBP API.
 //
 // Algorithm:
-//  1. Hash password with SHA-1 (HIBP requirement)
-//  2. Split hash into prefix (5 chars) and suffix
-//  3. Send prefix to HIBP API
-//  4. Search response for matching suffix
-//  5. Return true if found, false otherwise
+//  1. Check if HIBP is enabled (return false if disabled)
+//  2. Hash password with SHA-1 (HIBP requirement)
+//  3. Check cache for previous result (if cache configured)
+//  4. On cache miss, send hash prefix to HIBP API
+//  5. Search response for matching suffix
+//  6. Store result in cache
+//  7. Return true if found, false otherwise
 //
 // Error handling:
-//   - Network errors: return false (fail open)
-//   - HTTP errors: return false (fail open)
-//   - Parse errors: return false (fail open)
-//   - Timeout: return false (fail open)
+//   - HIBP disabled: return false, nil
+//   - Cache errors: log and continue to API
+//   - Network/API errors: respect FailOpen config
+//   - FailOpen=true: return false, nil (allow registration)
+//   - FailOpen=false: return false, error (block registration)
 //
-// This fail-open behavior ensures service availability is prioritized over
-// perfect security. A degraded password check is better than blocking all registrations.
+// Caching strategy:
+//   - Negative results (not pwned): cached for CacheTTL (default 24h)
+//   - Positive results (pwned): cached indefinitely (once pwned, always pwned)
 func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, error) {
+	// 0. Check if HIBP is enabled
+	if !c.config.Enabled {
+		if c.logger != nil {
+			c.logger.Debug().Msg("HIBP check disabled by configuration")
+		}
+		return false, nil
+	}
+
 	// 1. Hash the password with SHA-1
 	// Note: SHA-1 is used because HIBP API requires it. This is NOT a security vulnerability
 	// because the hash is used for lookup, not authentication. The k-anonymity model
@@ -100,7 +178,70 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 	prefix := hashStr[:hibpHashPrefixLen]
 	suffix := hashStr[hibpHashPrefixLen:]
 
-	// 3. Send prefix to HIBP API
+	// 3. Check cache first (if configured)
+	if c.cache != nil {
+		if pwned, found := c.cache.Get(ctx, prefix, suffix); found {
+			if c.logger != nil {
+				c.logger.Debug().
+					Bool("pwned", pwned).
+					Msg("HIBP cache hit")
+			}
+			return pwned, nil
+		}
+	}
+
+	// 4. Cache miss - call HIBP API
+	pwned, err := c.checkHIBPAPI(ctx, prefix, suffix)
+	if err != nil {
+		// Log the error
+		if c.logger != nil {
+			c.logger.Warn().
+				Err(err).
+				Bool("fail_open", c.config.FailOpen).
+				Msg("HIBP API check failed")
+		}
+
+		// Respect fail-open configuration
+		if c.config.FailOpen {
+			// Fail open: allow registration despite API failure
+			return false, nil
+		}
+		// Fail closed: block registration on API failure
+		return false, fmt.Errorf("password breach check unavailable: %w", err)
+	}
+
+	// 5. Store result in cache (if configured)
+	if c.cache != nil {
+		// Determine TTL based on result
+		ttl := c.config.CacheTTL
+		if pwned {
+			// Pwned passwords cached indefinitely (they'll never become un-pwned)
+			ttl = 0
+		}
+
+		if err := c.cache.Set(ctx, prefix, suffix, pwned, ttl); err != nil {
+			// Cache write failure is non-critical - log and continue
+			if c.logger != nil {
+				c.logger.Warn().
+					Err(err).
+					Msg("failed to cache HIBP result")
+			}
+		}
+	}
+
+	if c.logger != nil {
+		c.logger.Debug().
+			Bool("pwned", pwned).
+			Msg("HIBP API check completed")
+	}
+
+	return pwned, nil
+}
+
+// checkHIBPAPI performs the actual HIBP API call and response parsing.
+// Separated from IsCompromised for cleaner caching logic.
+func (c *HIBPClient) checkHIBPAPI(ctx context.Context, prefix, suffix string) (bool, error) {
+	// 1. Build API request
 	url := c.apiURL + prefix
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -111,20 +252,19 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 	// Set User-Agent header as requested by HIBP fair use policy
 	req.Header.Set("User-Agent", hibpUserAgent)
 
+	// 2. Execute request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		// Network error - fail open
 		return false, fmt.Errorf("HIBP API request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 4. Check HTTP status
+	// 3. Check HTTP status
 	if resp.StatusCode != http.StatusOK {
-		// API error - fail open
 		return false, fmt.Errorf("HIBP API returned status %d", resp.StatusCode)
 	}
 
-	// 5. Read response body
+	// 4. Read response body
 	// HIBP returns a list of hash suffixes with occurrence counts:
 	// <suffix>:<count>
 	// Example:
@@ -135,7 +275,7 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 		return false, fmt.Errorf("read HIBP response: %w", err)
 	}
 
-	// 6. Search for our suffix in the response
+	// 5. Search for our suffix in the response
 	// Each line is: <suffix>:<count>
 	// We only care if our suffix exists, not the count
 	lines := strings.Split(string(body), "\n")

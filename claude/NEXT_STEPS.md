@@ -2,8 +2,32 @@
 
 > **Last Updated**: 2026-01-06
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 10 - Security Enhancements (Planning)
-> **Status**: **GO FOR LAUNCH** - MVP complete, Phase 2 development starting
+> **Current Sprint**: Sprint 10 - Security Enhancements (Core Features Complete)
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 core features implemented
+
+---
+
+## Sprint 10 Progress (2026-01-06)
+
+### Completed Features
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| Random Login Delay | ✅ COMPLETE | `internal/application/identity/timing.go` |
+| HIBP Password Check | ✅ COMPLETE | `internal/infrastructure/security/hibp_client.go` |
+
+### Key Changes
+- **Timing Attack Mitigation**: 100-300ms random delay on all login attempts using crypto/rand
+- **Compromised Password Rejection**: HIBP k-anonymity integration with Redis caching
+- **Domain Errors**: Added ErrPasswordCompromised for proper error handling
+- **Fail-Open Behavior**: HIBP API failures don't block user registration
+
+### Remaining for Sprint 10
+- Integration testing with real HIBP API (when network available)
+- Prometheus metrics for monitoring timing and HIBP checks
+- Update OpenAPI spec with new error codes (password_compromised)
+
+See `/claude/sprint_10_plan.md` for detailed implementation plan.
 
 ---
 

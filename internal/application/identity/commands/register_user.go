@@ -138,7 +138,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 			// Password found in breach database - reject registration
 			h.logger.Debug().
 				Msg("registration attempt with compromised password")
-			return nil, appidentity.ErrPasswordCompromised
+			return nil, identity.ErrPasswordCompromised
 		}
 	}
 
