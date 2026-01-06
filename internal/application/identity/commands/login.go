@@ -94,12 +94,11 @@ func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthR
 
 	defer func() {
 		actualDuration := time.Since(startTime)
-		appliedDelay := appidentity.ApplyAuthDelay(targetDelay, actualDuration)
-		h.logger.Debug().
-			Dur("target_delay", targetDelay).
-			Dur("actual_processing", actualDuration).
-			Dur("applied_delay", appliedDelay).
-			Msg("login timing completed")
+		appidentity.ApplyAuthDelay(targetDelay, actualDuration)
+		// Note: Timing details intentionally not logged to prevent timing attacks
+		// (S10-AUTH-003). Attackers with log access could otherwise distinguish
+		// "user not found" (fast) from "password check" (slow bcrypt verification).
+		h.logger.Debug().Msg("login timing defense applied")
 	}()
 
 	// 1. Parse identifier and find user

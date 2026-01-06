@@ -48,6 +48,13 @@ type MetricsCollector struct {
 	rateLimitExceededTotal   *prometheus.CounterVec
 	authorizationDeniedTotal *prometheus.CounterVec
 	malwareDetectedTotal     *prometheus.CounterVec
+
+	// Sprint 10: Timing attack mitigation metrics
+	authLoginDelaySeconds *prometheus.HistogramVec
+
+	// Sprint 10: HIBP password check metrics
+	hibpChecksTotal          *prometheus.CounterVec
+	hibpCheckDurationSeconds *prometheus.HistogramVec
 }
 
 // NewMetricsCollector creates and registers all application metrics with Prometheus.
@@ -281,6 +288,42 @@ func NewMetricsCollector() *MetricsCollector {
 				Help:      "Total number of malware detections",
 			},
 			[]string{},
+		),
+
+		// Sprint 10: Timing attack mitigation
+		authLoginDelaySeconds: promauto.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Namespace: "goimg",
+				Subsystem: "auth",
+				Name:      "login_delay_seconds",
+				Help:      "Random delay applied to login attempts to prevent timing attacks",
+				// Buckets: 100ms, 150ms, 200ms, 250ms, 300ms
+				Buckets: []float64{0.1, 0.15, 0.2, 0.25, 0.3},
+			},
+			[]string{},
+		),
+
+		// Sprint 10: HIBP password checks
+		hibpChecksTotal: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "hibp_checks_total",
+				Help:      "Total number of HIBP password checks, labeled by result",
+			},
+			[]string{"result"},
+		),
+
+		hibpCheckDurationSeconds: promauto.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Namespace: "goimg",
+				Subsystem: "security",
+				Name:      "hibp_check_duration_seconds",
+				Help:      "Duration of HIBP password checks in seconds",
+				// Buckets: 1ms, 5ms, 10ms, 50ms, 100ms, 500ms, 1s, 2s
+				Buckets: []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2},
+			},
+			[]string{"cache_hit"},
 		),
 	}
 }
@@ -529,4 +572,47 @@ func (mc *MetricsCollector) RecordAuthorizationDenied(role, requiredPermission s
 // Call this when ClamAV or another scanner detects malware.
 func (mc *MetricsCollector) RecordMalwareDetection() {
 	mc.malwareDetectedTotal.WithLabelValues().Inc()
+}
+
+// RecordLoginDelay records the random delay applied to a login attempt.
+// Call this from the login handler after applying timing attack mitigation delay.
+//
+// Parameters:
+//   - delaySeconds: The delay duration in seconds (e.g., 0.15 for 150ms)
+//
+// Sprint 10: Timing attack mitigation metric
+func (mc *MetricsCollector) RecordLoginDelay(delaySeconds float64) {
+	mc.authLoginDelaySeconds.WithLabelValues().Observe(delaySeconds)
+}
+
+// RecordHIBPCheck records a Have I Been Pwned password check.
+// Call this from the password validation logic after checking HIBP.
+//
+// Parameters:
+//   - result: Result of the check - one of:
+//   - "clean": Password is not compromised
+//   - "compromised": Password found in HIBP database
+//   - "error": Check failed due to error
+//   - "cache_hit": Result retrieved from cache
+//   - "skipped": Check was skipped (e.g., feature disabled)
+//
+// Sprint 10: HIBP password check metric
+func (mc *MetricsCollector) RecordHIBPCheck(result string) {
+	mc.hibpChecksTotal.WithLabelValues(result).Inc()
+}
+
+// RecordHIBPCheckDuration records the duration of a HIBP password check.
+// Call this after performing the HIBP check to track latency.
+//
+// Parameters:
+//   - durationSeconds: The check duration in seconds
+//   - cacheHit: true if result came from cache, false if API call was made
+//
+// Sprint 10: HIBP password check metric
+func (mc *MetricsCollector) RecordHIBPCheckDuration(durationSeconds float64, cacheHit bool) {
+	cacheHitLabel := "false"
+	if cacheHit {
+		cacheHitLabel = "true"
+	}
+	mc.hibpCheckDurationSeconds.WithLabelValues(cacheHitLabel).Observe(durationSeconds)
 }

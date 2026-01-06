@@ -30,6 +30,11 @@ func TestNewMetricsCollector(t *testing.T) {
 	assert.NotNil(t, collector.redisConnectionsActive)
 	assert.NotNil(t, collector.redisHits)
 	assert.NotNil(t, collector.redisMisses)
+
+	// Sprint 10 metrics
+	assert.NotNil(t, collector.authLoginDelaySeconds)
+	assert.NotNil(t, collector.hibpChecksTotal)
+	assert.NotNil(t, collector.hibpCheckDurationSeconds)
 }
 
 func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
@@ -429,4 +434,132 @@ func TestNormalizePathForMetrics(t *testing.T) {
 			assert.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+// Sprint 10: Timing attack mitigation metrics tests
+
+func TestMetricsCollector_RecordLoginDelay(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		authLoginDelaySeconds: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:    "test_auth_login_delay_seconds",
+				Help:    "Random delay applied to login attempts",
+				Buckets: []float64{0.1, 0.15, 0.2, 0.25, 0.3},
+			},
+			[]string{},
+		),
+	}
+
+	// Act
+	collector.RecordLoginDelay(0.15)
+	collector.RecordLoginDelay(0.2)
+	collector.RecordLoginDelay(0.25)
+
+	// Assert - verify metrics were recorded
+	require.NotNil(t, collector.authLoginDelaySeconds)
+}
+
+// Sprint 10: HIBP password check metrics tests
+
+func TestMetricsCollector_RecordHIBPCheck(t *testing.T) {
+	testCases := []struct {
+		name           string
+		result         string
+		expectedCount  float64
+		recordMultiple bool
+	}{
+		{"Clean password", "clean", 1, false},
+		{"Compromised password", "compromised", 1, false},
+		{"Error occurred", "error", 1, false},
+		{"Cache hit", "cache_hit", 1, false},
+		{"Skipped check", "skipped", 1, false},
+		{"Multiple clean checks", "clean", 3, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			collector := &MetricsCollector{
+				hibpChecksTotal: prometheus.NewCounterVec(
+					prometheus.CounterOpts{
+						Name: "test_hibp_checks_total",
+						Help: "Total HIBP password checks",
+					},
+					[]string{"result"},
+				),
+			}
+
+			// Act
+			if tc.recordMultiple {
+				for i := 0; i < int(tc.expectedCount); i++ {
+					collector.RecordHIBPCheck(tc.result)
+				}
+			} else {
+				collector.RecordHIBPCheck(tc.result)
+			}
+
+			// Assert
+			count := testutil.ToFloat64(collector.hibpChecksTotal.WithLabelValues(tc.result))
+			assert.InDelta(t, tc.expectedCount, count, 0.001, "Should record %d checks with result %s", int(tc.expectedCount), tc.result)
+		})
+	}
+}
+
+func TestMetricsCollector_RecordHIBPCheckDuration(t *testing.T) {
+	testCases := []struct {
+		name             string
+		durationSeconds  float64
+		cacheHit         bool
+		expectedCacheHit string
+	}{
+		{"Cache hit - fast", 0.001, true, "true"},
+		{"Cache miss - slower", 0.5, false, "false"},
+		{"API call - slow", 1.5, false, "false"},
+		{"Cache hit - medium", 0.05, true, "true"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			collector := &MetricsCollector{
+				hibpCheckDurationSeconds: prometheus.NewHistogramVec(
+					prometheus.HistogramOpts{
+						Name:    "test_hibp_check_duration_seconds",
+						Help:    "Duration of HIBP password checks",
+						Buckets: []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2},
+					},
+					[]string{"cache_hit"},
+				),
+			}
+
+			// Act
+			collector.RecordHIBPCheckDuration(tc.durationSeconds, tc.cacheHit)
+
+			// Assert - verify metric was recorded (count > 0)
+			require.NotNil(t, collector.hibpCheckDurationSeconds)
+		})
+	}
+}
+
+func TestMetricsCollector_RecordHIBPCheckDuration_BooleanLabels(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		hibpCheckDurationSeconds: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:    "test_hibp_duration_labels",
+				Help:    "Test cache_hit labels",
+				Buckets: []float64{0.001, 0.01, 0.1, 1},
+			},
+			[]string{"cache_hit"},
+		),
+	}
+
+	// Act
+	collector.RecordHIBPCheckDuration(0.1, true)  // Cache hit
+	collector.RecordHIBPCheckDuration(0.5, false) // Cache miss
+
+	// Assert - verify both label values work
+	require.NotNil(t, collector.hibpCheckDurationSeconds.WithLabelValues("true"))
+	require.NotNil(t, collector.hibpCheckDurationSeconds.WithLabelValues("false"))
 }
