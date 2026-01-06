@@ -82,11 +82,13 @@ func DefaultHIBPConfig() HIBPConfig {
 //   - Caching: Optional caching reduces API calls
 //   - No logging: Passwords never logged
 //   - Timeout: Configurable timeout prevents hanging
+//   - Metrics: Records check results and durations (Sprint 10)
 type HIBPClient struct {
 	httpClient *http.Client
 	apiURL     string
 	config     HIBPConfig
-	cache      PasswordCache // Optional: nil if no caching
+	cache      PasswordCache       // Optional: nil if no caching
+	metrics    HIBPMetricsRecorder // Optional: nil if no metrics
 	logger     *zerolog.Logger
 }
 
@@ -98,17 +100,24 @@ func NewHIBPClient() *HIBPClient {
 		httpClient: &http.Client{
 			Timeout: config.Timeout,
 		},
-		apiURL: hibpAPIURL,
-		config: config,
-		cache:  nil,
-		logger: nil,
+		apiURL:  hibpAPIURL,
+		config:  config,
+		cache:   nil,
+		metrics: nil,
+		logger:  nil,
 	}
 }
 
 // NewHIBPClientWithConfig creates a new HIBP password checker with custom configuration.
 // The cache parameter is optional (can be nil).
+// The metrics parameter is optional (can be nil).
 // The logger parameter is optional (can be nil).
-func NewHIBPClientWithConfig(config HIBPConfig, cache PasswordCache, logger *zerolog.Logger) *HIBPClient {
+func NewHIBPClientWithConfig(
+	config HIBPConfig,
+	cache PasswordCache,
+	metrics HIBPMetricsRecorder,
+	logger *zerolog.Logger,
+) *HIBPClient {
 	// Apply defaults for zero values
 	if config.Timeout == 0 {
 		config.Timeout = defaultTimeout
@@ -117,14 +126,20 @@ func NewHIBPClientWithConfig(config HIBPConfig, cache PasswordCache, logger *zer
 		config.CacheTTL = defaultCacheTTL
 	}
 
+	// Use no-op metrics if nil provided
+	if metrics == nil {
+		metrics = &NoOpHIBPMetricsRecorder{}
+	}
+
 	return &HIBPClient{
 		httpClient: &http.Client{
 			Timeout: config.Timeout,
 		},
-		apiURL: hibpAPIURL,
-		config: config,
-		cache:  cache,
-		logger: logger,
+		apiURL:  hibpAPIURL,
+		config:  config,
+		cache:   cache,
+		metrics: metrics,
+		logger:  logger,
 	}
 }
 
@@ -153,11 +168,14 @@ var _ identity.PasswordSecurityChecker = (*HIBPClient)(nil)
 //   - Negative results (not pwned): cached for CacheTTL (default 24h)
 //   - Positive results (pwned): cached indefinitely (once pwned, always pwned)
 func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, error) {
+	startTime := time.Now()
+
 	// 0. Check if HIBP is enabled
 	if !c.config.Enabled {
 		if c.logger != nil {
 			c.logger.Debug().Msg("HIBP check disabled by configuration")
 		}
+		c.recordMetric("skipped", false, time.Since(startTime))
 		return false, nil
 	}
 
@@ -186,6 +204,11 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 					Bool("pwned", pwned).
 					Msg("HIBP cache hit")
 			}
+			result := "clean"
+			if pwned {
+				result = "compromised"
+			}
+			c.recordMetric(result, true, time.Since(startTime))
 			return pwned, nil
 		}
 	}
@@ -200,6 +223,8 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 				Bool("fail_open", c.config.FailOpen).
 				Msg("HIBP API check failed")
 		}
+
+		c.recordMetric("error", false, time.Since(startTime))
 
 		// Respect fail-open configuration
 		if c.config.FailOpen {
@@ -235,7 +260,23 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 			Msg("HIBP API check completed")
 	}
 
+	// Record metrics for successful check
+	result := "clean"
+	if pwned {
+		result = "compromised"
+	}
+	c.recordMetric(result, false, time.Since(startTime))
+
 	return pwned, nil
+}
+
+// recordMetric records HIBP check metrics if a metrics recorder is configured.
+func (c *HIBPClient) recordMetric(result string, cacheHit bool, duration time.Duration) {
+	if c.metrics == nil {
+		return
+	}
+	c.metrics.RecordHIBPCheck(result)
+	c.metrics.RecordHIBPCheckDuration(duration.Seconds(), cacheHit)
 }
 
 // checkHIBPAPI performs the actual HIBP API call and response parsing.

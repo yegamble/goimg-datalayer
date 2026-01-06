@@ -364,6 +364,7 @@ func TestLoginHandler_Handle(t *testing.T) {
 				suite.JWTService,
 				suite.RefreshTokenService,
 				suite.SessionStore,
+				nil, // metrics recorder (nil uses no-op)
 				&suite.Logger,
 			)
 

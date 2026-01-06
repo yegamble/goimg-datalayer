@@ -39,27 +39,36 @@ type LoginCommand struct {
 //   - Returns generic error to prevent user enumeration
 //   - Enforces account status checks (suspended users cannot login)
 //   - Creates session with IP and UserAgent for anomaly detection
+//   - Applies random delay to prevent timing attacks (Sprint 10)
 type LoginHandler struct {
 	users          identity.UserRepository
 	jwtService     services.JWTService
 	refreshService services.RefreshTokenService
 	sessionStore   services.SessionStore
+	metrics        appidentity.AuthMetricsRecorder
 	logger         *zerolog.Logger
 }
 
 // NewLoginHandler creates a new LoginHandler with the given dependencies.
+// The metrics parameter is optional (can be nil for tests).
 func NewLoginHandler(
 	users identity.UserRepository,
 	jwtService services.JWTService,
 	refreshService services.RefreshTokenService,
 	sessionStore services.SessionStore,
+	metrics appidentity.AuthMetricsRecorder,
 	logger *zerolog.Logger,
 ) *LoginHandler {
+	// Use no-op metrics if nil provided
+	if metrics == nil {
+		metrics = &appidentity.NoOpAuthMetricsRecorder{}
+	}
 	return &LoginHandler{
 		users:          users,
 		jwtService:     jwtService,
 		refreshService: refreshService,
 		sessionStore:   sessionStore,
+		metrics:        metrics,
 		logger:         logger,
 	}
 }
@@ -95,6 +104,10 @@ func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthR
 	defer func() {
 		actualDuration := time.Since(startTime)
 		appidentity.ApplyAuthDelay(targetDelay, actualDuration)
+
+		// Record the delay metric for Prometheus monitoring (Sprint 10)
+		h.metrics.RecordLoginDelay(targetDelay.Seconds())
+
 		// Note: Timing details intentionally not logged to prevent timing attacks
 		// (S10-AUTH-003). Attackers with log access could otherwise distinguish
 		// "user not found" (fast) from "password check" (slow bcrypt verification).

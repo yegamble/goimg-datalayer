@@ -1348,18 +1348,22 @@ CREATE TABLE audit_logs (
 - Added 100-300ms random delay using crypto/rand (secure randomness)
 - Delay applied via defer pattern to ALL login code paths
 - Prevents credential enumeration through response time analysis
+- Prometheus metrics integration via `AuthMetricsRecorder` interface
 - Files:
   - `internal/application/identity/timing.go` - Core timing functions
   - `internal/application/identity/timing_test.go` - Unit tests
-  - `internal/application/identity/commands/login.go` - Integration
+  - `internal/application/identity/metrics.go` - AuthMetricsRecorder interface
+  - `internal/application/identity/commands/login.go` - Integration with metrics
 
 **Feature 2: HIBP Password Check (Compromised Password Rejection)**
 - k-anonymity integration (only sends first 5 SHA-1 hash characters)
 - Redis caching for performance (24h TTL for negative results)
 - In-memory cache fallback for resilience
 - Fail-open behavior (API failures don't block registration)
+- Prometheus metrics integration via `HIBPMetricsRecorder` interface
 - Files:
-  - `internal/infrastructure/security/hibp_client.go` - API client with config
+  - `internal/infrastructure/security/hibp_client.go` - API client with metrics
+  - `internal/infrastructure/security/metrics.go` - HIBPMetricsRecorder interface
   - `internal/infrastructure/security/password_cache.go` - Redis + in-memory cache
   - `internal/infrastructure/security/password_cache_test.go` - Unit tests
   - `internal/domain/identity/errors.go` - ErrPasswordCompromised error
@@ -1393,14 +1397,9 @@ CREATE TABLE audit_logs (
 
 ### Agent Assignments
 
-- **Lead**: senior-go-architect
-- **Critical**: senior-secops-engineer, backend-test-architect
-- **Supporting**: test-strategist, cicd-guardian
-
-### Agent Assignments
-- **Lead**: scrum-master
-- **Critical**: senior-secops-engineer, cicd-guardian
-- **Supporting**: backend-test-architect, senior-go-architect, image-gallery-expert, test-strategist
+- **Lead**: senior-go-architect, scrum-master
+- **Critical**: senior-secops-engineer, backend-test-architect, cicd-guardian
+- **Supporting**: test-strategist, image-gallery-expert
 
 ### Work Streams (22 tasks total)
 

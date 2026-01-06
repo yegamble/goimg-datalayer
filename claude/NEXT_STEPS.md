@@ -18,6 +18,7 @@
 | Domain Error | ✅ COMPLETE | `ErrPasswordCompromised` in `errors.go` |
 | HTTP Error Mapping | ✅ COMPLETE | `auth_handler.go` |
 | Password Cache | ✅ COMPLETE | `password_cache.go` (Redis + in-memory) |
+| Prometheus Metrics Integration | ✅ COMPLETE | `metrics.go` (auth + HIBP recorders) |
 
 ### Key Changes
 - **Timing Attack Mitigation**: 100-300ms random delay on all login attempts using crypto/rand
@@ -25,6 +26,7 @@
 - **Domain Errors**: Added ErrPasswordCompromised for proper error handling
 - **Fail-Open Behavior**: HIBP API failures don't block user registration
 - **Caching**: Redis + in-memory fallback for HIBP results (24h TTL)
+- **Prometheus Metrics**: Integrated via `AuthMetricsRecorder` and `HIBPMetricsRecorder` interfaces
 
 ### Remaining for Sprint 10
 
