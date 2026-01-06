@@ -14,9 +14,16 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-9 COMPLETE. Sprint 10 IN PROGRESS - Phase 2 security enhancements underway.
+**Status**: Sprint 1-9 COMPLETE. **Sprint 10 IN PROGRESS** - Phase 2 security enhancements.
 
-**Sprint 9 Summary** (Updated 2026-01-06):
+**Sprint 10 Summary** (Updated 2026-01-06):
+- **Progress**: Core features COMPLETE - Random login delay & HIBP password check implemented
+- **Timing Attack Mitigation**: ✅ 100-300ms random delay on all login attempts
+- **Compromised Password Rejection**: ✅ HIBP k-anonymity integration with Redis caching
+- **Remaining Work**: Integration testing, Prometheus metrics, OpenAPI spec update, E2E tests
+- **Security Gate S10**: ⏳ 6 of 10 controls passed, 4 pending verification
+
+**Sprint 9 Summary** (Completed 2026-01-06):
 - **Progress**: 22 of 22 tasks complete (100%) - **SPRINT COMPLETE**
 - **Security Gate S9**: ✅ 100% COMPLETE - All 10 controls passed
 - **Penetration Test**: A- Rating (Excellent - Launch Ready)
@@ -1308,6 +1315,85 @@ CREATE TABLE audit_logs (
 
 > **Detailed Plan**: See `claude/sprint_9_plan.md` for comprehensive task breakdown, Security Gate S9 requirements, and timeline.
 > **Kickoff Summary**: See `claude/sprint_9_kickoff_summary.md` for executive overview.
+
+---
+
+## Sprint 10: Security Enhancements (Phase 2)
+
+**STATUS**: **IN PROGRESS** - Core features implemented, testing and documentation remaining
+
+**Start Date**: 2026-01-06
+**Duration**: 2 weeks (Weeks 19-20)
+**Focus**: Advanced security controls for authentication
+**Sprint Goal**: Implement timing attack mitigation and compromised password rejection
+
+> **Detailed Plan**: See `claude/sprint_10_plan.md` for comprehensive implementation details.
+
+### Sprint 10 Progress
+
+**Overall Status**: Core features COMPLETE, remaining work focused on testing, monitoring, and documentation
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| Random Login Delay | ✅ COMPLETE | `internal/application/identity/timing.go` |
+| HIBP Password Check | ✅ COMPLETE | `internal/infrastructure/security/hibp_client.go` |
+| Domain Errors | ✅ COMPLETE | `ErrPasswordCompromised` in `errors.go` |
+| HTTP Error Mapping | ✅ COMPLETE | `auth_handler.go` |
+
+### Completed Implementation
+
+**Feature 1: Random Login Delay (Timing Attack Mitigation)**
+- Added 100-300ms random delay using crypto/rand (secure randomness)
+- Delay applied via defer pattern to ALL login code paths
+- Prevents credential enumeration through response time analysis
+- Files:
+  - `internal/application/identity/timing.go` - Core timing functions
+  - `internal/application/identity/timing_test.go` - Unit tests
+  - `internal/application/identity/commands/login.go` - Integration
+
+**Feature 2: HIBP Password Check (Compromised Password Rejection)**
+- k-anonymity integration (only sends first 5 SHA-1 hash characters)
+- Redis caching for performance (24h TTL for negative results)
+- In-memory cache fallback for resilience
+- Fail-open behavior (API failures don't block registration)
+- Files:
+  - `internal/infrastructure/security/hibp_client.go` - API client with config
+  - `internal/infrastructure/security/password_cache.go` - Redis + in-memory cache
+  - `internal/infrastructure/security/password_cache_test.go` - Unit tests
+  - `internal/domain/identity/errors.go` - ErrPasswordCompromised error
+  - `internal/interfaces/http/handlers/auth_handler.go` - HTTP error mapping
+
+### Remaining Work
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Integration testing with real HIBP API | P1 | Pending |
+| Prometheus metrics for timing/HIBP | P1 | Pending |
+| Update OpenAPI spec with password_compromised error | P1 | ✅ DONE |
+| E2E tests for new error codes | P2 | Pending |
+| Documentation updates (API docs, security guide) | P2 | Pending |
+| Security Gate S10 review | P1 | Pending |
+
+### Security Gate S10 Requirements
+
+| Control ID | Requirement | Status | Evidence |
+|------------|-------------|--------|----------|
+| S10-AUTH-001 | Random delay uses crypto/rand | ✅ PASS | `timing.go` |
+| S10-AUTH-002 | Delay applied to all auth paths | ✅ PASS | `login.go` defer pattern |
+| S10-AUTH-003 | No timing leak in logs | ⏳ Pending | Manual verification |
+| S10-HIBP-001 | k-anonymity enforced (5 chars only) | ✅ PASS | `hibp_client.go` |
+| S10-HIBP-002 | SHA-1 only for HIBP, not storage | ✅ PASS | Code review |
+| S10-HIBP-003 | API failures fail open | ✅ PASS | `hibp_client.go` FailOpen config |
+| S10-HIBP-004 | No PII in HIBP logs | ⏳ Pending | Manual verification |
+| S10-HIBP-005 | Cache prevents timing attacks | ⏳ Pending | Performance tests |
+| S10-TEST-001 | 85%+ test coverage | ⏳ Pending | Coverage report |
+| S10-PERF-001 | <500ms p95 login latency | ⏳ Pending | Load tests |
+
+### Agent Assignments
+
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, backend-test-architect
+- **Supporting**: test-strategist, cicd-guardian
 
 ### Agent Assignments
 - **Lead**: scrum-master

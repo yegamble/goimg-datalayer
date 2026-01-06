@@ -15,17 +15,42 @@
 |---------|--------|----------------|
 | Random Login Delay | ✅ COMPLETE | `internal/application/identity/timing.go` |
 | HIBP Password Check | ✅ COMPLETE | `internal/infrastructure/security/hibp_client.go` |
+| Domain Error | ✅ COMPLETE | `ErrPasswordCompromised` in `errors.go` |
+| HTTP Error Mapping | ✅ COMPLETE | `auth_handler.go` |
+| Password Cache | ✅ COMPLETE | `password_cache.go` (Redis + in-memory) |
 
 ### Key Changes
 - **Timing Attack Mitigation**: 100-300ms random delay on all login attempts using crypto/rand
 - **Compromised Password Rejection**: HIBP k-anonymity integration with Redis caching
 - **Domain Errors**: Added ErrPasswordCompromised for proper error handling
 - **Fail-Open Behavior**: HIBP API failures don't block user registration
+- **Caching**: Redis + in-memory fallback for HIBP results (24h TTL)
 
 ### Remaining for Sprint 10
-- Integration testing with real HIBP API (when network available)
-- Prometheus metrics for monitoring timing and HIBP checks
-- Update OpenAPI spec with new error codes (password_compromised)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Integration Testing | P1 | Test with real HIBP API (network dependent) |
+| Prometheus Metrics | P1 | `auth_login_delay_seconds`, `hibp_checks_total` |
+| OpenAPI Spec | ✅ DONE | `password_compromised` error added to registration endpoint |
+| E2E Tests | P2 | Newman tests for compromised password rejection |
+| Security Gate S10 | P1 | Complete remaining 4 control verifications |
+| Documentation | P2 | Update API docs and security guide |
+
+### Security Gate S10 Status
+
+| Control | Status |
+|---------|--------|
+| S10-AUTH-001: crypto/rand usage | ✅ PASS |
+| S10-AUTH-002: All auth paths covered | ✅ PASS |
+| S10-AUTH-003: No timing leaks in logs | ⏳ Pending |
+| S10-HIBP-001: k-anonymity (5 chars) | ✅ PASS |
+| S10-HIBP-002: SHA-1 for HIBP only | ✅ PASS |
+| S10-HIBP-003: Fail-open behavior | ✅ PASS |
+| S10-HIBP-004: No PII in logs | ⏳ Pending |
+| S10-HIBP-005: Cache timing-safe | ⏳ Pending |
+| S10-TEST-001: 85%+ coverage | ⏳ Pending |
+| S10-PERF-001: <500ms p95 latency | ⏳ Pending |
 
 See `/claude/sprint_10_plan.md` for detailed implementation plan.
 

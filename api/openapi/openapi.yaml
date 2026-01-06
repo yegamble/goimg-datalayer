@@ -67,6 +67,13 @@ paths:
         - Email must be unique and not from disposable provider
         - Username must be unique, 3-32 chars, alphanumeric
         - Password must be 12-128 chars with complexity requirements
+        - Password is checked against Have I Been Pwned (HIBP) database using k-anonymity
+          (only first 5 chars of SHA-1 hash are sent, preserving privacy)
+
+        Security:
+        - Compromised passwords (found in data breaches) are rejected
+        - HIBP check uses k-anonymity to protect user privacy
+        - If HIBP service is unavailable, registration proceeds (fail-open)
       operationId: registerUser
       security: []
       requestBody:
@@ -113,20 +120,34 @@ paths:
                     type: string
                     format: date-time
         '400':
-          description: Validation error
+          description: |
+            Validation error. Possible error types:
+            - `validation-error`: Field validation failed (e.g., password too short)
+            - `password-compromised`: Password found in a data breach (HIBP check)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
-              example:
-                type: https://api.goimg.com/problems/validation-error
-                title: Validation Error
-                status: 400
-                detail: Request validation failed
-                traceId: abc123-def456
-                errors:
-                  - field: password
-                    message: password must be at least 12 characters
+              examples:
+                validation_error:
+                  summary: Field validation error
+                  value:
+                    type: https://api.goimg.com/problems/validation-error
+                    title: Validation Error
+                    status: 400
+                    detail: Request validation failed
+                    traceId: abc123-def456
+                    errors:
+                      - field: password
+                        message: password must be at least 12 characters
+                password_compromised:
+                  summary: Password found in data breach
+                  value:
+                    type: https://api.goimg.com/problems/password-compromised
+                    title: Password Compromised
+                    status: 400
+                    detail: This password has been found in a data breach and cannot be used. Please choose a different password.
+                    traceId: abc123-def456
         '409':
           description: Email or username already exists
           content:
@@ -151,6 +172,8 @@ paths:
         - Rate limit: 5 attempts per minute per IP
         - Account lockout after 5 failed attempts (15 min)
         - Generic error messages to prevent account enumeration
+        - Random response delay (100-300ms) to prevent timing attacks
+        - Constant-time password comparison (Argon2id)
       operationId: loginUser
       security: []
       requestBody:
