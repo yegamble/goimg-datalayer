@@ -33,7 +33,7 @@
 | Task | Priority | Description |
 |------|----------|-------------|
 | Integration Testing | P1 | Test with real HIBP API (network dependent) |
-| Prometheus Metrics | ✅ DONE | `goimg_auth_login_delay_seconds`, `goimg_security_hibp_checks_total`, `goimg_security_hibp_check_duration_seconds` |
+| Prometheus Metrics | IN PROGRESS | Metric functions defined & tested; integration into login handler defer block and HIBP client still pending (`goimg_auth_login_delay_seconds`, `goimg_security_hibp_checks_total`, `goimg_security_hibp_check_duration_seconds`) |
 | OpenAPI Spec | ✅ DONE | `password_compromised` error added to registration endpoint |
 | E2E Tests | ✅ DONE | Newman tests for compromised password rejection |
 | Security Gate S10 | ✅ DONE | 8 of 10 controls passed (2 pending: S10-TEST-001, S10-PERF-001; timing leak fixed in S10-AUTH-003) |
