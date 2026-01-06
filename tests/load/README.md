@@ -243,9 +243,142 @@ When adding new test scenarios:
 5. Document the test flow
 6. Update this README
 
+---
+
+## Sprint 10 Security Feature Tests
+
+Sprint 10 introduced security-focused load tests for timing attack mitigation and HIBP password checking.
+
+### Quick Start (Sprint 10)
+
+```bash
+# Run all Sprint 10 tests (~27 minutes)
+make test-load-sprint10-all
+
+# Or run individually
+make test-load-sprint10-login     # Login timing (13 min)
+make test-load-sprint10-hibp      # HIBP registration (9 min)
+make test-load-sprint10-failopen  # Fail-open test (5 min)
+```
+
+### Sprint 10 Test Scenarios
+
+| Test | Duration | Security Gate | Purpose |
+|------|----------|---------------|---------|
+| `sprint10-login-timing.js` | 13 min | S10-PERF-001 | Verify p95 login latency < 500ms with random delay |
+| `sprint10-hibp-registration.js` | 9 min | S10-HIBP-003 | Verify compromised password rejection |
+| `sprint10-hibp-failopen.js` | 5 min | S10-HIBP-003 | Verify fail-open behavior when HIBP unavailable |
+
+### Login Timing Test (`sprint10-login-timing.js`)
+
+**Purpose**: Verify random login delay (100-300ms) for timing attack mitigation
+
+**Security Gate**: S10-PERF-001 - p95 login latency < 500ms
+
+**Success Criteria**:
+- ✅ p95 login latency < 500ms (CRITICAL)
+- ✅ Timing consistency > 95%
+- ✅ Success vs. failure timing diff < 50ms
+
+**Run**:
+```bash
+make test-load-sprint10-login
+```
+
+**Expected Output**:
+```
+✓ successful login: delay in range    97.2%
+✓ failed login: delay in range        97.1%
+
+http_req_duration{endpoint:login_success}: p(95)=420ms  ← PASS
+http_req_duration{endpoint:login_failure}: p(95)=415ms  ← PASS
+
+Security Gate S10-PERF-001: PASS ✓
+```
+
+### HIBP Registration Test (`sprint10-hibp-registration.js`)
+
+**Purpose**: Verify HIBP password checking rejects compromised passwords
+
+**Security Gate**: S10-HIBP-003 - Compromised password rejection
+
+**Success Criteria**:
+- ✅ Compromised password rejection rate > 95% (CRITICAL)
+- ✅ Strong password acceptance rate > 95% (CRITICAL)
+- ✅ p95 registration latency < 2s
+
+**Run**:
+```bash
+make test-load-sprint10-hibp
+```
+
+**Expected Output**:
+```
+✓ compromised password: status 400    96.8%
+✓ strong password: status 201         98.1%
+
+compromised_password_rejection_rate: 96.8%  ← PASS
+strong_password_acceptance_rate: 98.1%      ← PASS
+
+Security Gate S10-HIBP-003: PASS ✓
+```
+
+### HIBP Fail-Open Test (`sprint10-hibp-failopen.js`)
+
+**Purpose**: Verify system continues working when HIBP API is unavailable
+
+**Security Gate**: S10-HIBP-003 - Fail-open behavior
+
+**Success Criteria**:
+- ✅ Registration success rate > 95% (CRITICAL)
+- ✅ p95 latency < 1s
+
+**Prerequisites**:
+```bash
+export HIBP_ENABLED=false
+make run
+make test-load-sprint10-failopen
+```
+
+**Expected Output**:
+```
+✓ failopen: registration succeeds     99.2%
+
+failopen_success_rate: 99.2%              ← PASS
+failopen_registration_duration: p(95)=620ms ← PASS
+
+Security Gate S10-HIBP-003 (Fail-Open): PASS ✓
+```
+
+**Server Logs Should Show**:
+```
+WARN HIBP API check failed fail_open=true
+INFO user registered successfully (HIBP check skipped)
+```
+
+### Sprint 10 Documentation
+
+For comprehensive Sprint 10 load testing documentation:
+- **Summary**: `/home/user/goimg-datalayer/docs/testing/SPRINT10_LOAD_TESTING_SUMMARY.md`
+- **Detailed Guide**: `/home/user/goimg-datalayer/docs/testing/SPRINT10_LOAD_TESTING_GUIDE.md`
+- **Implementation Plan**: `/home/user/goimg-datalayer/claude/sprint_10_plan.md`
+
+### Sprint 10 Performance Baselines
+
+| Metric | Target | Notes |
+|--------|--------|-------|
+| Login p95 (100 VUs) | < 500ms | Includes 100-300ms random delay |
+| Registration p95 (cache hit) | < 200ms | Redis cache lookup |
+| Registration p95 (cache miss) | < 2000ms | Includes HIBP API call |
+| Fail-open p95 | < 1000ms | No external API call |
+| HIBP cache hit rate | > 90% | After warm-up period |
+
+---
+
 ## Support
 
 - API Issues: Check `docker logs goimg-api`
 - Database Issues: Check `docker logs goimg-postgres`
 - k6 Issues: https://k6.io/docs/
+- Sprint 10 Tests: See `/home/user/goimg-datalayer/docs/testing/SPRINT10_LOAD_TESTING_GUIDE.md`
 - Project Issues: Open GitHub issue

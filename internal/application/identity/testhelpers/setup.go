@@ -29,6 +29,9 @@ type TestSuite struct {
 	// Event Publishing Mock
 	EventPublisher *MockEventPublisher
 
+	// Metrics Mocks
+	AuthMetrics *MockAuthMetricsRecorder
+
 	// Logger for handlers (no-op logger for tests)
 	Logger zerolog.Logger
 
@@ -61,6 +64,7 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		SessionRepo:         new(MockSessionRepository),
 		SessionStore:        new(MockSessionStore),
 		EventPublisher:      new(MockEventPublisher),
+		AuthMetrics:         new(MockAuthMetricsRecorder),
 		Logger:              zerolog.Nop(), // No-op logger for tests
 		t:                   t,
 	}
@@ -76,6 +80,7 @@ func (s *TestSuite) AssertExpectations() {
 	s.SessionRepo.AssertExpectations(s.t)
 	s.SessionStore.AssertExpectations(s.t)
 	s.EventPublisher.AssertExpectations(s.t)
+	s.AuthMetrics.AssertExpectations(s.t)
 }
 
 // Helper methods for common test setups
