@@ -22,7 +22,7 @@ This sprint plan is informed by:
 - **Compromised Password Rejection**: ✅ HIBP k-anonymity integration with Redis caching
 - **Prometheus Metrics**: ✅ Added login delay & HIBP check metrics
 - **E2E Tests**: ✅ Newman tests for password_compromised error
-- **Security Gate S10**: ✅ 8 of 8 security controls passed (timing leak fixed)
+- **Security Gate S10**: ✅ 8 of 10 security controls passed (2 pending: TEST & PERF; timing leak fixed)
 - **Remaining Work**: Integration testing with live HIBP API, CI coverage verification
 
 **Sprint 9 Summary** (Completed 2026-01-06):
