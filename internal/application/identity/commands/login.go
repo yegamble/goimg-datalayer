@@ -110,7 +110,7 @@ func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthR
 
 		// Note: Timing details intentionally not logged to prevent timing attacks
 		// (S10-AUTH-003). Attackers with log access could otherwise distinguish
-		// "user not found" (fast) from "password check" (slow bcrypt verification).
+		// "user not found" (fast) from "password check" (slow Argon2id verification).
 		h.logger.Debug().Msg("login timing defense applied")
 	}()
 
