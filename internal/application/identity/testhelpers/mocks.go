@@ -321,3 +321,13 @@ func (m *MockEventPublisher) Publish(ctx context.Context, event interface{}) err
 	args := m.Called(ctx, event)
 	return args.Error(0)
 }
+
+// MockAuthMetricsRecorder is a mock implementation of appidentity.AuthMetricsRecorder.
+type MockAuthMetricsRecorder struct {
+	mock.Mock
+}
+
+// RecordLoginDelay records the random delay applied to a login attempt.
+func (m *MockAuthMetricsRecorder) RecordLoginDelay(delaySeconds float64) {
+	m.Called(delaySeconds)
+}

@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
 
 # Default target
 help:
@@ -12,13 +12,17 @@ help:
 	@echo "  test-unit         - Run unit tests only"
 	@echo "  test-integration  - Run integration tests only"
 	@echo "  test-e2e          - Run Newman/Postman E2E tests"
-	@echo "  load-test         - Run all k6 load tests"
-	@echo "  load-test-quick   - Run quick smoke load test (1 minute)"
-	@echo "  load-test-auth    - Run authentication flow load test"
-	@echo "  load-test-browse  - Run browsing flow load test"
-	@echo "  load-test-upload  - Run upload flow load test"
-	@echo "  load-test-social  - Run social interactions load test"
-	@echo "  coverage-domain   - Generate HTML coverage report for domain layer"
+	@echo "  load-test                    - Run all k6 load tests"
+	@echo "  load-test-quick              - Run quick smoke load test (1 minute)"
+	@echo "  load-test-auth               - Run authentication flow load test"
+	@echo "  load-test-browse             - Run browsing flow load test"
+	@echo "  load-test-upload             - Run upload flow load test"
+	@echo "  load-test-social             - Run social interactions load test"
+	@echo "  test-load-sprint10-login     - Run Sprint 10 login timing load test (S10-PERF-001)"
+	@echo "  test-load-sprint10-hibp      - Run Sprint 10 HIBP registration load test"
+	@echo "  test-load-sprint10-failopen  - Run Sprint 10 HIBP fail-open load test"
+	@echo "  test-load-sprint10-all       - Run all Sprint 10 load tests"
+	@echo "  coverage-domain              - Generate HTML coverage report for domain layer"
 	@echo "  fmt               - Format Go source code"
 	@echo "  lint              - Run golangci-lint"
 	@echo "  generate          - Run code generation (oapi-codegen)"
@@ -166,6 +170,88 @@ load-test-social:
 		exit 1; \
 	fi
 	@k6 run tests/load/social-flow.js
+
+# Sprint 10 load tests (Security features)
+test-load-sprint10-login:
+	@echo "=========================================="
+	@echo "Sprint 10 Load Test: Login Timing"
+	@echo "Security Gate: S10-PERF-001"
+	@echo "Requirement: p95 login latency < 500ms"
+	@echo "=========================================="
+	@if ! command -v k6 &> /dev/null; then \
+		echo "ERROR: k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@echo "Starting test... (duration: ~13 minutes)"
+	@k6 run tests/load/sprint10-login-timing.js
+	@echo ""
+	@echo "✓ Login timing load test complete"
+	@echo "Review output above for Security Gate S10-PERF-001 status"
+
+test-load-sprint10-hibp:
+	@echo "=========================================="
+	@echo "Sprint 10 Load Test: HIBP Registration"
+	@echo "Security Gate: S10-HIBP-003"
+	@echo "Requirement: Compromised password rejection"
+	@echo "=========================================="
+	@if ! command -v k6 &> /dev/null; then \
+		echo "ERROR: k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@echo "Starting test... (duration: ~9 minutes)"
+	@k6 run tests/load/sprint10-hibp-registration.js
+	@echo ""
+	@echo "✓ HIBP registration load test complete"
+	@echo "Review output above for rejection/acceptance rates"
+
+test-load-sprint10-failopen:
+	@echo "=========================================="
+	@echo "Sprint 10 Load Test: HIBP Fail-Open"
+	@echo "Security Gate: S10-HIBP-003"
+	@echo "Requirement: Fail-open behavior"
+	@echo "=========================================="
+	@if ! command -v k6 &> /dev/null; then \
+		echo "ERROR: k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "IMPORTANT: This test requires HIBP to be disabled"
+	@echo "Set environment variable: export HIBP_ENABLED=false"
+	@echo "Or block network access to api.pwnedpasswords.com"
+	@echo ""
+	@read -p "Press Enter to continue (Ctrl+C to cancel)..."
+	@echo ""
+	@echo "Starting test... (duration: ~5 minutes)"
+	@k6 run tests/load/sprint10-hibp-failopen.js
+	@echo ""
+	@echo "✓ HIBP fail-open load test complete"
+	@echo "Verify server logs show HIBP warnings (not errors)"
+
+test-load-sprint10-all:
+	@echo "=========================================="
+	@echo "Sprint 10 Load Tests - Full Suite"
+	@echo "Security Gates: S10-PERF-001, S10-HIBP-003"
+	@echo "=========================================="
+	@echo ""
+	@echo "Running all Sprint 10 load tests..."
+	@echo "Total duration: ~30 minutes"
+	@echo ""
+	@$(MAKE) test-load-sprint10-login
+	@echo ""
+	@$(MAKE) test-load-sprint10-hibp
+	@echo ""
+	@echo "Skipping fail-open test (requires manual HIBP disable)"
+	@echo "Run separately with: make test-load-sprint10-failopen"
+	@echo ""
+	@echo "=========================================="
+	@echo "✓ All Sprint 10 load tests complete"
+	@echo "=========================================="
+	@echo ""
+	@echo "Security Gate Status:"
+	@echo "  S10-PERF-001: Check login timing results above"
+	@echo "  S10-HIBP-003: Check HIBP rejection rates above"
+	@echo ""
+	@echo "See docs/testing/SPRINT10_LOAD_TESTING_GUIDE.md for details"
 
 # Formatting
 fmt:

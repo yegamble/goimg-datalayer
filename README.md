@@ -6,7 +6,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 **Current Phase**: **Phase 2 - Security Enhancements** - MVP complete, Phase 2 development in progress
 
-**Sprint 10**: IN PROGRESS - Random login delay and HIBP password check
+**Sprint 10**: IN PROGRESS - Security Enhancements (Random login delay ✅, HIBP password check ✅)
 
 **Completed Sprints**:
 
@@ -442,8 +442,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 10 | Security Enhancements | High | **IN PROGRESS** |
-| | - Random login delay (timing attack mitigation) | | |
-| | - HIBP password check | | |
+| | - Random login delay (timing attack mitigation) | | ✅ Implemented |
+| | - HIBP password check | | ✅ Implemented |
+| | - Prometheus metrics, OpenAPI spec update | | ✅ Implemented |
 | 11 | Two-Factor Authentication | High | Planned |
 | | - TOTP implementation | | |
 | | - Unusual login notifications | | |
