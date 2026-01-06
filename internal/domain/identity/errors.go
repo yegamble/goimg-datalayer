@@ -52,4 +52,24 @@ var (
 	ErrUserDeleted = errors.New("user account is deleted")
 	// ErrInvalidUserStatus indicates an invalid user status transition.
 	ErrInvalidUserStatus = errors.New("invalid user status transition")
+
+	// 2FA-related errors
+	// ErrTOTPAlreadyEnabled indicates 2FA is already enabled for the user.
+	ErrTOTPAlreadyEnabled = errors.New("two-factor authentication is already enabled")
+	// ErrTOTPNotEnabled indicates 2FA is not enabled for the user.
+	ErrTOTPNotEnabled = errors.New("two-factor authentication is not enabled")
+	// ErrTOTPNotVerified indicates 2FA setup was started but not verified.
+	ErrTOTPNotVerified = errors.New("two-factor authentication setup not verified")
+	// ErrTOTPSecretEmpty indicates the TOTP secret is empty.
+	ErrTOTPSecretEmpty = errors.New("TOTP secret cannot be empty")
+	// ErrTOTPCodeInvalid indicates the TOTP code is invalid.
+	ErrTOTPCodeInvalid = errors.New("invalid two-factor authentication code")
+	// ErrTOTPCodeExpired indicates the TOTP code has expired.
+	ErrTOTPCodeExpired = errors.New("two-factor authentication code has expired")
+	// ErrBackupCodeInvalid indicates the backup code is invalid or already used.
+	ErrBackupCodeInvalid = errors.New("invalid or already used backup code")
+	// ErrBackupCodesExhausted indicates all backup codes have been used.
+	ErrBackupCodesExhausted = errors.New("all backup codes have been used")
+	// Err2FARequired indicates 2FA verification is required to complete login.
+	Err2FARequired = errors.New("two-factor authentication verification required")
 )

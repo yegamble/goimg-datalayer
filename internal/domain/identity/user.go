@@ -27,6 +27,11 @@ type User struct {
 	createdAt    time.Time
 	updatedAt    time.Time
 	events       []shared.DomainEvent
+
+	// 2FA fields
+	totpSecret  *TOTPSecret         // nil if 2FA not set up
+	backupCodes []BackupCode        // 10 one-time use codes
+	devices     []DeviceFingerprint // Known devices for unusual login detection
 }
 
 // NewUser creates a new User with the given email, username, and password hash.
@@ -87,6 +92,43 @@ func ReconstructUser(
 		createdAt:    createdAt,
 		updatedAt:    updatedAt,
 		events:       []shared.DomainEvent{},
+		totpSecret:   nil,
+		backupCodes:  nil,
+		devices:      nil,
+	}
+}
+
+// ReconstructUserWith2FA reconstitutes a User with 2FA data from persistence.
+// This should only be used by the repository layer when loading from storage.
+func ReconstructUserWith2FA(
+	id UserID,
+	email Email,
+	username Username,
+	passwordHash PasswordHash,
+	role Role,
+	status UserStatus,
+	displayName string,
+	bio string,
+	createdAt, updatedAt time.Time,
+	totpSecret *TOTPSecret,
+	backupCodes []BackupCode,
+	devices []DeviceFingerprint,
+) *User {
+	return &User{
+		id:           id,
+		email:        email,
+		username:     username,
+		passwordHash: passwordHash,
+		role:         role,
+		status:       status,
+		displayName:  displayName,
+		bio:          bio,
+		createdAt:    createdAt,
+		updatedAt:    updatedAt,
+		events:       []shared.DomainEvent{},
+		totpSecret:   totpSecret,
+		backupCodes:  backupCodes,
+		devices:      devices,
 	}
 }
 
@@ -255,4 +297,211 @@ func (u *User) CanLogin() bool {
 // addEvent adds a domain event to the aggregate's event list.
 func (u *User) addEvent(event shared.DomainEvent) {
 	u.events = append(u.events, event)
+}
+
+// 2FA Methods
+
+// TOTPSecret returns the user's TOTP secret (nil if not set up).
+func (u *User) TOTPSecret() *TOTPSecret {
+	return u.totpSecret
+}
+
+// BackupCodes returns the user's backup codes.
+func (u *User) BackupCodes() []BackupCode {
+	return u.backupCodes
+}
+
+// Devices returns the user's known devices.
+func (u *User) Devices() []DeviceFingerprint {
+	return u.devices
+}
+
+// IsTOTPEnabled returns whether 2FA is enabled and verified for this user.
+func (u *User) IsTOTPEnabled() bool {
+	return u.totpSecret != nil && u.totpSecret.IsEnabled()
+}
+
+// IsTOTPSetupPending returns whether 2FA setup was started but not verified.
+func (u *User) IsTOTPSetupPending() bool {
+	return u.totpSecret != nil && u.totpSecret.IsSetupPending()
+}
+
+// SetupTOTP initializes 2FA setup with the given encrypted secret.
+// The user must verify their first TOTP code before 2FA is fully enabled.
+func (u *User) SetupTOTP(encryptedSecret []byte) error {
+	if u.IsTOTPEnabled() {
+		return ErrTOTPAlreadyEnabled
+	}
+
+	secret, err := NewTOTPSecret(encryptedSecret, u.email.String())
+	if err != nil {
+		return err
+	}
+
+	u.totpSecret = &secret
+	u.updatedAt = time.Now().UTC()
+	return nil
+}
+
+// EnableTOTP enables 2FA after the user verifies their first TOTP code.
+// Also generates backup codes if not already set.
+// Emits a UserTOTPEnabled event.
+func (u *User) EnableTOTP(backupCodes []BackupCode) error {
+	if u.totpSecret == nil {
+		return ErrTOTPNotEnabled
+	}
+
+	if u.IsTOTPEnabled() {
+		return ErrTOTPAlreadyEnabled
+	}
+
+	u.totpSecret.Enable()
+	u.backupCodes = backupCodes
+	u.updatedAt = time.Now().UTC()
+
+	u.addEvent(NewUserTOTPEnabled(u.id))
+	return nil
+}
+
+// DisableTOTP disables 2FA for the user.
+// Emits a UserTOTPDisabled event.
+func (u *User) DisableTOTP() error {
+	if !u.IsTOTPEnabled() && !u.IsTOTPSetupPending() {
+		return nil // Idempotent
+	}
+
+	u.totpSecret = nil
+	u.backupCodes = nil
+	u.updatedAt = time.Now().UTC()
+
+	u.addEvent(NewUserTOTPDisabled(u.id))
+	return nil
+}
+
+// UseBackupCode validates and consumes a backup code.
+// Returns an error if the code is invalid or already used.
+// Emits a UserBackupCodeUsed event.
+func (u *User) UseBackupCode(plaintext string) error {
+	if !u.IsTOTPEnabled() {
+		return ErrTOTPNotEnabled
+	}
+
+	if len(u.backupCodes) == 0 {
+		return ErrBackupCodesExhausted
+	}
+
+	for i := range u.backupCodes {
+		if u.backupCodes[i].IsUsed() {
+			continue
+		}
+
+		if err := u.backupCodes[i].Verify(plaintext); err == nil {
+			u.backupCodes[i].MarkUsed()
+			u.updatedAt = time.Now().UTC()
+
+			remaining := CountUnusedBackupCodes(u.backupCodes)
+			u.addEvent(NewUserBackupCodeUsed(u.id, remaining))
+			return nil
+		}
+	}
+
+	return ErrBackupCodeInvalid
+}
+
+// RegenerateBackupCodes replaces all backup codes with new ones.
+// Emits a UserBackupCodesRegenerated event.
+func (u *User) RegenerateBackupCodes(newCodes []BackupCode) error {
+	if !u.IsTOTPEnabled() {
+		return ErrTOTPNotEnabled
+	}
+
+	u.backupCodes = newCodes
+	u.updatedAt = time.Now().UTC()
+
+	u.addEvent(NewUserBackupCodesRegenerated(u.id))
+	return nil
+}
+
+// UnusedBackupCodeCount returns the number of unused backup codes.
+func (u *User) UnusedBackupCodeCount() int {
+	return CountUnusedBackupCodes(u.backupCodes)
+}
+
+// TrackDevice records a login from a device.
+// Returns true if this is a known device, false if unusual (new device).
+func (u *User) TrackDevice(fingerprint DeviceFingerprint) bool {
+	// Check if device already exists
+	for i := range u.devices {
+		if u.devices[i].MatchesHash(fingerprint.FingerprintHash()) {
+			u.devices[i].UpdateLastSeen()
+			return u.devices[i].IsTrusted()
+		}
+	}
+
+	// New device - add to list
+	u.devices = append(u.devices, fingerprint)
+	u.updatedAt = time.Now().UTC()
+
+	// Emit unusual login event
+	u.addEvent(NewUserUnusualLogin(
+		u.id,
+		fingerprint.IPAddress(),
+		fingerprint.DeviceName(),
+		fingerprint.FingerprintHash(),
+	))
+
+	return false // New device is unusual
+}
+
+// TrustDevice marks a device as trusted.
+// Emits a UserDeviceTrusted event.
+func (u *User) TrustDevice(fingerprintHash string) error {
+	for i := range u.devices {
+		if u.devices[i].MatchesHash(fingerprintHash) {
+			if u.devices[i].IsTrusted() {
+				return nil // Already trusted, no-op
+			}
+
+			u.devices[i].MarkTrusted()
+			u.updatedAt = time.Now().UTC()
+
+			u.addEvent(NewUserDeviceTrusted(
+				u.id,
+				fingerprintHash,
+				u.devices[i].DeviceName(),
+			))
+			return nil
+		}
+	}
+
+	return fmt.Errorf("device not found")
+}
+
+// RemoveDevice removes a device from the trusted list.
+func (u *User) RemoveDevice(fingerprintHash string) error {
+	for i := range u.devices {
+		if u.devices[i].MatchesHash(fingerprintHash) {
+			u.devices = append(u.devices[:i], u.devices[i+1:]...)
+			u.updatedAt = time.Now().UTC()
+			return nil
+		}
+	}
+
+	return fmt.Errorf("device not found")
+}
+
+// HasTrustedDevices returns whether the user has any trusted devices.
+func (u *User) HasTrustedDevices() bool {
+	for _, d := range u.devices {
+		if d.IsTrusted() {
+			return true
+		}
+	}
+	return false
+}
+
+// Requires2FA returns whether 2FA verification is required for login.
+// This is true if TOTP is enabled for this user.
+func (u *User) Requires2FA() bool {
+	return u.IsTOTPEnabled()
 }
