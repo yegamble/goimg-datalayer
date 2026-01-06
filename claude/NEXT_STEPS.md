@@ -28,16 +28,9 @@
 - **Caching**: Redis + in-memory fallback for HIBP results (24h TTL)
 - **Prometheus Metrics**: Integrated via `AuthMetricsRecorder` and `HIBPMetricsRecorder` interfaces
 
-### Remaining for Sprint 10
+### Sprint 10: Complete
 
-| Task | Priority | Description |
-|------|----------|-------------|
-| Integration Testing | P1 | Test with real HIBP API (network dependent) |
-| Prometheus Metrics | IN PROGRESS | Metric functions defined & tested; integration into login handler defer block and HIBP client still pending (`goimg_auth_login_delay_seconds`, `goimg_security_hibp_checks_total`, `goimg_security_hibp_check_duration_seconds`) |
-| OpenAPI Spec | ✅ DONE | `password_compromised` error added to registration endpoint |
-| E2E Tests | ✅ DONE | Newman tests for compromised password rejection |
-| Security Gate S10 | ✅ DONE | 8 of 10 controls passed (2 pending: S10-TEST-001, S10-PERF-001; timing leak fixed in S10-AUTH-003) |
-| Documentation | ✅ DONE | Sprint 10 docs updated |
+All Sprint 10 objectives achieved. See archived documentation in `/claude/archive/sprints/sprint_10_plan.md` for full details.
 
 ### Security Gate S10 Status
 
@@ -54,7 +47,7 @@
 | S10-TEST-001: 85%+ coverage | ✅ PASS | 90.9% achieved |
 | S10-PERF-001: <500ms p95 latency | ✅ PASS | 289ms (unit test verified) |
 
-See `/claude/sprint_10_plan.md` for detailed implementation plan.
+See `/claude/archive/sprints/sprint_10_plan.md` for archived implementation details.
 
 ---
 
@@ -142,7 +135,7 @@ The goimg-datalayer backend is **production-ready** and has been **APPROVED FOR 
 ### For Security
 - **Security Policy**: `/SECURITY.md`
 - **Incident Response**: `/docs/security/incident_response.md`
-- **Penetration Test Report**: `/docs/security/pentest_sprint9.md`
+- **2FA Security Spec**: `/docs/security/sprint_11_2fa_security_spec.md`
 - **Audit Log Review**: `/docs/security/audit_log_review.md`
 - **Secret Rotation**: `/docs/security/secret_rotation.md`
 
@@ -190,44 +183,59 @@ Features deferred to Phase 2:
 
 **Sprint Goal**: Implement TOTP-based two-factor authentication with backup codes and unusual login notifications.
 
-### Planned Features
+### Implementation Progress
 
-| Feature | Priority | Description |
-|---------|----------|-------------|
-| TOTP Setup | P0 | Generate TOTP secrets, QR codes for authenticator apps |
-| TOTP Verification | P0 | Verify TOTP codes during login |
-| Backup Codes | P0 | Generate and verify one-time backup codes |
-| 2FA Management | P1 | Enable/disable 2FA, regenerate backup codes |
-| Unusual Login Detection | P1 | Detect logins from new devices/locations |
-| Login Notifications | P2 | Email notifications for new device logins |
+| Layer | Status | Details |
+|-------|--------|---------|
+| Domain Layer | ✅ COMPLETE | Value objects, User aggregate methods, domain events |
+| Database Migration | ✅ COMPLETE | `migrations/00006_create_2fa_tables.sql` |
+| Infrastructure Layer | 🔄 IN PROGRESS | Secret encryption, TOTP service |
+| Application Layer | ⏳ PENDING | Commands and queries |
+| HTTP Layer | ⏳ PENDING | Endpoints and OpenAPI spec |
+| E2E Tests | ⏳ PENDING | Newman/Postman tests |
 
-### Technical Implementation
+### Completed Domain Work
 
-**TOTP Library**: Consider `github.com/pquerna/otp` (industry standard)
+**Value Objects**:
+- `TOTPSecret` - Encrypted TOTP secrets with issuer/account info
+- `BackupCode` - Argon2id hashed one-time recovery codes
+- `DeviceFingerprint` - SHA-256 device identification for unusual login detection
 
-**Database Changes**:
-- `user_totp_secrets` table (encrypted secret, enabled flag)
-- `user_backup_codes` table (hashed codes, used flag)
-- `user_devices` table (device fingerprint, last seen)
+**User Aggregate Methods**:
+- `SetupTOTP`, `EnableTOTP`, `DisableTOTP` - 2FA lifecycle
+- `UseBackupCode`, `RegenerateBackupCodes` - Backup code management
+- `TrackDevice`, `TrustDevice`, `RemoveDevice` - Device tracking
 
-**Endpoints**:
-- `POST /auth/2fa/setup` - Generate TOTP secret and QR code
-- `POST /auth/2fa/verify` - Verify TOTP code to enable 2FA
-- `DELETE /auth/2fa` - Disable 2FA (requires password)
-- `POST /auth/2fa/backup-codes` - Generate new backup codes
-- `POST /auth/login/2fa` - Submit 2FA code during login
+**Domain Events**:
+- `UserTOTPEnabled`, `UserTOTPDisabled`
+- `UserBackupCodeUsed`, `UserBackupCodesRegenerated`
+- `UserUnusualLogin`, `UserDeviceTrusted`
+
+### Remaining Work
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| SecretEncryptor | P0 | AES-256-GCM encryption for TOTP secrets |
+| TOTPService | P0 | TOTP code generation and verification |
+| Setup2FACommand | P0 | Application service for 2FA setup flow |
+| Verify2FACommand | P0 | Application service for login verification |
+| HTTP Handlers | P0 | REST endpoints for 2FA operations |
+| OpenAPI Spec | P0 | Document new endpoints |
+| E2E Tests | P0 | Newman tests for full 2FA flow |
+| Security Gate S11 | P0 | Pass all security controls |
 
 ### Security Requirements (Gate S11)
 
-| Control | Requirement |
-|---------|-------------|
-| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) |
-| S11-2FA-002 | Backup codes hashed (bcrypt/Argon2id) |
-| S11-2FA-003 | Rate limiting on 2FA verification (5/min) |
-| S11-2FA-004 | Session elevation after 2FA completion |
-| S11-2FA-005 | Audit logging for all 2FA events |
+| Control | Requirement | Status |
+|---------|-------------|--------|
+| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) | ⏳ Pending |
+| S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ Done |
+| S11-2FA-003 | Rate limiting on 2FA verification (5/min) | ⏳ Pending |
+| S11-2FA-004 | Session elevation after 2FA completion | ⏳ Pending |
+| S11-2FA-005 | Audit logging for all 2FA events | ✅ Done |
 
 See `/claude/sprint_11_plan.md` for detailed implementation plan.
+See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 

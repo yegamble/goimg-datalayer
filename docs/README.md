@@ -36,11 +36,15 @@ docs/
 │
 ├── security/               # Security documentation
 │   ├── incident_response.md      # Incident response procedures
-│   ├── pentest_sprint9.md        # Penetration test report (A- rating)
 │   ├── audit_log_review.md       # Audit logging compliance
 │   ├── data_retention_policy.md  # GDPR/CCPA compliance
 │   ├── secret_rotation.md        # Secret rotation procedures
-│   └── monitoring.md             # Security monitoring guide
+│   ├── monitoring.md             # Security monitoring guide
+│   └── sprint_11_2fa_security_spec.md  # 2FA security specification
+│
+├── archive/                # Historical documentation
+│   ├── sprints/            # Sprint-specific docs (4-10)
+│   └── task-summaries/     # Task completion records
 │
 ├── operations/             # Operations & maintenance
 │   ├── database-backups.md           # Backup procedures
@@ -150,13 +154,13 @@ All security controls verified for production deployment.
 
 ### Phase 2 Roadmap
 
-| Sprint | Focus | Priority |
-|--------|-------|----------|
-| 10 | Security Enhancements (timing attacks, HIBP) | High |
-| 11 | Two-Factor Authentication (TOTP) | High |
-| 11-12 | OAuth Providers (Google, GitHub) | Medium |
-| 12 | Social Features (follows, activity feeds) | Medium |
-| 13 | IPFS Storage Integration | Medium |
+| Sprint | Focus | Status |
+|--------|-------|--------|
+| 10 | Security Enhancements (timing attacks, HIBP) | **Complete** |
+| 11 | Two-Factor Authentication (TOTP) | **In Progress** |
+| 12 | OAuth Providers (Google, GitHub) | Planned |
+| 13 | Social Features (follows, activity feeds) | Planned |
+| 14 | IPFS Storage Integration | Planned |
 
 ---
 
