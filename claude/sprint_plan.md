@@ -1378,7 +1378,7 @@ CREATE TABLE audit_logs (
 | Update OpenAPI spec with password_compromised error | P1 | ✅ DONE |
 | E2E tests for new error codes | P2 | ✅ DONE |
 | Documentation updates (API docs, security guide) | P2 | ✅ DONE |
-| Security Gate S10 review | P1 | ✅ DONE (8/8 passed) |
+| Security Gate S10 review | P1 | ✅ DONE (8/10 passed, 2 pending) |
 
 ### Security Gate S10 Requirements
 
