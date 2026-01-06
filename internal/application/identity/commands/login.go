@@ -89,6 +89,19 @@ func NewLoginHandler(
 //
 //nolint:funlen,cyclop // Sequential authentication: identifier lookup, password verify, status, and token gen.
 func (h *LoginHandler) Handle(ctx context.Context, cmd LoginCommand) (*dto.AuthResponseDTO, error) {
+	targetDelay := appidentity.CalculateRandomAuthDelay()
+	startTime := time.Now()
+
+	defer func() {
+		actualDuration := time.Since(startTime)
+		appliedDelay := appidentity.ApplyAuthDelay(targetDelay, actualDuration)
+		h.logger.Debug().
+			Dur("target_delay", targetDelay).
+			Dur("actual_processing", actualDuration).
+			Dur("applied_delay", appliedDelay).
+			Msg("login timing completed")
+	}()
+
 	// 1. Parse identifier and find user
 	// Try email first, then username
 	user, err := h.findUserByIdentifier(ctx, cmd.Identifier)

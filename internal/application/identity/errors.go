@@ -60,4 +60,8 @@ var (
 	// ErrForbidden is returned when a user is authenticated but lacks permission
 	// for the requested resource or operation.
 	ErrForbidden = errors.New("forbidden - insufficient permissions")
+
+	// ErrPasswordCompromised is returned when a password has been found in known data breaches.
+	// This prevents users from registering with passwords that have been compromised.
+	ErrPasswordCompromised = errors.New("password has been found in data breaches")
 )

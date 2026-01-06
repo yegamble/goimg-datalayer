@@ -384,6 +384,7 @@ func TestRegisterUserHandler_Handle(t *testing.T) {
 			handler := commands.NewRegisterUserHandler(
 				suite.UserRepo,
 				suite.EventPublisher,
+				nil, // passwordChecker is optional
 				&suite.Logger,
 			)
 
