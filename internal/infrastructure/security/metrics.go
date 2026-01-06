@@ -9,7 +9,7 @@ package security
 //   - NoOpHIBPMetricsRecorder (testing/disabled)
 type HIBPMetricsRecorder interface {
 	// RecordHIBPCheck records a Have I Been Pwned password check.
-	// result should be one of: "clean", "compromised", "error", "cache_hit", "skipped"
+	// result should be one of: "clean", "compromised", "error", "skipped"
 	// Sprint 10: HIBP password check metric
 	RecordHIBPCheck(result string)
 
