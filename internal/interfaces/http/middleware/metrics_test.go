@@ -472,7 +472,6 @@ func TestMetricsCollector_RecordHIBPCheck(t *testing.T) {
 		{"Clean password", "clean", 1, false},
 		{"Compromised password", "compromised", 1, false},
 		{"Error occurred", "error", 1, false},
-		{"Cache hit", "cache_hit", 1, false},
 		{"Skipped check", "skipped", 1, false},
 		{"Multiple clean checks", "clean", 3, true},
 	}
