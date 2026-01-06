@@ -189,7 +189,7 @@ Features deferred to Phase 2:
 |-------|--------|---------|
 | Domain Layer | ✅ COMPLETE | Value objects, User aggregate methods, domain events |
 | Database Migration | ✅ COMPLETE | `migrations/00006_create_2fa_tables.sql` |
-| Infrastructure Layer | 🔄 IN PROGRESS | Secret encryption, TOTP service |
+| Infrastructure Layer | ✅ COMPLETE | SecretEncryptor, TOTPService, repositories |
 | Application Layer | ⏳ PENDING | Commands and queries |
 | HTTP Layer | ⏳ PENDING | Endpoints and OpenAPI spec |
 | E2E Tests | ⏳ PENDING | Newman/Postman tests |
@@ -211,12 +211,21 @@ Features deferred to Phase 2:
 - `UserBackupCodeUsed`, `UserBackupCodesRegenerated`
 - `UserUnusualLogin`, `UserDeviceTrusted`
 
+### Completed Infrastructure Work
+
+**Security Services**:
+- `SecretEncryptor` - AES-256-GCM encryption with random nonces
+- `TOTPService` - RFC 6238 TOTP generation and validation (pquerna/otp)
+
+**PostgreSQL Repositories**:
+- `TOTPRepository` - CRUD for encrypted TOTP secrets
+- `BackupCodeRepository` - Manage hashed backup codes with transaction support
+- `DeviceRepository` - Track devices with upsert on login
+
 ### Remaining Work
 
 | Task | Priority | Description |
 |------|----------|-------------|
-| SecretEncryptor | P0 | AES-256-GCM encryption for TOTP secrets |
-| TOTPService | P0 | TOTP code generation and verification |
 | Setup2FACommand | P0 | Application service for 2FA setup flow |
 | Verify2FACommand | P0 | Application service for login verification |
 | HTTP Handlers | P0 | REST endpoints for 2FA operations |
@@ -228,11 +237,11 @@ Features deferred to Phase 2:
 
 | Control | Requirement | Status |
 |---------|-------------|--------|
-| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) | ⏳ Pending |
+| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) | ✅ Done |
 | S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ Done |
 | S11-2FA-003 | Rate limiting on 2FA verification (5/min) | ⏳ Pending |
 | S11-2FA-004 | Session elevation after 2FA completion | ⏳ Pending |
-| S11-2FA-005 | Audit logging for all 2FA events | ✅ Done |
+| S11-2FA-005 | Audit logging for all 2FA events | ✅ Done | |
 
 See `/claude/sprint_11_plan.md` for detailed implementation plan.
 See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
