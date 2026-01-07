@@ -24,9 +24,11 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.27.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.27.0
 	golang.org/x/crypto v0.45.0
+	golang.org/x/oauth2 v0.34.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
