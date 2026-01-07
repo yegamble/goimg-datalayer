@@ -14,7 +14,17 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-11 COMPLETE. **Sprint 12 PLANNED** - OAuth & Social Features.
+**Status**: Sprint 1-11 COMPLETE. **Sprint 12 IN PROGRESS (~80%)** - OAuth & Social Features.
+
+**Sprint 12 Summary** (In Progress - 2026-01-07):
+- **Progress**: ~80% COMPLETE - OAuth implementation done, social features pending
+- **OAuth Domain Layer**: ✅ OAuthAccount entity, value objects, repository interface
+- **OAuth Infrastructure**: ✅ Google/GitHub OAuth providers, PostgreSQL repository
+- **OAuth Application**: ✅ Commands (authenticate, link, unlink) + queries
+- **OAuth HTTP Layer**: ✅ OAuthHandler with 5 endpoints mounted at /api/v1/auth/oauth
+- **OpenAPI Spec**: ✅ All OAuth endpoints documented
+- **E2E Tests**: ✅ 9 Newman tests for OAuth error handling
+- **Pending**: Social features (follow/unfollow), activity feeds, email notifications
 
 **Sprint 11 Summary** (Completed 2026-01-07):
 - **Progress**: 100% COMPLETE - Two-Factor Authentication fully implemented

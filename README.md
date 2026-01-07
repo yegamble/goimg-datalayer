@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprint 10 complete, Sprint 11 COMPLETE
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-11 complete, Sprint 12 ~80% complete
 
 **Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
 **Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
@@ -15,6 +15,16 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ HTTP Layer (5 endpoints, OpenAPI spec)
   - ✅ Rate Limiting (5 attempts/min on 2FA verification)
   - ✅ E2E Tests (13 Newman tests)
+
+**Sprint 12**: IN PROGRESS (~80%) - OAuth & Social Features
+  - ✅ Domain Layer (OAuthAccount entity, value objects)
+  - ✅ Database Migration (OAuth accounts table)
+  - ✅ Infrastructure Layer (Google/GitHub providers, repository)
+  - ✅ Application Layer (commands and queries)
+  - ✅ HTTP Layer (OAuthHandler with 5 endpoints)
+  - ✅ OpenAPI Spec (OAuth endpoints documented)
+  - ✅ E2E Tests (9 Newman OAuth tests)
+  - 🔄 Pending: Social features, email notifications
 
 **Completed Sprints**:
 
@@ -227,10 +237,10 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - 🔄 User bans (temporary & permanent) API
 
 **Advanced Features**
-- 🔄 OAuth providers (Google, GitHub)
-- 🔄 Email verification and notifications (SMTP)
-- 🔄 Follow/unfollow users
-- 🔄 Activity feeds
+- ✅ OAuth providers (Google, GitHub) - Sprint 12 COMPLETE
+- 🔄 Email verification and notifications (SMTP) - Sprint 12 planned
+- 🔄 Follow/unfollow users - Sprint 12 planned
+- 🔄 Activity feeds - Sprint 12 planned
 - 🔄 IPFS decentralized storage integration
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
 - ✅ MFA/TOTP support (Sprint 11 - COMPLETE)
@@ -451,7 +461,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 |--------|-------|--------|------------------|
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
-| **12** | OAuth & Social Features | 📋 Planned | Google/GitHub OAuth, follow users, activity feeds, session elevation |
+| **12** | OAuth & Social Features | 🔄 **~80% COMPLETE** | Google/GitHub OAuth ✅, router wiring ✅, E2E tests ✅; pending: social features, email |
 | **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
 
@@ -471,13 +481,16 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ E2E tests (13 Newman tests)
 - ✅ Security Gate S11 passed (4/5 controls, 1 deferred)
 
-#### Sprint 12: OAuth & Social Features (Planned)
-- Google OAuth integration
-- GitHub OAuth integration
-- Session elevation after 2FA (deferred from Sprint 11)
-- Follow/unfollow users
-- Activity feeds
-- Email notifications (SMTP)
+#### Sprint 12: OAuth & Social Features (~80% Complete)
+- ✅ Google OAuth integration (provider + callback)
+- ✅ GitHub OAuth integration (provider + callback)
+- ✅ OAuth HTTP endpoints (5 endpoints)
+- ✅ OAuth E2E tests (9 Newman tests)
+- ✅ Security controls (CSRF state, token encryption, callback validation)
+- 🔄 Session elevation after 2FA (pending - requires JWT changes)
+- 📋 Follow/unfollow users (planned)
+- 📋 Activity feeds (planned)
+- 📋 Email notifications (SMTP) (planned)
 
 #### Sprint 13: IPFS Storage (Planned)
 - IPFS node integration (Kubo)
