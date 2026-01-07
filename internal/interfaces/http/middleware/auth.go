@@ -131,11 +131,12 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 			}
 
 			// Step 5: Set user context and continue
-			ctx = SetUserContext(ctx, userID, claims.Email, claims.Role, sessionID)
+			ctx = SetUserContext(ctx, userID, claims.Email, claims.Role, sessionID, claims.TwoFAVerified)
 			cfg.Logger.Debug().
 				Str("event", "auth_success").
 				Str("user_id", claims.UserID).
 				Str("role", claims.Role).
+				Bool("twofa_verified", claims.TwoFAVerified).
 				Str("path", r.URL.Path).
 				Str("request_id", requestID).
 				Msg("request authenticated")

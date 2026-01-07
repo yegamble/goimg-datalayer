@@ -229,3 +229,13 @@ type Login2FARequest struct {
 type RegenerateBackupCodesRequest struct {
 	Password string `json:"password" validate:"required"`
 }
+
+// Verify2FALoginRequest represents the HTTP request body for verifying 2FA during login (Sprint 11).
+// POST /api/v1/auth/2fa/login-verify
+//
+// This endpoint is used when a user with 2FA enabled logs in and receives a non-elevated token.
+// The user must provide their TOTP code to upgrade to an elevated session.
+type Verify2FALoginRequest struct {
+	Code          string `json:"code" validate:"required"`
+	UseBackupCode bool   `json:"use_backup_code"`
+}

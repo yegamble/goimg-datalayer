@@ -49,11 +49,12 @@ func DefaultConfig() Config {
 
 // Claims represents the JWT claims for goimg tokens.
 type Claims struct {
-	UserID    string    `json:"user_id"`    // User UUID
-	Email     string    `json:"email"`      // User email
-	Role      string    `json:"role"`       // User role (user, moderator, admin)
-	SessionID string    `json:"session_id"` // Session UUID for token family tracking
-	TokenType TokenType `json:"token_type"` // Type of token (access or refresh)
+	UserID        string    `json:"user_id"`                   // User UUID
+	Email         string    `json:"email"`                     // User email
+	Role          string    `json:"role"`                      // User role (user, moderator, admin)
+	SessionID     string    `json:"session_id"`                // Session UUID for token family tracking
+	TokenType     TokenType `json:"token_type"`                // Type of token (access or refresh)
+	TwoFAVerified bool      `json:"twofa_verified,omitempty"`  // Session elevation status (Sprint 11)
 	jwt.RegisteredClaims
 }
 
@@ -155,6 +156,56 @@ func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (st
 	signedToken, err := token.SignedString(s.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign access token: %w", err)
+	}
+
+	return signedToken, nil
+}
+
+// GenerateElevatedAccessToken generates an access token with 2FA verification flag set to true.
+// This is used after successful 2FA verification during login to create an elevated session.
+// Elevated tokens allow access to sensitive operations (password change, 2FA disable, account deletion).
+func (s *Service) GenerateElevatedAccessToken(userID, email, role, sessionID string) (string, error) {
+	if userID == "" {
+		return "", fmt.Errorf("user id cannot be empty")
+	}
+
+	if email == "" {
+		return "", fmt.Errorf("email cannot be empty")
+	}
+
+	if role == "" {
+		return "", fmt.Errorf("role cannot be empty")
+	}
+
+	if sessionID == "" {
+		return "", fmt.Errorf("session id cannot be empty")
+	}
+
+	now := time.Now().UTC()
+	expiresAt := now.Add(s.config.AccessTTL)
+
+	claims := Claims{
+		UserID:        userID,
+		Email:         email,
+		Role:          role,
+		SessionID:     sessionID,
+		TokenType:     TokenTypeAccess,
+		TwoFAVerified: true, // Mark session as elevated
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    s.config.Issuer,
+			Subject:   userID,
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ID:        uuid.New().String(), // Unique token ID (jti) for blacklisting
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	signedToken, err := token.SignedString(s.privateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign elevated access token: %w", err)
 	}
 
 	return signedToken, nil
