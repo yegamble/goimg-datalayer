@@ -271,6 +271,263 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== Two-Factor Authentication ====================
+  /auth/2fa/setup:
+    post:
+      tags: [auth]
+      summary: Setup 2FA
+      description: |
+        Initiate two-factor authentication setup for the authenticated user.
+
+        This endpoint generates:
+        - A TOTP secret for use with authenticator apps (Google Authenticator, Authy, etc.)
+        - A provisioning URI for QR code generation
+        - 10 one-time backup codes for account recovery
+
+        Security:
+        - Requires authentication
+        - Returns secret and backup codes only once - user must save them
+        - 2FA is not active until verified with /auth/2fa/verify
+        - Backup codes are hashed before storage (bcrypt)
+        - TOTP secret is encrypted at rest (AES-256-GCM)
+      operationId: setup2FA
+      responses:
+        '200':
+          description: 2FA setup initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setup2FAResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: 2FA already enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/conflict
+                title: Conflict
+                status: 409
+                detail: Two-factor authentication is already enabled
+                traceId: abc123-def456
+
+  /auth/2fa/verify:
+    post:
+      tags: [auth]
+      summary: Verify and enable 2FA
+      description: |
+        Verify the TOTP code and enable two-factor authentication.
+
+        This must be called after /auth/2fa/setup with a valid 6-digit code
+        from the user's authenticator app.
+
+        Security:
+        - Code validation uses constant-time comparison
+        - Allows 1 time-step skew (±30 seconds)
+        - Once verified, 2FA is required for all future logins
+      operationId: verify2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  description: 6-digit TOTP code from authenticator app
+                  example: "123456"
+      responses:
+        '200':
+          description: 2FA enabled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Two-factor authentication has been enabled successfully
+        '400':
+          description: Invalid verification code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/bad-request
+                title: Bad Request
+                status: 400
+                detail: Invalid verification code
+                traceId: abc123-def456
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: No pending 2FA setup found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: 2FA already enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/2fa/disable:
+    post:
+      tags: [auth]
+      summary: Disable 2FA
+      description: |
+        Disable two-factor authentication for the authenticated user.
+
+        Security:
+        - Requires password confirmation
+        - Optionally accepts TOTP code for additional verification
+        - Deletes TOTP secret and all backup codes
+        - Publishes audit event for security logging
+      operationId: disable2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Current account password for confirmation
+                  example: MySecureP@ssw0rd123
+                code:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  description: Optional 6-digit TOTP code for extra security
+                  example: "123456"
+      responses:
+        '200':
+          description: 2FA disabled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Two-factor authentication has been disabled
+        '400':
+          description: Invalid request or TOTP code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized or invalid password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: 2FA not enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/2fa/status:
+    get:
+      tags: [auth]
+      summary: Get 2FA status
+      description: |
+        Retrieve the current two-factor authentication status for the authenticated user.
+
+        Returns:
+        - Whether 2FA is enabled
+        - Whether setup is pending verification
+        - Number of unused backup codes remaining
+        - When 2FA was enabled (if applicable)
+      operationId: get2FAStatus
+      responses:
+        '200':
+          description: 2FA status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorStatus'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/2fa/backup-codes/regenerate:
+    post:
+      tags: [auth]
+      summary: Regenerate backup codes
+      description: |
+        Generate new backup codes, invalidating all existing ones.
+
+        Security:
+        - Requires password confirmation
+        - 2FA must be enabled
+        - Old backup codes are deleted before generating new ones
+        - Returns 10 new one-time codes
+        - Codes are shown only once - user must save them
+      operationId: regenerateBackupCodes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+                  description: Current account password for confirmation
+                  example: MySecureP@ssw0rd123
+      responses:
+        '200':
+          description: Backup codes regenerated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupCodesResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized or invalid password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: 2FA not enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Users ====================
   /users/{id}:
     get:
@@ -2491,6 +2748,102 @@ components:
           type: integer
           description: Access token lifetime in seconds
           example: 900
+
+    # ==================== Two-Factor Authentication ====================
+    Setup2FAResponse:
+      type: object
+      required: [secret, provisioning_uri, issuer, account_name, backup_codes]
+      description: Response from 2FA setup containing secret and backup codes
+      properties:
+        secret:
+          type: string
+          description: Base32-encoded TOTP secret for manual entry into authenticator
+          example: JBSWY3DPEHPK3PXP
+        provisioning_uri:
+          type: string
+          format: uri
+          description: otpauth:// URI for QR code generation
+          example: otpauth://totp/goimg:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=goimg
+        issuer:
+          type: string
+          description: Application name shown in authenticator apps
+          example: goimg
+        account_name:
+          type: string
+          description: Account identifier (usually email)
+          example: user@example.com
+        backup_codes:
+          type: array
+          description: One-time recovery codes (10 codes, shown only once)
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          example:
+            - "A1B2C3D4"
+            - "E5F6G7H8"
+            - "I9J0K1L2"
+            - "M3N4O5P6"
+            - "Q7R8S9T0"
+            - "U1V2W3X4"
+            - "Y5Z6A7B8"
+            - "C9D0E1F2"
+            - "G3H4I5J6"
+            - "K7L8M9N0"
+
+    TwoFactorStatus:
+      type: object
+      required: [enabled, setup_pending, backup_codes_remaining]
+      description: Current 2FA status for a user
+      properties:
+        enabled:
+          type: boolean
+          description: Whether 2FA is currently active
+          example: true
+        setup_pending:
+          type: boolean
+          description: Whether 2FA setup was started but not yet verified
+          example: false
+        backup_codes_remaining:
+          type: integer
+          description: Number of unused backup codes remaining
+          minimum: 0
+          maximum: 10
+          example: 8
+        enabled_at:
+          type: string
+          format: date-time
+          description: When 2FA was enabled (null if not enabled)
+          nullable: true
+          example: 2024-01-15T10:30:00Z
+
+    BackupCodesResponse:
+      type: object
+      required: [backup_codes, remaining_codes]
+      description: Response containing newly generated backup codes
+      properties:
+        backup_codes:
+          type: array
+          description: New one-time recovery codes (shown only once)
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          example:
+            - "A1B2C3D4"
+            - "E5F6G7H8"
+            - "I9J0K1L2"
+            - "M3N4O5P6"
+            - "Q7R8S9T0"
+            - "U1V2W3X4"
+            - "Y5Z6A7B8"
+            - "C9D0E1F2"
+            - "G3H4I5J6"
+            - "K7L8M9N0"
+        remaining_codes:
+          type: integer
+          description: Number of unused backup codes (always 10 after regeneration)
+          example: 10
 
     # ==================== Pagination ====================
     PaginatedResponse:
