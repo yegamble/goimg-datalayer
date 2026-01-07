@@ -38,6 +38,7 @@ type MiddlewareConfig struct {
 //   - Health/Metrics routes: /health, /health/ready, /metrics (no authentication)
 //   - Public routes: /api/v1/auth/* (no authentication)
 //   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
+//   - 2FA routes: /api/v1/auth/2fa/* (JWT authentication required)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
 //
 //nolint:funlen // Router setup with middleware and routes.
@@ -49,6 +50,7 @@ func NewRouter(
 	socialHandler *SocialHandler,
 	exploreHandler *ExploreHandler,
 	healthHandler *HealthHandler,
+	twoFAHandler *TwoFAHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -126,6 +128,10 @@ func NewRouter(
 
 			// Mount user routes
 			r.Mount("/users", userHandler.Routes())
+
+			// Mount 2FA routes (requires authentication)
+			// These are under /auth/2fa but protected unlike public auth routes
+			r.Mount("/auth/2fa", twoFAHandler.Routes())
 
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level

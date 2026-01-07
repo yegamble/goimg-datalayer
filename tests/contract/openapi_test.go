@@ -119,6 +119,12 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/health/ready": {http.MethodGet},
 		// Monitoring endpoints
 		"/metrics": {http.MethodGet},
+		// 2FA endpoints
+		"/auth/2fa/setup":                 {http.MethodPost},
+		"/auth/2fa/verify":                {http.MethodPost},
+		"/auth/2fa/disable":               {http.MethodPost},
+		"/auth/2fa/status":                {http.MethodGet},
+		"/auth/2fa/backup-codes/regenerate": {http.MethodPost},
 	}
 
 	for path, methods := range expectedEndpoints {
@@ -622,6 +628,96 @@ func TestTagEndpointsContract(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, nil, tt.responseSchemas)
+		})
+	}
+}
+
+// Test2FAEndpointsContract tests contract compliance for 2FA endpoints.
+func Test2FAEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "POST /auth/2fa/setup",
+			path:         "/auth/2fa/setup",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "Setup2FAResponse",
+				401: "ProblemDetail",
+				409: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /auth/2fa/verify",
+			path:         "/auth/2fa/verify",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"code": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "success_message",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+				409: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /auth/2fa/disable",
+			path:         "/auth/2fa/disable",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"password": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "success_message",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /auth/2fa/status",
+			path:         "/auth/2fa/status",
+			method:       http.MethodGet,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				200: "TwoFactorStatus",
+				401: "ProblemDetail",
+			},
+		},
+		{
+			name:         "POST /auth/2fa/backup-codes/regenerate",
+			path:         "/auth/2fa/backup-codes/regenerate",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"password": "string",
+			},
+			responseSchemas: map[int]string{
+				200: "BackupCodesResponse",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
 		})
 	}
 }
