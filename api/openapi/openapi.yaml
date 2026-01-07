@@ -528,6 +528,334 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== OAuth 2.0 ====================
+  /auth/oauth/{provider}:
+    get:
+      tags: [auth]
+      summary: Initiate OAuth flow
+      description: |
+        Redirect to OAuth provider authorization page.
+
+        Supported providers:
+        - google: Google OAuth 2.0
+        - github: GitHub OAuth
+
+        This endpoint redirects the user to the OAuth provider's authorization page.
+        After user consent, the provider redirects back to the callback endpoint.
+
+        Security:
+        - State parameter is generated and validated to prevent CSRF attacks
+        - PKCE (Proof Key for Code Exchange) is used for enhanced security
+      operationId: initiateOAuthFlow
+      security: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider name
+          schema:
+            type: string
+            enum: [google, github]
+          example: google
+      responses:
+        '302':
+          description: Redirect to OAuth provider
+          headers:
+            Location:
+              description: OAuth provider authorization URL
+              schema:
+                type: string
+                format: uri
+                example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
+        '400':
+          description: Invalid provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/bad-request
+                title: Bad Request
+                status: 400
+                detail: Invalid OAuth provider
+                traceId: abc123-def456
+
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [auth]
+      summary: Handle OAuth callback
+      description: |
+        Handle OAuth provider callback after user authorization.
+
+        This endpoint receives the authorization code from the OAuth provider,
+        exchanges it for an access token, and either:
+        - Creates a new user account (if email doesn't exist)
+        - Logs in existing user (if OAuth account is linked)
+        - Returns error if account exists but OAuth is not linked
+
+        Security:
+        - Validates state parameter to prevent CSRF
+        - Verifies PKCE code verifier
+        - Token exchange happens server-side
+      operationId: handleOAuthCallback
+      security: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider name
+          schema:
+            type: string
+            enum: [google, github]
+          example: google
+        - name: code
+          in: query
+          required: true
+          description: Authorization code from OAuth provider
+          schema:
+            type: string
+          example: 4/0AfJohXm...
+        - name: state
+          in: query
+          required: true
+          description: CSRF protection state parameter
+          schema:
+            type: string
+          example: abc123def456
+        - name: error
+          in: query
+          description: Error code from OAuth provider (if authorization failed)
+          schema:
+            type: string
+          example: access_denied
+        - name: error_description
+          in: query
+          description: Error description from OAuth provider
+          schema:
+            type: string
+          example: User denied access
+      responses:
+        '200':
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: |
+            OAuth error. Possible error types:
+            - `invalid-state`: State parameter mismatch (CSRF attack)
+            - `invalid-code`: Authorization code invalid or expired
+            - `oauth-error`: Provider returned an error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              examples:
+                invalid_state:
+                  summary: Invalid state parameter
+                  value:
+                    type: https://api.goimg.com/problems/invalid-state
+                    title: Invalid State
+                    status: 400
+                    detail: State parameter validation failed
+                    traceId: abc123-def456
+                oauth_error:
+                  summary: OAuth provider error
+                  value:
+                    type: https://api.goimg.com/problems/oauth-error
+                    title: OAuth Error
+                    status: 400
+                    detail: User denied access
+                    traceId: abc123-def456
+        '409':
+          description: Email already registered with different authentication method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/conflict
+                title: Conflict
+                status: 409
+                detail: An account with this email already exists. Please use password login or link your OAuth account.
+                traceId: abc123-def456
+
+  /auth/oauth/link:
+    post:
+      tags: [auth]
+      summary: Link OAuth account
+      description: |
+        Link an OAuth provider account to the authenticated user.
+
+        This allows users to add OAuth login methods to their existing account.
+        The OAuth account's email must match the user's account email.
+
+        Process:
+        1. User initiates OAuth flow on frontend
+        2. After OAuth provider authorization, frontend receives code and state
+        3. Frontend sends code and state to this endpoint
+        4. Server exchanges code for OAuth account info and links to user
+
+        Security:
+        - Requires JWT authentication
+        - Validates state parameter
+        - Email must match authenticated user's email
+      operationId: linkOAuthAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, code, state]
+              properties:
+                provider:
+                  type: string
+                  enum: [google, github]
+                  example: google
+                code:
+                  type: string
+                  description: Authorization code from OAuth provider
+                  example: 4/0AfJohXm...
+                state:
+                  type: string
+                  description: CSRF protection state parameter
+                  example: abc123def456
+      responses:
+        '200':
+          description: OAuth account linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthAccount'
+        '400':
+          description: |
+            Validation error. Possible error types:
+            - `invalid-state`: State parameter mismatch
+            - `email-mismatch`: OAuth email doesn't match user's email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              examples:
+                email_mismatch:
+                  summary: Email mismatch
+                  value:
+                    type: https://api.goimg.com/problems/email-mismatch
+                    title: Email Mismatch
+                    status: 400
+                    detail: OAuth account email does not match your account email
+                    traceId: abc123-def456
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: OAuth account already linked to another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/conflict
+                title: Conflict
+                status: 409
+                detail: This OAuth account is already linked to another user
+                traceId: abc123-def456
+
+    delete:
+      tags: [auth]
+      summary: Unlink OAuth account
+      description: |
+        Remove OAuth provider link from the authenticated user.
+
+        Security:
+        - Users cannot unlink their only authentication method
+        - Must have either password or another OAuth provider linked
+      operationId: unlinkOAuthAccount
+      parameters:
+        - name: provider
+          in: query
+          required: true
+          description: OAuth provider to unlink
+          schema:
+            type: string
+            enum: [google, github]
+          example: google
+      responses:
+        '204':
+          description: OAuth account unlinked successfully
+        '400':
+          description: Cannot unlink only authentication method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/bad-request
+                title: Bad Request
+                status: 400
+                detail: Cannot unlink your only authentication method. Add a password or another OAuth provider first.
+                traceId: abc123-def456
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: OAuth provider not linked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/not-found
+                title: Not Found
+                status: 404
+                detail: OAuth provider not linked to your account
+                traceId: abc123-def456
+
+  /auth/oauth/accounts:
+    get:
+      tags: [auth]
+      summary: List linked OAuth accounts
+      description: |
+        Retrieve list of OAuth providers linked to the authenticated user.
+
+        Returns information about connected OAuth accounts including:
+        - Provider name (google, github)
+        - Provider user ID
+        - Email used for OAuth
+        - Display name from provider
+        - When the account was linked
+      operationId: listLinkedOAuthAccounts
+      responses:
+        '200':
+          description: OAuth accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OAuthAccount'
+                  total_count:
+                    type: integer
+                    description: Number of linked OAuth accounts
+                    example: 2
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Users ====================
   /users/{id}:
     get:
@@ -2844,6 +3172,43 @@ components:
           type: integer
           description: Number of unused backup codes (always 10 after regeneration)
           example: 10
+
+    # ==================== OAuth 2.0 ====================
+    OAuthAccount:
+      type: object
+      required: [provider, provider_user_id, email, linked_at]
+      description: OAuth account linked to a user
+      properties:
+        provider:
+          type: string
+          enum: [google, github]
+          description: OAuth provider name
+          example: google
+        provider_user_id:
+          type: string
+          description: Unique user ID from the OAuth provider
+          example: "103547991597142817347"
+        email:
+          type: string
+          format: email
+          description: Email address from the OAuth provider
+          example: user@example.com
+        display_name:
+          type: string
+          description: Display name from the OAuth provider
+          nullable: true
+          example: John Doe
+        avatar_url:
+          type: string
+          format: uri
+          description: Profile picture URL from the OAuth provider
+          nullable: true
+          example: https://lh3.googleusercontent.com/a/...
+        linked_at:
+          type: string
+          format: date-time
+          description: When the OAuth account was linked to the user
+          example: 2024-01-15T10:30:00Z
 
     # ==================== Pagination ====================
     PaginatedResponse:
