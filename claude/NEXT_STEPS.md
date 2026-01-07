@@ -184,21 +184,22 @@ Features deferred to Phase 2:
 
 **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
 
-**Status**: IN PROGRESS - OAuth implementation COMPLETE, Social features pending
+**Status**: IN PROGRESS (~90%) - OAuth COMPLETE, Follow/unfollow COMPLETE, remaining: activity feeds, email, E2E tests
 
 ### Sprint 12 Implementation Progress
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| Domain Layer | ✅ COMPLETE | OAuthAccount entity, value objects, repository interface |
-| Database Migration | ✅ COMPLETE | `migrations/00007_create_oauth_accounts.sql` |
-| Infrastructure Layer | ✅ COMPLETE | Google/GitHub OAuth providers, OAuth repository |
-| Application Layer | ✅ COMPLETE | Commands (authenticate, link, unlink) + queries |
-| HTTP Layer | ✅ COMPLETE | OAuthHandler with 5 endpoints |
-| OpenAPI Spec | ✅ COMPLETE | All OAuth endpoints documented |
-| Router Wiring | ✅ COMPLETE | OAuthHandler mounted at /api/v1/auth/oauth |
-| E2E Tests | ✅ COMPLETE | 9 Newman tests for OAuth error handling |
-| Social Features | 📋 PLANNED | Follow/unfollow, activity feeds |
+| Domain Layer | ✅ COMPLETE | OAuthAccount entity, Follow entity, value objects, repository interfaces |
+| Database Migration | ✅ COMPLETE | `migrations/00007_create_oauth_accounts.sql`, `migrations/00008_create_user_follows.sql` |
+| Infrastructure Layer | ✅ COMPLETE | Google/GitHub OAuth providers, OAuth repository, Follow repository |
+| Application Layer | ✅ COMPLETE | OAuth commands + Follow/Unfollow commands + GetFollowers/GetFollowing queries |
+| HTTP Layer | ✅ COMPLETE | OAuthHandler (5 endpoints) + FollowHandler (4 endpoints) |
+| OpenAPI Spec | ✅ COMPLETE | All OAuth and Follow endpoints documented |
+| Router Wiring | ✅ COMPLETE | OAuthHandler at /api/v1/auth/oauth, FollowHandler at /api/v1/users/{id}/* |
+| OAuth E2E Tests | ✅ COMPLETE | 9 Newman tests for OAuth error handling |
+| Follow E2E Tests | 📋 PLANNED | Newman tests for follow/unfollow endpoints |
+| Activity Feeds | 📋 PLANNED | User activity timeline |
 | Email Notifications | 📋 PLANNED | SMTP integration |
 
 ### OAuth Implementation Summary
@@ -231,8 +232,10 @@ Features deferred to Phase 2:
 |------|----------|--------|
 | Wire OAuthHandler in router | P0 | ✅ COMPLETE |
 | OAuth E2E tests | P0 | ✅ COMPLETE |
-| Session elevation (S11-2FA-004) | P0 | Pending |
-| Social features (follow/unfollow) | P1 | Planned |
+| Social features (follow/unfollow) | P0 | ✅ COMPLETE |
+| Wire FollowHandler in router | P0 | ✅ COMPLETE |
+| Session elevation (S11-2FA-004) | P1 | Pending |
+| Follow E2E tests | P1 | Planned |
 | Activity feeds | P1 | Planned |
 | Email notifications (SMTP) | P1 | Planned |
 
