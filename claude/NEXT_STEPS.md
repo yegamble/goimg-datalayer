@@ -180,6 +180,49 @@ Features deferred to Phase 2:
 
 ---
 
+## Sprint 12: OAuth & Social Features (PLANNED)
+
+**Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
+
+**Status**: PLANNED - Sprint planning complete, ready for implementation
+
+### Sprint 12 Planning Summary
+
+**Scope**: 7 major features across 3 work streams
+1. **OAuth Integration** (P0): Google and GitHub OAuth 2.0 authentication
+2. **Session Elevation** (P0): Complete S11-2FA-004 (deferred from Sprint 11)
+3. **Social Features** (P1): Follow/unfollow users, activity feeds
+4. **Email Notifications** (P1): SMTP integration for followers, uploads, account events
+
+**Database Migrations**:
+- Migration 00007: OAuth accounts table
+- Migration 00008: Social features (user_follows, notifications, notification_preferences, activity_feed)
+
+**API Endpoints**: 18 new endpoints
+- OAuth: 6 endpoints (Google/GitHub initiate, callback, link/unlink)
+- Social: 7 endpoints (follow, followers, following, feed)
+- Notifications: 5 endpoints (list, read, read-all, preferences)
+
+**Security Gate S12**: 15 controls
+- OAuth security (CSRF, token encryption, callback validation)
+- Session elevation after 2FA (S11-2FA-004 completion)
+- Social feature security (rate limiting, self-follow prevention)
+- Email security (validation, rate limiting, unsubscribe)
+
+**Timeline**: 2 weeks
+- Week 1: OAuth implementation, migrations, session elevation
+- Week 2: Social features, email service, E2E tests, security review
+
+**Key Dependencies**:
+- `golang.org/x/oauth2` - OAuth 2.0 client
+- `google.golang.org/api` - Google APIs
+- `github.com/google/go-github/v57` - GitHub API
+- `github.com/jordan-wright/email` - SMTP email sending
+
+**Documentation**: See `/home/user/goimg-datalayer/claude/sprint_12_plan.md` for comprehensive implementation plan.
+
+---
+
 ## Sprint 11: Two-Factor Authentication (COMPLETE) ✅
 
 **Sprint Goal**: Implement TOTP-based two-factor authentication with backup codes.
