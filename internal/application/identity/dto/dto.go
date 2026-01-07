@@ -253,3 +253,46 @@ type DeviceListDTO struct {
 	Devices []DeviceDTO `json:"devices"`
 	Count   int         `json:"count"`
 }
+
+// OAuth-related DTOs
+
+// OAuthAuthenticateDTO represents the request to authenticate using OAuth.
+// This is called from the OAuth callback after the user authorizes the app.
+type OAuthAuthenticateDTO struct {
+	Provider  string `json:"provider" validate:"required,oneof=google github"`
+	Code      string `json:"code" validate:"required"`
+	State     string `json:"state" validate:"required"`
+	IP        string `json:"-"` // Set by middleware
+	UserAgent string `json:"-"` // Set by middleware
+}
+
+// OAuthLinkDTO represents the request to link an OAuth account to an existing user.
+// Requires an authenticated session.
+type OAuthLinkDTO struct {
+	UserID    string `json:"-"`                                         // From authenticated session
+	Provider  string `json:"provider" validate:"required,oneof=google github"`
+	Code      string `json:"code" validate:"required"`
+	State     string `json:"state" validate:"required"`
+}
+
+// OAuthUnlinkDTO represents the request to unlink an OAuth account from a user.
+// Requires an authenticated session.
+type OAuthUnlinkDTO struct {
+	UserID   string `json:"-"`                                         // From authenticated session
+	Provider string `json:"provider" validate:"required,oneof=google github"`
+}
+
+// OAuthAccountDTO represents a linked OAuth account in API responses.
+type OAuthAccountDTO struct {
+	Provider    string    `json:"provider"`
+	Email       string    `json:"email"`
+	DisplayName string    `json:"display_name"`
+	AvatarURL   string    `json:"avatar_url,omitempty"`
+	LinkedAt    time.Time `json:"linked_at"`
+}
+
+// OAuthAccountListDTO represents the list of linked OAuth accounts for a user.
+type OAuthAccountListDTO struct {
+	Accounts []OAuthAccountDTO `json:"accounts"`
+	Count    int               `json:"count"`
+}
