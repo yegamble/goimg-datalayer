@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 12 - OAuth & Social Features (PLANNED)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 COMPLETE
+> **Current Sprint**: Sprint 12 - OAuth & Social Features (IN PROGRESS)
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 COMPLETE, Sprint 12 ~80%
 
 ---
 
@@ -180,44 +180,61 @@ Features deferred to Phase 2:
 
 ---
 
-## Sprint 12: OAuth & Social Features (PLANNED)
+## Sprint 12: OAuth & Social Features (IN PROGRESS)
 
 **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
 
-**Status**: PLANNED - Sprint planning complete, ready for implementation
+**Status**: IN PROGRESS - OAuth implementation ~80% complete
 
-### Sprint 12 Planning Summary
+### Sprint 12 Implementation Progress
 
-**Scope**: 7 major features across 3 work streams
-1. **OAuth Integration** (P0): Google and GitHub OAuth 2.0 authentication
-2. **Session Elevation** (P0): Complete S11-2FA-004 (deferred from Sprint 11)
-3. **Social Features** (P1): Follow/unfollow users, activity feeds
-4. **Email Notifications** (P1): SMTP integration for followers, uploads, account events
+| Component | Status | Details |
+|-----------|--------|---------|
+| Domain Layer | ✅ COMPLETE | OAuthAccount entity, value objects, repository interface |
+| Database Migration | ✅ COMPLETE | `migrations/00007_create_oauth_accounts.sql` |
+| Infrastructure Layer | ✅ COMPLETE | Google/GitHub OAuth providers, OAuth repository |
+| Application Layer | ✅ COMPLETE | Commands (authenticate, link, unlink) + queries |
+| HTTP Layer | ✅ COMPLETE | OAuthHandler with 5 endpoints |
+| OpenAPI Spec | ✅ COMPLETE | All OAuth endpoints documented |
+| Router Wiring | ⏳ PENDING | Wire up OAuthHandler in router |
+| E2E Tests | ⏳ PENDING | Newman tests for OAuth flow |
+| Social Features | 📋 PLANNED | Follow/unfollow, activity feeds |
+| Email Notifications | 📋 PLANNED | SMTP integration |
 
-**Database Migrations**:
-- Migration 00007: OAuth accounts table
-- Migration 00008: Social features (user_follows, notifications, notification_preferences, activity_feed)
+### OAuth Implementation Summary
 
-**API Endpoints**: 18 new endpoints
-- OAuth: 6 endpoints (Google/GitHub initiate, callback, link/unlink)
-- Social: 7 endpoints (follow, followers, following, feed)
-- Notifications: 5 endpoints (list, read, read-all, preferences)
+**Completed Files**:
+- `internal/domain/identity/oauth.go` - Domain entities
+- `internal/infrastructure/security/oauth_provider.go` - Google/GitHub providers
+- `internal/infrastructure/persistence/postgres/oauth_repository.go` - Repository
+- `internal/application/identity/commands/oauth_*.go` - Application commands
+- `internal/interfaces/http/handlers/oauth_handler.go` - HTTP handler
+- `api/openapi/openapi.yaml` - API specification
 
-**Security Gate S12**: 15 controls
-- OAuth security (CSRF, token encryption, callback validation)
-- Session elevation after 2FA (S11-2FA-004 completion)
-- Social feature security (rate limiting, self-follow prevention)
-- Email security (validation, rate limiting, unsubscribe)
+**OAuth Endpoints**:
+- `GET /auth/oauth/{provider}` - Initiate OAuth flow
+- `GET /auth/oauth/{provider}/callback` - Handle callback
+- `POST /auth/oauth/link` - Link OAuth to user
+- `DELETE /auth/oauth/link` - Unlink OAuth provider
+- `GET /auth/oauth/accounts` - List linked accounts
 
-**Timeline**: 2 weeks
-- Week 1: OAuth implementation, migrations, session elevation
-- Week 2: Social features, email service, E2E tests, security review
+**Security Controls Implemented**:
+- ✅ S12-OAUTH-001: CSRF state parameter protection
+- ✅ S12-OAUTH-002: Token encryption at rest (AES-256-GCM)
+- ✅ S12-OAUTH-003: Callback URL validation
+- ✅ S12-OAUTH-004: Provider user ID stored (not email only)
+- ✅ S12-OAUTH-005: Account linking requires authentication
 
-**Key Dependencies**:
-- `golang.org/x/oauth2` - OAuth 2.0 client
-- `google.golang.org/api` - Google APIs
-- `github.com/google/go-github/v57` - GitHub API
-- `github.com/jordan-wright/email` - SMTP email sending
+### Remaining Work
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Wire OAuthHandler in router | P0 | Pending |
+| OAuth E2E tests | P0 | Pending |
+| Session elevation (S11-2FA-004) | P0 | Pending |
+| Social features (follow/unfollow) | P1 | Planned |
+| Activity feeds | P1 | Planned |
+| Email notifications (SMTP) | P1 | Planned |
 
 **Documentation**: See `/home/user/goimg-datalayer/claude/sprint_12_plan.md` for comprehensive implementation plan.
 
