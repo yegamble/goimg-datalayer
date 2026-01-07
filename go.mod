@@ -1,6 +1,8 @@
 module github.com/yegamble/goimg-datalayer
 
-go 1.24.7
+go 1.24
+
+toolchain go1.25.5
 
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
@@ -20,6 +22,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.27.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.27.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.27.0
+	github.com/pquerna/otp v1.5.0
 	golang.org/x/crypto v0.45.0
 )
 

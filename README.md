@@ -4,10 +4,16 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprint 10 complete, Sprint 11 planned
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprint 10 complete, Sprint 11 in progress
 
 **Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
-**Sprint 11**: PLANNED - Two-Factor Authentication (TOTP, Unusual login notifications)
+**Sprint 11**: IN PROGRESS 🔄 - Two-Factor Authentication
+  - ✅ Domain Layer (value objects, aggregate methods, events)
+  - ✅ Database Migration (2FA tables)
+  - ✅ Infrastructure Layer (encryption, TOTP, repositories)
+  - ✅ Application Layer (commands and queries)
+  - ✅ HTTP Layer (5 endpoints, OpenAPI spec)
+  - ⏳ E2E Tests (Newman/Postman)
 
 **Completed Sprints**:
 
@@ -226,7 +232,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - 🔄 Activity feeds
 - 🔄 IPFS decentralized storage integration
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
-- 🔄 MFA/TOTP support
+- 🔄 MFA/TOTP support (Sprint 11 - in progress)
 - 🔄 Guest uploads
 - 🔄 Watermarking
 
@@ -443,7 +449,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | Sprint | Focus | Status | Key Deliverables |
 |--------|-------|--------|------------------|
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
-| **11** | Two-Factor Authentication | 🔄 **IN PROGRESS** | TOTP setup/verify, backup codes, unusual login detection |
+| **11** | Two-Factor Authentication | 🔄 **HTTP COMPLETE** | TOTP setup/verify ✅, backup codes ✅, E2E tests pending |
 | **12** | OAuth & Social Features | 📋 Planned | Google/GitHub OAuth, follow users, activity feeds, email notifications |
 | **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
@@ -455,9 +461,13 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ Security Gate S10 passed (10/10 controls)
 
 #### Sprint 11: Two-Factor Authentication 🔄 IN PROGRESS
-- 🔄 TOTP implementation with QR code setup
-- 🔄 Backup codes (10 one-time codes)
+- ✅ TOTP implementation with QR code setup (RFC 6238 compliant)
+- ✅ Backup codes (10 one-time codes, Argon2id hashed)
+- ✅ Secrets encrypted at rest (AES-256-GCM)
+- ✅ HTTP endpoints implemented (5 endpoints)
+- ✅ OpenAPI spec updated
 - 🔄 Unusual login detection and notifications
+- ⏳ E2E tests (Newman/Postman)
 - 📋 Device fingerprinting
 
 #### Sprint 12: OAuth & Social Features (Planned)
