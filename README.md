@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-11 complete, Sprint 12 ~80% complete
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-12 complete
 
 **Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
 **Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
@@ -16,15 +16,13 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ Rate Limiting (5 attempts/min on 2FA verification)
   - ✅ E2E Tests (13 Newman tests)
 
-**Sprint 12**: IN PROGRESS (~80%) - OAuth & Social Features
-  - ✅ Domain Layer (OAuthAccount entity, value objects)
-  - ✅ Database Migration (OAuth accounts table)
-  - ✅ Infrastructure Layer (Google/GitHub providers, repository)
-  - ✅ Application Layer (commands and queries)
-  - ✅ HTTP Layer (OAuthHandler with 5 endpoints)
-  - ✅ OpenAPI Spec (OAuth endpoints documented)
-  - ✅ E2E Tests (9 Newman OAuth tests)
-  - 🔄 Pending: Social features, email notifications
+**Sprint 12**: COMPLETE ✅ - OAuth & Social Features
+  - ✅ OAuth (Google/GitHub) - Full stack implementation
+  - ✅ Follow/Unfollow users - Full stack implementation
+  - ✅ Activity feeds - Timeline from followed users
+  - ✅ Email notifications (SMTP) - New follower emails
+  - ✅ Session elevation after 2FA - Enhanced security
+  - ✅ E2E Tests (OAuth: 9, Follow: 18 Newman tests)
 
 **Completed Sprints**:
 
@@ -238,9 +236,9 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 **Advanced Features**
 - ✅ OAuth providers (Google, GitHub) - Sprint 12 COMPLETE
-- 🔄 Email verification and notifications (SMTP) - Sprint 12 planned
-- 🔄 Follow/unfollow users - Sprint 12 planned
-- 🔄 Activity feeds - Sprint 12 planned
+- ✅ Follow/unfollow users - Sprint 12 COMPLETE
+- ✅ Email notifications (SMTP) - Sprint 12 COMPLETE
+- ✅ Activity feeds - Sprint 12 COMPLETE
 - 🔄 IPFS decentralized storage integration
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
 - ✅ MFA/TOTP support (Sprint 11 - COMPLETE)
@@ -461,7 +459,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 |--------|-------|--------|------------------|
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
-| **12** | OAuth & Social Features | 🔄 **~80% COMPLETE** | Google/GitHub OAuth ✅, router wiring ✅, E2E tests ✅; pending: social features, email |
+| **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
 | **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
 
@@ -481,16 +479,19 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ E2E tests (13 Newman tests)
 - ✅ Security Gate S11 passed (4/5 controls, 1 deferred)
 
-#### Sprint 12: OAuth & Social Features (~80% Complete)
+#### Sprint 12: OAuth & Social Features ✅ COMPLETE
 - ✅ Google OAuth integration (provider + callback)
 - ✅ GitHub OAuth integration (provider + callback)
 - ✅ OAuth HTTP endpoints (5 endpoints)
 - ✅ OAuth E2E tests (9 Newman tests)
 - ✅ Security controls (CSRF state, token encryption, callback validation)
-- 🔄 Session elevation after 2FA (pending - requires JWT changes)
-- 📋 Follow/unfollow users (planned)
-- 📋 Activity feeds (planned)
-- 📋 Email notifications (SMTP) (planned)
+- ✅ Follow/unfollow users (domain, application, infrastructure, HTTP layers)
+- ✅ Follow/unfollow router wiring (4 endpoints)
+- ✅ Follow E2E tests (18 Newman tests)
+- ✅ Activity feeds (GET /api/v1/feed - timeline from followed users)
+- ✅ Email notifications (SMTP with rate limiting)
+- ✅ Session elevation after 2FA (S11-2FA-004 security control)
+- ✅ Notification system (internal + email with preferences)
 
 #### Sprint 13: IPFS Storage (Planned)
 - IPFS node integration (Kubo)

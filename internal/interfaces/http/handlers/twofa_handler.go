@@ -20,6 +20,7 @@ type TwoFAHandler struct {
 	verifyHandler           *commands.Verify2FAHandler
 	disableHandler          *commands.Disable2FAHandler
 	regenerateBackupHandler *commands.RegenerateBackupCodesHandler
+	verifyLoginHandler      *commands.Verify2FALoginHandler // Sprint 11: Session elevation
 	statusQuery             *queries.Get2FAStatusHandler
 	logger                  zerolog.Logger
 }
@@ -31,6 +32,7 @@ func NewTwoFAHandler(
 	verifyHandler *commands.Verify2FAHandler,
 	disableHandler *commands.Disable2FAHandler,
 	regenerateBackupHandler *commands.RegenerateBackupCodesHandler,
+	verifyLoginHandler *commands.Verify2FALoginHandler,
 	statusQuery *queries.Get2FAStatusHandler,
 	logger zerolog.Logger,
 ) *TwoFAHandler {
@@ -39,6 +41,7 @@ func NewTwoFAHandler(
 		verifyHandler:           verifyHandler,
 		disableHandler:          disableHandler,
 		regenerateBackupHandler: regenerateBackupHandler,
+		verifyLoginHandler:      verifyLoginHandler,
 		statusQuery:             statusQuery,
 		logger:                  logger,
 	}
@@ -64,6 +67,7 @@ func (h *TwoFAHandler) Routes() chi.Router {
 	r.Post("/disable", h.Disable)
 	r.Get("/status", h.Status)
 	r.Post("/backup-codes/regenerate", h.RegenerateBackupCodes)
+	r.Post("/login-verify", h.VerifyLogin) // Sprint 11: Session elevation
 
 	return r
 }
@@ -342,6 +346,81 @@ func (h *TwoFAHandler) RegenerateBackupCodes(w http.ResponseWriter, r *http.Requ
 
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode backup codes response")
+	}
+}
+
+// VerifyLogin handles POST /api/v1/auth/2fa/login-verify
+// Verifies the TOTP code after login and returns an elevated access token (Sprint 11).
+//
+// This endpoint is used when a user with 2FA enabled logs in and receives a non-elevated token.
+// The user must provide their TOTP code or backup code to upgrade to an elevated session.
+//
+// Request: Verify2FALoginRequest JSON body (code required, use_backup_code flag)
+// Response: 200 OK with TokenPairDTO (elevated access token)
+// Errors:
+//   - 400: Invalid request body or validation failure
+//   - 401: Not authenticated or invalid 2FA code
+//   - 403: 2FA not enabled for this user
+//   - 500: Internal server error
+func (h *TwoFAHandler) VerifyLogin(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract user context (set by JWTAuth middleware)
+	// User must be authenticated with a non-elevated token
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("user context not found in 2FA login verification handler")
+		middleware.WriteError(w, r,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			"Authentication required",
+		)
+		return
+	}
+
+	// 2. Decode and validate request
+	var req Verify2FALoginRequest
+	if err := DecodeJSON(r, &req); err != nil {
+		h.logger.Debug().Err(err).Msg("invalid 2FA login verification request")
+		validationErrors := FormatValidationErrors(err)
+		middleware.WriteErrorWithExtensions(w, r,
+			http.StatusBadRequest,
+			"Validation Failed",
+			"Invalid 2FA code data",
+			validationErrors,
+		)
+		return
+	}
+
+	// 3. Extract client metadata for logging
+	ipAddress := GetClientIP(r)
+	userAgent := GetUserAgent(r)
+
+	// 4. Delegate to command handler
+	cmd := commands.Verify2FALoginCommand{
+		UserID:        userCtx.UserID.String(),
+		SessionID:     userCtx.SessionID.String(),
+		Code:          req.Code,
+		UseBackupCode: req.UseBackupCode,
+		IPAddress:     ipAddress,
+		UserAgent:     userAgent,
+	}
+
+	tokenPair, err := h.verifyLoginHandler.Handle(ctx, cmd)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "2FA login verification")
+		return
+	}
+
+	// 5. 2FA verification successful - return elevated token
+	h.logger.Info().
+		Str("user_id", userCtx.UserID.String()).
+		Str("session_id", userCtx.SessionID.String()).
+		Bool("used_backup_code", req.UseBackupCode).
+		Msg("2FA login verification successful, session elevated")
+
+	if err := EncodeJSON(w, http.StatusOK, tokenPair); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode 2FA login verification response")
 	}
 }
 

@@ -128,15 +128,17 @@ type ListUsersResultDTO struct {
 // AuthResponseDTO represents the response after successful authentication or registration.
 // It includes both the user data and token pair.
 type AuthResponseDTO struct {
-	User   UserDTO      `json:"user"`
-	Tokens TokenPairDTO `json:"tokens"`
+	User        UserDTO      `json:"user"`
+	Tokens      TokenPairDTO `json:"tokens"`
+	Requires2FA bool         `json:"requires_2fa"` // Sprint 11: Indicates if 2FA verification is required
 }
 
 // NewAuthResponseDTO creates an AuthResponseDTO from a domain User and token pair.
 func NewAuthResponseDTO(user *identity.User, tokens TokenPairDTO) AuthResponseDTO {
 	return AuthResponseDTO{
-		User:   FromDomain(user),
-		Tokens: tokens,
+		User:        FromDomain(user),
+		Tokens:      tokens,
+		Requires2FA: user.Requires2FA(), // Check if user has 2FA enabled
 	}
 }
 
@@ -220,6 +222,20 @@ type BackupCodesResponseDTO struct {
 
 	// RemainingCodes is how many unused codes remain
 	RemainingCodes int `json:"remaining_codes"`
+}
+
+// Verify2FALoginDTO represents the request to verify 2FA code during login (Sprint 11).
+// This is used when a user with 2FA enabled logs in and needs to provide their TOTP code.
+type Verify2FALoginDTO struct {
+	// Code is either a 6-digit TOTP code or an 8-character backup code
+	Code string `json:"code" validate:"required"`
+
+	// UseBackupCode indicates if the code is a backup code instead of TOTP
+	UseBackupCode bool `json:"use_backup_code"`
+
+	// IP and UserAgent for session tracking
+	IP        string `json:"-"`
+	UserAgent string `json:"-"`
 }
 
 // TwoFactorStatusDTO represents the current 2FA status for a user.

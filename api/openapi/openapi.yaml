@@ -45,6 +45,8 @@ tags:
     description: Tag operations and image tagging
   - name: social
     description: Social features (likes, comments)
+  - name: notifications
+    description: In-app notifications and alerts
   - name: moderation
     description: Content moderation and abuse reporting
   - name: explore
@@ -1274,6 +1276,250 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /feed:
+    get:
+      tags: [social]
+      summary: Get activity feed
+      description: |
+        Retrieve a paginated feed of activities from users that the authenticated user follows.
+
+        Returns activities including:
+        - Image uploads, likes, and comments
+        - User follows
+        - Album creations
+
+        Activities are sorted by creation time (most recent first) and include metadata
+        for displaying activity details in the UI.
+
+        This endpoint requires authentication - only the authenticated user can view their own feed.
+      operationId: getActivityFeed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of activities to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of activities to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Activity feed retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityFeed'
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Notifications ====================
+  /notifications:
+    get:
+      tags: [notifications]
+      summary: Get notifications
+      description: |
+        Retrieve a paginated list of notifications for the authenticated user.
+
+        Notifications include:
+        - New followers
+        - New photos from followed users
+        - Account status changes (suspended, banned, reinstated)
+        - Admin/moderator alerts (for admin users)
+
+        Notifications are sorted by creation time (most recent first) and include
+        a read/unread status for badge display in UI.
+
+        This endpoint requires authentication - users can only view their own notifications.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unread_only
+          in: query
+          description: If true, only return unread notifications
+          schema:
+            type: boolean
+            default: false
+          example: false
+        - name: limit
+          in: query
+          description: Maximum number of notifications to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of notifications to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsList'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /notifications/count:
+    get:
+      tags: [notifications]
+      summary: Get unread notification count
+      description: |
+        Retrieve the count of unread notifications for the authenticated user.
+
+        This endpoint is lightweight and designed for polling to update
+        notification badges in the UI. Returns only the count, not the
+        notification details.
+
+        This endpoint requires authentication - users can only view their own count.
+      operationId: getUnreadNotificationCount
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Unread count retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCount'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /notifications/read:
+    post:
+      tags: [notifications]
+      summary: Mark notifications as read
+      description: |
+        Mark one or more notifications as read for the authenticated user.
+
+        This endpoint supports two modes:
+        1. Mark specific notifications by ID (provide notificationIds array)
+        2. Mark all notifications as read (set markAllAsRead to true)
+
+        Marking already-read notifications is idempotent and will succeed.
+
+        Authorization: Users can only mark their own notifications as read.
+        Attempting to mark another user's notifications returns 403 Forbidden.
+      operationId: markNotificationsAsRead
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notificationIds:
+                  type: array
+                  description: Array of notification IDs to mark as read (optional)
+                  items:
+                    type: string
+                    format: uuid
+                  example: ["123e4567-e89b-12d3-a456-426614174001", "123e4567-e89b-12d3-a456-426614174002"]
+                markAllAsRead:
+                  type: boolean
+                  description: If true, mark all notifications for user as read (optional)
+                  default: false
+                  example: false
+              anyOf:
+                - required: [notificationIds]
+                - required: [markAllAsRead]
+      responses:
+        '204':
+          description: Notifications marked as read successfully
+        '400':
+          description: Invalid request body (neither notificationIds nor markAllAsRead provided)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - notification does not belong to user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -3393,6 +3639,99 @@ components:
         offset: 0
         limit: 20
 
+    ActivityFeed:
+      type: object
+      required: [activities, total_count, offset, limit]
+      description: Paginated feed of activities from followed users
+      properties:
+        activities:
+          type: array
+          description: List of activities from followed users
+          items:
+            $ref: '#/components/schemas/Activity'
+        total_count:
+          type: integer
+          description: Total number of activities in the feed
+          minimum: 0
+          example: 150
+        offset:
+          type: integer
+          description: Number of activities skipped for pagination
+          minimum: 0
+          example: 0
+        limit:
+          type: integer
+          description: Maximum number of activities returned
+          minimum: 1
+          maximum: 100
+          example: 20
+      example:
+        activities:
+          - id: 123e4567-e89b-12d3-a456-426614174010
+            actor_id: 123e4567-e89b-12d3-a456-426614174003
+            activity_type: image_uploaded
+            target_type: image
+            target_id: 123e4567-e89b-12d3-a456-426614174011
+            metadata:
+              image_title: Beautiful sunset
+              image_url: https://cdn.goimg.com/images/123e4567/medium.jpg
+            created_at: 2024-01-15T14:20:00Z
+          - id: 123e4567-e89b-12d3-a456-426614174012
+            actor_id: 123e4567-e89b-12d3-a456-426614174004
+            activity_type: user_followed
+            target_type: user
+            target_id: 123e4567-e89b-12d3-a456-426614174005
+            metadata:
+              followed_username: photographer123
+            created_at: 2024-01-15T13:45:00Z
+        total_count: 150
+        offset: 0
+        limit: 20
+
+    Activity:
+      type: object
+      required: [id, actor_id, activity_type, target_type, target_id, created_at]
+      description: A single activity performed by a user
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity
+          example: 123e4567-e89b-12d3-a456-426614174010
+        actor_id:
+          type: string
+          format: uuid
+          description: ID of the user who performed the activity
+          example: 123e4567-e89b-12d3-a456-426614174003
+        activity_type:
+          type: string
+          enum: [image_uploaded, image_liked, image_commented, user_followed, album_created]
+          description: Type of activity performed
+          example: image_uploaded
+        target_type:
+          type: string
+          enum: [image, user, album, comment]
+          description: Type of the target entity
+          example: image
+        target_id:
+          type: string
+          format: uuid
+          description: ID of the target entity
+          example: 123e4567-e89b-12d3-a456-426614174011
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Additional contextual information about the activity
+          example:
+            image_title: Beautiful sunset
+            image_url: https://cdn.goimg.com/images/123e4567/medium.jpg
+        created_at:
+          type: string
+          format: date-time
+          description: When the activity occurred
+          example: 2024-01-15T14:20:00Z
+
     # ==================== Authentication ====================
     TokenResponse:
       type: object
@@ -3659,6 +3998,119 @@ components:
           type: boolean
           description: Whether this is the current session
           example: true
+
+    # ==================== Notifications ====================
+    NotificationsList:
+      type: object
+      required: [notifications, totalUnread, offset, limit]
+      description: Paginated list of notifications with unread count
+      properties:
+        notifications:
+          type: array
+          description: List of notifications for the user
+          items:
+            $ref: '#/components/schemas/Notification'
+        totalUnread:
+          type: integer
+          description: Total number of unread notifications
+          minimum: 0
+          example: 5
+        offset:
+          type: integer
+          description: Number of notifications skipped for pagination
+          minimum: 0
+          example: 0
+        limit:
+          type: integer
+          description: Maximum number of notifications returned
+          minimum: 1
+          maximum: 100
+          example: 20
+      example:
+        notifications:
+          - id: 123e4567-e89b-12d3-a456-426614174001
+            type: new_follower
+            title: johndoe started following you
+            body: johndoe is now following you. View their profile to see their photos.
+            metadata:
+              follower_id: 123e4567-e89b-12d3-a456-426614174002
+              follower_username: johndoe
+            isRead: false
+            createdAt: 2024-01-15T14:20:00Z
+            readAt: null
+          - id: 123e4567-e89b-12d3-a456-426614174003
+            type: new_photos
+            title: 5 new photos from users you follow
+            body: Check out the latest photos from your network.
+            metadata:
+              photo_count: "5"
+            isRead: true
+            createdAt: 2024-01-15T10:15:00Z
+            readAt: 2024-01-15T11:30:00Z
+        totalUnread: 5
+        offset: 0
+        limit: 20
+
+    Notification:
+      type: object
+      required: [id, type, title, body, metadata, isRead, createdAt]
+      description: A single notification for a user
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the notification
+          example: 123e4567-e89b-12d3-a456-426614174001
+        type:
+          type: string
+          enum: [new_follower, new_photos, account_suspended, account_banned, account_reinstated, abuse_report, report_escalated, mod_action_required]
+          description: Type of notification
+          example: new_follower
+        title:
+          type: string
+          maxLength: 255
+          description: Notification title (short summary)
+          example: johndoe started following you
+        body:
+          type: string
+          description: Notification body (detailed message)
+          example: johndoe is now following you. View their profile to see their photos.
+        metadata:
+          type: object
+          description: Flexible JSON payload for notification-specific data
+          additionalProperties:
+            type: string
+          example:
+            follower_id: 123e4567-e89b-12d3-a456-426614174002
+            follower_username: johndoe
+        isRead:
+          type: boolean
+          description: Whether the notification has been read
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: When the notification was created
+          example: 2024-01-15T14:20:00Z
+        readAt:
+          type: string
+          format: date-time
+          description: When the notification was marked as read (null if unread)
+          nullable: true
+          example: null
+
+    UnreadCount:
+      type: object
+      required: [count]
+      description: Count of unread notifications for badge display
+      properties:
+        count:
+          type: integer
+          description: Number of unread notifications
+          minimum: 0
+          example: 5
+      example:
+        count: 5
 
     # ==================== Health ====================
     HealthStatus:

@@ -101,10 +101,11 @@ func GetPathParamUUID(r *http.Request, name string) (uuid.UUID, error) {
 // UserContext represents the authenticated user context extracted from JWT claims.
 // This is set by the JWTAuth middleware and available in all protected routes.
 type UserContext struct {
-	UserID    uuid.UUID
-	Email     string
-	Role      string
-	SessionID uuid.UUID
+	UserID        uuid.UUID
+	Email         string
+	Role          string
+	SessionID     uuid.UUID
+	TwoFAVerified bool // Sprint 11: Session elevation status
 }
 
 // GetUserFromContext extracts the authenticated user information from the request context.
@@ -139,11 +140,15 @@ func GetUserFromContext(ctx context.Context) (*UserContext, error) {
 		return nil, fmt.Errorf("session id not found in context")
 	}
 
+	// Get 2FA verification status (Sprint 11)
+	twofaVerified, _ := middleware.Get2FAVerified(ctx)
+
 	return &UserContext{
-		UserID:    userID,
-		Email:     email,
-		Role:      role,
-		SessionID: sessionID,
+		UserID:        userID,
+		Email:         email,
+		Role:          role,
+		SessionID:     sessionID,
+		TwoFAVerified: twofaVerified,
 	}, nil
 }
 

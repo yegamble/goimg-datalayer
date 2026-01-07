@@ -24,6 +24,9 @@ const (
 
 	// SessionIDKey is the context key for session ID.
 	SessionIDKey contextKey = "sessionID"
+
+	// TwoFAVerifiedKey is the context key for 2FA verification status (Sprint 11).
+	TwoFAVerifiedKey contextKey = "twofaVerified"
 )
 
 // GetRequestID retrieves the request ID from the context.
@@ -94,13 +97,23 @@ func GetSessionIDString(ctx context.Context) (string, bool) {
 	return "", false
 }
 
+// Get2FAVerified retrieves the 2FA verification status from the context (Sprint 11).
+// Returns false if not found (default for non-elevated sessions).
+func Get2FAVerified(ctx context.Context) (bool, bool) {
+	if verified, ok := ctx.Value(TwoFAVerifiedKey).(bool); ok {
+		return verified, true
+	}
+	return false, false
+}
+
 // SetUserContext sets all user-related context values from JWT claims.
 // This is a convenience function used by the authentication middleware.
-func SetUserContext(ctx context.Context, userID uuid.UUID, email, role string, sessionID uuid.UUID) context.Context {
+func SetUserContext(ctx context.Context, userID uuid.UUID, email, role string, sessionID uuid.UUID, twofaVerified bool) context.Context {
 	ctx = context.WithValue(ctx, UserIDKey, userID)
 	ctx = context.WithValue(ctx, UserEmailKey, email)
 	ctx = context.WithValue(ctx, UserRoleKey, role)
 	ctx = context.WithValue(ctx, SessionIDKey, sessionID)
+	ctx = context.WithValue(ctx, TwoFAVerifiedKey, twofaVerified)
 	return ctx
 }
 

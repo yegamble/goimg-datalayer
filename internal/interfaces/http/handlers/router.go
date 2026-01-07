@@ -45,6 +45,8 @@ type MiddlewareConfig struct {
 //   - 2FA routes: /api/v1/auth/2fa/* (JWT authentication required)
 //   - OAuth routes: /api/v1/auth/oauth/* (public initiate/callback, protected link/unlink/list)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
+//   - Follow routes: POST/DELETE /api/v1/users/{id}/follow (JWT required), GET /api/v1/users/{id}/followers|following (optional auth)
+//   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -57,6 +59,9 @@ func NewRouter(
 	healthHandler *HealthHandler,
 	twoFAHandler *TwoFAHandler,
 	oauthHandler *OAuthHandler,
+	followHandler *FollowHandler,
+	activityHandler *ActivityHandler,
+	notificationHandler *NotificationHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -190,7 +195,53 @@ func NewRouter(
 
 			// User liked images endpoint
 			r.Get("/users/{userID}/likes", socialHandler.GetUserLikedImages)
+
+			// Follow endpoints (authenticated routes)
+			// POST /users/{id}/follow - Follow a user
+			// DELETE /users/{id}/follow - Unfollow a user
+			if followHandler != nil {
+				r.Route("/users/{id}", func(r chi.Router) {
+					r.Post("/follow", followHandler.FollowUser)
+					r.Delete("/follow", followHandler.UnfollowUser)
+				})
+			}
+
+			// Activity feed endpoint (authenticated route)
+			// GET /feed - Get activity feed from followed users
+			if activityHandler != nil {
+				r.Get("/feed", activityHandler.GetFeed)
+			}
+
+			// Notification endpoints (authenticated routes)
+			// GET /notifications - Get user's notifications
+			// GET /notifications/count - Get unread notification count
+			// POST /notifications/read - Mark notifications as read
+			if notificationHandler != nil {
+				r.Get("/notifications", notificationHandler.GetNotifications)
+				r.Get("/notifications/count", notificationHandler.GetUnreadCount)
+				r.Post("/notifications/read", notificationHandler.MarkAsRead)
+			}
 		})
+
+		// Public follow list endpoints (optional authentication)
+		// These allow anonymous access to view follower/following lists
+		if followHandler != nil {
+			r.Group(func(r chi.Router) {
+				// Optional JWT authentication - extracts user context if token present
+				optionalAuthCfg := middleware.AuthConfig{
+					JWTService:     middlewareConfig.JWTService,
+					TokenBlacklist: middlewareConfig.TokenBlacklist,
+					Logger:         middlewareConfig.Logger,
+					Optional:       true,
+				}
+				r.Use(middleware.JWTAuth(optionalAuthCfg))
+
+				// GET /users/{id}/followers - List user's followers
+				// GET /users/{id}/following - List users this user follows
+				r.Get("/users/{id}/followers", followHandler.GetFollowers)
+				r.Get("/users/{id}/following", followHandler.GetFollowing)
+			})
+		}
 	})
 
 	return r

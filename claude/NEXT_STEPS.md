@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 12 - OAuth & Social Features (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 COMPLETE, Sprint 12 OAuth COMPLETE
+> **Current Sprint**: Sprint 12 - OAuth & Social Features ✅ COMPLETE
+> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE
 
 ---
 
@@ -180,26 +180,28 @@ Features deferred to Phase 2:
 
 ---
 
-## Sprint 12: OAuth & Social Features (IN PROGRESS)
+## Sprint 12: OAuth & Social Features ✅ COMPLETE
 
 **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
 
-**Status**: IN PROGRESS - OAuth implementation COMPLETE, Social features pending
+**Status**: ✅ **COMPLETE** - All features implemented and pushed
 
 ### Sprint 12 Implementation Progress
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| Domain Layer | ✅ COMPLETE | OAuthAccount entity, value objects, repository interface |
-| Database Migration | ✅ COMPLETE | `migrations/00007_create_oauth_accounts.sql` |
-| Infrastructure Layer | ✅ COMPLETE | Google/GitHub OAuth providers, OAuth repository |
-| Application Layer | ✅ COMPLETE | Commands (authenticate, link, unlink) + queries |
-| HTTP Layer | ✅ COMPLETE | OAuthHandler with 5 endpoints |
-| OpenAPI Spec | ✅ COMPLETE | All OAuth endpoints documented |
-| Router Wiring | ✅ COMPLETE | OAuthHandler mounted at /api/v1/auth/oauth |
-| E2E Tests | ✅ COMPLETE | 9 Newman tests for OAuth error handling |
-| Social Features | 📋 PLANNED | Follow/unfollow, activity feeds |
-| Email Notifications | 📋 PLANNED | SMTP integration |
+| Domain Layer | ✅ COMPLETE | OAuthAccount, Follow, Activity, Notification entities |
+| Database Migration | ✅ COMPLETE | `00007_oauth_accounts.sql`, `00008_user_follows.sql`, `00009_activities.sql`, `00010_notifications.sql` |
+| Infrastructure Layer | ✅ COMPLETE | OAuth providers, Follow/Activity/Notification repositories, SMTP sender |
+| Application Layer | ✅ COMPLETE | OAuth, Follow, Activity, Notification commands and queries |
+| HTTP Layer | ✅ COMPLETE | OAuthHandler, FollowHandler, ActivityHandler, NotificationHandler |
+| OpenAPI Spec | ✅ COMPLETE | All endpoints documented |
+| Router Wiring | ✅ COMPLETE | All handlers wired |
+| OAuth E2E Tests | ✅ COMPLETE | 9 Newman tests |
+| Follow E2E Tests | ✅ COMPLETE | 18 Newman tests |
+| Activity Feeds | ✅ COMPLETE | GET /api/v1/feed - Timeline from followed users |
+| Email Notifications | ✅ COMPLETE | SMTP with rate limiting, new follower emails |
+| Session Elevation | ✅ COMPLETE | S11-2FA-004 security control implemented |
 
 ### OAuth Implementation Summary
 
@@ -225,16 +227,19 @@ Features deferred to Phase 2:
 - ✅ S12-OAUTH-004: Provider user ID stored (not email only)
 - ✅ S12-OAUTH-005: Account linking requires authentication
 
-### Remaining Work
+### Sprint 12 Completed Work
 
 | Task | Priority | Status |
 |------|----------|--------|
 | Wire OAuthHandler in router | P0 | ✅ COMPLETE |
 | OAuth E2E tests | P0 | ✅ COMPLETE |
-| Session elevation (S11-2FA-004) | P0 | Pending |
-| Social features (follow/unfollow) | P1 | Planned |
-| Activity feeds | P1 | Planned |
-| Email notifications (SMTP) | P1 | Planned |
+| Social features (follow/unfollow) | P0 | ✅ COMPLETE |
+| Wire FollowHandler in router | P0 | ✅ COMPLETE |
+| Follow E2E tests | P0 | ✅ COMPLETE |
+| Activity feeds | P0 | ✅ COMPLETE |
+| Email notifications (SMTP) | P0 | ✅ COMPLETE |
+| Session elevation (S11-2FA-004) | P0 | ✅ COMPLETE |
+| Notification system | P0 | ✅ COMPLETE |
 
 **Documentation**: See `/home/user/goimg-datalayer/claude/sprint_12_plan.md` for comprehensive implementation plan.
 
@@ -321,10 +326,10 @@ Features deferred to Phase 2:
 | S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) | ✅ PASS |
 | S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ PASS |
 | S11-2FA-003 | Rate limiting on 2FA verification (5/min) | ✅ PASS |
-| S11-2FA-004 | Session elevation after 2FA completion | ⏳ Deferred to Sprint 12 |
+| S11-2FA-004 | Session elevation after 2FA completion | ✅ PASS (Sprint 12) |
 | S11-2FA-005 | Audit logging for all 2FA events | ✅ PASS |
 
-**Note**: S11-2FA-004 (session elevation) requires JWT token changes and has been deferred to Sprint 12 for implementation alongside OAuth. Core 2FA functionality is complete and secure.
+**Note**: S11-2FA-004 (session elevation) was implemented in Sprint 12 with JWT TwoFAVerified claim and RequireElevatedSession middleware.
 
 See `/claude/sprint_11_plan.md` for detailed implementation plan.
 See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
@@ -362,4 +367,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprint 11 (2FA) COMPLETE ✅, Sprint 12 (OAuth) planned
+**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) planned

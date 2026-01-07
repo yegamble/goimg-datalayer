@@ -32,6 +32,9 @@ type User struct {
 	totpSecret  *TOTPSecret         // nil if 2FA not set up
 	backupCodes []BackupCode        // 10 one-time use codes
 	devices     []DeviceFingerprint // Known devices for unusual login detection
+
+	// Notification preferences
+	notificationPreferences NotificationPreferences
 }
 
 // NewUser creates a new User with the given email, username, and password hash.
@@ -50,17 +53,18 @@ func NewUser(email Email, username Username, passwordHash PasswordHash) (*User, 
 
 	now := time.Now().UTC()
 	user := &User{
-		id:           NewUserID(),
-		email:        email,
-		username:     username,
-		passwordHash: passwordHash,
-		role:         RoleUser,
-		status:       StatusPending,
-		displayName:  username.String(), // Default display name is username
-		bio:          "",
-		createdAt:    now,
-		updatedAt:    now,
-		events:       []shared.DomainEvent{},
+		id:                      NewUserID(),
+		email:                   email,
+		username:                username,
+		passwordHash:            passwordHash,
+		role:                    RoleUser,
+		status:                  StatusPending,
+		displayName:             username.String(), // Default display name is username
+		bio:                     "",
+		createdAt:               now,
+		updatedAt:               now,
+		events:                  []shared.DomainEvent{},
+		notificationPreferences: DefaultNotificationPreferences(),
 	}
 
 	user.addEvent(NewUserCreated(user.id, user.email, user.username))
@@ -81,20 +85,21 @@ func ReconstructUser(
 	createdAt, updatedAt time.Time,
 ) *User {
 	return &User{
-		id:           id,
-		email:        email,
-		username:     username,
-		passwordHash: passwordHash,
-		role:         role,
-		status:       status,
-		displayName:  displayName,
-		bio:          bio,
-		createdAt:    createdAt,
-		updatedAt:    updatedAt,
-		events:       []shared.DomainEvent{},
-		totpSecret:   nil,
-		backupCodes:  nil,
-		devices:      nil,
+		id:                      id,
+		email:                   email,
+		username:                username,
+		passwordHash:            passwordHash,
+		role:                    role,
+		status:                  status,
+		displayName:             displayName,
+		bio:                     bio,
+		createdAt:               createdAt,
+		updatedAt:               updatedAt,
+		events:                  []shared.DomainEvent{},
+		totpSecret:              nil,
+		backupCodes:             nil,
+		devices:                 nil,
+		notificationPreferences: DefaultNotificationPreferences(),
 	}
 }
 
@@ -115,20 +120,21 @@ func ReconstructUserWith2FA(
 	devices []DeviceFingerprint,
 ) *User {
 	return &User{
-		id:           id,
-		email:        email,
-		username:     username,
-		passwordHash: passwordHash,
-		role:         role,
-		status:       status,
-		displayName:  displayName,
-		bio:          bio,
-		createdAt:    createdAt,
-		updatedAt:    updatedAt,
-		events:       []shared.DomainEvent{},
-		totpSecret:   totpSecret,
-		backupCodes:  backupCodes,
-		devices:      devices,
+		id:                      id,
+		email:                   email,
+		username:                username,
+		passwordHash:            passwordHash,
+		role:                    role,
+		status:                  status,
+		displayName:             displayName,
+		bio:                     bio,
+		createdAt:               createdAt,
+		updatedAt:               updatedAt,
+		events:                  []shared.DomainEvent{},
+		totpSecret:              totpSecret,
+		backupCodes:             backupCodes,
+		devices:                 devices,
+		notificationPreferences: DefaultNotificationPreferences(),
 	}
 }
 
@@ -504,4 +510,19 @@ func (u *User) HasTrustedDevices() bool {
 // This is true if TOTP is enabled for this user.
 func (u *User) Requires2FA() bool {
 	return u.IsTOTPEnabled()
+}
+
+// Notification Preferences Methods
+
+// NotificationPreferences returns the user's notification preferences.
+func (u *User) NotificationPreferences() NotificationPreferences {
+	return u.notificationPreferences
+}
+
+// UpdateNotificationPreferences updates the user's notification preferences.
+// Emits a UserNotificationPreferencesUpdated event.
+func (u *User) UpdateNotificationPreferences(prefs NotificationPreferences) {
+	u.notificationPreferences = prefs
+	u.updatedAt = time.Now().UTC()
+	// Could emit an event here if needed for auditing
 }

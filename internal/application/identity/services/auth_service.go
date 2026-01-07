@@ -176,6 +176,10 @@ type JWTService interface {
 	// GenerateAccessToken creates a short-lived access token.
 	GenerateAccessToken(userID, email, role, sessionID string) (string, error)
 
+	// GenerateElevatedAccessToken creates an access token with 2FA verification flag (Sprint 11).
+	// This is used after successful 2FA verification during login to create an elevated session.
+	GenerateElevatedAccessToken(userID, email, role, sessionID string) (string, error)
+
 	// GenerateRefreshToken creates a long-lived refresh token.
 	GenerateRefreshToken(userID, email, role, sessionID string) (string, error)
 
