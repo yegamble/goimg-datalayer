@@ -13,13 +13,14 @@ import (
 )
 
 // SQL queries for TOTP operations.
+// These reference the user_totp_secrets table - not hardcoded credentials.
 const (
-	sqlInsertTOTPSecret = `
+	sqlInsertTOTPSecret = ` /* #nosec G101 */
 		INSERT INTO user_totp_secrets (user_id, encrypted_secret, issuer, account_name, enabled, verified_at, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
 
-	sqlUpdateTOTPSecret = `
+	sqlUpdateTOTPSecret = ` /* #nosec G101 */
 		UPDATE user_totp_secrets
 		SET encrypted_secret = $2,
 		    issuer = $3,
@@ -30,18 +31,18 @@ const (
 		WHERE user_id = $1
 	`
 
-	sqlSelectTOTPSecretByUserID = `
+	sqlSelectTOTPSecretByUserID = ` /* #nosec G101 */
 		SELECT user_id, encrypted_secret, issuer, account_name, enabled, verified_at, created_at, updated_at
 		FROM user_totp_secrets
 		WHERE user_id = $1
 	`
 
-	sqlDeleteTOTPSecret = `
+	sqlDeleteTOTPSecret = ` /* #nosec G101 */
 		DELETE FROM user_totp_secrets
 		WHERE user_id = $1
 	`
 
-	sqlCheckTOTPExists = `
+	sqlCheckTOTPExists = ` /* #nosec G101 */
 		SELECT EXISTS(SELECT 1 FROM user_totp_secrets WHERE user_id = $1)
 	`
 )
