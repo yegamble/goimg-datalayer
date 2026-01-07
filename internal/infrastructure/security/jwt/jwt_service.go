@@ -49,12 +49,12 @@ func DefaultConfig() Config {
 
 // Claims represents the JWT claims for goimg tokens.
 type Claims struct {
-	UserID        string    `json:"user_id"`                   // User UUID
-	Email         string    `json:"email"`                     // User email
-	Role          string    `json:"role"`                      // User role (user, moderator, admin)
-	SessionID     string    `json:"session_id"`                // Session UUID for token family tracking
-	TokenType     TokenType `json:"token_type"`                // Type of token (access or refresh)
-	TwoFAVerified bool      `json:"twofa_verified,omitempty"`  // Session elevation status (Sprint 11)
+	UserID        string    `json:"user_id"`                  // User UUID
+	Email         string    `json:"email"`                    // User email
+	Role          string    `json:"role"`                     // User role (user, moderator, admin)
+	SessionID     string    `json:"session_id"`               // Session UUID for token family tracking
+	TokenType     TokenType `json:"token_type"`               // Type of token (access or refresh)
+	TwoFAVerified bool      `json:"twofa_verified,omitempty"` // Session elevation status (Sprint 11)
 	jwt.RegisteredClaims
 }
 

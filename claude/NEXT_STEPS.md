@@ -2,8 +2,62 @@
 
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 12 - OAuth & Social Features ✅ COMPLETE
-> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE
+> **Current Sprint**: Sprint 13 - IPFS Storage Integration (IN PROGRESS)
+> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE, Sprint 13 Phase 1 COMPLETE
+
+---
+
+## Sprint 13 Progress (2026-01-07)
+
+### Phase 1: Infrastructure Layer (COMPLETE)
+
+| Component | Status | Files |
+|-----------|--------|-------|
+| IPFS Client | ✅ COMPLETE | `internal/infrastructure/storage/ipfs/` |
+| Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/` |
+| Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
+| Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
+
+### Key Implementations
+
+**IPFS Client** (`internal/infrastructure/storage/ipfs/client.go`):
+- Full Kubo HTTP API client using only Go stdlib (net/http)
+- Methods: Add, Get, Pin, Unpin, IsPinned, Delete, Exists, Stat, NodeID
+- CID validation for CIDv0 (Qm...) and CIDv1 (bafy...)
+- 40+ unit tests with httptest mocking
+
+**Storage Orchestrator** (`internal/infrastructure/storage/orchestrator/orchestrator.go`):
+- Dual-storage coordinator for primary + IPFS
+- Three modes: `primary_only`, `dual_sync`, `dual_async`
+- Fallback retrieval from IPFS when primary fails
+- Implements `storage.Storage` interface
+
+**Database Migration** (`migrations/00011_add_ipfs_fields.sql`):
+- `ipfs_cid`, `ipfs_pinned`, `ipfs_pinned_at` columns on `images` table
+- `ipfs_cid`, `ipfs_pinned` columns on `image_variants` table
+- Performance indexes for IPFS lookups
+
+**Domain Layer** (`internal/domain/gallery/ipfs_metadata.go`):
+- `IPFSMetadata` value object for IPFS storage info
+- CID validation, URI/GatewayURL helpers
+- Comprehensive unit tests
+
+### Phase 2: Application & HTTP Layer (PENDING)
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Application layer IPFS commands | P0 | 📋 Pending |
+| Application layer IPFS queries | P0 | 📋 Pending |
+| HTTP endpoints for IPFS | P1 | 📋 Pending |
+| OpenAPI spec updates | P1 | 📋 Pending |
+| Integration tests | P1 | 📋 Pending |
+| Remote pinning (Pinata/Infura) | P2 | 📋 Backlog |
+
+### Commits (Sprint 13)
+
+1. `675f700` - feat(storage): Add IPFS client and storage orchestrator for Sprint 13
+2. `d73afde` - feat(db): Add migration for IPFS storage fields (Sprint 13)
+3. `a1964bf` - feat(domain): Add IPFSMetadata value object for Gallery context
 
 ---
 
@@ -162,11 +216,11 @@ Features deferred to Phase 2:
 | Two-factor authentication (TOTP) | High | 11 | ✅ COMPLETE |
 | Backup codes for 2FA | High | 11 | ✅ COMPLETE |
 | 2FA Rate Limiting (5/min) | High | 11 | ✅ COMPLETE |
-| Session elevation after 2FA | Medium | 12 | Planned |
-| OAuth providers (Google, GitHub) | Medium | 12 | Planned |
-| Follow users / Activity feeds | Medium | 12 | Planned |
-| Email notifications (SMTP) | Medium | 12 | Planned |
-| IPFS storage integration | Medium | 13 | Planned |
+| Session elevation after 2FA | Medium | 12 | ✅ COMPLETE |
+| OAuth providers (Google, GitHub) | Medium | 12 | ✅ COMPLETE |
+| Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
+| Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
+| IPFS storage integration | Medium | 13 | 🔄 IN PROGRESS (Phase 1 Complete) |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -367,4 +421,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) planned
+**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) IN PROGRESS 🔄 (Phase 1 Complete)

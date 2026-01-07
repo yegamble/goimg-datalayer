@@ -1,6 +1,6 @@
 package identity
 
-import "github.com/yegamble/goimg-datalayer/internal/domain/notification"
+import "github.com/yegamble/goimg-datalayer/internal/domain/shared"
 
 // DigestFrequency controls how often batched notifications are sent via email.
 type DigestFrequency string
@@ -43,9 +43,9 @@ func (d DigestFrequency) String() string {
 // - Per-type preferences override the global emailEnabled flag
 // - Digest frequency controls email batching for non-urgent notifications
 type NotificationPreferences struct {
-	emailEnabled    bool                                   // Global email opt-in
-	emailTypes      map[notification.NotificationType]bool // Per-type email opt-in/out
-	digestFrequency DigestFrequency                        // Batching frequency for grouped notifications
+	emailEnabled    bool                             // Global email opt-in
+	emailTypes      map[shared.NotificationType]bool // Per-type email opt-in/out
+	digestFrequency DigestFrequency                  // Batching frequency for grouped notifications
 }
 
 // DefaultNotificationPreferences returns the default preferences for new users.
@@ -53,7 +53,7 @@ type NotificationPreferences struct {
 func DefaultNotificationPreferences() NotificationPreferences {
 	return NotificationPreferences{
 		emailEnabled:    false, // Opt-in by default
-		emailTypes:      make(map[notification.NotificationType]bool),
+		emailTypes:      make(map[shared.NotificationType]bool),
 		digestFrequency: DigestDaily, // Default to daily digest
 	}
 }
@@ -61,11 +61,11 @@ func DefaultNotificationPreferences() NotificationPreferences {
 // NewNotificationPreferences creates notification preferences with the given settings.
 func NewNotificationPreferences(
 	emailEnabled bool,
-	emailTypes map[notification.NotificationType]bool,
+	emailTypes map[shared.NotificationType]bool,
 	digestFrequency DigestFrequency,
 ) NotificationPreferences {
 	if emailTypes == nil {
-		emailTypes = make(map[notification.NotificationType]bool)
+		emailTypes = make(map[shared.NotificationType]bool)
 	}
 
 	// Default to daily if invalid frequency
@@ -86,9 +86,9 @@ func (p NotificationPreferences) EmailEnabled() bool {
 }
 
 // EmailTypes returns the per-type email preferences.
-func (p NotificationPreferences) EmailTypes() map[notification.NotificationType]bool {
+func (p NotificationPreferences) EmailTypes() map[shared.NotificationType]bool {
 	// Return a copy to prevent external modification
-	types := make(map[notification.NotificationType]bool, len(p.emailTypes))
+	types := make(map[shared.NotificationType]bool, len(p.emailTypes))
 	for k, v := range p.emailTypes {
 		types[k] = v
 	}
@@ -107,7 +107,7 @@ func (p NotificationPreferences) DigestFrequency() DigestFrequency {
 // 1. Account status notifications always send email (TypeAccountSuspended, TypeAccountBanned, etc.)
 // 2. If email globally disabled, return false (except for #1)
 // 3. Check per-type preference - default to true if not explicitly set
-func (p NotificationPreferences) ShouldEmail(notifType notification.NotificationType) bool {
+func (p NotificationPreferences) ShouldEmail(notifType shared.NotificationType) bool {
 	// Account status emails always send (ignore user preferences)
 	if notifType.RequiresEmail() {
 		return true
@@ -139,9 +139,9 @@ func (p *NotificationPreferences) DisableEmail() {
 }
 
 // SetEmailTypePreference sets whether email should be sent for a specific notification type.
-func (p *NotificationPreferences) SetEmailTypePreference(notifType notification.NotificationType, enabled bool) {
+func (p *NotificationPreferences) SetEmailTypePreference(notifType shared.NotificationType, enabled bool) {
 	if p.emailTypes == nil {
-		p.emailTypes = make(map[notification.NotificationType]bool)
+		p.emailTypes = make(map[shared.NotificationType]bool)
 	}
 	p.emailTypes[notifType] = enabled
 }

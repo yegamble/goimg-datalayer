@@ -14,17 +14,21 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-11 COMPLETE. **Sprint 12 IN PROGRESS (~80%)** - OAuth & Social Features.
+**Status**: Sprint 1-12 COMPLETE. **Sprint 13 IN PROGRESS** - IPFS Storage Integration (Phase 1 Complete).
 
-**Sprint 12 Summary** (In Progress - 2026-01-07):
-- **Progress**: ~80% COMPLETE - OAuth implementation done, social features pending
+**Sprint 12 Summary** (Completed 2026-01-07):
+- **Progress**: 100% COMPLETE - All features implemented and tested
 - **OAuth Domain Layer**: ✅ OAuthAccount entity, value objects, repository interface
 - **OAuth Infrastructure**: ✅ Google/GitHub OAuth providers, PostgreSQL repository
 - **OAuth Application**: ✅ Commands (authenticate, link, unlink) + queries
 - **OAuth HTTP Layer**: ✅ OAuthHandler with 5 endpoints mounted at /api/v1/auth/oauth
 - **OpenAPI Spec**: ✅ All OAuth endpoints documented
 - **E2E Tests**: ✅ 9 Newman tests for OAuth error handling
-- **Pending**: Social features (follow/unfollow), activity feeds, email notifications
+- **Follow/Unfollow**: ✅ Full stack implementation (domain, infrastructure, application, HTTP)
+- **Activity Feeds**: ✅ Timeline from followed users (GET /api/v1/feed)
+- **Email Notifications**: ✅ SMTP with rate limiting for new follower emails
+- **Session Elevation**: ✅ S11-2FA-004 security control implemented
+- **Follow E2E Tests**: ✅ 18 Newman tests
 
 **Sprint 11 Summary** (Completed 2026-01-07):
 - **Progress**: 100% COMPLETE - Two-Factor Authentication fully implemented
@@ -1522,6 +1526,211 @@ CREATE TABLE audit_logs (
 - [ ] Monitoring alerting verified
 - [ ] Documentation complete
 - [ ] Third-party security audit (optional but recommended)
+
+---
+
+## Sprint 11: Two-Factor Authentication (Phase 2)
+
+**STATUS**: **COMPLETE** ✅
+
+**Completion Date**: 2026-01-07
+**Duration**: 2 weeks (Weeks 21-22)
+**Focus**: TOTP-based two-factor authentication with backup codes
+**Sprint Goal**: Implement RFC 6238 compliant TOTP with encrypted secrets and backup codes
+
+### Sprint 11 Progress
+
+**Overall Status**: 100% COMPLETE
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| TOTP Service | ✅ COMPLETE | `internal/infrastructure/security/totp_service.go` |
+| Secret Encryption | ✅ COMPLETE | AES-256-GCM via `secret_encryptor.go` |
+| Backup Codes | ✅ COMPLETE | Argon2id hashed codes |
+| Rate Limiting | ✅ COMPLETE | 5 attempts/min on 2FA verification |
+| HTTP Endpoints | ✅ COMPLETE | 5 endpoints at `/api/v1/auth/2fa/*` |
+| E2E Tests | ✅ COMPLETE | 13 Newman tests |
+
+### Security Gate S11
+
+| Control ID | Requirement | Status |
+|------------|-------------|--------|
+| S11-2FA-001 | TOTP secrets encrypted at rest | ✅ PASS |
+| S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ PASS |
+| S11-2FA-003 | Rate limiting on verification | ✅ PASS |
+| S11-2FA-004 | Session elevation after 2FA | ✅ PASS (Sprint 12) |
+| S11-2FA-005 | Audit logging for 2FA events | ✅ PASS |
+
+---
+
+## Sprint 12: OAuth & Social Features (Phase 2)
+
+**STATUS**: **COMPLETE** ✅
+
+**Completion Date**: 2026-01-07
+**Duration**: 2 weeks (Weeks 23-24)
+**Focus**: OAuth authentication, user follows, activity feeds, email notifications
+**Sprint Goal**: Implement OAuth (Google/GitHub), follow system, activity feeds, and email notifications
+
+### Sprint 12 Progress
+
+**Overall Status**: 100% COMPLETE
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| OAuth Domain | ✅ COMPLETE | `oauth.go` - entities, value objects |
+| OAuth Infrastructure | ✅ COMPLETE | Google/GitHub providers, repository |
+| OAuth Application | ✅ COMPLETE | Commands and queries |
+| OAuth HTTP | ✅ COMPLETE | 5 endpoints at `/api/v1/auth/oauth/*` |
+| OAuth E2E Tests | ✅ COMPLETE | 9 Newman tests |
+| Follow Domain | ✅ COMPLETE | Follow entity, repository interface |
+| Follow Infrastructure | ✅ COMPLETE | PostgreSQL repository |
+| Follow Application | ✅ COMPLETE | Commands and queries |
+| Follow HTTP | ✅ COMPLETE | 4 endpoints |
+| Follow E2E Tests | ✅ COMPLETE | 18 Newman tests |
+| Activity Feeds | ✅ COMPLETE | `GET /api/v1/feed` |
+| Email Notifications | ✅ COMPLETE | SMTP with rate limiting |
+| Session Elevation | ✅ COMPLETE | S11-2FA-004 security control |
+
+### Security Controls Implemented
+
+| Control | Description | Status |
+|---------|-------------|--------|
+| S12-OAUTH-001 | CSRF state parameter | ✅ PASS |
+| S12-OAUTH-002 | Token encryption at rest | ✅ PASS |
+| S12-OAUTH-003 | Callback URL validation | ✅ PASS |
+| S12-OAUTH-004 | Provider user ID stored | ✅ PASS |
+| S12-OAUTH-005 | Account linking requires auth | ✅ PASS |
+
+---
+
+## Sprint 13: IPFS Storage Integration (Phase 2)
+
+**STATUS**: **IN PROGRESS** 🔄
+
+**Start Date**: 2026-01-07
+**Duration**: 2 weeks (Weeks 25-26)
+**Focus**: Decentralized storage integration with IPFS
+**Sprint Goal**: Implement IPFS storage provider with dual-storage orchestration
+
+> **Detailed Plan**: See `claude/ipfs_storage.md` for architecture and implementation details.
+
+### Sprint 13 Progress
+
+**Overall Status**: Phase 1 COMPLETE, Phase 2 in progress
+
+| Component | Status | Implementation |
+|-----------|--------|----------------|
+| IPFS Client | ✅ COMPLETE | `internal/infrastructure/storage/ipfs/client.go` |
+| Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/orchestrator.go` |
+| Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
+| Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
+| Application Layer | 📋 PENDING | Commands and queries |
+| HTTP Layer | 📋 PENDING | API endpoints |
+| OpenAPI Spec | 📋 PENDING | Endpoint documentation |
+| Integration Tests | 📋 PENDING | Testcontainers tests |
+
+### Completed Implementation (Phase 1)
+
+**IPFS Client** (`internal/infrastructure/storage/ipfs/`):
+- `config.go` - Configuration with defaults for Kubo node
+- `errors.go` - IPFS-specific error types
+- `client.go` - Full Kubo HTTP API client (~400 lines)
+  - Methods: Add, Get, Pin, Unpin, IsPinned, Delete, Exists, Stat, NodeID
+  - CID validation for CIDv0 (Qm...) and CIDv1 (bafy...)
+  - Uses only Go stdlib (net/http) - no external IPFS libraries
+- `client_test.go` - Comprehensive unit tests (~40 tests)
+
+**Storage Orchestrator** (`internal/infrastructure/storage/orchestrator/`):
+- `orchestrator.go` - Dual-storage coordinator
+  - Three modes: `primary_only`, `dual_sync`, `dual_async`
+  - Fallback retrieval from IPFS when primary fails
+  - Implements `storage.Storage` interface
+- `orchestrator_test.go` - Unit tests with mock storage
+
+**Database Migration** (`migrations/00011_add_ipfs_fields.sql`):
+- Adds `ipfs_cid`, `ipfs_pinned`, `ipfs_pinned_at` to `images` table
+- Adds `ipfs_cid`, `ipfs_pinned` to `image_variants` table
+- Indexes for efficient IPFS lookups by CID and pin status
+
+**Domain Layer** (`internal/domain/gallery/ipfs_metadata.go`):
+- `IPFSMetadata` value object for IPFS storage information
+- CID validation matching infrastructure layer
+- Helper methods: URI(), GatewayURL(), WithPinned()
+- Comprehensive unit tests
+
+### Remaining Work (Phase 2)
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Application layer IPFS commands | P0 | 📋 Pending |
+| Application layer IPFS queries | P0 | 📋 Pending |
+| HTTP endpoints for IPFS | P1 | 📋 Pending |
+| OpenAPI spec updates | P1 | 📋 Pending |
+| Integration tests with testcontainers | P1 | 📋 Pending |
+| Remote pinning (Pinata/Infura) | P2 | 📋 Backlog |
+
+### Sprint 13 Objectives
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| IPFS Provider | P0 | ✅ Storage provider implementation for Kubo node |
+| Content Addressing | P0 | ✅ CID-based image storage and retrieval |
+| Dual Storage | P0 | ✅ IPFS + primary storage orchestration |
+| Domain Model | P0 | ✅ IPFSMetadata value object |
+| Gateway URLs | P1 | ✅ Public IPFS gateway URL generation |
+| Remote Pinning | P2 | 📋 Pinata/Infura integration (backlog) |
+
+### Planned Application Layer
+
+**Commands**:
+- `UploadToIPFSCommand` - Upload image to IPFS, store CID
+- `PinImageCommand` - Pin existing image to IPFS
+- `UnpinImageCommand` - Unpin image from IPFS
+
+**Queries**:
+- `GetIPFSStatusQuery` - Get IPFS metadata for image
+- `GetIPFSURLQuery` - Get gateway URL for image
+
+### Planned HTTP Layer
+
+**Endpoints**:
+- `GET /images/{id}/ipfs` - Get IPFS metadata for image
+- `POST /images/{id}/ipfs` - Upload image to IPFS
+- `DELETE /images/{id}/ipfs` - Unpin image from IPFS
+
+### Agent Assignments
+
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, backend-test-architect
+- **Supporting**: cicd-guardian, image-gallery-expert
+
+### Security Considerations
+
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| CID immutability | Store original CID, validate on retrieval | ✅ Implemented |
+| Pinning credentials | Encrypted at rest, environment variables | 📋 Phase 2 |
+| Gateway trust | Optional private gateway configuration | ✅ Implemented |
+| Content persistence | Multi-provider pinning strategy | 📋 Phase 2 |
+
+### Quality Gates
+
+**Automated** (Phase 1 Complete):
+- ✅ IPFS client unit tests passing (40+ tests)
+- ✅ Orchestrator unit tests passing
+- ✅ Domain layer tests passing
+- ✅ Linting passes (golangci-lint)
+
+**Automated** (Phase 2 Pending):
+- [ ] IPFS node connectivity tests
+- [ ] CID generation and validation tests
+- [ ] Integration tests with testcontainers
+
+**Manual**:
+- [ ] Content retrieval via public gateway
+- [ ] Pin persistence verification
+- [ ] Dual-storage fallback testing
 
 ---
 
