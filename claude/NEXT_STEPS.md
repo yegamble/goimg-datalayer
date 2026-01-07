@@ -184,7 +184,7 @@ Features deferred to Phase 2:
 
 **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
 
-**Status**: IN PROGRESS (~90%) - OAuth COMPLETE, Follow/unfollow COMPLETE, remaining: activity feeds, email, E2E tests
+**Status**: IN PROGRESS (~95%) - OAuth COMPLETE, Follow/unfollow COMPLETE, E2E tests COMPLETE, remaining: activity feeds, email
 
 ### Sprint 12 Implementation Progress
 
@@ -198,7 +198,7 @@ Features deferred to Phase 2:
 | OpenAPI Spec | ✅ COMPLETE | All OAuth and Follow endpoints documented |
 | Router Wiring | ✅ COMPLETE | OAuthHandler at /api/v1/auth/oauth, FollowHandler at /api/v1/users/{id}/* |
 | OAuth E2E Tests | ✅ COMPLETE | 9 Newman tests for OAuth error handling |
-| Follow E2E Tests | 📋 PLANNED | Newman tests for follow/unfollow endpoints |
+| Follow E2E Tests | ✅ COMPLETE | 18 Newman tests (happy paths, errors, pagination, RFC 7807 validation) |
 | Activity Feeds | 📋 PLANNED | User activity timeline |
 | Email Notifications | 📋 PLANNED | SMTP integration |
 
@@ -234,10 +234,10 @@ Features deferred to Phase 2:
 | OAuth E2E tests | P0 | ✅ COMPLETE |
 | Social features (follow/unfollow) | P0 | ✅ COMPLETE |
 | Wire FollowHandler in router | P0 | ✅ COMPLETE |
-| Session elevation (S11-2FA-004) | P1 | Pending |
-| Follow E2E tests | P1 | Planned |
-| Activity feeds | P1 | Planned |
-| Email notifications (SMTP) | P1 | Planned |
+| Follow E2E tests | P0 | ✅ COMPLETE |
+| Session elevation (S11-2FA-004) | P1 | Deferred to Sprint 13 |
+| Activity feeds | P1 | Deferred to Sprint 13 |
+| Email notifications (SMTP) | P1 | Deferred to Sprint 13 |
 
 **Documentation**: See `/home/user/goimg-datalayer/claude/sprint_12_plan.md` for comprehensive implementation plan.
 

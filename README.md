@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-11 complete, Sprint 12 ~80% complete
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-11 complete, Sprint 12 ~95% complete
 
 **Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
 **Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
@@ -16,14 +16,15 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ Rate Limiting (5 attempts/min on 2FA verification)
   - ✅ E2E Tests (13 Newman tests)
 
-**Sprint 12**: IN PROGRESS (~90%) - OAuth & Social Features
+**Sprint 12**: IN PROGRESS (~95%) - OAuth & Social Features
   - ✅ OAuth Domain, Infrastructure, Application, HTTP layers complete
   - ✅ Follow/Unfollow Domain, Infrastructure, Application, HTTP layers complete
   - ✅ Database Migrations (OAuth accounts + User follows tables)
   - ✅ OpenAPI Spec (OAuth + Follow endpoints documented)
   - ✅ OAuth E2E Tests (9 Newman OAuth tests)
+  - ✅ Follow E2E Tests (18 Newman tests)
   - ✅ Router wiring for OAuth and Follow handlers
-  - 🔄 Pending: Activity feeds, email notifications, Follow E2E tests
+  - 🔄 Pending: Activity feeds, email notifications (deferred to Sprint 13)
 
 **Completed Sprints**:
 
@@ -460,7 +461,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 |--------|-------|--------|------------------|
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
-| **12** | OAuth & Social Features | 🔄 **~90% COMPLETE** | Google/GitHub OAuth ✅, Follow/unfollow ✅; pending: activity feeds, email notifications |
+| **12** | OAuth & Social Features | 🔄 **~95% COMPLETE** | Google/GitHub OAuth ✅, Follow/unfollow ✅, E2E tests ✅; pending: activity feeds, email (deferred to Sprint 13) |
 | **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
 
@@ -480,7 +481,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ E2E tests (13 Newman tests)
 - ✅ Security Gate S11 passed (4/5 controls, 1 deferred)
 
-#### Sprint 12: OAuth & Social Features (~90% Complete)
+#### Sprint 12: OAuth & Social Features (~95% Complete)
 - ✅ Google OAuth integration (provider + callback)
 - ✅ GitHub OAuth integration (provider + callback)
 - ✅ OAuth HTTP endpoints (5 endpoints)
@@ -488,10 +489,10 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ Security controls (CSRF state, token encryption, callback validation)
 - ✅ Follow/unfollow users (domain, application, infrastructure, HTTP layers complete)
 - ✅ Follow/unfollow router wiring (4 endpoints: POST/DELETE /follow, GET /followers, GET /following)
+- ✅ Follow E2E tests (18 Newman tests covering happy paths, errors, pagination)
 - 🔄 Session elevation after 2FA (pending - requires JWT changes)
 - 📋 Activity feeds (planned)
 - 📋 Email notifications (SMTP) (planned)
-- 📋 E2E tests for follow endpoints (planned)
 
 #### Sprint 13: IPFS Storage (Planned)
 - IPFS node integration (Kubo)
