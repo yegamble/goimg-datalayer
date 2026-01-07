@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog"
 
+	"github.com/yegamble/goimg-datalayer/internal/application/notification"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
@@ -20,23 +21,26 @@ type FollowUserCommand struct {
 
 // FollowUserHandler processes follow user commands.
 // It validates that both users exist, checks for self-follows,
-// creates the follow relationship, and publishes domain events.
+// creates the follow relationship, and sends notifications.
 type FollowUserHandler struct {
-	follows identity.FollowRepository
-	users   identity.UserRepository
-	logger  *zerolog.Logger
+	follows             identity.FollowRepository
+	users               identity.UserRepository
+	notificationService *notification.NotificationService
+	logger              *zerolog.Logger
 }
 
 // NewFollowUserHandler creates a new FollowUserHandler with the given dependencies.
 func NewFollowUserHandler(
 	follows identity.FollowRepository,
 	users identity.UserRepository,
+	notificationService *notification.NotificationService,
 	logger *zerolog.Logger,
 ) *FollowUserHandler {
 	return &FollowUserHandler{
-		follows: follows,
-		users:   users,
-		logger:  logger,
+		follows:             follows,
+		users:               users,
+		notificationService: notificationService,
+		logger:              logger,
 	}
 }
 
@@ -111,6 +115,17 @@ func (h *FollowUserHandler) Handle(ctx context.Context, cmd FollowUserCommand) e
 	// Note: Event publishing would happen here if we had an EventPublisher
 	// For now, domain events are collected but not published
 	follow.ClearEvents()
+
+	// 7. Send notification to followed user (best-effort, don't fail on notification errors)
+	if h.notificationService != nil {
+		if err := h.notificationService.NotifyNewFollower(ctx, followerID, followedID); err != nil {
+			h.logger.Warn().
+				Err(err).
+				Str("follower_id", followerID.String()).
+				Str("followed_id", followedID.String()).
+				Msg("failed to send new follower notification")
+		}
+	}
 
 	h.logger.Info().
 		Str("follower_id", followerID.String()).
