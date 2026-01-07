@@ -22,10 +22,10 @@ type RateLimiter struct {
 // Example: NewRateLimiter(100, time.Hour) allows 100 emails per hour.
 func NewRateLimiter(maxTokens int, refillRate time.Duration) *RateLimiter {
 	return &RateLimiter{
-		tokens:        maxTokens,
-		maxTokens:     maxTokens,
-		refillRate:    refillRate,
-		lastRefillAt:  time.Now(),
+		tokens:       maxTokens,
+		maxTokens:    maxTokens,
+		refillRate:   refillRate,
+		lastRefillAt: time.Now(),
 	}
 }
 

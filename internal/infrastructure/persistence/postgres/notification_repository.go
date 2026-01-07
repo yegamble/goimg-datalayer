@@ -73,14 +73,14 @@ const (
 
 // notificationRow represents a notification row in the database.
 type notificationRow struct {
-	ID               string         `db:"id"`
-	RecipientID      string         `db:"recipient_id"`
-	NotificationType string         `db:"notification_type"`
-	Title            string         `db:"title"`
-	Body             string         `db:"body"`
-	Metadata         []byte         `db:"metadata"`
-	ReadAt           sql.NullTime   `db:"read_at"`
-	CreatedAt        time.Time      `db:"created_at"`
+	ID               string       `db:"id"`
+	RecipientID      string       `db:"recipient_id"`
+	NotificationType string       `db:"notification_type"`
+	Title            string       `db:"title"`
+	Body             string       `db:"body"`
+	Metadata         []byte       `db:"metadata"`
+	ReadAt           sql.NullTime `db:"read_at"`
+	CreatedAt        time.Time    `db:"created_at"`
 }
 
 // toDomain converts a database row to a domain Notification entity.

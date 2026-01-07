@@ -14,17 +14,21 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-11 COMPLETE. **Sprint 12 IN PROGRESS (~80%)** - OAuth & Social Features.
+**Status**: Sprint 1-12 COMPLETE. **Sprint 13 PLANNED** - IPFS Storage Integration.
 
-**Sprint 12 Summary** (In Progress - 2026-01-07):
-- **Progress**: ~80% COMPLETE - OAuth implementation done, social features pending
+**Sprint 12 Summary** (Completed 2026-01-07):
+- **Progress**: 100% COMPLETE - All features implemented and tested
 - **OAuth Domain Layer**: ✅ OAuthAccount entity, value objects, repository interface
 - **OAuth Infrastructure**: ✅ Google/GitHub OAuth providers, PostgreSQL repository
 - **OAuth Application**: ✅ Commands (authenticate, link, unlink) + queries
 - **OAuth HTTP Layer**: ✅ OAuthHandler with 5 endpoints mounted at /api/v1/auth/oauth
 - **OpenAPI Spec**: ✅ All OAuth endpoints documented
 - **E2E Tests**: ✅ 9 Newman tests for OAuth error handling
-- **Pending**: Social features (follow/unfollow), activity feeds, email notifications
+- **Follow/Unfollow**: ✅ Full stack implementation (domain, infrastructure, application, HTTP)
+- **Activity Feeds**: ✅ Timeline from followed users (GET /api/v1/feed)
+- **Email Notifications**: ✅ SMTP with rate limiting for new follower emails
+- **Session Elevation**: ✅ S11-2FA-004 security control implemented
+- **Follow E2E Tests**: ✅ 18 Newman tests
 
 **Sprint 11 Summary** (Completed 2026-01-07):
 - **Progress**: 100% COMPLETE - Two-Factor Authentication fully implemented
@@ -1522,6 +1526,153 @@ CREATE TABLE audit_logs (
 - [ ] Monitoring alerting verified
 - [ ] Documentation complete
 - [ ] Third-party security audit (optional but recommended)
+
+---
+
+## Sprint 11: Two-Factor Authentication (Phase 2)
+
+**STATUS**: **COMPLETE** ✅
+
+**Completion Date**: 2026-01-07
+**Duration**: 2 weeks (Weeks 21-22)
+**Focus**: TOTP-based two-factor authentication with backup codes
+**Sprint Goal**: Implement RFC 6238 compliant TOTP with encrypted secrets and backup codes
+
+### Sprint 11 Progress
+
+**Overall Status**: 100% COMPLETE
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| TOTP Service | ✅ COMPLETE | `internal/infrastructure/security/totp_service.go` |
+| Secret Encryption | ✅ COMPLETE | AES-256-GCM via `secret_encryptor.go` |
+| Backup Codes | ✅ COMPLETE | Argon2id hashed codes |
+| Rate Limiting | ✅ COMPLETE | 5 attempts/min on 2FA verification |
+| HTTP Endpoints | ✅ COMPLETE | 5 endpoints at `/api/v1/auth/2fa/*` |
+| E2E Tests | ✅ COMPLETE | 13 Newman tests |
+
+### Security Gate S11
+
+| Control ID | Requirement | Status |
+|------------|-------------|--------|
+| S11-2FA-001 | TOTP secrets encrypted at rest | ✅ PASS |
+| S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ PASS |
+| S11-2FA-003 | Rate limiting on verification | ✅ PASS |
+| S11-2FA-004 | Session elevation after 2FA | ✅ PASS (Sprint 12) |
+| S11-2FA-005 | Audit logging for 2FA events | ✅ PASS |
+
+---
+
+## Sprint 12: OAuth & Social Features (Phase 2)
+
+**STATUS**: **COMPLETE** ✅
+
+**Completion Date**: 2026-01-07
+**Duration**: 2 weeks (Weeks 23-24)
+**Focus**: OAuth authentication, user follows, activity feeds, email notifications
+**Sprint Goal**: Implement OAuth (Google/GitHub), follow system, activity feeds, and email notifications
+
+### Sprint 12 Progress
+
+**Overall Status**: 100% COMPLETE
+
+| Feature | Status | Implementation |
+|---------|--------|----------------|
+| OAuth Domain | ✅ COMPLETE | `oauth.go` - entities, value objects |
+| OAuth Infrastructure | ✅ COMPLETE | Google/GitHub providers, repository |
+| OAuth Application | ✅ COMPLETE | Commands and queries |
+| OAuth HTTP | ✅ COMPLETE | 5 endpoints at `/api/v1/auth/oauth/*` |
+| OAuth E2E Tests | ✅ COMPLETE | 9 Newman tests |
+| Follow Domain | ✅ COMPLETE | Follow entity, repository interface |
+| Follow Infrastructure | ✅ COMPLETE | PostgreSQL repository |
+| Follow Application | ✅ COMPLETE | Commands and queries |
+| Follow HTTP | ✅ COMPLETE | 4 endpoints |
+| Follow E2E Tests | ✅ COMPLETE | 18 Newman tests |
+| Activity Feeds | ✅ COMPLETE | `GET /api/v1/feed` |
+| Email Notifications | ✅ COMPLETE | SMTP with rate limiting |
+| Session Elevation | ✅ COMPLETE | S11-2FA-004 security control |
+
+### Security Controls Implemented
+
+| Control | Description | Status |
+|---------|-------------|--------|
+| S12-OAUTH-001 | CSRF state parameter | ✅ PASS |
+| S12-OAUTH-002 | Token encryption at rest | ✅ PASS |
+| S12-OAUTH-003 | Callback URL validation | ✅ PASS |
+| S12-OAUTH-004 | Provider user ID stored | ✅ PASS |
+| S12-OAUTH-005 | Account linking requires auth | ✅ PASS |
+
+---
+
+## Sprint 13: IPFS Storage Integration (Phase 2)
+
+**STATUS**: **PLANNED** 📋
+
+**Duration**: 2 weeks (Weeks 25-26)
+**Focus**: Decentralized storage integration with IPFS
+**Sprint Goal**: Implement IPFS storage provider with remote pinning services
+
+> **Detailed Plan**: See `claude/ipfs_storage.md` for architecture and implementation details.
+
+### Sprint 13 Objectives
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| IPFS Provider | P0 | Storage provider implementation for Kubo node |
+| Content Addressing | P0 | CID-based image retrieval |
+| Remote Pinning | P1 | Pinata/Infura integration |
+| Hybrid Storage | P1 | IPFS + primary storage dual-write |
+| Gateway URLs | P2 | Public IPFS gateway URL generation |
+
+### Planned Implementation
+
+**Domain Layer**:
+- `IPFSMetadata` value object (CID, pin status, providers)
+- Image aggregate IPFS-related methods
+- Repository interface extensions
+
+**Infrastructure Layer**:
+- `IPFSStorageProvider` implementing storage interface
+- Kubo HTTP API client
+- Pinata/Infura remote pinning clients
+- IPFS configuration management
+
+**Application Layer**:
+- `UploadToIPFSCommand` - async IPFS upload
+- `PinToRemoteCommand` - remote pinning
+- `GetIPFSStatusQuery` - check CID/pin status
+
+**HTTP Layer**:
+- `GET /images/{id}/ipfs` - IPFS metadata
+- `POST /images/{id}/ipfs/pin` - Pin to remote service
+
+### Agent Assignments
+
+- **Lead**: senior-go-architect
+- **Critical**: senior-secops-engineer, backend-test-architect
+- **Supporting**: cicd-guardian, image-gallery-expert
+
+### Security Considerations
+
+| Concern | Mitigation |
+|---------|------------|
+| CID immutability | Store original CID, validate on retrieval |
+| Pinning credentials | Encrypted at rest, environment variables |
+| Gateway trust | Optional private gateway configuration |
+| Content persistence | Multi-provider pinning strategy |
+
+### Quality Gates
+
+**Automated**:
+- IPFS node connectivity tests
+- CID generation and validation tests
+- Remote pinning API integration tests
+- Storage fallback tests
+
+**Manual**:
+- Content retrieval via public gateway
+- Pin persistence verification
+- Multi-provider redundancy test
 
 ---
 

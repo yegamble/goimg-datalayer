@@ -12,9 +12,9 @@ import (
 
 // MarkNotificationsReadCommand represents a request to mark notifications as read.
 type MarkNotificationsReadCommand struct {
-	UserID           string   // Authenticated user ID (for authorization)
-	NotificationIDs  []string // Specific notification IDs to mark as read (optional)
-	MarkAllAsRead    bool     // If true, mark all notifications for user as read
+	UserID          string   // Authenticated user ID (for authorization)
+	NotificationIDs []string // Specific notification IDs to mark as read (optional)
+	MarkAllAsRead   bool     // If true, mark all notifications for user as read
 }
 
 // MarkNotificationsReadHandler handles marking notifications as read.

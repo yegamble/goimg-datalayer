@@ -261,8 +261,8 @@ func TestGetFollowingHandler_Handle_SkipsDeletedFollowedUsers(t *testing.T) {
 	// Assert - should succeed but only include existing followed user
 	require.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, 2, result.TotalCount)   // Total count includes deleted user
-	assert.Len(t, result.Following, 1)      // But only 1 followed user in results
+	assert.Equal(t, 2, result.TotalCount) // Total count includes deleted user
+	assert.Len(t, result.Following, 1)    // But only 1 followed user in results
 	assert.Equal(t, followed1ID.String(), result.Following[0].UserID)
 
 	mockUsers.AssertExpectations(t)

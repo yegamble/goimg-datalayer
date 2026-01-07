@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 12 - OAuth & Social Features ✅ COMPLETE
-> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE
+> **Current Sprint**: Sprint 13 - IPFS Storage Integration (PLANNED)
+> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE, Sprint 13 starting
 
 ---
 
@@ -162,11 +162,11 @@ Features deferred to Phase 2:
 | Two-factor authentication (TOTP) | High | 11 | ✅ COMPLETE |
 | Backup codes for 2FA | High | 11 | ✅ COMPLETE |
 | 2FA Rate Limiting (5/min) | High | 11 | ✅ COMPLETE |
-| Session elevation after 2FA | Medium | 12 | Planned |
-| OAuth providers (Google, GitHub) | Medium | 12 | Planned |
-| Follow users / Activity feeds | Medium | 12 | Planned |
-| Email notifications (SMTP) | Medium | 12 | Planned |
-| IPFS storage integration | Medium | 13 | Planned |
+| Session elevation after 2FA | Medium | 12 | ✅ COMPLETE |
+| OAuth providers (Google, GitHub) | Medium | 12 | ✅ COMPLETE |
+| Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
+| Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
+| IPFS storage integration | Medium | 13 | 📋 PLANNED |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
