@@ -2764,6 +2764,1038 @@
               ]
             }
           }
+        },
+        {
+          "name": "Follow/Unfollow",
+          "item": [
+            {
+              "name": "Setup - Create Second User for Follow Tests",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Generate unique credentials for second test user",
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "pm.collectionVariables.set('followTestEmail', `follow-test-${uniqueId}@example.com`);",
+                      "pm.collectionVariables.set('followTestUsername', `followtest${uniqueId}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Second user created successfully', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.collectionVariables.set('followTestUserId', jsonData.id);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{followTestEmail}}\",\n  \"username\": \"{{followTestUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"displayName\": \"Follow Test User\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Follow User - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.be.empty;",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Follow User - Already Following (409 Conflict)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 409', function () {",
+                      "    pm.response.to.have.status(409);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(409);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates already following', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('conflict');",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                      "        return detail.includes('already following') || detail.includes('already follow');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Follow User - Cannot Follow Self (400 Bad Request)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates cannot follow self', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('bad request');",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                      "        return detail.includes('cannot follow yourself') || detail.includes('cannot follow self');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Follow User - User Not Found (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates user not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.include('user');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "00000000-0000-0000-0000-000000000000",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Follow User - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates unauthorized access', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('unauthorized');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Followers - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('followers');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "    pm.expect(jsonData).to.have.property('offset');",
+                      "    pm.expect(jsonData).to.have.property('limit');",
+                      "});",
+                      "",
+                      "pm.test('Followers array is present', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.followers).to.be.an('array');",
+                      "    pm.expect(jsonData.total_count).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Follower has required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.followers.length > 0) {",
+                      "        const follower = jsonData.followers[0];",
+                      "        pm.expect(follower).to.have.property('user_id');",
+                      "        pm.expect(follower).to.have.property('username');",
+                      "        pm.expect(follower).to.have.property('display_name');",
+                      "        pm.expect(follower).to.have.property('followed_at');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('followed_at is valid ISO 8601 date', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.followers.length > 0) {",
+                      "        const follower = jsonData.followers[0];",
+                      "        pm.expect(follower.followed_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/followers?limit=20&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "followers"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Followers - Pagination (Offset)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Pagination parameters are respected', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.offset).to.eql(1);",
+                      "    pm.expect(jsonData.limit).to.eql(10);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/followers?limit=10&offset=1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "followers"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Followers - Empty List (New User)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create a new user with no followers",
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "const registerRequest = {",
+                      "    url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                      "    method: 'POST',",
+                      "    header: {",
+                      "        'Content-Type': 'application/json'",
+                      "    },",
+                      "    body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({",
+                      "            email: `no-followers-${uniqueId}@example.com`,",
+                      "            username: `nofollowers${uniqueId}`,",
+                      "            password: pm.collectionVariables.get('testPassword')",
+                      "        })",
+                      "    }",
+                      "};",
+                      "",
+                      "pm.sendRequest(registerRequest, function (err, response) {",
+                      "    if (!err) {",
+                      "        const userData = response.json();",
+                      "        pm.collectionVariables.set('noFollowersUserId', userData.id);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Followers list is empty', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.followers).to.be.an('array');",
+                      "    pm.expect(jsonData.followers).to.have.lengthOf(0);",
+                      "    pm.expect(jsonData.total_count).to.eql(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{noFollowersUserId}}/followers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{noFollowersUserId}}",
+                    "followers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Followers - User Not Found (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/followers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "00000000-0000-0000-0000-000000000000",
+                    "followers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Following - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('following');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "    pm.expect(jsonData).to.have.property('offset');",
+                      "    pm.expect(jsonData).to.have.property('limit');",
+                      "});",
+                      "",
+                      "pm.test('Following array is present', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.following).to.be.an('array');",
+                      "    pm.expect(jsonData.total_count).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Following user has required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.following.length > 0) {",
+                      "        const followedUser = jsonData.following[0];",
+                      "        pm.expect(followedUser).to.have.property('user_id');",
+                      "        pm.expect(followedUser).to.have.property('username');",
+                      "        pm.expect(followedUser).to.have.property('display_name');",
+                      "        pm.expect(followedUser).to.have.property('followed_at');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('followed_at is valid ISO 8601 date', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.following.length > 0) {",
+                      "        const followedUser = jsonData.following[0];",
+                      "        pm.expect(followedUser.followed_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}/);",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/following?limit=20&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "following"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Following - Pagination (Boundary Values)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Pagination parameters are respected', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.offset).to.eql(0);",
+                      "    pm.expect(jsonData.limit).to.eql(100);",
+                      "});",
+                      "",
+                      "pm.test('Results do not exceed limit', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.following.length).to.be.at.most(100);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/following?limit=100&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "following"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "100"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Following - Empty List (No Following)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Following list is empty', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.following).to.be.an('array');",
+                      "    pm.expect(jsonData.following).to.have.lengthOf(0);",
+                      "    pm.expect(jsonData.total_count).to.eql(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{noFollowersUserId}}/following",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{noFollowersUserId}}",
+                    "following"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Following - User Not Found (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/following",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "00000000-0000-0000-0000-000000000000",
+                    "following"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Following - Invalid Pagination (Limit > 100)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Error mentions limit validation', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.satisfy(function(detail) {",
+                      "        return detail.includes('limit') || detail.includes('validation');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/following?limit=101",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "following"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "101"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Unfollow User - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.be.empty;",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Unfollow User - Idempotency (Unfollow Twice)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Idempotent operation succeeds', function () {",
+                      "    pm.expect(pm.response.text()).to.be.empty;",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Unfollow User - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates unauthorized access', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title.toLowerCase()).to.include('unauthorized');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{followTestUserId}}/follow",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{followTestUserId}}",
+                    "follow"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Verify Unfollow - Check Following List Empty",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Following list no longer contains unfollowed user', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const followTestUserId = pm.collectionVariables.get('followTestUserId');",
+                      "    const isFollowing = jsonData.following.some(user => user.user_id === followTestUserId);",
+                      "    pm.expect(isFollowing).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/following",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "following"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
