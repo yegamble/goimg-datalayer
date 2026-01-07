@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-11 complete, Sprint 12 ~95% complete
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-12 complete
 
 **Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
 **Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
@@ -16,15 +16,13 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ Rate Limiting (5 attempts/min on 2FA verification)
   - ✅ E2E Tests (13 Newman tests)
 
-**Sprint 12**: IN PROGRESS (~95%) - OAuth & Social Features
-  - ✅ OAuth Domain, Infrastructure, Application, HTTP layers complete
-  - ✅ Follow/Unfollow Domain, Infrastructure, Application, HTTP layers complete
-  - ✅ Database Migrations (OAuth accounts + User follows tables)
-  - ✅ OpenAPI Spec (OAuth + Follow endpoints documented)
-  - ✅ OAuth E2E Tests (9 Newman OAuth tests)
-  - ✅ Follow E2E Tests (18 Newman tests)
-  - ✅ Router wiring for OAuth and Follow handlers
-  - 🔄 Pending: Activity feeds, email notifications (deferred to Sprint 13)
+**Sprint 12**: COMPLETE ✅ - OAuth & Social Features
+  - ✅ OAuth (Google/GitHub) - Full stack implementation
+  - ✅ Follow/Unfollow users - Full stack implementation
+  - ✅ Activity feeds - Timeline from followed users
+  - ✅ Email notifications (SMTP) - New follower emails
+  - ✅ Session elevation after 2FA - Enhanced security
+  - ✅ E2E Tests (OAuth: 9, Follow: 18 Newman tests)
 
 **Completed Sprints**:
 
@@ -239,8 +237,8 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 **Advanced Features**
 - ✅ OAuth providers (Google, GitHub) - Sprint 12 COMPLETE
 - ✅ Follow/unfollow users - Sprint 12 COMPLETE
-- 🔄 Email verification and notifications (SMTP) - Sprint 12 planned
-- 🔄 Activity feeds - Sprint 12 planned
+- ✅ Email notifications (SMTP) - Sprint 12 COMPLETE
+- ✅ Activity feeds - Sprint 12 COMPLETE
 - 🔄 IPFS decentralized storage integration
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
 - ✅ MFA/TOTP support (Sprint 11 - COMPLETE)
@@ -461,7 +459,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 |--------|-------|--------|------------------|
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
-| **12** | OAuth & Social Features | 🔄 **~95% COMPLETE** | Google/GitHub OAuth ✅, Follow/unfollow ✅, E2E tests ✅; pending: activity feeds, email (deferred to Sprint 13) |
+| **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
 | **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
 
@@ -481,18 +479,19 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ E2E tests (13 Newman tests)
 - ✅ Security Gate S11 passed (4/5 controls, 1 deferred)
 
-#### Sprint 12: OAuth & Social Features (~95% Complete)
+#### Sprint 12: OAuth & Social Features ✅ COMPLETE
 - ✅ Google OAuth integration (provider + callback)
 - ✅ GitHub OAuth integration (provider + callback)
 - ✅ OAuth HTTP endpoints (5 endpoints)
 - ✅ OAuth E2E tests (9 Newman tests)
 - ✅ Security controls (CSRF state, token encryption, callback validation)
-- ✅ Follow/unfollow users (domain, application, infrastructure, HTTP layers complete)
-- ✅ Follow/unfollow router wiring (4 endpoints: POST/DELETE /follow, GET /followers, GET /following)
-- ✅ Follow E2E tests (18 Newman tests covering happy paths, errors, pagination)
-- 🔄 Session elevation after 2FA (pending - requires JWT changes)
-- 📋 Activity feeds (planned)
-- 📋 Email notifications (SMTP) (planned)
+- ✅ Follow/unfollow users (domain, application, infrastructure, HTTP layers)
+- ✅ Follow/unfollow router wiring (4 endpoints)
+- ✅ Follow E2E tests (18 Newman tests)
+- ✅ Activity feeds (GET /api/v1/feed - timeline from followed users)
+- ✅ Email notifications (SMTP with rate limiting)
+- ✅ Session elevation after 2FA (S11-2FA-004 security control)
+- ✅ Notification system (internal + email with preferences)
 
 #### Sprint 13: IPFS Storage (Planned)
 - IPFS node integration (Kubo)
