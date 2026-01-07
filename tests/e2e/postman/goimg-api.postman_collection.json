@@ -977,6 +977,885 @@
               ]
             }
           }
+        },
+        {
+          "name": "2FA",
+          "description": "Two-Factor Authentication tests covering setup, verification, status, backup codes, and disabling",
+          "item": [
+            {
+              "name": "Setup 2FA - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('secret');",
+                      "    pm.expect(jsonData).to.have.property('provisioning_uri');",
+                      "    pm.expect(jsonData).to.have.property('issuer');",
+                      "    pm.expect(jsonData).to.have.property('account_name');",
+                      "    pm.expect(jsonData).to.have.property('backup_codes');",
+                      "});",
+                      "",
+                      "pm.test('Secret is valid base32 string', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.secret).to.match(/^[A-Z2-7]+=*$/);",
+                      "    pm.expect(jsonData.secret.length).to.be.at.least(16);",
+                      "});",
+                      "",
+                      "pm.test('Provisioning URI is valid otpauth format', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.provisioning_uri).to.match(/^otpauth:\\/\\/totp\\/.+/);",
+                      "    pm.expect(jsonData.provisioning_uri).to.include(jsonData.secret);",
+                      "});",
+                      "",
+                      "pm.test('Backup codes array has 10 codes', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.backup_codes).to.be.an('array');",
+                      "    pm.expect(jsonData.backup_codes.length).to.eql(10);",
+                      "});",
+                      "",
+                      "pm.test('Each backup code is 8 characters', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    jsonData.backup_codes.forEach(code => {",
+                      "        pm.expect(code).to.be.a('string');",
+                      "        pm.expect(code.length).to.eql(8);",
+                      "        pm.expect(code).to.match(/^[A-Z0-9]+$/);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Issuer matches expected value', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.issuer).to.eql('goimg');",
+                      "});",
+                      "",
+                      "pm.test('Account name is user email', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.account_name).to.be.a('string');",
+                      "    pm.expect(jsonData.account_name).to.include('@');",
+                      "});",
+                      "",
+                      "// Store the secret and backup codes for later tests",
+                      "const jsonData = pm.response.json();",
+                      "pm.environment.set('totpSecret', jsonData.secret);",
+                      "pm.environment.set('backupCodes', JSON.stringify(jsonData.backup_codes));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/setup",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "setup"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get 2FA Status - Setup Pending",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('enabled');",
+                      "    pm.expect(jsonData).to.have.property('setup_pending');",
+                      "    pm.expect(jsonData).to.have.property('backup_codes_remaining');",
+                      "});",
+                      "",
+                      "pm.test('2FA is not yet enabled', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.enabled).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test('Setup is pending verification', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.setup_pending).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('Backup codes are 10', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.backup_codes_remaining).to.eql(10);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "status"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Verify 2FA - Invalid Code",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData).to.have.property('traceId');",
+                      "});",
+                      "",
+                      "pm.test('Status is 400 in problem detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates invalid code', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.include('invalid');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"000000\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "verify"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Verify 2FA - Success (Manual)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// IMPORTANT: This test requires manual intervention",
+                      "// The user must provide a valid TOTP code from their authenticator app",
+                      "// For automated testing, you would need to generate TOTP codes programmatically",
+                      "//",
+                      "// To run this test manually:",
+                      "// 1. Use the TOTP secret from the 'Setup 2FA - Success' response",
+                      "// 2. Generate a code using Google Authenticator or similar app",
+                      "// 3. Replace the code in the request body below",
+                      "//",
+                      "// For CI/CD automation, consider using a library like 'otpauth' to generate codes",
+                      "console.log('TOTP Secret: ' + pm.environment.get('totpSecret'));",
+                      "console.log('Generate a code using this secret and update the request body');"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Skip this test if code is still placeholder",
+                      "const requestBody = JSON.parse(pm.request.body.raw);",
+                      "if (requestBody.code === '123456') {",
+                      "    console.log('SKIPPING: Replace 123456 with a valid TOTP code from your authenticator app');",
+                      "    return;",
+                      "}",
+                      "",
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response contains success message', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('message');",
+                      "    pm.expect(jsonData.message.toLowerCase()).to.include('enabled');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "verify"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get 2FA Status - Enabled",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('2FA is enabled', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.enabled).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('Setup is no longer pending', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.setup_pending).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test('Enabled timestamp is present', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.enabled) {",
+                      "        pm.expect(jsonData).to.have.property('enabled_at');",
+                      "        pm.expect(jsonData.enabled_at).to.not.be.null;",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Backup codes remaining is valid', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.backup_codes_remaining).to.be.at.least(0);",
+                      "    pm.expect(jsonData.backup_codes_remaining).to.be.at.most(10);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "status"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Regenerate Backup Codes - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('backup_codes');",
+                      "    pm.expect(jsonData).to.have.property('remaining_codes');",
+                      "});",
+                      "",
+                      "pm.test('Backup codes array has 10 codes', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.backup_codes).to.be.an('array');",
+                      "    pm.expect(jsonData.backup_codes.length).to.eql(10);",
+                      "});",
+                      "",
+                      "pm.test('Remaining codes is 10', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.remaining_codes).to.eql(10);",
+                      "});",
+                      "",
+                      "pm.test('New codes differ from original codes', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const originalCodes = JSON.parse(pm.environment.get('backupCodes') || '[]');",
+                      "    ",
+                      "    if (originalCodes.length > 0) {",
+                      "        const newCodes = jsonData.backup_codes;",
+                      "        const hasMatch = newCodes.some(code => originalCodes.includes(code));",
+                      "        pm.expect(hasMatch).to.be.false;",
+                      "    }",
+                      "});",
+                      "",
+                      "// Update stored backup codes",
+                      "const jsonData = pm.response.json();",
+                      "pm.environment.set('backupCodes', JSON.stringify(jsonData.backup_codes));"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/backup-codes/regenerate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "backup-codes",
+                    "regenerate"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Regenerate Backup Codes - Wrong Password",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates authentication failure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.match(/(password|unauthorized|authentication)/);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"WrongPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/backup-codes/regenerate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "backup-codes",
+                    "regenerate"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Disable 2FA - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response contains success message', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('message');",
+                      "    pm.expect(jsonData.message.toLowerCase()).to.include('disabled');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/disable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "disable"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get 2FA Status - Disabled",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('2FA is disabled', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.enabled).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test('Setup is not pending', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.setup_pending).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test('Backup codes remaining is 0', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.backup_codes_remaining).to.eql(0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "status"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Setup 2FA - No Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Status is 401 in problem detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/setup",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "setup"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Verify 2FA - No Setup Initiated",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates no pending setup', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.match(/(setup|not found|pending)/);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "verify"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Disable 2FA - Not Enabled",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404 or 400', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates 2FA not enabled', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.match(/(not enabled|not found)/);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"{{testPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/disable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "disable"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Disable 2FA - Wrong Password",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// This test assumes 2FA was re-enabled for the user",
+                      "// In a real test flow, you would setup 2FA again before this test"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response follows RFC 7807 Problem Detail', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "});",
+                      "",
+                      "pm.test('Error indicates authentication failure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail.toLowerCase()).to.match(/(password|unauthorized|invalid)/);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"WrongPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/disable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "disable"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -2892,8 +3771,8 @@
                       "    pm.expect(jsonData).to.have.property('id');",
                       "    pm.expect(jsonData).to.have.property('content');",
                       "    // Verify Unicode characters preserved",
-                      "    pm.expect(jsonData.content).to.include('😍');",
-                      "    pm.expect(jsonData.content).to.include('日本語');",
+                      "    pm.expect(jsonData.content).to.include('\ud83d\ude0d');",
+                      "    pm.expect(jsonData.content).to.include('\u65e5\u672c\u8a9e');",
                       "});",
                       "",
                       "pm.test('Response has X-Request-ID header', function () {",
@@ -2918,7 +3797,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"content\": \"Amazing shot! 😍 素晴らしい写真！ 日本語 test @user #photo\"\n}"
+                  "raw": "{\n  \"content\": \"Amazing shot! \ud83d\ude0d \u7d20\u6674\u3089\u3057\u3044\u5199\u771f\uff01 \u65e5\u672c\u8a9e test @user #photo\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
