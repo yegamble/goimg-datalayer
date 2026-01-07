@@ -1,9 +1,9 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-06
+> **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
 > **Current Sprint**: Sprint 11 - Two-Factor Authentication (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 starting
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 HTTP layer complete
 
 ---
 
@@ -191,7 +191,7 @@ Features deferred to Phase 2:
 | Database Migration | ✅ COMPLETE | `migrations/00006_create_2fa_tables.sql` |
 | Infrastructure Layer | ✅ COMPLETE | SecretEncryptor, TOTPService, repositories |
 | Application Layer | ✅ COMPLETE | Commands and queries |
-| HTTP Layer | ⏳ PENDING | Endpoints and OpenAPI spec |
+| HTTP Layer | ✅ COMPLETE | TwoFAHandler, OpenAPI spec (5 endpoints) |
 | E2E Tests | ⏳ PENDING | Newman/Postman tests |
 
 ### Completed Domain Work
@@ -237,14 +237,27 @@ Features deferred to Phase 2:
 - `Setup2FAResponseDTO`, `Verify2FADTO`, `Disable2FADTO`
 - `Login2FADTO`, `BackupCodesResponseDTO`, `TwoFactorStatusDTO`
 
+### Completed HTTP Layer Work
+
+**Handler**: `internal/interfaces/http/handlers/twofa_handler.go`
+- `POST /auth/2fa/setup` - Initiate 2FA setup
+- `POST /auth/2fa/verify` - Verify TOTP and enable 2FA
+- `POST /auth/2fa/disable` - Disable 2FA with password confirmation
+- `GET /auth/2fa/status` - Get current 2FA status
+- `POST /auth/2fa/backup-codes/regenerate` - Generate new backup codes
+
+**OpenAPI Spec**: `api/openapi/openapi.yaml`
+- All 5 endpoints documented with request/response schemas
+- Added: `Setup2FAResponse`, `TwoFactorStatus`, `BackupCodesResponse` schemas
+- RFC 7807 error responses for 2FA-specific errors
+
 ### Remaining Work
 
 | Task | Priority | Description |
 |------|----------|-------------|
-| HTTP Handlers | P0 | REST endpoints for 2FA operations |
-| OpenAPI Spec | P0 | Document new endpoints |
 | E2E Tests | P0 | Newman tests for full 2FA flow |
 | Security Gate S11 | P0 | Pass all security controls |
+| Route Registration | P0 | Wire up TwoFAHandler in router |
 
 ### Security Requirements (Gate S11)
 
