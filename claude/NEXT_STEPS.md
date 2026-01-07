@@ -190,7 +190,7 @@ Features deferred to Phase 2:
 | Domain Layer | ✅ COMPLETE | Value objects, User aggregate methods, domain events |
 | Database Migration | ✅ COMPLETE | `migrations/00006_create_2fa_tables.sql` |
 | Infrastructure Layer | ✅ COMPLETE | SecretEncryptor, TOTPService, repositories |
-| Application Layer | ⏳ PENDING | Commands and queries |
+| Application Layer | ✅ COMPLETE | Commands and queries |
 | HTTP Layer | ⏳ PENDING | Endpoints and OpenAPI spec |
 | E2E Tests | ⏳ PENDING | Newman/Postman tests |
 
@@ -222,12 +222,25 @@ Features deferred to Phase 2:
 - `BackupCodeRepository` - Manage hashed backup codes with transaction support
 - `DeviceRepository` - Track devices with upsert on login
 
+### Completed Application Work
+
+**Commands**:
+- `Setup2FACommand` - Initiate 2FA setup, generate TOTP secret and backup codes
+- `Verify2FACommand` - Verify TOTP code to enable 2FA
+- `Disable2FACommand` - Disable 2FA with password confirmation
+- `RegenerateBackupCodesCommand` - Generate new backup codes
+
+**Queries**:
+- `Get2FAStatusQuery` - Retrieve current 2FA status
+
+**DTOs**:
+- `Setup2FAResponseDTO`, `Verify2FADTO`, `Disable2FADTO`
+- `Login2FADTO`, `BackupCodesResponseDTO`, `TwoFactorStatusDTO`
+
 ### Remaining Work
 
 | Task | Priority | Description |
 |------|----------|-------------|
-| Setup2FACommand | P0 | Application service for 2FA setup flow |
-| Verify2FACommand | P0 | Application service for login verification |
 | HTTP Handlers | P0 | REST endpoints for 2FA operations |
 | OpenAPI Spec | P0 | Document new endpoints |
 | E2E Tests | P0 | Newman tests for full 2FA flow |
