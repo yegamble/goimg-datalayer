@@ -120,6 +120,27 @@ func ValidDeletedUser() *identity.User {
 	return user
 }
 
+// ValidActiveUserWithIDAndUsername returns an active user with specific ID, email, and username.
+func ValidActiveUserWithIDAndUsername(userID identity.UserID, emailStr, usernameStr string) *identity.User {
+	email, _ := identity.NewEmail(emailStr)
+	username, _ := identity.NewUsername(usernameStr)
+	passwordHash, _ := identity.NewPasswordHash(ValidPassword)
+
+	user := identity.ReconstructUser(
+		userID,
+		email,
+		username,
+		passwordHash,
+		identity.RoleUser,
+		identity.StatusActive,
+		usernameStr, // Use username as display name
+		"",
+		time.Now().UTC(),
+		time.Now().UTC(),
+	)
+	return user
+}
+
 // ValidEmail returns a valid Email value object.
 func ValidEmailVO() identity.Email {
 	email, _ := identity.NewEmail(ValidEmail)

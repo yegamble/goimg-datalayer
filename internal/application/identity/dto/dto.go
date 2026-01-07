@@ -296,3 +296,31 @@ type OAuthAccountListDTO struct {
 	Accounts []OAuthAccountDTO `json:"accounts"`
 	Count    int               `json:"count"`
 }
+
+// Follow-related DTOs
+
+// FollowUserDTO represents a user in follow/following lists.
+// Includes user profile information for display.
+type FollowUserDTO struct {
+	UserID      string    `json:"user_id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"display_name"`
+	Bio         string    `json:"bio,omitempty"`
+	FollowedAt  time.Time `json:"followed_at"`
+}
+
+// FollowersListDTO represents the paginated list of followers for a user.
+type FollowersListDTO struct {
+	Followers  []FollowUserDTO `json:"followers"`
+	TotalCount int             `json:"total_count"`
+	Offset     int             `json:"offset"`
+	Limit      int             `json:"limit"`
+}
+
+// FollowingListDTO represents the paginated list of users that a user is following.
+type FollowingListDTO struct {
+	Following  []FollowUserDTO `json:"following"`
+	TotalCount int             `json:"total_count"`
+	Offset     int             `json:"offset"`
+	Limit      int             `json:"limit"`
+}

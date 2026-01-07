@@ -199,3 +199,37 @@ func NewUserDeviceTrusted(userID UserID, fingerprint, deviceName string) UserDev
 		DeviceName:  deviceName,
 	}
 }
+
+// Follow Events
+
+// UserFollowed is emitted when a user follows another user.
+type UserFollowed struct {
+	shared.BaseEvent
+	FollowerID UserID // User who is following
+	FollowedID UserID // User being followed
+}
+
+// NewUserFollowed creates a new UserFollowed event.
+func NewUserFollowed(followerID, followedID UserID) UserFollowed {
+	return UserFollowed{
+		BaseEvent:  shared.NewBaseEvent("identity.user.followed", followerID.String()),
+		FollowerID: followerID,
+		FollowedID: followedID,
+	}
+}
+
+// UserUnfollowed is emitted when a user unfollows another user.
+type UserUnfollowed struct {
+	shared.BaseEvent
+	FollowerID UserID // User who is unfollowing
+	FollowedID UserID // User being unfollowed
+}
+
+// NewUserUnfollowed creates a new UserUnfollowed event.
+func NewUserUnfollowed(followerID, followedID UserID) UserUnfollowed {
+	return UserUnfollowed{
+		BaseEvent:  shared.NewBaseEvent("identity.user.unfollowed", followerID.String()),
+		FollowerID: followerID,
+		FollowedID: followedID,
+	}
+}
