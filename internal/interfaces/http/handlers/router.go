@@ -59,6 +59,7 @@ func NewRouter(
 	twoFAHandler *TwoFAHandler,
 	oauthHandler *OAuthHandler,
 	followHandler *FollowHandler,
+	activityHandler *ActivityHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -201,6 +202,12 @@ func NewRouter(
 					r.Post("/follow", followHandler.FollowUser)
 					r.Delete("/follow", followHandler.UnfollowUser)
 				})
+			}
+
+			// Activity feed endpoint (authenticated route)
+			// GET /feed - Get activity feed from followed users
+			if activityHandler != nil {
+				r.Get("/feed", activityHandler.GetFeed)
 			}
 		})
 

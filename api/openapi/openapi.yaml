@@ -1279,6 +1279,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /feed:
+    get:
+      tags: [social]
+      summary: Get activity feed
+      description: |
+        Retrieve a paginated feed of activities from users that the authenticated user follows.
+
+        Returns activities including:
+        - Image uploads, likes, and comments
+        - User follows
+        - Album creations
+
+        Activities are sorted by creation time (most recent first) and include metadata
+        for displaying activity details in the UI.
+
+        This endpoint requires authentication - only the authenticated user can view their own feed.
+      operationId: getActivityFeed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of activities to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of activities to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Activity feed retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityFeed'
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Images ====================
   /images:
     post:
@@ -3392,6 +3455,99 @@ components:
         total_count: 75
         offset: 0
         limit: 20
+
+    ActivityFeed:
+      type: object
+      required: [activities, total_count, offset, limit]
+      description: Paginated feed of activities from followed users
+      properties:
+        activities:
+          type: array
+          description: List of activities from followed users
+          items:
+            $ref: '#/components/schemas/Activity'
+        total_count:
+          type: integer
+          description: Total number of activities in the feed
+          minimum: 0
+          example: 150
+        offset:
+          type: integer
+          description: Number of activities skipped for pagination
+          minimum: 0
+          example: 0
+        limit:
+          type: integer
+          description: Maximum number of activities returned
+          minimum: 1
+          maximum: 100
+          example: 20
+      example:
+        activities:
+          - id: 123e4567-e89b-12d3-a456-426614174010
+            actor_id: 123e4567-e89b-12d3-a456-426614174003
+            activity_type: image_uploaded
+            target_type: image
+            target_id: 123e4567-e89b-12d3-a456-426614174011
+            metadata:
+              image_title: Beautiful sunset
+              image_url: https://cdn.goimg.com/images/123e4567/medium.jpg
+            created_at: 2024-01-15T14:20:00Z
+          - id: 123e4567-e89b-12d3-a456-426614174012
+            actor_id: 123e4567-e89b-12d3-a456-426614174004
+            activity_type: user_followed
+            target_type: user
+            target_id: 123e4567-e89b-12d3-a456-426614174005
+            metadata:
+              followed_username: photographer123
+            created_at: 2024-01-15T13:45:00Z
+        total_count: 150
+        offset: 0
+        limit: 20
+
+    Activity:
+      type: object
+      required: [id, actor_id, activity_type, target_type, target_id, created_at]
+      description: A single activity performed by a user
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity
+          example: 123e4567-e89b-12d3-a456-426614174010
+        actor_id:
+          type: string
+          format: uuid
+          description: ID of the user who performed the activity
+          example: 123e4567-e89b-12d3-a456-426614174003
+        activity_type:
+          type: string
+          enum: [image_uploaded, image_liked, image_commented, user_followed, album_created]
+          description: Type of activity performed
+          example: image_uploaded
+        target_type:
+          type: string
+          enum: [image, user, album, comment]
+          description: Type of the target entity
+          example: image
+        target_id:
+          type: string
+          format: uuid
+          description: ID of the target entity
+          example: 123e4567-e89b-12d3-a456-426614174011
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Additional contextual information about the activity
+          example:
+            image_title: Beautiful sunset
+            image_url: https://cdn.goimg.com/images/123e4567/medium.jpg
+        created_at:
+          type: string
+          format: date-time
+          description: When the activity occurred
+          example: 2024-01-15T14:20:00Z
 
     # ==================== Authentication ====================
     TokenResponse:
