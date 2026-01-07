@@ -331,3 +331,64 @@ type MockAuthMetricsRecorder struct {
 func (m *MockAuthMetricsRecorder) RecordLoginDelay(delaySeconds float64) {
 	m.Called(delaySeconds)
 }
+
+// MockFollowRepository is a mock implementation of identity.FollowRepository.
+type MockFollowRepository struct {
+	mock.Mock
+}
+
+// Save persists a follow relationship.
+func (m *MockFollowRepository) Save(ctx context.Context, follow *identity.Follow) error {
+	args := m.Called(ctx, follow)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Save: %w", err)
+	}
+	return nil
+}
+
+// Delete removes a follow relationship.
+func (m *MockFollowRepository) Delete(ctx context.Context, followerID, followedID identity.UserID) error {
+	args := m.Called(ctx, followerID, followedID)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Delete: %w", err)
+	}
+	return nil
+}
+
+// Exists checks whether a follow relationship exists.
+func (m *MockFollowRepository) Exists(ctx context.Context, followerID, followedID identity.UserID) (bool, error) {
+	args := m.Called(ctx, followerID, followedID)
+	return args.Bool(0), args.Error(1)
+}
+
+// FindFollowers retrieves all followers for a user.
+func (m *MockFollowRepository) FindFollowers(ctx context.Context, userID identity.UserID, limit, offset int) ([]*identity.Follow, int, error) {
+	args := m.Called(ctx, userID, limit, offset)
+	var follows []*identity.Follow
+	if args.Get(0) != nil {
+		follows = args.Get(0).([]*identity.Follow)
+	}
+	return follows, args.Int(1), args.Error(2)
+}
+
+// FindFollowing retrieves all users that a user is following.
+func (m *MockFollowRepository) FindFollowing(ctx context.Context, userID identity.UserID, limit, offset int) ([]*identity.Follow, int, error) {
+	args := m.Called(ctx, userID, limit, offset)
+	var follows []*identity.Follow
+	if args.Get(0) != nil {
+		follows = args.Get(0).([]*identity.Follow)
+	}
+	return follows, args.Int(1), args.Error(2)
+}
+
+// CountFollowers returns the number of followers for a user.
+func (m *MockFollowRepository) CountFollowers(ctx context.Context, userID identity.UserID) (int, error) {
+	args := m.Called(ctx, userID)
+	return args.Int(0), args.Error(1)
+}
+
+// CountFollowing returns the number of users that a user is following.
+func (m *MockFollowRepository) CountFollowing(ctx context.Context, userID identity.UserID) (int, error) {
+	args := m.Called(ctx, userID)
+	return args.Int(0), args.Error(1)
+}

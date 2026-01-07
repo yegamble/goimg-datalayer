@@ -1,9 +1,29 @@
 # Sprint 12: OAuth & Social Features
 
-> **Status**: PLANNED
-> **Start Date**: 2026-01-08
+> **Status**: IN PROGRESS (~80%)
+> **Start Date**: 2026-01-07
 > **Duration**: 2 weeks
 > **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA
+
+## Current Progress (2026-01-07)
+
+### Completed ✅
+- **OAuth Domain Layer**: OAuthAccount entity, OAuthProvider value object, repository interface
+- **OAuth Infrastructure**: Google/GitHub OAuth providers with golang.org/x/oauth2
+- **OAuth Repository**: PostgreSQL implementation with encrypted token storage
+- **OAuth Application**: Commands (AuthenticateOAuthCommand, LinkOAuthAccountCommand, UnlinkOAuthAccountCommand) + GetLinkedAccountsQuery
+- **OAuth HTTP Layer**: OAuthHandler with 5 endpoints (/auth/oauth/{provider}, /callback, /link, /accounts)
+- **Router Wiring**: OAuthHandler mounted at /api/v1/auth/oauth
+- **OpenAPI Spec**: All OAuth endpoints documented
+- **Database Migration 00007**: oauth_accounts table created
+- **E2E Tests**: 9 Newman tests covering OAuth error scenarios
+
+### Pending 📋
+- Session elevation after 2FA (S11-2FA-004)
+- Follow/unfollow users (social features)
+- Activity feeds
+- Email notifications (SMTP)
+- Notification preferences
 
 ---
 
@@ -15,15 +35,17 @@ This sprint also completes the deferred control S11-2FA-004 (session elevation a
 
 ## Key Features
 
-| Feature | Priority | Description |
-|---------|----------|-------------|
-| Google OAuth | P0 | OAuth 2.0 integration with Google |
-| GitHub OAuth | P0 | OAuth 2.0 integration with GitHub |
-| Session Elevation after 2FA | P0 | JWT token includes 2FA verification claim (S11-2FA-004) |
-| Follow/Unfollow Users | P1 | User-to-user follow relationships |
-| Activity Feed | P1 | Timeline of followed users' uploads |
-| Email Notifications (SMTP) | P1 | Email delivery for new followers, uploads, account events |
-| Notification Preferences | P2 | User control over email notification opt-in |
+| Feature | Priority | Status | Description |
+|---------|----------|--------|-------------|
+| Google OAuth | P0 | ✅ COMPLETE | OAuth 2.0 integration with Google |
+| GitHub OAuth | P0 | ✅ COMPLETE | OAuth 2.0 integration with GitHub |
+| OAuth Router Wiring | P0 | ✅ COMPLETE | Endpoints mounted at /api/v1/auth/oauth |
+| OAuth E2E Tests | P0 | ✅ COMPLETE | 9 Newman tests for error handling |
+| Session Elevation after 2FA | P0 | 📋 PENDING | JWT token includes 2FA verification claim (S11-2FA-004) |
+| Follow/Unfollow Users | P1 | 📋 PENDING | User-to-user follow relationships |
+| Activity Feed | P1 | 📋 PENDING | Timeline of followed users' uploads |
+| Email Notifications (SMTP) | P1 | 📋 PENDING | Email delivery for new followers, uploads, account events |
+| Notification Preferences | P2 | 📋 PENDING | User control over email notification opt-in |
 
 ---
 

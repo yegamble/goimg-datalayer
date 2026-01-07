@@ -1062,6 +1062,223 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== User Follow/Unfollow ====================
+  /users/{id}/follow:
+    post:
+      tags: [users]
+      summary: Follow user
+      description: |
+        Follow another user to receive updates about their activity.
+
+        Business rules:
+        - Cannot follow yourself
+        - Cannot follow the same user twice
+        - Cannot follow inactive users (suspended/deleted)
+
+        This operation is idempotent - following a user you already follow returns 409 Conflict.
+      operationId: followUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '204':
+          description: User followed successfully
+        '400':
+          description: |
+            Validation error. Possible error types:
+            - Invalid user ID format
+            - Cannot follow yourself
+            - Cannot follow inactive user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              examples:
+                cannot_follow_self:
+                  summary: Cannot follow yourself
+                  value:
+                    type: https://api.goimg.com/problems/bad-request
+                    title: Bad Request
+                    status: 400
+                    detail: Cannot follow yourself
+                    traceId: abc123-def456
+                inactive_user:
+                  summary: Cannot follow inactive user
+                  value:
+                    type: https://api.goimg.com/problems/bad-request
+                    title: Bad Request
+                    status: 400
+                    detail: Cannot follow inactive user
+                    traceId: abc123-def456
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Target user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/not-found
+                title: Not Found
+                status: 404
+                detail: User not found
+                traceId: abc123-def456
+        '409':
+          description: Already following this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/conflict
+                title: Conflict
+                status: 409
+                detail: You are already following this user
+                traceId: abc123-def456
+
+    delete:
+      tags: [users]
+      summary: Unfollow user
+      description: |
+        Unfollow a user to stop receiving updates about their activity.
+
+        This operation is idempotent - unfollowing a user you don't follow succeeds without error.
+        This prevents client-side retry issues and simplifies error handling.
+      operationId: unfollowUser
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '204':
+          description: User unfollowed successfully (or was not following)
+        '400':
+          description: Invalid user ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /users/{id}/followers:
+    get:
+      tags: [users]
+      summary: List user followers
+      description: |
+        Retrieve a paginated list of users who are following the specified user.
+
+        Returns user profile information for each follower including:
+        - User ID, username, display name
+        - Bio (if set)
+        - When they started following (followed_at timestamp)
+
+        This endpoint is public - anyone can view a user's followers.
+      operationId: getUserFollowers
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - name: limit
+          in: query
+          description: Maximum number of followers to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of followers to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Followers list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowersList'
+        '400':
+          description: Invalid user ID or pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /users/{id}/following:
+    get:
+      tags: [users]
+      summary: List users being followed
+      description: |
+        Retrieve a paginated list of users that the specified user is following.
+
+        Returns user profile information for each followed user including:
+        - User ID, username, display name
+        - Bio (if set)
+        - When follow started (followed_at timestamp)
+
+        This endpoint is public - anyone can view who a user is following.
+      operationId: getUserFollowing
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - name: limit
+          in: query
+          description: Maximum number of followed users to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of followed users to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Following list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowingList'
+        '400':
+          description: Invalid user ID or pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Images ====================
   /images:
     post:
@@ -3057,6 +3274,124 @@ components:
           type: string
           format: date-time
           example: 2024-01-15T10:30:00Z
+
+    # ==================== User Follow/Following ====================
+    FollowUser:
+      type: object
+      required: [user_id, username, display_name, followed_at]
+      description: User profile information for follow relationships
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: Unique identifier of the user
+          example: 123e4567-e89b-12d3-a456-426614174000
+        username:
+          type: string
+          description: Unique username
+          minLength: 3
+          maxLength: 50
+          example: johndoe
+        display_name:
+          type: string
+          description: User's display name
+          maxLength: 100
+          example: John Doe
+        bio:
+          type: string
+          description: User's biography
+          maxLength: 500
+          nullable: true
+          example: Photographer and nature enthusiast
+        followed_at:
+          type: string
+          format: date-time
+          description: When the follow relationship was created
+          example: 2024-01-15T10:30:00Z
+
+    FollowersList:
+      type: object
+      required: [followers, total_count, offset, limit]
+      description: Paginated list of followers
+      properties:
+        followers:
+          type: array
+          description: List of users who are following the specified user
+          items:
+            $ref: '#/components/schemas/FollowUser'
+        total_count:
+          type: integer
+          description: Total number of followers
+          minimum: 0
+          example: 150
+        offset:
+          type: integer
+          description: Number of items skipped for pagination
+          minimum: 0
+          example: 0
+        limit:
+          type: integer
+          description: Maximum number of items returned
+          minimum: 1
+          maximum: 100
+          example: 20
+      example:
+        followers:
+          - user_id: 123e4567-e89b-12d3-a456-426614174001
+            username: follower1
+            display_name: Follower One
+            bio: Photography enthusiast
+            followed_at: 2024-01-15T10:30:00Z
+          - user_id: 123e4567-e89b-12d3-a456-426614174002
+            username: follower2
+            display_name: Follower Two
+            bio: Nature lover
+            followed_at: 2024-01-14T09:15:00Z
+        total_count: 150
+        offset: 0
+        limit: 20
+
+    FollowingList:
+      type: object
+      required: [following, total_count, offset, limit]
+      description: Paginated list of users being followed
+      properties:
+        following:
+          type: array
+          description: List of users that the specified user is following
+          items:
+            $ref: '#/components/schemas/FollowUser'
+        total_count:
+          type: integer
+          description: Total number of users being followed
+          minimum: 0
+          example: 75
+        offset:
+          type: integer
+          description: Number of items skipped for pagination
+          minimum: 0
+          example: 0
+        limit:
+          type: integer
+          description: Maximum number of items returned
+          minimum: 1
+          maximum: 100
+          example: 20
+      example:
+        following:
+          - user_id: 123e4567-e89b-12d3-a456-426614174003
+            username: followed1
+            display_name: Followed User One
+            bio: Artist and creator
+            followed_at: 2024-01-13T14:20:00Z
+          - user_id: 123e4567-e89b-12d3-a456-426614174004
+            username: followed2
+            display_name: Followed User Two
+            bio: Travel photographer
+            followed_at: 2024-01-12T11:45:00Z
+        total_count: 75
+        offset: 0
+        limit: 20
 
     # ==================== Authentication ====================
     TokenResponse:

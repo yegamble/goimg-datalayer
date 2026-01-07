@@ -84,4 +84,12 @@ var (
 	ErrOAuthAccountExists = errors.New("OAuth account already exists for this provider")
 	// ErrOAuthProviderNotLinked indicates the user has not linked this OAuth provider.
 	ErrOAuthProviderNotLinked = errors.New("OAuth provider not linked to user account")
+
+	// Follow-related errors
+	// ErrCannotFollowSelf indicates a user attempted to follow themselves.
+	ErrCannotFollowSelf = errors.New("cannot follow yourself")
+	// ErrFollowAlreadyExists indicates a follow relationship already exists.
+	ErrFollowAlreadyExists = errors.New("already following this user")
+	// ErrFollowNotFound indicates a follow relationship was not found.
+	ErrFollowNotFound = errors.New("follow relationship not found")
 )
