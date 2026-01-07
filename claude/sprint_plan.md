@@ -14,7 +14,7 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-12 COMPLETE. **Sprint 13 PLANNED** - IPFS Storage Integration.
+**Status**: Sprint 1-12 COMPLETE. **Sprint 13 IN PROGRESS** - IPFS Storage Integration (Phase 1 Complete).
 
 **Sprint 12 Summary** (Completed 2026-01-07):
 - **Progress**: 100% COMPLETE - All features implemented and tested
@@ -1606,45 +1606,98 @@ CREATE TABLE audit_logs (
 
 ## Sprint 13: IPFS Storage Integration (Phase 2)
 
-**STATUS**: **PLANNED** 📋
+**STATUS**: **IN PROGRESS** 🔄
 
+**Start Date**: 2026-01-07
 **Duration**: 2 weeks (Weeks 25-26)
 **Focus**: Decentralized storage integration with IPFS
-**Sprint Goal**: Implement IPFS storage provider with remote pinning services
+**Sprint Goal**: Implement IPFS storage provider with dual-storage orchestration
 
 > **Detailed Plan**: See `claude/ipfs_storage.md` for architecture and implementation details.
+
+### Sprint 13 Progress
+
+**Overall Status**: Phase 1 COMPLETE, Phase 2 in progress
+
+| Component | Status | Implementation |
+|-----------|--------|----------------|
+| IPFS Client | ✅ COMPLETE | `internal/infrastructure/storage/ipfs/client.go` |
+| Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/orchestrator.go` |
+| Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
+| Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
+| Application Layer | 📋 PENDING | Commands and queries |
+| HTTP Layer | 📋 PENDING | API endpoints |
+| OpenAPI Spec | 📋 PENDING | Endpoint documentation |
+| Integration Tests | 📋 PENDING | Testcontainers tests |
+
+### Completed Implementation (Phase 1)
+
+**IPFS Client** (`internal/infrastructure/storage/ipfs/`):
+- `config.go` - Configuration with defaults for Kubo node
+- `errors.go` - IPFS-specific error types
+- `client.go` - Full Kubo HTTP API client (~400 lines)
+  - Methods: Add, Get, Pin, Unpin, IsPinned, Delete, Exists, Stat, NodeID
+  - CID validation for CIDv0 (Qm...) and CIDv1 (bafy...)
+  - Uses only Go stdlib (net/http) - no external IPFS libraries
+- `client_test.go` - Comprehensive unit tests (~40 tests)
+
+**Storage Orchestrator** (`internal/infrastructure/storage/orchestrator/`):
+- `orchestrator.go` - Dual-storage coordinator
+  - Three modes: `primary_only`, `dual_sync`, `dual_async`
+  - Fallback retrieval from IPFS when primary fails
+  - Implements `storage.Storage` interface
+- `orchestrator_test.go` - Unit tests with mock storage
+
+**Database Migration** (`migrations/00011_add_ipfs_fields.sql`):
+- Adds `ipfs_cid`, `ipfs_pinned`, `ipfs_pinned_at` to `images` table
+- Adds `ipfs_cid`, `ipfs_pinned` to `image_variants` table
+- Indexes for efficient IPFS lookups by CID and pin status
+
+**Domain Layer** (`internal/domain/gallery/ipfs_metadata.go`):
+- `IPFSMetadata` value object for IPFS storage information
+- CID validation matching infrastructure layer
+- Helper methods: URI(), GatewayURL(), WithPinned()
+- Comprehensive unit tests
+
+### Remaining Work (Phase 2)
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Application layer IPFS commands | P0 | 📋 Pending |
+| Application layer IPFS queries | P0 | 📋 Pending |
+| HTTP endpoints for IPFS | P1 | 📋 Pending |
+| OpenAPI spec updates | P1 | 📋 Pending |
+| Integration tests with testcontainers | P1 | 📋 Pending |
+| Remote pinning (Pinata/Infura) | P2 | 📋 Backlog |
 
 ### Sprint 13 Objectives
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| IPFS Provider | P0 | Storage provider implementation for Kubo node |
-| Content Addressing | P0 | CID-based image retrieval |
-| Remote Pinning | P1 | Pinata/Infura integration |
-| Hybrid Storage | P1 | IPFS + primary storage dual-write |
-| Gateway URLs | P2 | Public IPFS gateway URL generation |
+| IPFS Provider | P0 | ✅ Storage provider implementation for Kubo node |
+| Content Addressing | P0 | ✅ CID-based image storage and retrieval |
+| Dual Storage | P0 | ✅ IPFS + primary storage orchestration |
+| Domain Model | P0 | ✅ IPFSMetadata value object |
+| Gateway URLs | P1 | ✅ Public IPFS gateway URL generation |
+| Remote Pinning | P2 | 📋 Pinata/Infura integration (backlog) |
 
-### Planned Implementation
+### Planned Application Layer
 
-**Domain Layer**:
-- `IPFSMetadata` value object (CID, pin status, providers)
-- Image aggregate IPFS-related methods
-- Repository interface extensions
+**Commands**:
+- `UploadToIPFSCommand` - Upload image to IPFS, store CID
+- `PinImageCommand` - Pin existing image to IPFS
+- `UnpinImageCommand` - Unpin image from IPFS
 
-**Infrastructure Layer**:
-- `IPFSStorageProvider` implementing storage interface
-- Kubo HTTP API client
-- Pinata/Infura remote pinning clients
-- IPFS configuration management
+**Queries**:
+- `GetIPFSStatusQuery` - Get IPFS metadata for image
+- `GetIPFSURLQuery` - Get gateway URL for image
 
-**Application Layer**:
-- `UploadToIPFSCommand` - async IPFS upload
-- `PinToRemoteCommand` - remote pinning
-- `GetIPFSStatusQuery` - check CID/pin status
+### Planned HTTP Layer
 
-**HTTP Layer**:
-- `GET /images/{id}/ipfs` - IPFS metadata
-- `POST /images/{id}/ipfs/pin` - Pin to remote service
+**Endpoints**:
+- `GET /images/{id}/ipfs` - Get IPFS metadata for image
+- `POST /images/{id}/ipfs` - Upload image to IPFS
+- `DELETE /images/{id}/ipfs` - Unpin image from IPFS
 
 ### Agent Assignments
 
@@ -1654,25 +1707,30 @@ CREATE TABLE audit_logs (
 
 ### Security Considerations
 
-| Concern | Mitigation |
-|---------|------------|
-| CID immutability | Store original CID, validate on retrieval |
-| Pinning credentials | Encrypted at rest, environment variables |
-| Gateway trust | Optional private gateway configuration |
-| Content persistence | Multi-provider pinning strategy |
+| Concern | Mitigation | Status |
+|---------|------------|--------|
+| CID immutability | Store original CID, validate on retrieval | ✅ Implemented |
+| Pinning credentials | Encrypted at rest, environment variables | 📋 Phase 2 |
+| Gateway trust | Optional private gateway configuration | ✅ Implemented |
+| Content persistence | Multi-provider pinning strategy | 📋 Phase 2 |
 
 ### Quality Gates
 
-**Automated**:
-- IPFS node connectivity tests
-- CID generation and validation tests
-- Remote pinning API integration tests
-- Storage fallback tests
+**Automated** (Phase 1 Complete):
+- ✅ IPFS client unit tests passing (40+ tests)
+- ✅ Orchestrator unit tests passing
+- ✅ Domain layer tests passing
+- ✅ Linting passes (golangci-lint)
+
+**Automated** (Phase 2 Pending):
+- [ ] IPFS node connectivity tests
+- [ ] CID generation and validation tests
+- [ ] Integration tests with testcontainers
 
 **Manual**:
-- Content retrieval via public gateway
-- Pin persistence verification
-- Multi-provider redundancy test
+- [ ] Content retrieval via public gateway
+- [ ] Pin persistence verification
+- [ ] Dual-storage fallback testing
 
 ---
 
