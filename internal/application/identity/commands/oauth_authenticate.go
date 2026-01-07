@@ -73,13 +73,13 @@ type AuthenticateWithOAuthCommand struct {
 
 // AuthenticateWithOAuthHandler processes OAuth authentication commands.
 type AuthenticateWithOAuthHandler struct {
-	users            domainidentity.UserRepository
-	oauthAccounts    domainidentity.OAuthAccountRepository
-	providerFactory  OAuthProviderFactory
-	jwtService       services.JWTService
-	refreshService   services.RefreshTokenService
-	sessionStore     services.SessionStore
-	logger           *zerolog.Logger
+	users           domainidentity.UserRepository
+	oauthAccounts   domainidentity.OAuthAccountRepository
+	providerFactory OAuthProviderFactory
+	jwtService      services.JWTService
+	refreshService  services.RefreshTokenService
+	sessionStore    services.SessionStore
+	logger          *zerolog.Logger
 }
 
 // NewAuthenticateWithOAuthHandler creates a new OAuth authentication handler.

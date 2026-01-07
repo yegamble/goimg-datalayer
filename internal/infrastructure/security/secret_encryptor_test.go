@@ -218,7 +218,7 @@ func TestSecretEncryptor_EncryptDecryptString(t *testing.T) {
 	testCases := []string{
 		"JBSWY3DPEHPK3PXP", // Example TOTP secret
 		"",                 // Empty string
-		"Hello, World! 👋", // Unicode
+		"Hello, World! 👋",  // Unicode
 	}
 
 	for _, plaintext := range testCases {

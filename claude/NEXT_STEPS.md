@@ -3,7 +3,7 @@
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
 > **Current Sprint**: Sprint 12 - OAuth & Social Features (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 COMPLETE, Sprint 12 ~80%
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 COMPLETE, Sprint 12 OAuth COMPLETE
 
 ---
 
@@ -184,7 +184,7 @@ Features deferred to Phase 2:
 
 **Sprint Goal**: Implement OAuth authentication (Google, GitHub), user follow system, activity feeds, email notifications, and session elevation after 2FA.
 
-**Status**: IN PROGRESS - OAuth implementation ~80% complete
+**Status**: IN PROGRESS - OAuth implementation COMPLETE, Social features pending
 
 ### Sprint 12 Implementation Progress
 
@@ -196,8 +196,8 @@ Features deferred to Phase 2:
 | Application Layer | ✅ COMPLETE | Commands (authenticate, link, unlink) + queries |
 | HTTP Layer | ✅ COMPLETE | OAuthHandler with 5 endpoints |
 | OpenAPI Spec | ✅ COMPLETE | All OAuth endpoints documented |
-| Router Wiring | ⏳ PENDING | Wire up OAuthHandler in router |
-| E2E Tests | ⏳ PENDING | Newman tests for OAuth flow |
+| Router Wiring | ✅ COMPLETE | OAuthHandler mounted at /api/v1/auth/oauth |
+| E2E Tests | ✅ COMPLETE | 9 Newman tests for OAuth error handling |
 | Social Features | 📋 PLANNED | Follow/unfollow, activity feeds |
 | Email Notifications | 📋 PLANNED | SMTP integration |
 
@@ -229,8 +229,8 @@ Features deferred to Phase 2:
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Wire OAuthHandler in router | P0 | Pending |
-| OAuth E2E tests | P0 | Pending |
+| Wire OAuthHandler in router | P0 | ✅ COMPLETE |
+| OAuth E2E tests | P0 | ✅ COMPLETE |
 | Session elevation (S11-2FA-004) | P0 | Pending |
 | Social features (follow/unfollow) | P1 | Planned |
 | Activity feeds | P1 | Planned |

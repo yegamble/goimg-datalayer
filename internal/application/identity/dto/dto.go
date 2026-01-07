@@ -269,16 +269,16 @@ type OAuthAuthenticateDTO struct {
 // OAuthLinkDTO represents the request to link an OAuth account to an existing user.
 // Requires an authenticated session.
 type OAuthLinkDTO struct {
-	UserID    string `json:"-"`                                         // From authenticated session
-	Provider  string `json:"provider" validate:"required,oneof=google github"`
-	Code      string `json:"code" validate:"required"`
-	State     string `json:"state" validate:"required"`
+	UserID   string `json:"-"` // From authenticated session
+	Provider string `json:"provider" validate:"required,oneof=google github"`
+	Code     string `json:"code" validate:"required"`
+	State    string `json:"state" validate:"required"`
 }
 
 // OAuthUnlinkDTO represents the request to unlink an OAuth account from a user.
 // Requires an authenticated session.
 type OAuthUnlinkDTO struct {
-	UserID   string `json:"-"`                                         // From authenticated session
+	UserID   string `json:"-"` // From authenticated session
 	Provider string `json:"provider" validate:"required,oneof=google github"`
 }
 
