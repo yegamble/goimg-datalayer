@@ -14,7 +14,18 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-10 COMPLETE. **Sprint 11 IN PROGRESS** - Two-Factor Authentication (HTTP layer complete).
+**Status**: Sprint 1-11 COMPLETE. **Sprint 12 PLANNED** - OAuth & Social Features.
+
+**Sprint 11 Summary** (Completed 2026-01-07):
+- **Progress**: 100% COMPLETE - Two-Factor Authentication fully implemented
+- **TOTP Implementation**: ✅ RFC 6238 compliant with pquerna/otp library
+- **Encryption**: ✅ AES-256-GCM for TOTP secrets at rest
+- **Backup Codes**: ✅ 10 one-time codes with Argon2id hashing
+- **Rate Limiting**: ✅ TwoFARateLimiter (5 attempts/min) on verification endpoints
+- **HTTP Endpoints**: ✅ 5 endpoints (setup, verify, disable, status, regenerate-backup-codes)
+- **E2E Tests**: ✅ 13 Newman tests covering happy path and error scenarios
+- **Security Gate S11**: ✅ 4/5 controls passed (S11-2FA-004 deferred to Sprint 12)
+- **Deferred**: Session elevation after 2FA → Sprint 12 (requires JWT token changes)
 
 **Sprint 10 Summary** (Updated 2026-01-06):
 - **Progress**: Core features COMPLETE - Random login delay & HIBP password check implemented
@@ -22,8 +33,7 @@ This sprint plan is informed by:
 - **Compromised Password Rejection**: ✅ HIBP k-anonymity integration with Redis caching
 - **Prometheus Metrics**: ✅ Added login delay & HIBP check metrics
 - **E2E Tests**: ✅ Newman tests for password_compromised error
-- **Security Gate S10**: ✅ 8 of 10 security controls passed (2 pending: TEST & PERF; timing leak fixed)
-- **Remaining Work**: Integration testing with live HIBP API, CI coverage verification
+- **Security Gate S10**: ✅ 10/10 controls passed
 
 **Sprint 9 Summary** (Completed 2026-01-06):
 - **Progress**: 22 of 22 tasks complete (100%) - **SPRINT COMPLETE**
@@ -220,14 +230,14 @@ Based on Flickr/Chevereto competitive analysis:
 
 ### Could Have (Phase 3+)
 
-| Feature | Priority |
-|---------|----------|
-| MFA (TOTP) | P3 |
-| Groups/communities | P3 |
-| Watermarking | P3 |
-| AI-based NSFW detection | P3 |
-| Account tiers/subscriptions | P3 |
-| Video support | P3 |
+| Feature | Priority | Status |
+|---------|----------|--------|
+| MFA (TOTP) | P3 | ✅ DONE (Sprint 11) |
+| Groups/communities | P3 | Backlog |
+| Watermarking | P3 | Backlog |
+| AI-based NSFW detection | P3 | Backlog |
+| Account tiers/subscriptions | P3 | Backlog |
+| Video support | P3 | Backlog |
 
 ---
 

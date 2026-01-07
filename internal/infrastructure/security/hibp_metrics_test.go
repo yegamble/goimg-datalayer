@@ -41,6 +41,11 @@ func (m *MockPasswordCache) Set(ctx context.Context, prefix, suffix string, pwne
 	return args.Error(0)
 }
 
+func (m *MockPasswordCache) Delete(ctx context.Context, prefix, suffix string) error {
+	args := m.Called(ctx, prefix, suffix)
+	return args.Error(0)
+}
+
 // TestNoOpHIBPMetricsRecorder_RecordHIBPCheck verifies that NoOp implementation
 // doesn't panic or error when called.
 func TestNoOpHIBPMetricsRecorder_RecordHIBPCheck(t *testing.T) {

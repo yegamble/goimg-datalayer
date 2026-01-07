@@ -21,6 +21,10 @@ type MiddlewareConfig struct {
 
 	// Logger for structured logging
 	Logger zerolog.Logger
+
+	// RateLimiterConfig for rate limiting middleware (optional)
+	// If nil, rate limiting is disabled
+	RateLimiterConfig *middleware.RateLimiterConfig
 }
 
 // NewRouter creates a new chi router with all routes and middleware configured.
@@ -131,7 +135,21 @@ func NewRouter(
 
 			// Mount 2FA routes (requires authentication)
 			// These are under /auth/2fa but protected unlike public auth routes
-			r.Mount("/auth/2fa", twoFAHandler.Routes())
+			// Rate limiting is applied to verification endpoints to prevent brute-force
+			r.Route("/auth/2fa", func(r chi.Router) {
+				// Apply 2FA rate limiting if configured (5 attempts/min)
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/verify", twoFAHandler.Verify)
+					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/disable", twoFAHandler.Disable)
+				} else {
+					r.Post("/verify", twoFAHandler.Verify)
+					r.Post("/disable", twoFAHandler.Disable)
+				}
+				// Non-rate-limited endpoints
+				r.Post("/setup", twoFAHandler.Setup)
+				r.Get("/status", twoFAHandler.Status)
+				r.Post("/backup-codes/regenerate", twoFAHandler.RegenerateBackupCodes)
+			})
 
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level
