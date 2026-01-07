@@ -151,3 +151,105 @@ func NewMessageDTO(message string) MessageDTO {
 		Message: message,
 	}
 }
+
+// 2FA-related DTOs
+
+// Setup2FADTO represents the request to initiate 2FA setup.
+type Setup2FADTO struct {
+	UserID string `json:"-"` // From authenticated session, not request body
+}
+
+// Setup2FAResponseDTO represents the response after initiating 2FA setup.
+// Contains the secret and QR code URI for the user to scan with their authenticator app.
+type Setup2FAResponseDTO struct {
+	// Secret is the base32-encoded TOTP secret (shown once for manual entry)
+	Secret string `json:"secret"`
+
+	// ProvisioningURI is the otpauth:// URI for QR code generation
+	ProvisioningURI string `json:"provisioning_uri"`
+
+	// Issuer is the app name shown in authenticator apps
+	Issuer string `json:"issuer"`
+
+	// AccountName is the account identifier (usually email)
+	AccountName string `json:"account_name"`
+
+	// BackupCodes are one-time recovery codes (shown once)
+	BackupCodes []string `json:"backup_codes"`
+}
+
+// Verify2FADTO represents the request to verify and enable 2FA.
+type Verify2FADTO struct {
+	UserID string `json:"-"`                              // From authenticated session
+	Code   string `json:"code" validate:"required,len=6"` // 6-digit TOTP code
+}
+
+// Disable2FADTO represents the request to disable 2FA.
+type Disable2FADTO struct {
+	UserID   string `json:"-"`                                         // From authenticated session
+	Password string `json:"password" validate:"required"`              // Password confirmation required
+	Code     string `json:"code,omitempty" validate:"omitempty,len=6"` // Optional TOTP code for extra security
+}
+
+// Login2FADTO represents the request to complete 2FA during login.
+type Login2FADTO struct {
+	// PendingToken is a short-lived token issued after password validation
+	PendingToken string `json:"pending_token" validate:"required"`
+
+	// Code is either a 6-digit TOTP code or an 8-character backup code
+	Code string `json:"code" validate:"required"`
+
+	// UseBackupCode indicates if the code is a backup code instead of TOTP
+	UseBackupCode bool `json:"use_backup_code"`
+
+	// IP and UserAgent for session creation
+	IP        string `json:"-"`
+	UserAgent string `json:"-"`
+}
+
+// RegenerateBackupCodesDTO represents the request to regenerate backup codes.
+type RegenerateBackupCodesDTO struct {
+	UserID   string `json:"-"`                            // From authenticated session
+	Password string `json:"password" validate:"required"` // Password confirmation required
+}
+
+// BackupCodesResponseDTO represents the response with new backup codes.
+type BackupCodesResponseDTO struct {
+	// BackupCodes are the new one-time recovery codes (shown once)
+	BackupCodes []string `json:"backup_codes"`
+
+	// RemainingCodes is how many unused codes remain
+	RemainingCodes int `json:"remaining_codes"`
+}
+
+// TwoFactorStatusDTO represents the current 2FA status for a user.
+type TwoFactorStatusDTO struct {
+	// Enabled indicates if 2FA is active
+	Enabled bool `json:"enabled"`
+
+	// SetupPending indicates if setup started but not verified
+	SetupPending bool `json:"setup_pending"`
+
+	// BackupCodesRemaining is how many unused backup codes remain
+	BackupCodesRemaining int `json:"backup_codes_remaining"`
+
+	// EnabledAt is when 2FA was enabled (zero if not enabled)
+	EnabledAt *time.Time `json:"enabled_at,omitempty"`
+}
+
+// DeviceDTO represents a known device in API responses.
+type DeviceDTO struct {
+	ID          string    `json:"id"`
+	DeviceName  string    `json:"device_name"`
+	IPAddress   string    `json:"ip_address"`
+	Trusted     bool      `json:"trusted"`
+	FirstSeenAt time.Time `json:"first_seen_at"`
+	LastSeenAt  time.Time `json:"last_seen_at"`
+	IsCurrent   bool      `json:"is_current"`
+}
+
+// DeviceListDTO represents the list of known devices for a user.
+type DeviceListDTO struct {
+	Devices []DeviceDTO `json:"devices"`
+	Count   int         `json:"count"`
+}

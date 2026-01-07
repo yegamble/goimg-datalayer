@@ -101,3 +101,101 @@ func NewUserPasswordChanged(userID UserID) UserPasswordChanged {
 		UserID:    userID,
 	}
 }
+
+// 2FA Events
+
+// UserTOTPEnabled is emitted when a user enables two-factor authentication.
+type UserTOTPEnabled struct {
+	shared.BaseEvent
+	UserID UserID
+}
+
+// NewUserTOTPEnabled creates a new UserTOTPEnabled event.
+func NewUserTOTPEnabled(userID UserID) UserTOTPEnabled {
+	return UserTOTPEnabled{
+		BaseEvent: shared.NewBaseEvent("identity.user.totp_enabled", userID.String()),
+		UserID:    userID,
+	}
+}
+
+// UserTOTPDisabled is emitted when a user disables two-factor authentication.
+type UserTOTPDisabled struct {
+	shared.BaseEvent
+	UserID UserID
+}
+
+// NewUserTOTPDisabled creates a new UserTOTPDisabled event.
+func NewUserTOTPDisabled(userID UserID) UserTOTPDisabled {
+	return UserTOTPDisabled{
+		BaseEvent: shared.NewBaseEvent("identity.user.totp_disabled", userID.String()),
+		UserID:    userID,
+	}
+}
+
+// UserBackupCodeUsed is emitted when a user uses a backup code.
+type UserBackupCodeUsed struct {
+	shared.BaseEvent
+	UserID         UserID
+	RemainingCodes int
+}
+
+// NewUserBackupCodeUsed creates a new UserBackupCodeUsed event.
+func NewUserBackupCodeUsed(userID UserID, remainingCodes int) UserBackupCodeUsed {
+	return UserBackupCodeUsed{
+		BaseEvent:      shared.NewBaseEvent("identity.user.backup_code_used", userID.String()),
+		UserID:         userID,
+		RemainingCodes: remainingCodes,
+	}
+}
+
+// UserBackupCodesRegenerated is emitted when a user regenerates their backup codes.
+type UserBackupCodesRegenerated struct {
+	shared.BaseEvent
+	UserID UserID
+}
+
+// NewUserBackupCodesRegenerated creates a new UserBackupCodesRegenerated event.
+func NewUserBackupCodesRegenerated(userID UserID) UserBackupCodesRegenerated {
+	return UserBackupCodesRegenerated{
+		BaseEvent: shared.NewBaseEvent("identity.user.backup_codes_regenerated", userID.String()),
+		UserID:    userID,
+	}
+}
+
+// UserUnusualLogin is emitted when a user logs in from an unusual device/location.
+type UserUnusualLogin struct {
+	shared.BaseEvent
+	UserID      UserID
+	IPAddress   string
+	DeviceName  string
+	Fingerprint string
+}
+
+// NewUserUnusualLogin creates a new UserUnusualLogin event.
+func NewUserUnusualLogin(userID UserID, ipAddress, deviceName, fingerprint string) UserUnusualLogin {
+	return UserUnusualLogin{
+		BaseEvent:   shared.NewBaseEvent("identity.user.unusual_login", userID.String()),
+		UserID:      userID,
+		IPAddress:   ipAddress,
+		DeviceName:  deviceName,
+		Fingerprint: fingerprint,
+	}
+}
+
+// UserDeviceTrusted is emitted when a user marks a device as trusted.
+type UserDeviceTrusted struct {
+	shared.BaseEvent
+	UserID      UserID
+	Fingerprint string
+	DeviceName  string
+}
+
+// NewUserDeviceTrusted creates a new UserDeviceTrusted event.
+func NewUserDeviceTrusted(userID UserID, fingerprint, deviceName string) UserDeviceTrusted {
+	return UserDeviceTrusted{
+		BaseEvent:   shared.NewBaseEvent("identity.user.device_trusted", userID.String()),
+		UserID:      userID,
+		Fingerprint: fingerprint,
+		DeviceName:  deviceName,
+	}
+}

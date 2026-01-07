@@ -198,3 +198,34 @@ type PaginatedCommentsResponse struct {
 	Page     int          `json:"page"`
 	PerPage  int          `json:"per_page"`
 }
+
+// ============================================================================
+// Two-Factor Authentication DTOs
+// ============================================================================
+
+// Verify2FARequest represents the HTTP request body for verifying 2FA setup.
+// POST /api/v1/auth/2fa/verify
+type Verify2FARequest struct {
+	Code string `json:"code" validate:"required,len=6,numeric"`
+}
+
+// Disable2FARequest represents the HTTP request body for disabling 2FA.
+// POST /api/v1/auth/2fa/disable
+type Disable2FARequest struct {
+	Password string `json:"password" validate:"required"`
+	Code     string `json:"code,omitempty" validate:"omitempty,len=6,numeric"`
+}
+
+// Login2FARequest represents the HTTP request body for completing 2FA during login.
+// POST /api/v1/auth/2fa/login
+type Login2FARequest struct {
+	PendingToken  string `json:"pending_token" validate:"required"`
+	Code          string `json:"code" validate:"required"`
+	UseBackupCode bool   `json:"use_backup_code"`
+}
+
+// RegenerateBackupCodesRequest represents the HTTP request body for regenerating backup codes.
+// POST /api/v1/auth/2fa/backup-codes/regenerate
+type RegenerateBackupCodesRequest struct {
+	Password string `json:"password" validate:"required"`
+}

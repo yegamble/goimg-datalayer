@@ -4,9 +4,10 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Security Enhancements** - MVP complete, Phase 2 development in progress
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprint 10 complete, Sprint 11 planned
 
-**Sprint 10**: IN PROGRESS - Security Enhancements (Random login delay ✅, HIBP password check ✅)
+**Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
+**Sprint 11**: PLANNED - Two-Factor Authentication (TOTP, Unusual login notifications)
 
 **Completed Sprints**:
 
@@ -439,43 +440,54 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 
 ### Phase 2: Advanced Features (IN PROGRESS)
 
-| Sprint | Focus | Priority | Status |
-|--------|-------|----------|--------|
-| 10 | Security Enhancements | High | **IN PROGRESS** |
-| | - Random login delay (timing attack mitigation) | | ✅ Implemented |
-| | - HIBP password check | | ✅ Implemented |
-| | - Prometheus metrics, OpenAPI spec update | | ✅ Implemented |
-| 11 | Two-Factor Authentication | High | Planned |
-| | - TOTP implementation | | |
-| | - Unusual login notifications | | |
-| | - SIEM integration | | |
-| 11-12 | OAuth Providers | Medium | Planned |
-| | - Google OAuth | | |
-| | - GitHub OAuth | | |
-| 12 | Social Features | Medium | Planned |
-| | - Follow users | | |
-| | - Activity feeds | | |
-| | - Email notifications (SMTP) | | |
-| 13 | IPFS Storage | Medium | Planned |
-| | - Decentralized storage integration | | |
-| | - Pinata/Infura pinning services | | |
-| Post-13 | Advanced Moderation | Medium | Backlog |
-| | - Abuse reporting API | | |
-| | - Admin moderation queue | | |
-| | - User ban system | | |
+| Sprint | Focus | Status | Key Deliverables |
+|--------|-------|--------|------------------|
+| **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
+| **11** | Two-Factor Authentication | 🔄 **IN PROGRESS** | TOTP setup/verify, backup codes, unusual login detection |
+| **12** | OAuth & Social Features | 📋 Planned | Google/GitHub OAuth, follow users, activity feeds, email notifications |
+| **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
+| **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
+
+#### Sprint 10: Security Enhancements ✅ COMPLETE
+- ✅ Random login delay (100-300ms) - Timing attack mitigation
+- ✅ HIBP password check - Compromised password rejection
+- ✅ Prometheus metrics for security monitoring
+- ✅ Security Gate S10 passed (10/10 controls)
+
+#### Sprint 11: Two-Factor Authentication 🔄 IN PROGRESS
+- 🔄 TOTP implementation with QR code setup
+- 🔄 Backup codes (10 one-time codes)
+- 🔄 Unusual login detection and notifications
+- 📋 Device fingerprinting
+
+#### Sprint 12: OAuth & Social Features (Planned)
+- Google OAuth integration
+- GitHub OAuth integration
+- Follow/unfollow users
+- Activity feeds
+- Email notifications (SMTP)
+
+#### Sprint 13: IPFS Storage (Planned)
+- IPFS node integration (Kubo)
+- Remote pinning (Pinata, Infura)
+- Content-addressed image URLs
+
+#### Sprint 14: Advanced Moderation (Backlog)
+- Abuse reporting API
+- Admin moderation queue
+- User ban system (temporary & permanent)
 
 ### Phase 3: Future Enhancements (Backlog)
 
-| Feature | Priority |
-|---------|----------|
-| MFA/TOTP support | P3 |
-| Groups/communities | P3 |
-| Watermarking | P3 |
-| AI-based NSFW detection | P3 |
-| Account tiers/subscriptions | P3 |
-| Video support | P3 |
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| Groups/communities | P3 | User groups, shared albums |
+| Watermarking | P3 | Auto-watermark on uploads |
+| AI NSFW detection | P3 | Automated content moderation |
+| Account tiers | P3 | Storage limits, premium features |
+| Video support | P3 | Video upload and streaming |
 
-See [sprint_plan.md](claude/sprint_plan.md) for detailed breakdown.
+See [claude/sprint_plan.md](claude/sprint_plan.md) for detailed breakdown and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md) for current status.
 
 ## Contributing
 

@@ -1,9 +1,9 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-06
+> **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 10 - Security Enhancements (COMPLETE ✅)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE - All 10/10 controls passed
+> **Current Sprint**: Sprint 11 - Two-Factor Authentication (IN PROGRESS)
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 HTTP layer complete
 
 ---
 
@@ -28,16 +28,9 @@
 - **Caching**: Redis + in-memory fallback for HIBP results (24h TTL)
 - **Prometheus Metrics**: Integrated via `AuthMetricsRecorder` and `HIBPMetricsRecorder` interfaces
 
-### Remaining for Sprint 10
+### Sprint 10: Complete
 
-| Task | Priority | Description |
-|------|----------|-------------|
-| Integration Testing | P1 | Test with real HIBP API (network dependent) |
-| Prometheus Metrics | IN PROGRESS | Metric functions defined & tested; integration into login handler defer block and HIBP client still pending (`goimg_auth_login_delay_seconds`, `goimg_security_hibp_checks_total`, `goimg_security_hibp_check_duration_seconds`) |
-| OpenAPI Spec | ✅ DONE | `password_compromised` error added to registration endpoint |
-| E2E Tests | ✅ DONE | Newman tests for compromised password rejection |
-| Security Gate S10 | ✅ DONE | 8 of 10 controls passed (2 pending: S10-TEST-001, S10-PERF-001; timing leak fixed in S10-AUTH-003) |
-| Documentation | ✅ DONE | Sprint 10 docs updated |
+All Sprint 10 objectives achieved. See archived documentation in `/claude/archive/sprints/sprint_10_plan.md` for full details.
 
 ### Security Gate S10 Status
 
@@ -54,7 +47,7 @@
 | S10-TEST-001: 85%+ coverage | ✅ PASS | 90.9% achieved |
 | S10-PERF-001: <500ms p95 latency | ✅ PASS | 289ms (unit test verified) |
 
-See `/claude/sprint_10_plan.md` for detailed implementation plan.
+See `/claude/archive/sprints/sprint_10_plan.md` for archived implementation details.
 
 ---
 
@@ -142,7 +135,7 @@ The goimg-datalayer backend is **production-ready** and has been **APPROVED FOR 
 ### For Security
 - **Security Policy**: `/SECURITY.md`
 - **Incident Response**: `/docs/security/incident_response.md`
-- **Penetration Test Report**: `/docs/security/pentest_sprint9.md`
+- **2FA Security Spec**: `/docs/security/sprint_11_2fa_security_spec.md`
 - **Audit Log Review**: `/docs/security/audit_log_review.md`
 - **Secret Rotation**: `/docs/security/secret_rotation.md`
 
@@ -166,13 +159,13 @@ Features deferred to Phase 2:
 | Random login delay (timing attack mitigation) | High | 10 | ✅ COMPLETE |
 | HIBP password check | High | 10 | ✅ COMPLETE |
 | Prometheus metrics (security) | High | 10 | ✅ COMPLETE |
-| Two-factor authentication (TOTP) | High | 11 | Planned |
-| OAuth providers (Google, GitHub) | Medium | 11-12 | Planned |
+| Two-factor authentication (TOTP) | High | 11 | **IN PROGRESS** |
+| Backup codes for 2FA | High | 11 | Planned |
+| Unusual login notifications | High | 11 | Planned |
+| OAuth providers (Google, GitHub) | Medium | 12 | Planned |
 | Follow users / Activity feeds | Medium | 12 | Planned |
 | Email notifications (SMTP) | Medium | 12 | Planned |
 | IPFS storage integration | Medium | 13 | Planned |
-| Unusual login notifications | Medium | 11 | Planned |
-| SIEM integration | Medium | 11 | Planned |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -183,6 +176,101 @@ Features deferred to Phase 2:
 - ✅ Security Gate S10 passed (10/10 controls) - ALL VERIFIED
 - ✅ Test coverage: 90.9% (target: 85%) - EXCEEDED
 - ✅ p95 latency: 289ms (target: <500ms) - VERIFIED
+
+---
+
+## Sprint 11: Two-Factor Authentication (IN PROGRESS)
+
+**Sprint Goal**: Implement TOTP-based two-factor authentication with backup codes and unusual login notifications.
+
+### Implementation Progress
+
+| Layer | Status | Details |
+|-------|--------|---------|
+| Domain Layer | ✅ COMPLETE | Value objects, User aggregate methods, domain events |
+| Database Migration | ✅ COMPLETE | `migrations/00006_create_2fa_tables.sql` |
+| Infrastructure Layer | ✅ COMPLETE | SecretEncryptor, TOTPService, repositories |
+| Application Layer | ✅ COMPLETE | Commands and queries |
+| HTTP Layer | ✅ COMPLETE | TwoFAHandler, OpenAPI spec (5 endpoints) |
+| E2E Tests | ⏳ PENDING | Newman/Postman tests |
+
+### Completed Domain Work
+
+**Value Objects**:
+- `TOTPSecret` - Encrypted TOTP secrets with issuer/account info
+- `BackupCode` - Argon2id hashed one-time recovery codes
+- `DeviceFingerprint` - SHA-256 device identification for unusual login detection
+
+**User Aggregate Methods**:
+- `SetupTOTP`, `EnableTOTP`, `DisableTOTP` - 2FA lifecycle
+- `UseBackupCode`, `RegenerateBackupCodes` - Backup code management
+- `TrackDevice`, `TrustDevice`, `RemoveDevice` - Device tracking
+
+**Domain Events**:
+- `UserTOTPEnabled`, `UserTOTPDisabled`
+- `UserBackupCodeUsed`, `UserBackupCodesRegenerated`
+- `UserUnusualLogin`, `UserDeviceTrusted`
+
+### Completed Infrastructure Work
+
+**Security Services**:
+- `SecretEncryptor` - AES-256-GCM encryption with random nonces
+- `TOTPService` - RFC 6238 TOTP generation and validation (pquerna/otp)
+
+**PostgreSQL Repositories**:
+- `TOTPRepository` - CRUD for encrypted TOTP secrets
+- `BackupCodeRepository` - Manage hashed backup codes with transaction support
+- `DeviceRepository` - Track devices with upsert on login
+
+### Completed Application Work
+
+**Commands**:
+- `Setup2FACommand` - Initiate 2FA setup, generate TOTP secret and backup codes
+- `Verify2FACommand` - Verify TOTP code to enable 2FA
+- `Disable2FACommand` - Disable 2FA with password confirmation
+- `RegenerateBackupCodesCommand` - Generate new backup codes
+
+**Queries**:
+- `Get2FAStatusQuery` - Retrieve current 2FA status
+
+**DTOs**:
+- `Setup2FAResponseDTO`, `Verify2FADTO`, `Disable2FADTO`
+- `Login2FADTO`, `BackupCodesResponseDTO`, `TwoFactorStatusDTO`
+
+### Completed HTTP Layer Work
+
+**Handler**: `internal/interfaces/http/handlers/twofa_handler.go`
+- `POST /auth/2fa/setup` - Initiate 2FA setup
+- `POST /auth/2fa/verify` - Verify TOTP and enable 2FA
+- `POST /auth/2fa/disable` - Disable 2FA with password confirmation
+- `GET /auth/2fa/status` - Get current 2FA status
+- `POST /auth/2fa/backup-codes/regenerate` - Generate new backup codes
+
+**OpenAPI Spec**: `api/openapi/openapi.yaml`
+- All 5 endpoints documented with request/response schemas
+- Added: `Setup2FAResponse`, `TwoFactorStatus`, `BackupCodesResponse` schemas
+- RFC 7807 error responses for 2FA-specific errors
+
+### Remaining Work
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| E2E Tests | P0 | Newman tests for full 2FA flow |
+| Security Gate S11 | P0 | Pass all security controls |
+| Route Registration | P0 | Wire up TwoFAHandler in router |
+
+### Security Requirements (Gate S11)
+
+| Control | Requirement | Status |
+|---------|-------------|--------|
+| S11-2FA-001 | TOTP secrets encrypted at rest (AES-256-GCM) | ✅ Done |
+| S11-2FA-002 | Backup codes hashed (Argon2id) | ✅ Done |
+| S11-2FA-003 | Rate limiting on 2FA verification (5/min) | ⏳ Pending |
+| S11-2FA-004 | Session elevation after 2FA completion | ⏳ Pending |
+| S11-2FA-005 | Audit logging for all 2FA events | ✅ Done | |
+
+See `/claude/sprint_11_plan.md` for detailed implementation plan.
+See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
@@ -217,4 +305,4 @@ Features deferred to Phase 2:
 
 ---
 
-**Project Status**: **GO FOR LAUNCH**
+**Project Status**: **Phase 2 Active** - Sprint 11 (2FA) in progress

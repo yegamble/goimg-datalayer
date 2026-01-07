@@ -64,4 +64,30 @@ var (
 	// ErrPasswordCompromised is returned when a password has been found in known data breaches.
 	// This prevents users from registering with passwords that have been compromised.
 	ErrPasswordCompromised = errors.New("password has been found in data breaches")
+
+	// 2FA-related application errors
+
+	// Err2FAAlreadyEnabled is returned when trying to setup 2FA for an account that already has it.
+	Err2FAAlreadyEnabled = errors.New("two-factor authentication is already enabled")
+
+	// Err2FANotEnabled is returned when trying to perform 2FA operations on an account without 2FA.
+	Err2FANotEnabled = errors.New("two-factor authentication is not enabled")
+
+	// Err2FASetupPending is returned when 2FA setup has started but not been verified.
+	Err2FASetupPending = errors.New("two-factor authentication setup pending verification")
+
+	// Err2FAInvalidCode is returned when the provided TOTP code is invalid.
+	Err2FAInvalidCode = errors.New("invalid two-factor authentication code")
+
+	// Err2FARequired is returned when 2FA verification is required to complete login.
+	Err2FARequired = errors.New("two-factor authentication verification required")
+
+	// ErrBackupCodeInvalid is returned when a backup code is invalid or already used.
+	ErrBackupCodeInvalid = errors.New("invalid or already used backup code")
+
+	// ErrBackupCodesExhausted is returned when all backup codes have been used.
+	ErrBackupCodesExhausted = errors.New("all backup codes have been used - please regenerate")
+
+	// ErrPasswordRequired is returned when password confirmation is required but not provided.
+	ErrPasswordRequired = errors.New("password confirmation required for this operation")
 )
