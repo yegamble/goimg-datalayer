@@ -21,6 +21,10 @@ type MiddlewareConfig struct {
 
 	// Logger for structured logging
 	Logger zerolog.Logger
+
+	// RateLimiterConfig for rate limiting middleware (optional)
+	// If nil, rate limiting is disabled
+	RateLimiterConfig *middleware.RateLimiterConfig
 }
 
 // NewRouter creates a new chi router with all routes and middleware configured.
@@ -38,6 +42,8 @@ type MiddlewareConfig struct {
 //   - Health/Metrics routes: /health, /health/ready, /metrics (no authentication)
 //   - Public routes: /api/v1/auth/* (no authentication)
 //   - Protected routes: /api/v1/users/*, /api/v1/images/*, /api/v1/albums/* (JWT authentication required)
+//   - 2FA routes: /api/v1/auth/2fa/* (JWT authentication required)
+//   - OAuth routes: /api/v1/auth/oauth/* (public initiate/callback, protected link/unlink/list)
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
 //
 //nolint:funlen // Router setup with middleware and routes.
@@ -49,6 +55,8 @@ func NewRouter(
 	socialHandler *SocialHandler,
 	exploreHandler *ExploreHandler,
 	healthHandler *HealthHandler,
+	twoFAHandler *TwoFAHandler,
+	oauthHandler *OAuthHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -93,6 +101,20 @@ func NewRouter(
 		// Public auth routes (no authentication required)
 		r.Mount("/auth", authHandler.Routes())
 
+		// OAuth routes (mixed public and protected)
+		// Public: GET /{provider}, GET /{provider}/callback
+		// Protected: POST /link, DELETE /{provider}, GET /accounts
+		if oauthHandler != nil {
+			// Create JWT middleware for OAuth protected routes
+			oauthJWTMiddleware := middleware.JWTAuth(middleware.AuthConfig{
+				JWTService:     middlewareConfig.JWTService,
+				TokenBlacklist: middlewareConfig.TokenBlacklist,
+				Logger:         middlewareConfig.Logger,
+				Optional:       false,
+			})
+			r.Mount("/auth/oauth", oauthHandler.Routes(oauthJWTMiddleware))
+		}
+
 		// Public explore routes (no authentication required)
 		// Allows anonymous users to discover public content
 		r.Mount("/explore", exploreHandler.Routes())
@@ -126,6 +148,24 @@ func NewRouter(
 
 			// Mount user routes
 			r.Mount("/users", userHandler.Routes())
+
+			// Mount 2FA routes (requires authentication)
+			// These are under /auth/2fa but protected unlike public auth routes
+			// Rate limiting is applied to verification endpoints to prevent brute-force
+			r.Route("/auth/2fa", func(r chi.Router) {
+				// Apply 2FA rate limiting if configured (5 attempts/min)
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/verify", twoFAHandler.Verify)
+					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/disable", twoFAHandler.Disable)
+				} else {
+					r.Post("/verify", twoFAHandler.Verify)
+					r.Post("/disable", twoFAHandler.Disable)
+				}
+				// Non-rate-limited endpoints
+				r.Post("/setup", twoFAHandler.Setup)
+				r.Get("/status", twoFAHandler.Status)
+				r.Post("/backup-codes/regenerate", twoFAHandler.RegenerateBackupCodes)
+			})
 
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level

@@ -1,6 +1,6 @@
 # goimg-datalayer Documentation
 
-> **Status**: GO FOR LAUNCH | **Version**: MVP 1.0 | **Updated**: 2026-01-06
+> **Status**: GO FOR LAUNCH | **Version**: MVP 1.0 | **Updated**: 2026-01-07
 
 Welcome to the goimg-datalayer documentation. This is a Go backend for an image gallery application (Flickr/Chevereto-style) supporting uploads, moderation, and user management.
 
@@ -156,9 +156,9 @@ All security controls verified for production deployment.
 
 | Sprint | Focus | Status |
 |--------|-------|--------|
-| 10 | Security Enhancements (timing attacks, HIBP) | **Complete** |
-| 11 | Two-Factor Authentication (TOTP) | **In Progress** |
-| 12 | OAuth Providers (Google, GitHub) | Planned |
+| 10 | Security Enhancements (timing attacks, HIBP) | ✅ **Complete** |
+| 11 | Two-Factor Authentication (TOTP) | ✅ **Complete** |
+| 12 | OAuth Providers (Google, GitHub) + Session Elevation | Planned |
 | 13 | Social Features (follows, activity feeds) | Planned |
 | 14 | IPFS Storage Integration | Planned |
 

@@ -14,9 +14,9 @@ import (
 
 // TOTPService errors.
 var (
-	ErrTOTPGenerationFailed   = errors.New("failed to generate TOTP secret")
-	ErrTOTPValidationFailed   = errors.New("failed to validate TOTP code")
-	ErrTOTPInvalidCode        = errors.New("invalid TOTP code")
+	ErrTOTPGenerationFailed    = errors.New("failed to generate TOTP secret")
+	ErrTOTPValidationFailed    = errors.New("failed to validate TOTP code")
+	ErrTOTPInvalidCode         = errors.New("invalid TOTP code")
 	ErrTOTPSecretDecryptFailed = errors.New("failed to decrypt TOTP secret")
 )
 

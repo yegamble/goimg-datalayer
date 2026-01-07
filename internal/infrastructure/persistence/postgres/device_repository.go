@@ -96,7 +96,7 @@ func NewDeviceRepository(db *sqlx.DB) *DeviceRepository {
 
 // TrackDeviceResult contains the result of tracking a device.
 type TrackDeviceResult struct {
-	DeviceID  string
+	DeviceID    string
 	IsNewDevice bool
 	FirstSeenAt time.Time
 }

@@ -1,6 +1,8 @@
 module github.com/yegamble/goimg-datalayer
 
-go 1.24.7
+go 1.24.0
+
+toolchain go1.25.5
 
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
@@ -13,6 +15,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/oapi-codegen/runtime v1.1.2
+	github.com/pquerna/otp v1.5.0
 	github.com/pressly/goose/v3 v3.17.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
@@ -21,12 +24,15 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.27.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.27.0
 	golang.org/x/crypto v0.45.0
+	golang.org/x/oauth2 v0.34.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/containerd/containerd v1.7.11 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/gorilla/css v1.0.1 // indirect

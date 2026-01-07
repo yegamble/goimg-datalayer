@@ -92,8 +92,7 @@ func (h *Get2FAStatusHandler) Handle(ctx context.Context, query Get2FAStatusQuer
 		}
 	}
 
-	// 5. Get enabled timestamp
-	var enabledAt *interface{}
+	// 5. Build and return DTO
 	if enabled {
 		t := totpSecret.VerifiedAt()
 		result := &dto.TwoFactorStatusDTO{

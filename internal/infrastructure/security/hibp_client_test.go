@@ -267,7 +267,7 @@ func TestNewHIBPClient(t *testing.T) {
 	// Assert
 	assert.NotNil(t, client)
 	assert.NotNil(t, client.httpClient)
-	assert.Equal(t, hibpTimeout, client.httpClient.Timeout)
+	assert.Equal(t, defaultTimeout, client.httpClient.Timeout)
 	assert.Equal(t, hibpAPIURL, client.apiURL)
 }
 

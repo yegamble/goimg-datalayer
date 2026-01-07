@@ -72,4 +72,16 @@ var (
 	ErrBackupCodesExhausted = errors.New("all backup codes have been used")
 	// Err2FARequired indicates 2FA verification is required to complete login.
 	Err2FARequired = errors.New("two-factor authentication verification required")
+
+	// OAuth-related errors
+	// ErrProviderUserIDEmpty indicates the provider user ID is empty.
+	ErrProviderUserIDEmpty = errors.New("provider user ID cannot be empty")
+	// ErrProviderUserIDTooLong indicates the provider user ID exceeds maximum length.
+	ErrProviderUserIDTooLong = errors.New("provider user ID exceeds 255 characters")
+	// ErrOAuthAccountNotFound indicates an OAuth account was not found.
+	ErrOAuthAccountNotFound = errors.New("OAuth account not found")
+	// ErrOAuthAccountExists indicates an OAuth account already exists for this provider.
+	ErrOAuthAccountExists = errors.New("OAuth account already exists for this provider")
+	// ErrOAuthProviderNotLinked indicates the user has not linked this OAuth provider.
+	ErrOAuthProviderNotLinked = errors.New("OAuth provider not linked to user account")
 )

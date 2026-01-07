@@ -27,11 +27,11 @@ type Setup2FACommand struct {
 //   - Backup codes are hashed like passwords
 //   - Setup is not complete until verification (Verify2FA)
 type Setup2FAHandler struct {
-	users        identity.UserRepository
-	totpRepo     TOTPRepository
-	backupRepo   BackupCodeRepository
-	totpService  *security.TOTPService
-	logger       *zerolog.Logger
+	users       identity.UserRepository
+	totpRepo    TOTPRepository
+	backupRepo  BackupCodeRepository
+	totpService *security.TOTPService
+	logger      *zerolog.Logger
 }
 
 // TOTPRepository defines the interface for TOTP secret persistence.

@@ -467,6 +467,99 @@ func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	}
 }
 
+// TwoFARateLimiter creates a rate limiting middleware specifically for 2FA verification endpoints.
+// Uses a strict limit (5 attempts/min per user) to prevent brute-force attacks on TOTP codes.
+//
+// Redis key pattern: goimg:ratelimit:2fa:{user_id}
+//
+// Security: TOTP codes have only 6 digits (1,000,000 possibilities). Without rate limiting,
+// an attacker could try all combinations in minutes. With 5 attempts/min, a brute-force
+// attack would take ~139 days on average.
+//
+// This should be applied to 2FA verification endpoints using chi's With() method:
+//
+// Usage:
+//
+//	r.With(middleware.TwoFARateLimiter(cfg)).Post("/api/v1/auth/2fa/verify", handlers.TwoFA.Verify)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func TwoFARateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// 2FA rate limit: 5 attempts per minute (same as login)
+	twoFALimit := 5
+	twoFAWindow := time.Minute
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user ID in context - should not happen if JWTAuth middleware is present
+				cfg.Logger.Error().
+					Str("request_id", GetRequestID(ctx)).
+					Msg("2FA rate limiter called without user context")
+
+				WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "Rate limiter configuration error")
+				return
+			}
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:2fa:%s", userID)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, twoFALimit, twoFAWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("2FA rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("2fa")
+				}
+
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Int("limit", twoFALimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("2FA rate limit exceeded - potential brute force attack")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Too Many 2FA Attempts",
+					fmt.Sprintf(
+						"You have exceeded the 2FA verification limit of %d attempts per %s. Please try again later.",
+						twoFALimit, twoFAWindow,
+					),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // extractClientIP extracts the client IP address from the request.
 // If trustProxy is true, it checks X-Forwarded-For and X-Real-IP headers.
 // Otherwise, it uses RemoteAddr directly.
