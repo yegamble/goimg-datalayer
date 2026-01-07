@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-07
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 11 - Two-Factor Authentication (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 HTTP layer complete
+> **Current Sprint**: Sprint 11 - Two-Factor Authentication (E2E COMPLETE)
+> **Status**: **Phase 2 Active** - MVP launched, Sprint 10 COMPLETE, Sprint 11 nearly complete
 
 ---
 
@@ -192,7 +192,8 @@ Features deferred to Phase 2:
 | Infrastructure Layer | ✅ COMPLETE | SecretEncryptor, TOTPService, repositories |
 | Application Layer | ✅ COMPLETE | Commands and queries |
 | HTTP Layer | ✅ COMPLETE | TwoFAHandler, OpenAPI spec (5 endpoints) |
-| E2E Tests | ⏳ PENDING | Newman/Postman tests |
+| Router Wiring | ✅ COMPLETE | TwoFAHandler mounted at /api/v1/auth/2fa |
+| E2E Tests | ✅ COMPLETE | 13 Newman tests covering happy path + errors |
 
 ### Completed Domain Work
 
