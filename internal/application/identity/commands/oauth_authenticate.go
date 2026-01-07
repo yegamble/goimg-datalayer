@@ -20,6 +20,10 @@ import (
 // OAuthProvider defines the interface for OAuth 2.0 provider implementations.
 // This is a facade over infrastructure/security.OAuthProvider to avoid direct infrastructure dependencies.
 type OAuthProvider interface {
+	// GetAuthorizationURL generates the OAuth authorization URL with state parameter.
+	// The state parameter should be cryptographically random for CSRF protection.
+	GetAuthorizationURL(state string) string
+
 	// ExchangeCode exchanges an authorization code for an access token.
 	ExchangeCode(ctx context.Context, code string) (*oauth2.Token, error)
 
