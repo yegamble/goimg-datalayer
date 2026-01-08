@@ -4,14 +4,11 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-13 COMPLETE
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-14 COMPLETE
 
-**Sprint 13**: COMPLETE ✅ - IPFS Storage Integration
-  - ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
-  - ✅ Database Migration (IPFS fields)
-  - ✅ Domain Layer (IPFSMetadata value object)
-  - ✅ Phase 2: Application & HTTP layers (3 endpoints)
-  - ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
+**Sprint 15**: 🔄 IN PROGRESS - AI NSFW Detection + Advanced Search
+  - 📋 AI content moderation (SightEngine/ModerateContent API)
+  - 📋 Advanced search filters (date, size, dimensions)
 
 **Sprint 14**: COMPLETE ✅ - Content Moderation + Guest Uploads
   - ✅ Database migrations (moderation tables, guest user support)
@@ -24,6 +21,13 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ E2E Tests - Guest uploads (5 Newman tests)
   - ✅ Rate limiting for reports (10/hour) and guest sessions (10/hour)
   - ✅ Security Gate S14 - APPROVED
+
+**Sprint 13**: COMPLETE ✅ - IPFS Storage Integration
+  - ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
+  - ✅ Database Migration (IPFS fields)
+  - ✅ Domain Layer (IPFSMetadata value object)
+  - ✅ Phase 2: Application & HTTP layers (3 endpoints)
+  - ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
 
 **Sprint 12**: COMPLETE ✅ - OAuth & Social Features
   - ✅ OAuth (Google/GitHub) - Full stack implementation
@@ -277,11 +281,11 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 ### Deferred to Phase 2 🔄
 
-**Content Moderation** (Basic moderation available via database access)
-- 🔄 Abuse reporting system API
-- 🔄 Admin moderation queue UI
-- 🔄 Content flags (Safe/NSFW) API
-- 🔄 User bans (temporary & permanent) API
+**Content Moderation** ✅ COMPLETE (Sprint 14)
+- ✅ Abuse reporting system API - Sprint 14 COMPLETE
+- ✅ Admin moderation queue - Sprint 14 COMPLETE
+- ✅ Content flags (Safe/NSFW) API - Sprint 14 COMPLETE
+- ✅ User bans (temporary & permanent) API - Sprint 14 COMPLETE
 
 **Advanced Features**
 - ✅ OAuth providers (Google, GitHub) - Sprint 12 COMPLETE
@@ -289,11 +293,12 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - ✅ Email notifications (SMTP) - Sprint 12 COMPLETE
 - ✅ Activity feeds - Sprint 12 COMPLETE
 - ✅ IPFS decentralized storage integration - Sprint 13 COMPLETE
-- 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
-- ✅ MFA/TOTP support (Sprint 11 - COMPLETE)
-- 🔄 Guest uploads - Sprint 14 IN PROGRESS
-- 🔄 Content moderation suite - Sprint 14 IN PROGRESS
-- 🔄 AI NSFW detection - Sprint 15 Backlog
+- ✅ MFA/TOTP support - Sprint 11 COMPLETE
+- ✅ Guest uploads - Sprint 14 COMPLETE
+- ✅ Content moderation suite - Sprint 14 COMPLETE
+- 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing) - Future
+- 🔄 AI NSFW detection - Sprint 15 IN PROGRESS
+- 🔄 Advanced search filters - Sprint 15 IN PROGRESS
 - 🔄 Watermarking - Phase 3
 
 ## Tech Stack
@@ -512,8 +517,8 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
 | **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
 | **13** | IPFS Storage | ✅ **COMPLETE** | Decentralized storage, IPFS client, orchestrator, 3 API endpoints, E2E tests |
-| **14** | Content Moderation + Guest Uploads | 🔄 **IN PROGRESS** | Abuse reporting, admin queue, user bans, guest uploads |
-| **15** | AI NSFW + Advanced Search | 📋 Backlog | AI content moderation, advanced search filters |
+| **14** | Content Moderation + Guest Uploads | ✅ **COMPLETE** | Abuse reporting, admin queue, user bans, guest uploads, Security Gate S14 |
+| **15** | AI NSFW + Advanced Search | 🔄 **IN PROGRESS** | AI content moderation, advanced search filters |
 
 #### Sprint 10: Security Enhancements ✅ COMPLETE
 - ✅ Random login delay (100-300ms) - Timing attack mitigation
@@ -575,9 +580,11 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 **Security Gate S14**: ✅ APPROVED
 - Full security review: `claude/SECURITY_GATE_S14_REPORT.md`
 
-#### Sprint 15: AI NSFW + Advanced Search (Backlog)
-- AI NSFW detection (SightEngine/ModerateContent API)
-- Advanced search filters (date, size, dimensions)
+#### Sprint 15: AI NSFW + Advanced Search 🔄 IN PROGRESS
+- 📋 AI NSFW detection (SightEngine/ModerateContent API integration)
+- 📋 Advanced search filters (date range, file size, dimensions)
+- 📋 Content flagging based on AI analysis
+- 📋 Search performance optimization
 
 ### Phase 3: Future Enhancements (Backlog)
 

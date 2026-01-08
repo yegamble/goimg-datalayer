@@ -2,8 +2,49 @@
 
 > **Last Updated**: 2026-01-08
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 14 - Content Moderation + Guest Uploads (COMPLETE ✅)
+> **Current Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search (IN PROGRESS 🔄)
 > **Status**: **Phase 2 Active** - MVP launched, Sprints 10-14 COMPLETE
+
+---
+
+## Sprint 15 Summary (IN PROGRESS 🔄)
+
+### AI NSFW Detection + Advanced Search
+
+**Priority**: P1 HIGH (User safety and experience)
+**Status**: **IN PROGRESS** 🔄
+
+| Component | Status | Target Files |
+|-----------|--------|--------------|
+| AI NSFW Integration | 📋 PLANNED | `internal/infrastructure/moderation/nsfw_client.go` |
+| NSFW Domain Types | 📋 PLANNED | `internal/domain/moderation/nsfw_result.go` |
+| NSFW Application Commands | 📋 PLANNED | `internal/application/moderation/commands/scan_image_nsfw.go` |
+| Advanced Search Filters | 📋 PLANNED | Enhanced query parameters |
+| Date Range Filter | 📋 PLANNED | `created_after`, `created_before` parameters |
+| File Size Filter | 📋 PLANNED | `min_size`, `max_size` parameters |
+| Dimension Filters | 📋 PLANNED | `min_width`, `max_width`, `min_height`, `max_height` |
+
+### Sprint 15 Planned Endpoints
+
+**AI NSFW Detection**:
+- `POST /api/v1/images/{id}/scan` - Trigger NSFW scan on image
+- `GET /api/v1/images/{id}/nsfw-status` - Get NSFW analysis result
+
+**Advanced Search**:
+- Enhanced `GET /api/v1/images` with new query parameters:
+  - `created_after`, `created_before` - Date range filtering
+  - `min_size`, `max_size` - File size filtering (bytes)
+  - `min_width`, `max_width`, `min_height`, `max_height` - Dimension filtering
+  - `nsfw_status` - Filter by NSFW classification
+
+### Security Considerations
+
+| Concern | Mitigation |
+|---------|------------|
+| API key exposure | Store in encrypted env vars |
+| False positives | Human review queue for flagged content |
+| Rate limiting | Queue NSFW scans, don't block upload |
+| PII in logs | Don't log image content or API responses |
 
 ---
 
@@ -303,10 +344,10 @@ Features deferred to Phase 2:
 | Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
 | Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
 | IPFS storage integration | Medium | 13 | ✅ COMPLETE |
-| Content moderation suite | High | 14 | 🔄 IN PROGRESS |
-| Guest uploads | High | 14 | 🔄 IN PROGRESS |
-| AI NSFW detection | Medium | 15 | 📋 BACKLOG |
-| Advanced search filters | Medium | 15 | 📋 BACKLOG |
+| Content moderation suite | High | 14 | ✅ COMPLETE |
+| Guest uploads | High | 14 | ✅ COMPLETE |
+| AI NSFW detection | Medium | 15 | 🔄 IN PROGRESS |
+| Advanced search filters | Medium | 15 | 🔄 IN PROGRESS |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -507,4 +548,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-13 COMPLETE ✅ - Sprint 14 (Content Moderation + Guest Uploads) IN PROGRESS 🔄
+**Project Status**: **Phase 2 Active** - Sprints 10-14 COMPLETE ✅ - Sprint 15 (AI NSFW + Advanced Search) IN PROGRESS 🔄
