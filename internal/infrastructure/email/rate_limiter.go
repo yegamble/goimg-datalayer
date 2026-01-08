@@ -8,10 +8,10 @@ import (
 // RateLimiter implements a simple token bucket rate limiter for email sending.
 // This prevents abuse and ensures we stay within provider limits.
 type RateLimiter struct {
-	mu            sync.Mutex
-	tokens        int
-	maxTokens     int
-	refillRate    time.Duration
+	mu           sync.Mutex
+	tokens       int
+	maxTokens    int
+	refillRate   time.Duration
 	lastRefillAt time.Time
 }
 
