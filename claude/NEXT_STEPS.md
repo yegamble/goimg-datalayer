@@ -3,11 +3,11 @@
 > **Last Updated**: 2026-01-08
 > **Phase**: Phase 2 - Advanced Features
 > **Current Sprint**: Sprint 13 - IPFS Storage Integration (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE, Sprint 13 Phase 1 COMPLETE
+> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE, Sprint 13 Phase 2 COMPLETE
 
 ---
 
-## Sprint 13 Progress (2026-01-07)
+## Sprint 13 Progress (2026-01-08)
 
 ### Phase 1: Infrastructure Layer (COMPLETE)
 
@@ -17,6 +17,20 @@
 | Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/` |
 | Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
 | Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
+
+### Phase 2: Application & HTTP Layer (COMPLETE)
+
+| Component | Status | Files |
+|-----------|--------|-------|
+| Domain Entity Update | ✅ COMPLETE | `internal/domain/gallery/image.go` - Added IPFS metadata field and methods |
+| Domain Events | ✅ COMPLETE | `internal/domain/gallery/events.go` - ImagePinnedToIPFS, ImageUnpinnedFromIPFS |
+| Repository Update | ✅ COMPLETE | `internal/infrastructure/persistence/postgres/image_repository.go` |
+| Application Interfaces | ✅ COMPLETE | `internal/application/gallery/types.go` - IPFSService, StorageProvider |
+| PinImageToIPFS Command | ✅ COMPLETE | `internal/application/gallery/commands/pin_image_to_ipfs.go` |
+| UnpinImageFromIPFS Command | ✅ COMPLETE | `internal/application/gallery/commands/unpin_image_from_ipfs.go` |
+| GetImageIPFSStatus Query | ✅ COMPLETE | `internal/application/gallery/queries/get_image_ipfs_status.go` |
+| HTTP Handler | ✅ COMPLETE | `internal/interfaces/http/handlers/ipfs_handler.go` |
+| OpenAPI Spec | ✅ COMPLETE | `api/openapi/openapi.yaml` - IPFS endpoints and schemas |
 
 ### Key Implementations
 
@@ -42,15 +56,24 @@
 - CID validation, URI/GatewayURL helpers
 - Comprehensive unit tests
 
-### Phase 2: Application & HTTP Layer (PENDING)
+**Application Layer**:
+- `PinImageToIPFSHandler` - Uploads image to IPFS and stores CID
+- `UnpinImageFromIPFSHandler` - Removes pin, keeps primary storage
+- `GetImageIPFSStatusHandler` - Returns IPFS status with CID/URLs
+
+**HTTP Endpoints** (`/api/v1/images/{imageID}/ipfs`):
+- `POST` - Pin image to IPFS (owner only)
+- `DELETE` - Unpin image from IPFS (owner only)
+- `GET` - Get IPFS status (owner or public images)
+
+### Phase 3: Remaining Tasks (PENDING)
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Application layer IPFS commands | P0 | 📋 Pending |
-| Application layer IPFS queries | P0 | 📋 Pending |
-| HTTP endpoints for IPFS | P1 | 📋 Pending |
-| OpenAPI spec updates | P1 | 📋 Pending |
+| Wire IPFSHandler in router.go | P0 | 📋 Pending |
 | Integration tests | P1 | 📋 Pending |
+| Unit tests for commands/queries | P1 | 📋 Pending |
+| E2E tests (Newman) | P1 | 📋 Pending |
 | Remote pinning (Pinata/Infura) | P2 | 📋 Backlog |
 
 ### Commits (Sprint 13)
@@ -58,6 +81,8 @@
 1. `675f700` - feat(storage): Add IPFS client and storage orchestrator for Sprint 13
 2. `d73afde` - feat(db): Add migration for IPFS storage fields (Sprint 13)
 3. `a1964bf` - feat(domain): Add IPFSMetadata value object for Gallery context
+4. `79a0bc3` - feat(domain): Add IPFS metadata support to Image entity
+5. `6a64862` - feat(app): Implement IPFS application layer and HTTP endpoints
 
 ---
 
@@ -220,7 +245,7 @@ Features deferred to Phase 2:
 | OAuth providers (Google, GitHub) | Medium | 12 | ✅ COMPLETE |
 | Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
 | Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
-| IPFS storage integration | Medium | 13 | 🔄 IN PROGRESS (Phase 1 Complete) |
+| IPFS storage integration | Medium | 13 | 🔄 IN PROGRESS (Phase 2 Complete) |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -421,4 +446,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) IN PROGRESS 🔄 (Phase 1 Complete)
+**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) IN PROGRESS 🔄 (Phase 2 Complete - Router wiring & tests pending)
