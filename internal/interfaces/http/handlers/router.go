@@ -47,6 +47,7 @@ type MiddlewareConfig struct {
 //   - Social routes: /api/v1/images/{id}/likes, /api/v1/images/{id}/comments (JWT authentication required)
 //   - Follow routes: POST/DELETE /api/v1/users/{id}/follow (JWT required), GET /api/v1/users/{id}/followers|following (optional auth)
 //   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
+//   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -62,6 +63,7 @@ func NewRouter(
 	followHandler *FollowHandler,
 	activityHandler *ActivityHandler,
 	notificationHandler *NotificationHandler,
+	ipfsHandler *IPFSHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -188,6 +190,16 @@ func NewRouter(
 				// Comments use plural /comments path (collection endpoints)
 				r.Post("/comments", socialHandler.AddComment)
 				r.Get("/comments", socialHandler.ListImageComments)
+
+				// IPFS endpoints (Sprint 13)
+				// POST /ipfs - Pin image to IPFS (owner only)
+				// DELETE /ipfs - Unpin image from IPFS (owner only)
+				// GET /ipfs - Get IPFS status (authenticated, owner or public images)
+				if ipfsHandler != nil {
+					r.Post("/ipfs", ipfsHandler.Pin)
+					r.Delete("/ipfs", ipfsHandler.Unpin)
+					r.Get("/ipfs", ipfsHandler.GetStatus)
+				}
 			})
 
 			// Comment deletion endpoint (not under images path)
