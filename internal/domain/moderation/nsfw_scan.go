@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
 // NSFWScan represents an AI-powered NSFW content scan for an image.
@@ -21,8 +22,8 @@ type NSFWScan struct {
 	createdAt time.Time
 	updatedAt time.Time
 
-	// Domain events that occurred during this aggregate's lifecycle
-	events []interface{}
+	// Domain events that occurred during this aggregate's lifecycle.
+	events []shared.DomainEvent
 }
 
 // NewNSFWScan creates a new NSFW scan for an image.
@@ -42,15 +43,10 @@ func NewNSFWScan(
 		details:   NSFWDetails{},
 		createdAt: now,
 		updatedAt: now,
-		events:    []interface{}{},
+		events:    []shared.DomainEvent{},
 	}
 
-	scan.addEvent(NSFWScanInitiatedEvent{
-		ScanID:    id,
-		ImageID:   imageID,
-		Provider:  provider,
-		Timestamp: now,
-	})
+	scan.addEvent(NewNSFWScanInitiatedEvent(id, imageID, provider))
 
 	return scan
 }
@@ -82,7 +78,7 @@ func ReconstructNSFWScan(
 		scannedAt: scannedAt,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
-		events:    []interface{}{},
+		events:    []shared.DomainEvent{},
 	}
 }
 
@@ -141,11 +137,15 @@ func (s *NSFWScan) UpdatedAt() time.Time {
 	return s.updatedAt
 }
 
-// Events returns and clears all pending domain events.
-func (s *NSFWScan) Events() []interface{} {
-	events := s.events
-	s.events = []interface{}{}
-	return events
+// Events returns all pending domain events.
+func (s *NSFWScan) Events() []shared.DomainEvent {
+	return s.events
+}
+
+// ClearEvents clears all domain events from this aggregate.
+// This should be called after events have been dispatched.
+func (s *NSFWScan) ClearEvents() {
+	s.events = []shared.DomainEvent{}
 }
 
 // MarkScanning transitions the scan to scanning status.
@@ -183,14 +183,7 @@ func (s *NSFWScan) Complete(category NSFWCategory, score float64, details NSFWDe
 	s.scannedAt = now
 	s.updatedAt = now
 
-	s.addEvent(NSFWScanCompletedEvent{
-		ScanID:    s.id,
-		ImageID:   s.imageID,
-		Category:  category,
-		Score:     score,
-		IsNSFW:    category.IsNSFW(),
-		Timestamp: now,
-	})
+	s.addEvent(NewNSFWScanCompletedEvent(s.id, s.imageID, category, score, category.IsNSFW()))
 
 	return nil
 }
@@ -209,12 +202,7 @@ func (s *NSFWScan) Fail(errorMsg string) error {
 	s.errorMsg = errorMsg
 	s.updatedAt = now
 
-	s.addEvent(NSFWScanFailedEvent{
-		ScanID:    s.id,
-		ImageID:   s.imageID,
-		Error:     errorMsg,
-		Timestamp: now,
-	})
+	s.addEvent(NewNSFWScanFailedEvent(s.id, s.imageID, errorMsg))
 
 	return nil
 }
@@ -245,6 +233,6 @@ func (s *NSFWScan) IsFailed() bool {
 }
 
 // addEvent adds a domain event to the pending events list.
-func (s *NSFWScan) addEvent(event interface{}) {
+func (s *NSFWScan) addEvent(event shared.DomainEvent) {
 	s.events = append(s.events, event)
 }

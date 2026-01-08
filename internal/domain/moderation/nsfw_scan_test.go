@@ -81,7 +81,7 @@ func TestNSFWScan_MarkScanning(t *testing.T) {
 			gallery.NewImageID(),
 			moderation.ProviderSightEngine,
 		)
-		scan.Events() // Clear initialization event
+		scan.ClearEvents() // Clear initialization event
 
 		err := scan.MarkScanning()
 
@@ -124,7 +124,7 @@ func TestNSFWScan_Complete(t *testing.T) {
 			gallery.NewImageID(),
 			moderation.ProviderSightEngine,
 		)
-		scan.Events() // Clear initialization event
+		scan.ClearEvents() // Clear initialization event
 
 		category := moderation.CategoryNudity
 		score := 0.85
@@ -200,7 +200,7 @@ func TestNSFWScan_Fail(t *testing.T) {
 			gallery.NewImageID(),
 			moderation.ProviderSightEngine,
 		)
-		scan.Events() // Clear initialization event
+		scan.ClearEvents() // Clear initialization event
 
 		errorMsg := "API timeout"
 		err := scan.Fail(errorMsg)
