@@ -4,13 +4,21 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-13 in progress
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-13 COMPLETE
 
-**Sprint 13**: IN PROGRESS 🔄 - IPFS Storage Integration
+**Sprint 13**: COMPLETE ✅ - IPFS Storage Integration
   - ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
   - ✅ Database Migration (IPFS fields)
   - ✅ Domain Layer (IPFSMetadata value object)
-  - 📋 Phase 2: Application & HTTP layers (pending)
+  - ✅ Phase 2: Application & HTTP layers (3 endpoints)
+  - ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
+
+**Sprint 14**: IN PROGRESS 🔄 - Content Moderation + Guest Uploads
+  - 📋 Abuse reporting system API
+  - 📋 Admin moderation queue
+  - 📋 User ban system (temporary & permanent)
+  - 📋 Guest uploads with rate limiting
+  - 📋 Audit logging for moderation actions
 
 **Sprint 12**: COMPLETE ✅ - OAuth & Social Features
   - ✅ OAuth (Google/GitHub) - Full stack implementation
@@ -113,18 +121,26 @@ See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete roadmap.
 
 ## Recent Achievements
 
-### Sprint 13 In Progress - IPFS Storage Integration 🔄
+### Sprint 13 Complete - IPFS Storage Integration ✅
 
-**Phase 1 Complete** (2026-01-08):
-- IPFS client implementation with full Kubo HTTP API support
-- Storage orchestrator for dual-storage coordination
-- Database migration for IPFS metadata fields
-- IPFSMetadata domain value object with CID validation
+**All Phases Complete** (2026-01-08):
+- ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
+- ✅ Phase 2: Application & HTTP layers (commands, queries, endpoints)
+- ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
 
-**Infrastructure Layer**:
+**Key Deliverables**:
 - `internal/infrastructure/storage/ipfs/client.go` - Kubo API client (~400 lines)
 - `internal/infrastructure/storage/orchestrator/orchestrator.go` - Dual-storage coordinator
+- `internal/application/gallery/commands/pin_image_to_ipfs.go` - Pin command
+- `internal/application/gallery/commands/unpin_image_from_ipfs.go` - Unpin command
+- `internal/application/gallery/queries/get_image_ipfs_status.go` - Status query
+- `internal/interfaces/http/handlers/ipfs_handler.go` - HTTP endpoints
 - `migrations/00011_add_ipfs_fields.sql` - IPFS columns for images
+
+**API Endpoints**:
+- `POST /api/v1/images/{imageID}/ipfs` - Pin image to IPFS
+- `DELETE /api/v1/images/{imageID}/ipfs` - Unpin image from IPFS
+- `GET /api/v1/images/{imageID}/ipfs` - Get IPFS status
 
 ### Sprint 12 Complete - OAuth & Social Features ✅
 
@@ -267,11 +283,13 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - ✅ Follow/unfollow users - Sprint 12 COMPLETE
 - ✅ Email notifications (SMTP) - Sprint 12 COMPLETE
 - ✅ Activity feeds - Sprint 12 COMPLETE
-- 🔄 IPFS decentralized storage integration
+- ✅ IPFS decentralized storage integration - Sprint 13 COMPLETE
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing)
 - ✅ MFA/TOTP support (Sprint 11 - COMPLETE)
-- 🔄 Guest uploads
-- 🔄 Watermarking
+- 🔄 Guest uploads - Sprint 14 IN PROGRESS
+- 🔄 Content moderation suite - Sprint 14 IN PROGRESS
+- 🔄 AI NSFW detection - Sprint 15 Backlog
+- 🔄 Watermarking - Phase 3
 
 ## Tech Stack
 
@@ -488,8 +506,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
 | **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
-| **13** | IPFS Storage | 🔄 **IN PROGRESS** | Decentralized storage, Phase 1 complete (IPFS client, orchestrator) |
-| **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
+| **13** | IPFS Storage | ✅ **COMPLETE** | Decentralized storage, IPFS client, orchestrator, 3 API endpoints, E2E tests |
+| **14** | Content Moderation + Guest Uploads | 🔄 **IN PROGRESS** | Abuse reporting, admin queue, user bans, guest uploads |
+| **15** | AI NSFW + Advanced Search | 📋 Backlog | AI content moderation, advanced search filters |
 
 #### Sprint 10: Security Enhancements ✅ COMPLETE
 - ✅ Random login delay (100-300ms) - Timing attack mitigation
@@ -521,24 +540,33 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ Session elevation after 2FA (S11-2FA-004 security control)
 - ✅ Notification system (internal + email with preferences)
 
-#### Sprint 13: IPFS Storage 🔄 IN PROGRESS
-**Phase 1 (COMPLETE)**:
-- ✅ IPFS client for Kubo node integration
+#### Sprint 13: IPFS Storage ✅ COMPLETE
+- ✅ IPFS client for Kubo node integration (~400 lines)
 - ✅ Storage orchestrator (dual-storage: primary + IPFS)
 - ✅ Database migration for IPFS fields (CID, pin status)
 - ✅ IPFSMetadata domain value object
 - ✅ Three storage modes: `primary_only`, `dual_sync`, `dual_async`
+- ✅ Application layer commands (`PinImageToIPFS`, `UnpinImageFromIPFS`) and queries (`GetImageIPFSStatus`)
+- ✅ HTTP endpoints (3 endpoints: POST/GET/DELETE `/images/{id}/ipfs`)
+- ✅ OpenAPI spec updated with IPFS schemas
+- ✅ Unit tests (27 test scenarios) and E2E tests (8 Newman tests)
 
-**Phase 2 (PENDING)**:
-- 📋 Application layer commands and queries
-- 📋 HTTP endpoints (`GET/POST/DELETE /images/{id}/ipfs`)
-- 📋 OpenAPI spec updates
-- 📋 Remote pinning (Pinata, Infura) - backlog
+#### Sprint 14: Content Moderation + Guest Uploads 🔄 IN PROGRESS
+**Content Moderation**:
+- 📋 Abuse reporting system API (`POST /reports`)
+- 📋 Admin moderation queue (`GET/POST /moderation/reports`)
+- 📋 User ban system (`POST/DELETE /users/{id}/ban`)
+- 📋 Audit logging for all moderation actions
 
-#### Sprint 14: Advanced Moderation (Backlog)
-- Abuse reporting API
-- Admin moderation queue
-- User ban system (temporary & permanent)
+**Guest Uploads**:
+- 📋 Guest session creation (`POST /auth/guest`)
+- 📋 Guest upload support with rate limiting (5/hour per IP)
+- 📋 Auto-cleanup of expired guest accounts (30 days)
+- 📋 Upload claim to registered account
+
+#### Sprint 15: AI NSFW + Advanced Search (Backlog)
+- AI NSFW detection (SightEngine/ModerateContent API)
+- Advanced search filters (date, size, dimensions)
 
 ### Phase 3: Future Enhancements (Backlog)
 

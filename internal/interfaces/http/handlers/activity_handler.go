@@ -103,7 +103,7 @@ func (h *ActivityHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 		Int("total_count", result.TotalCount).
 		Msg("activity feed retrieved successfully")
 
-	WriteJSON(w, http.StatusOK, result)
+	EncodeJSON(w, http.StatusOK, result)
 }
 
 // mapErrorAndRespond maps domain errors to HTTP responses and writes them.

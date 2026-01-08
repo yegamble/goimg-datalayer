@@ -64,7 +64,7 @@ func TestRequireOwnership_Success(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 	// Set user context
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -127,7 +127,7 @@ func TestRequireOwnership_MissingResourceID(t *testing.T) {
 
 	// Create request WITHOUT resource ID in URL
 	req := httptest.NewRequest(http.MethodGet, "/images", nil)
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -165,7 +165,7 @@ func TestRequireOwnership_InvalidResourceID(t *testing.T) {
 	rctx.URLParams.Add("imageID", "invalid-uuid")
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -202,7 +202,7 @@ func TestRequireOwnership_ResourceNotFound(t *testing.T) {
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -242,7 +242,7 @@ func TestRequireOwnership_NotOwner(t *testing.T) {
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -283,7 +283,7 @@ func TestRequireOwnership_AdminBypass(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 	// Set user context with ADMIN role
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -327,7 +327,7 @@ func TestRequireOwnership_ModeratorBypass(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 	// Set user context with MODERATOR role
-	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", uuid.New())
+	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", uuid.New(), false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 

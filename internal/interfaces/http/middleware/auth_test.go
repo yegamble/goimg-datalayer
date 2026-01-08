@@ -874,7 +874,7 @@ func TestRequireRole_UserHasRequiredRole_PassesThrough(t *testing.T) {
 	// Set user context with admin role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID)
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -907,7 +907,7 @@ func TestRequireRole_UserLacksRequiredRole_Returns403(t *testing.T) {
 	// Set user context with 'user' role (not admin)
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -986,7 +986,7 @@ func TestRequireAnyRole_UserHasFirstAllowedRole_PassesThrough(t *testing.T) {
 	// Set user context with moderator role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", sessionID)
+	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", sessionID, false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -1020,7 +1020,7 @@ func TestRequireAnyRole_UserHasSecondAllowedRole_PassesThrough(t *testing.T) {
 	// Set user context with admin role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID)
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
@@ -1053,7 +1053,7 @@ func TestRequireAnyRole_UserHasNoneOfAllowedRoles_Returns403(t *testing.T) {
 	// Set user context with 'user' role (neither moderator nor admin)
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
