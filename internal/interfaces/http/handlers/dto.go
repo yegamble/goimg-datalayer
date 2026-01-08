@@ -1,7 +1,10 @@
 package handlers
 
 import (
-	"github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
+	"time"
+
+	galleryqueries "github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
+	moderationqueries "github.com/yegamble/goimg-datalayer/internal/application/moderation/queries"
 )
 
 // HTTP-specific request DTOs for the handlers layer.
@@ -103,16 +106,16 @@ type PaginatedImagesResponse struct {
 }
 
 // ImageDTO is an alias for the application layer ImageDTO to avoid duplication.
-type ImageDTO = queries.ImageDTO
+type ImageDTO = galleryqueries.ImageDTO
 
 // AlbumDTO is an alias for the application layer AlbumDTO to avoid duplication.
-type AlbumDTO = queries.AlbumDTO
+type AlbumDTO = galleryqueries.AlbumDTO
 
 // VariantDTO is an alias for the application layer VariantDTO to avoid duplication.
-type VariantDTO = queries.VariantDTO
+type VariantDTO = galleryqueries.VariantDTO
 
 // TagDTO is an alias for the application layer TagDTO to avoid duplication.
-type TagDTO = queries.TagDTO
+type TagDTO = galleryqueries.TagDTO
 
 // ============================================================================
 // Gallery DTOs - Album Management
@@ -239,3 +242,61 @@ type Verify2FALoginRequest struct {
 	Code          string `json:"code" validate:"required"`
 	UseBackupCode bool   `json:"use_backup_code"`
 }
+
+// ============================================================================
+// Moderation DTOs (Sprint 14)
+// ============================================================================
+
+// CreateReportRequest represents the HTTP request body for creating an abuse report.
+// POST /api/v1/reports
+type CreateReportRequest struct {
+	ImageID     string `json:"image_id" validate:"required,uuid"`
+	Reason      string `json:"reason" validate:"required,oneof=spam inappropriate copyright other"`
+	Description string `json:"description" validate:"required,min=10,max=2000"`
+}
+
+// CreateReportResponse represents the HTTP response after creating a report.
+type CreateReportResponse struct {
+	ID        string  `json:"id"`
+	Status    string  `json:"status"`
+	CreatedAt *string `json:"created_at,omitempty"`
+}
+
+// ListPendingReportsResponse represents a paginated list of pending reports.
+type ListPendingReportsResponse struct {
+	Reports    []ReportDTO `json:"reports"`
+	TotalCount int64       `json:"total_count"`
+	Page       int         `json:"page"`
+	PerPage    int         `json:"per_page"`
+}
+
+// ReportDTO is an alias for the application layer ReportDTO to avoid duplication.
+type ReportDTO = moderationqueries.ReportDTO
+
+// ResolveReportRequest represents the HTTP request body for resolving a report.
+// POST /api/v1/moderation/reports/{reportID}/resolve
+type ResolveReportRequest struct {
+	Resolution string `json:"resolution" validate:"required,min=10,max=2000"`
+}
+
+// BanUserRequest represents the HTTP request body for banning a user.
+// POST /api/v1/users/{userID}/ban
+type BanUserRequest struct {
+	Reason        string `json:"reason" validate:"required,min=10,max=500"`
+	DurationHours *int   `json:"duration_hours,omitempty" validate:"omitempty,min=1,max=87600"` // Max 10 years
+}
+
+// BanUserResponse represents the HTTP response after banning a user.
+type BanUserResponse struct {
+	BanID     string     `json:"ban_id"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+}
+
+// ListActiveBansResponse represents a list of all active bans.
+type ListActiveBansResponse struct {
+	Bans       []BanDTO `json:"bans"`
+	TotalCount int64    `json:"total_count"`
+}
+
+// BanDTO is an alias for the application layer BanDTO to avoid duplication.
+type BanDTO = moderationqueries.BanDTO

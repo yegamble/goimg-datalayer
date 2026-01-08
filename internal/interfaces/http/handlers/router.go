@@ -48,6 +48,7 @@ type MiddlewareConfig struct {
 //   - Follow routes: POST/DELETE /api/v1/users/{id}/follow (JWT required), GET /api/v1/users/{id}/followers|following (optional auth)
 //   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
 //   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
+//   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -64,6 +65,7 @@ func NewRouter(
 	activityHandler *ActivityHandler,
 	notificationHandler *NotificationHandler,
 	ipfsHandler *IPFSHandler,
+	moderationHandler *ModerationHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -232,6 +234,53 @@ func NewRouter(
 				r.Get("/notifications", notificationHandler.GetNotifications)
 				r.Get("/notifications/count", notificationHandler.GetUnreadCount)
 				r.Post("/notifications/read", notificationHandler.MarkAsRead)
+			}
+
+			// Moderation endpoints (Sprint 14)
+			// User endpoints (authenticated users can report content)
+			// POST /reports - Create abuse report (rate limited: 10/hour TODO)
+			if moderationHandler != nil {
+				r.Post("/reports", moderationHandler.CreateReport)
+			}
+
+			// Admin/moderator endpoints for report management
+			// These require moderator or admin role
+			if moderationHandler != nil {
+				r.Group(func(r chi.Router) {
+					// Require moderator or admin role
+					r.Use(middleware.RequireAnyRole(
+						middlewareConfig.Logger,
+						metricsCollector,
+						"moderator",
+						"admin",
+					))
+
+					// Report management
+					r.Get("/moderation/reports", moderationHandler.ListPendingReports)
+					r.Get("/moderation/reports/{reportID}", moderationHandler.GetReport)
+					r.Post("/moderation/reports/{reportID}/review", moderationHandler.StartReview)
+					r.Post("/moderation/reports/{reportID}/resolve", moderationHandler.ResolveReport)
+					r.Post("/moderation/reports/{reportID}/dismiss", moderationHandler.DismissReport)
+				})
+
+				// Ban status endpoint (moderator/admin or self)
+				// GET /users/{userID}/ban - Check ban status
+				r.Get("/users/{userID}/ban", moderationHandler.GetUserBanStatus)
+
+				// Admin-only ban management
+				r.Group(func(r chi.Router) {
+					// Require admin role only
+					r.Use(middleware.RequireRole(
+						middlewareConfig.Logger,
+						metricsCollector,
+						"admin",
+					))
+
+					// Ban operations
+					r.Post("/users/{userID}/ban", moderationHandler.BanUser)
+					r.Delete("/users/{userID}/ban", moderationHandler.UnbanUser)
+					r.Get("/moderation/bans", moderationHandler.ListActiveBans)
+				})
 			}
 		})
 

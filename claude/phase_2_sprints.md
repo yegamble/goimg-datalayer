@@ -1,7 +1,7 @@
 # Phase 2 Sprint Plan (Sprints 13-18)
 > Comprehensive roadmap for goimg-datalayer Phase 2 development
-> **Last Updated**: 2026-01-07
-> **Status**: Sprint 13 IN PROGRESS, Sprints 14-18 PLANNED
+> **Last Updated**: 2026-01-08
+> **Status**: Sprint 13 COMPLETE, Sprint 14 IN PROGRESS, Sprints 15-18 PLANNED
 
 ---
 
@@ -12,9 +12,9 @@ Phase 2 extends the production-ready MVP with advanced features for competitive 
 ### Phase 2 Timeline
 
 ```
-Sprint 13: IPFS Storage Integration     [IN PROGRESS] (2 weeks)
+Sprint 13: IPFS Storage Integration     [COMPLETE] ✅ (2 weeks)
      ↓
-Sprint 14: Content Moderation + Guest Uploads (2 weeks) ⭐ P0 CRITICAL
+Sprint 14: Content Moderation + Guest Uploads [IN PROGRESS] 🔄 (2 weeks) ⭐ P0 CRITICAL
      ↓
 Sprint 15: AI NSFW + Advanced Search    (2 weeks) ⭐ P1 IMPORTANT
      ↓
@@ -34,16 +34,18 @@ Total Duration: 10 weeks
 | Sprint 10 | Random login delay, HIBP password check, Prometheus security metrics | ✅ COMPLETE |
 | Sprint 11 | Two-factor authentication (TOTP), backup codes, 2FA rate limiting | ✅ COMPLETE |
 | Sprint 12 | OAuth (Google/GitHub), follow users, activity feeds, email notifications | ✅ COMPLETE |
+| Sprint 13 | IPFS storage, dual-storage orchestration, 3 API endpoints, E2E tests | ✅ COMPLETE |
 
 ---
 
 ## Sprint 13: IPFS Storage Integration
 
-**Status**: 🔄 IN PROGRESS (Phase 1 Complete)
+**Status**: ✅ **COMPLETE**
 **Duration**: 2 weeks (Weeks 25-26)
+**Completion Date**: 2026-01-08
 **Focus**: Decentralized storage with IPFS
 
-### Phase 1: Infrastructure (COMPLETE ✅)
+### All Phases Complete ✅
 
 | Component | Status | Files |
 |-----------|--------|-------|
@@ -51,26 +53,30 @@ Total Duration: 10 weeks
 | Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/orchestrator.go` |
 | Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
 | Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
+| Application Layer | ✅ COMPLETE | `pin_image_to_ipfs.go`, `unpin_image_from_ipfs.go`, `get_image_ipfs_status.go` |
+| HTTP Layer | ✅ COMPLETE | `internal/interfaces/http/handlers/ipfs_handler.go` |
+| OpenAPI Spec | ✅ COMPLETE | IPFS schemas and endpoints documented |
+| Unit Tests | ✅ COMPLETE | 40+ infrastructure tests, 27 application test scenarios |
+| E2E Tests | ✅ COMPLETE | 8 Newman tests for IPFS endpoints |
 
 **Key Implementations**:
 - IPFS Client: Pure stdlib HTTP client (no external dependencies), CIDv0/CIDv1 validation, 40+ unit tests
 - Storage Orchestrator: Three modes (`primary_only`, `dual_sync`, `dual_async`), fallback retrieval
 - Domain: IPFSMetadata value object with URI/GatewayURL helpers
+- Application: Commands for pin/unpin, query for IPFS status
+- HTTP: 3 endpoints (POST/GET/DELETE `/api/v1/images/{id}/ipfs`)
 
-### Phase 2: Application & HTTP Layer (PENDING)
-
-**Complexity**: Simple (4-5 days)
+### Completion Summary
 
 | Task | Priority | Effort | Status |
 |------|----------|--------|--------|
-| `UploadToIPFSCommand` + handler | P0 | 1 day | 📋 Pending |
-| `PinImageCommand` + handler | P0 | 0.5 days | 📋 Pending |
-| `UnpinImageCommand` + handler | P0 | 0.5 days | 📋 Pending |
-| `GetIPFSMetadataQuery` + handler | P0 | 0.5 days | 📋 Pending |
-| HTTP endpoints (3 endpoints) | P1 | 1 day | 📋 Pending |
-| OpenAPI spec updates | P1 | 0.5 days | 📋 Pending |
-| Integration tests | P1 | 1 day | 📋 Pending |
-| E2E tests (5-8 requests) | P1 | 0.5 days | 📋 Pending |
+| `PinImageToIPFSCommand` + handler | P0 | 1 day | ✅ COMPLETE |
+| `UnpinImageFromIPFSCommand` + handler | P0 | 0.5 days | ✅ COMPLETE |
+| `GetImageIPFSStatusQuery` + handler | P0 | 0.5 days | ✅ COMPLETE |
+| HTTP endpoints (3 endpoints) | P1 | 1 day | ✅ COMPLETE |
+| OpenAPI spec updates | P1 | 0.5 days | ✅ COMPLETE |
+| Unit tests | P1 | 1 day | ✅ COMPLETE |
+| E2E tests (8 requests) | P1 | 0.5 days | ✅ COMPLETE |
 
 ### HTTP Endpoints
 

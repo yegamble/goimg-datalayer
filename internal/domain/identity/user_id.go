@@ -40,3 +40,9 @@ func (id UserID) IsZero() bool {
 func (id UserID) Equals(other UserID) bool {
 	return id.value == other.value
 }
+
+// UUID returns the underlying uuid.UUID value.
+// This is used for integrations that require the raw UUID (e.g., JWT claims).
+func (id UserID) UUID() uuid.UUID {
+	return id.value
+}

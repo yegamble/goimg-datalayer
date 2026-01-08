@@ -58,6 +58,9 @@ func ValidUserWithID(userID identity.UserID) *identity.User {
 		ValidBio,
 		time.Now().UTC(),
 		time.Now().UTC(),
+		identity.UserTypeRegistered,
+		nil,
+		nil,
 	)
 	return user
 }
@@ -102,7 +105,7 @@ func ValidSuspendedUser() *identity.User {
 // ValidDeletedUser returns a deleted user.
 func ValidDeletedUser() *identity.User {
 	email, _ := identity.NewEmail(ValidEmail)
-	username, _ := identity.NewUsername(ValidUsername)
+	username, _ := identity.NewUsername(ValidPassword)
 	passwordHash, _ := identity.NewPasswordHash(ValidPassword)
 
 	user := identity.ReconstructUser(
@@ -116,6 +119,9 @@ func ValidDeletedUser() *identity.User {
 		ValidBio,
 		time.Now().UTC(),
 		time.Now().UTC(),
+		identity.UserTypeRegistered,
+		nil,
+		nil,
 	)
 	return user
 }
@@ -137,6 +143,9 @@ func ValidActiveUserWithIDAndUsername(userID identity.UserID, emailStr, username
 		"",
 		time.Now().UTC(),
 		time.Now().UTC(),
+		identity.UserTypeRegistered,
+		nil,
+		nil,
 	)
 	return user
 }

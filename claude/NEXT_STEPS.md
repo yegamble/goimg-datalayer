@@ -2,14 +2,57 @@
 
 > **Last Updated**: 2026-01-08
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 13 - IPFS Storage Integration (COMPLETE)
+> **Current Sprint**: Sprint 14 - Content Moderation + Guest Uploads (IN PROGRESS)
 > **Status**: **Phase 2 Active** - MVP launched, Sprints 10-13 COMPLETE
 
 ---
 
-## Sprint 13 Progress (2026-01-08)
+## Sprint 14 Progress (2026-01-08)
 
-### Phase 1: Infrastructure Layer (COMPLETE)
+### Content Moderation + Guest Uploads
+
+**Priority**: P0 CRITICAL (Legal requirement - EU DSA compliance)
+**Status**: **IN PROGRESS** (Core implementation complete, ~90%)
+
+| Component | Status | Files |
+|-----------|--------|-------|
+| Database Migration (Moderation) | ✅ COMPLETE | `migrations/00012_create_moderation_tables.sql` |
+| Database Migration (Guest Users) | ✅ COMPLETE | `migrations/00013_add_guest_user_support.sql` |
+| Domain Layer (Report, Ban) | ✅ COMPLETE | `internal/domain/moderation/` (pre-existing) |
+| Domain Layer (Guest User) | ✅ COMPLETE | `internal/domain/identity/user_type.go` |
+| Infrastructure Layer (Moderation) | ✅ COMPLETE | `report_repository.go`, `ban_repository.go`, `review_repository.go` |
+| Infrastructure Layer (Guest) | ✅ COMPLETE | Updated `user_repository.go` with FindExpiredGuests |
+| Application Layer (Moderation) | ✅ COMPLETE | 6 commands + 5 queries for reports, bans |
+| Application Layer (Guest) | ✅ COMPLETE | CreateGuestSession, CleanupExpiredGuests |
+| HTTP Layer (Moderation) | ✅ COMPLETE | ModerationHandler with 10 endpoints |
+| HTTP Layer (Guest) | ✅ COMPLETE | Guest session endpoint in auth_handler.go |
+| OpenAPI Spec | ✅ COMPLETE | 50 total paths, 33 schemas |
+| E2E Tests (Moderation) | ✅ COMPLETE | 17 Newman tests |
+| E2E Tests (Guest) | 📋 PENDING | Guest session flow tests |
+
+### Sprint 14 Delivered Endpoints
+
+**Content Moderation** (All COMPLETE ✅):
+- ✅ `POST /api/v1/reports` - Submit abuse report
+- ✅ `GET /api/v1/moderation/reports` - List pending reports (admin)
+- ✅ `GET /api/v1/moderation/reports/{id}` - Get report details (admin)
+- ✅ `POST /api/v1/moderation/reports/{id}/review` - Start review (admin)
+- ✅ `POST /api/v1/moderation/reports/{id}/resolve` - Resolve report (admin)
+- ✅ `POST /api/v1/moderation/reports/{id}/dismiss` - Dismiss report (admin)
+- ✅ `POST /api/v1/users/{id}/ban` - Ban user (admin)
+- ✅ `DELETE /api/v1/users/{id}/ban` - Unban user (admin)
+- ✅ `GET /api/v1/users/{id}/ban` - Check ban status (admin/self)
+- ✅ `GET /api/v1/moderation/bans` - List active bans (admin)
+
+**Guest Uploads** (Core Complete):
+- ✅ `POST /api/v1/auth/guest` - Create guest session
+- 📋 `POST /api/v1/guest/images/{id}/claim` - Claim upload to account (pending)
+
+---
+
+## Sprint 13 Summary (COMPLETE ✅)
+
+### All Phases Complete (2026-01-08)
 
 | Component | Status | Files |
 |-----------|--------|-------|
@@ -17,11 +60,6 @@
 | Storage Orchestrator | ✅ COMPLETE | `internal/infrastructure/storage/orchestrator/` |
 | Database Migration | ✅ COMPLETE | `migrations/00011_add_ipfs_fields.sql` |
 | Domain Layer | ✅ COMPLETE | `internal/domain/gallery/ipfs_metadata.go` |
-
-### Phase 2: Application & HTTP Layer (COMPLETE)
-
-| Component | Status | Files |
-|-----------|--------|-------|
 | Domain Entity Update | ✅ COMPLETE | `internal/domain/gallery/image.go` - Added IPFS metadata field and methods |
 | Domain Events | ✅ COMPLETE | `internal/domain/gallery/events.go` - ImagePinnedToIPFS, ImageUnpinnedFromIPFS |
 | Repository Update | ✅ COMPLETE | `internal/infrastructure/persistence/postgres/image_repository.go` |
@@ -31,6 +69,8 @@
 | GetImageIPFSStatus Query | ✅ COMPLETE | `internal/application/gallery/queries/get_image_ipfs_status.go` |
 | HTTP Handler | ✅ COMPLETE | `internal/interfaces/http/handlers/ipfs_handler.go` |
 | OpenAPI Spec | ✅ COMPLETE | `api/openapi/openapi.yaml` - IPFS endpoints and schemas |
+| Unit Tests | ✅ COMPLETE | 27 test scenarios for commands/queries |
+| E2E Tests | ✅ COMPLETE | 8 Newman tests for IPFS endpoints |
 
 ### Key Implementations
 
@@ -257,6 +297,10 @@ Features deferred to Phase 2:
 | Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
 | Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
 | IPFS storage integration | Medium | 13 | ✅ COMPLETE |
+| Content moderation suite | High | 14 | 🔄 IN PROGRESS |
+| Guest uploads | High | 14 | 🔄 IN PROGRESS |
+| AI NSFW detection | Medium | 15 | 📋 BACKLOG |
+| Advanced search filters | Medium | 15 | 📋 BACKLOG |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -457,4 +501,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-13 COMPLETE ✅ - Ready for Sprint 14 (Remote Pinning Services)
+**Project Status**: **Phase 2 Active** - Sprints 10-13 COMPLETE ✅ - Sprint 14 (Content Moderation + Guest Uploads) IN PROGRESS 🔄

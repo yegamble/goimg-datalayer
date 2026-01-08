@@ -17,8 +17,8 @@ import (
 // SQL queries for user operations.
 const (
 	sqlInsertUser = `
-		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`
 
 	sqlUpdateUser = `
@@ -30,24 +30,27 @@ const (
 		    status = $6,
 		    display_name = $7,
 		    bio = $8,
-		    updated_at = $9
+		    updated_at = $9,
+		    user_type = $10,
+		    ip_address = $11,
+		    expires_at = $12
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByID = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByEmail = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE email = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByUsername = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE username = $1 AND deleted_at IS NULL
 	`
@@ -59,20 +62,33 @@ const (
 		    updated_at = $2
 		WHERE id = $1 AND deleted_at IS NULL
 	`
+
+	sqlFindExpiredGuests = `
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		FROM users
+		WHERE user_type = 'guest'
+		  AND expires_at <= $1
+		  AND deleted_at IS NULL
+		ORDER BY expires_at ASC
+		LIMIT $2
+	`
 )
 
 // userRow represents a user row in the database.
 type userRow struct {
-	ID           string    `db:"id"`
-	Email        string    `db:"email"`
-	Username     string    `db:"username"`
-	PasswordHash string    `db:"password_hash"`
-	Role         string    `db:"role"`
-	Status       string    `db:"status"`
-	DisplayName  string    `db:"display_name"`
-	Bio          string    `db:"bio"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
+	ID           string         `db:"id"`
+	Email        string         `db:"email"`
+	Username     string         `db:"username"`
+	PasswordHash string         `db:"password_hash"`
+	Role         string         `db:"role"`
+	Status       string         `db:"status"`
+	DisplayName  string         `db:"display_name"`
+	Bio          string         `db:"bio"`
+	CreatedAt    time.Time      `db:"created_at"`
+	UpdatedAt    time.Time      `db:"updated_at"`
+	UserType     string         `db:"user_type"`
+	IPAddress    sql.NullString `db:"ip_address"`
+	ExpiresAt    sql.NullTime   `db:"expires_at"`
 }
 
 // UserRepository implements the identity.UserRepository interface for PostgreSQL.
@@ -162,6 +178,17 @@ func (r *UserRepository) Save(ctx context.Context, user *identity.User) error {
 
 // insert creates a new user in the database.
 func (r *UserRepository) insert(ctx context.Context, user *identity.User) error {
+	// Convert nullable fields to sql.Null types
+	var ipAddress sql.NullString
+	if user.IPAddress() != nil {
+		ipAddress = sql.NullString{String: *user.IPAddress(), Valid: true}
+	}
+
+	var expiresAt sql.NullTime
+	if user.ExpiresAt() != nil {
+		expiresAt = sql.NullTime{Time: *user.ExpiresAt(), Valid: true}
+	}
+
 	_, err := r.db.ExecContext(
 		ctx,
 		sqlInsertUser,
@@ -175,6 +202,9 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 		user.Bio(),
 		user.CreatedAt(),
 		user.UpdatedAt(),
+		user.UserType().String(),
+		ipAddress,
+		expiresAt,
 	)
 	if err != nil {
 		// Handle unique constraint violations
@@ -195,6 +225,17 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 
 // update updates an existing user in the database.
 func (r *UserRepository) update(ctx context.Context, user *identity.User) error {
+	// Convert nullable fields to sql.Null types
+	var ipAddress sql.NullString
+	if user.IPAddress() != nil {
+		ipAddress = sql.NullString{String: *user.IPAddress(), Valid: true}
+	}
+
+	var expiresAt sql.NullTime
+	if user.ExpiresAt() != nil {
+		expiresAt = sql.NullTime{Time: *user.ExpiresAt(), Valid: true}
+	}
+
 	result, err := r.db.ExecContext(
 		ctx,
 		sqlUpdateUser,
@@ -207,6 +248,9 @@ func (r *UserRepository) update(ctx context.Context, user *identity.User) error 
 		user.DisplayName(),
 		user.Bio(),
 		user.UpdatedAt(),
+		user.UserType().String(),
+		ipAddress,
+		expiresAt,
 	)
 	if err != nil {
 		// Handle unique constraint violations
@@ -296,6 +340,24 @@ func rowToUser(row userRow) (*identity.User, error) {
 		return nil, fmt.Errorf("failed to parse status: %w", err)
 	}
 
+	// Parse user type
+	userType, err := identity.ParseUserType(row.UserType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse user type: %w", err)
+	}
+
+	// Parse nullable IP address
+	var ipAddress *string
+	if row.IPAddress.Valid {
+		ipAddress = &row.IPAddress.String
+	}
+
+	// Parse nullable expires_at
+	var expiresAt *time.Time
+	if row.ExpiresAt.Valid {
+		expiresAt = &row.ExpiresAt.Time
+	}
+
 	// Reconstitute user without validation or events
 	user := identity.ReconstructUser(
 		userID,
@@ -308,7 +370,73 @@ func rowToUser(row userRow) (*identity.User, error) {
 		row.Bio,
 		row.CreatedAt,
 		row.UpdatedAt,
+		userType,
+		ipAddress,
+		expiresAt,
 	)
 
 	return user, nil
+}
+
+// FindExpiredGuests retrieves all guest users whose expiration date has passed.
+// This method is used by cleanup jobs to remove expired guest accounts.
+// The asOf parameter specifies the cutoff time (typically time.Now().UTC()).
+// The limit parameter prevents loading too many records at once.
+func (r *UserRepository) FindExpiredGuests(
+	ctx context.Context,
+	asOf time.Time,
+	limit int,
+) ([]*identity.User, error) {
+	query := `
+		SELECT id, email, username, password_hash, role, status, display_name, bio,
+		       created_at, updated_at, user_type, ip_address, expires_at
+		FROM users
+		WHERE user_type = 'guest'
+		  AND expires_at IS NOT NULL
+		  AND expires_at <= $1
+		  AND deleted_at IS NULL
+		ORDER BY expires_at ASC
+		LIMIT $2
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, asOf, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query expired guests: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*identity.User
+	for rows.Next() {
+		var row userRow
+		if err := rows.Scan(
+			&row.ID,
+			&row.Email,
+			&row.Username,
+			&row.PasswordHash,
+			&row.Role,
+			&row.Status,
+			&row.DisplayName,
+			&row.Bio,
+			&row.CreatedAt,
+			&row.UpdatedAt,
+			&row.UserType,
+			&row.IPAddress,
+			&row.ExpiresAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan expired guest row: %w", err)
+		}
+
+		user, err := rowToUser(row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert row to user: %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating expired guest rows: %w", err)
+	}
+
+	return users, nil
 }

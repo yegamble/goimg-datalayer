@@ -1,10 +1,14 @@
-package identity
+// Package moderation provides application layer types and interfaces for the moderation bounded context.
+// This includes command/query patterns, handlers, and application service interfaces.
+package moderation
 
 import (
 	"context"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
-// Command is a marker interface for write operations.
+// Command is a marker interface for write operations in the moderation context.
 // Commands represent state-changing operations and follow the Command pattern.
 // They encapsulate all information needed to perform an action.
 type Command interface {
@@ -26,7 +30,7 @@ type CommandHandler[C Command, R any] interface {
 	Handle(ctx context.Context, cmd C) (R, error)
 }
 
-// Query is a marker interface for read operations.
+// Query is a marker interface for read operations in the moderation context.
 // Queries represent read-only operations with no side effects.
 // They encapsulate all parameters needed to retrieve data.
 type Query interface {
@@ -50,7 +54,7 @@ type QueryHandler[Q Query, R any] interface {
 
 // EventPublisher publishes domain events to the message bus.
 // This interface is defined in the application layer and implemented
-// in the infrastructure layer (e.g., using asynq, RabbitMQ, Kafka).
+// in the infrastructure layer (e.g., using asynq).
 //
 // Events should only be published AFTER successful persistence to ensure
 // consistency. If publishing fails, the error should be logged but not
@@ -58,5 +62,5 @@ type QueryHandler[Q Query, R any] interface {
 type EventPublisher interface {
 	// Publish sends a domain event to the message bus.
 	// The event parameter should implement the shared.DomainEvent interface.
-	Publish(ctx context.Context, event interface{}) error
+	Publish(ctx context.Context, event shared.DomainEvent) error
 }

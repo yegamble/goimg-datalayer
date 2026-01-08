@@ -121,6 +121,14 @@ func (m *MockUserRepository) ExistsByID(ctx context.Context, id identity.UserID)
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockUserRepository) FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*identity.User, error) {
+	args := m.Called(ctx, asOf, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*identity.User), args.Error(1)
+}
+
 // MockEventPublisher is a mock implementation of EventPublisher.
 type MockEventPublisher struct {
 	mock.Mock
@@ -147,7 +155,7 @@ func TestCreateAlbumHandler_Handle_Success(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -255,7 +263,7 @@ func TestCreateAlbumHandler_Handle_InvalidTitle(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -296,7 +304,7 @@ func TestCreateAlbumHandler_Handle_SaveError(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -339,7 +347,7 @@ func TestCreateAlbumHandler_Handle_WithDescription(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -381,7 +389,7 @@ func TestCreateAlbumHandler_Handle_EventPublishingError(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),

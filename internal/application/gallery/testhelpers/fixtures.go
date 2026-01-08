@@ -223,6 +223,9 @@ func ValidUser(t *testing.T) *identity.User {
 		"",
 		ValidTimestamp(),
 		ValidTimestamp(),
+		identity.UserTypeRegistered,
+		nil,
+		nil,
 	)
 
 	return user
@@ -253,6 +256,9 @@ func ValidModeratorUser(t *testing.T) *identity.User {
 		"",
 		ValidTimestamp(),
 		ValidTimestamp(),
+		identity.UserTypeRegistered,
+		nil,
+		nil,
 	)
 
 	return user

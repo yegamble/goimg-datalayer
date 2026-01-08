@@ -44,9 +44,10 @@ func RequireElevatedSession(logger zerolog.Logger) func(http.Handler) http.Handl
 			ctx := r.Context()
 			requestID := GetRequestID(ctx)
 
-			// Get user context (must be set by JWTAuth middleware)
-			userCtx, err := GetUserFromContext(ctx)
-			if err != nil {
+			// Get user context from middleware context functions (must be set by JWTAuth middleware)
+			userID, hasUserID := GetUserID(ctx)
+			email, _ := GetUserEmail(ctx)
+			if !hasUserID {
 				logger.Error().
 					Str("event", "elevated_session_no_context").
 					Str("path", r.URL.Path).
@@ -62,11 +63,12 @@ func RequireElevatedSession(logger zerolog.Logger) func(http.Handler) http.Handl
 			}
 
 			// Check if session is elevated (TwoFAVerified flag)
-			if !userCtx.TwoFAVerified {
+			twoFAVerified, _ := Get2FAVerified(ctx)
+			if !twoFAVerified {
 				logger.Warn().
 					Str("event", "session_not_elevated").
-					Str("user_id", userCtx.UserID.String()).
-					Str("email", userCtx.Email).
+					Str("user_id", userID.String()).
+					Str("email", email).
 					Str("path", r.URL.Path).
 					Str("request_id", requestID).
 					Msg("sensitive operation attempted without elevated session")
@@ -83,7 +85,7 @@ func RequireElevatedSession(logger zerolog.Logger) func(http.Handler) http.Handl
 			// Session is elevated - allow request
 			logger.Debug().
 				Str("event", "elevated_session_validated").
-				Str("user_id", userCtx.UserID.String()).
+				Str("user_id", userID.String()).
 				Str("path", r.URL.Path).
 				Str("request_id", requestID).
 				Msg("elevated session validated successfully")

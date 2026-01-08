@@ -131,6 +131,7 @@ type AuthResponseDTO struct {
 	User        UserDTO      `json:"user"`
 	Tokens      TokenPairDTO `json:"tokens"`
 	Requires2FA bool         `json:"requires_2fa"` // Sprint 11: Indicates if 2FA verification is required
+	IsGuest     bool         `json:"is_guest"`     // Sprint 14: Indicates if this is a guest account
 }
 
 // NewAuthResponseDTO creates an AuthResponseDTO from a domain User and token pair.
@@ -139,6 +140,7 @@ func NewAuthResponseDTO(user *identity.User, tokens TokenPairDTO) AuthResponseDT
 		User:        FromDomain(user),
 		Tokens:      tokens,
 		Requires2FA: user.Requires2FA(), // Check if user has 2FA enabled
+		IsGuest:     user.IsGuest(),     // Check if user is a guest
 	}
 }
 
