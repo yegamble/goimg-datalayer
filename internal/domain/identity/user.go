@@ -35,6 +35,11 @@ type User struct {
 
 	// Notification preferences
 	notificationPreferences NotificationPreferences
+
+	// Guest user fields
+	userType  UserType   // registered or guest
+	ipAddress *string    // IP address for guest users (nil for registered)
+	expiresAt *time.Time // Expiration time for guest users (nil for registered)
 }
 
 // NewUser creates a new User with the given email, username, and password hash.
@@ -65,9 +70,70 @@ func NewUser(email Email, username Username, passwordHash PasswordHash) (*User, 
 		updatedAt:               now,
 		events:                  []shared.DomainEvent{},
 		notificationPreferences: DefaultNotificationPreferences(),
+		userType:                UserTypeRegistered,
+		ipAddress:               nil,
+		expiresAt:               nil,
 	}
 
 	user.addEvent(NewUserCreated(user.id, user.email, user.username))
+	return user, nil
+}
+
+// NewGuestUser creates a new guest user account with the given IP address.
+// Guest accounts have:
+// - No email/password (anonymous)
+// - Auto-generated username (guest_{uuid})
+// - RoleUser with StatusActive
+// - 30-day expiration
+// Emits a GuestUserCreated event.
+func NewGuestUser(ipAddress string) (*User, error) {
+	if ipAddress == "" {
+		return nil, fmt.Errorf("ip address is required for guest users")
+	}
+
+	now := time.Now().UTC()
+	expiresAt := now.Add(30 * 24 * time.Hour) // 30 days from now
+
+	userID := NewUserID()
+	guestUsername := fmt.Sprintf("guest_%s", userID.String()[:8])
+	username, err := NewUsername(guestUsername)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create guest username: %w", err)
+	}
+
+	// Generate a dummy email for guests (required by DB schema)
+	guestEmail := fmt.Sprintf("guest_%s@goimg.local", userID.String())
+	email, err := NewEmail(guestEmail)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create guest email: %w", err)
+	}
+
+	// Guest users don't have a password, but we need a placeholder
+	// We use a random unguessable hash that can never be authenticated
+	dummyHash, err := NewPasswordHash(userID.String() + now.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create guest password hash: %w", err)
+	}
+
+	user := &User{
+		id:                      userID,
+		email:                   email,
+		username:                username,
+		passwordHash:            dummyHash,
+		role:                    RoleUser,
+		status:                  StatusActive,
+		displayName:             guestUsername,
+		bio:                     "",
+		createdAt:               now,
+		updatedAt:               now,
+		events:                  []shared.DomainEvent{},
+		notificationPreferences: DefaultNotificationPreferences(),
+		userType:                UserTypeGuest,
+		ipAddress:               &ipAddress,
+		expiresAt:               &expiresAt,
+	}
+
+	user.addEvent(NewGuestUserCreated(user.id, ipAddress, expiresAt))
 	return user, nil
 }
 
@@ -83,6 +149,9 @@ func ReconstructUser(
 	displayName string,
 	bio string,
 	createdAt, updatedAt time.Time,
+	userType UserType,
+	ipAddress *string,
+	expiresAt *time.Time,
 ) *User {
 	return &User{
 		id:                      id,
@@ -100,6 +169,9 @@ func ReconstructUser(
 		backupCodes:             nil,
 		devices:                 nil,
 		notificationPreferences: DefaultNotificationPreferences(),
+		userType:                userType,
+		ipAddress:               ipAddress,
+		expiresAt:               expiresAt,
 	}
 }
 
@@ -118,6 +190,9 @@ func ReconstructUserWith2FA(
 	totpSecret *TOTPSecret,
 	backupCodes []BackupCode,
 	devices []DeviceFingerprint,
+	userType UserType,
+	ipAddress *string,
+	expiresAt *time.Time,
 ) *User {
 	return &User{
 		id:                      id,
@@ -135,6 +210,9 @@ func ReconstructUserWith2FA(
 		backupCodes:             backupCodes,
 		devices:                 devices,
 		notificationPreferences: DefaultNotificationPreferences(),
+		userType:                userType,
+		ipAddress:               ipAddress,
+		expiresAt:               expiresAt,
 	}
 }
 
@@ -525,4 +603,68 @@ func (u *User) UpdateNotificationPreferences(prefs NotificationPreferences) {
 	u.notificationPreferences = prefs
 	u.updatedAt = time.Now().UTC()
 	// Could emit an event here if needed for auditing
+}
+
+// Guest User Methods
+
+// UserType returns the user's type (registered or guest).
+func (u *User) UserType() UserType {
+	return u.userType
+}
+
+// IPAddress returns the user's IP address (only for guest users, nil for registered).
+func (u *User) IPAddress() *string {
+	return u.ipAddress
+}
+
+// ExpiresAt returns the expiration time for guest users (nil for registered users).
+func (u *User) ExpiresAt() *time.Time {
+	return u.expiresAt
+}
+
+// IsGuest returns true if this is a guest user account.
+func (u *User) IsGuest() bool {
+	return u.userType.IsGuest()
+}
+
+// IsExpired returns true if this guest account has expired.
+// Always returns false for registered users.
+func (u *User) IsExpired() bool {
+	if !u.IsGuest() || u.expiresAt == nil {
+		return false
+	}
+	return time.Now().UTC().After(*u.expiresAt)
+}
+
+// ConvertToRegistered converts a guest account to a registered account.
+// This is used when a guest user claims their uploads and registers.
+// Emits a GuestConvertedToRegistered event.
+func (u *User) ConvertToRegistered(email Email, username Username, passwordHash PasswordHash) error {
+	if !u.IsGuest() {
+		return ErrUserNotGuest
+	}
+
+	if email.IsEmpty() {
+		return fmt.Errorf("email is required")
+	}
+	if username.IsEmpty() {
+		return fmt.Errorf("username is required")
+	}
+	if passwordHash.IsEmpty() {
+		return fmt.Errorf("password hash is required")
+	}
+
+	oldUserID := u.id
+	u.email = email
+	u.username = username
+	u.passwordHash = passwordHash
+	u.userType = UserTypeRegistered
+	u.ipAddress = nil
+	u.expiresAt = nil
+	u.status = StatusPending // Require email verification
+	u.displayName = username.String()
+	u.updatedAt = time.Now().UTC()
+
+	u.addEvent(NewGuestConvertedToRegistered(oldUserID, u.id, email, username))
+	return nil
 }

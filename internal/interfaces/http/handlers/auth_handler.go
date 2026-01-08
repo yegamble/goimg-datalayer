@@ -18,11 +18,12 @@ import (
 // AuthHandler handles authentication-related HTTP endpoints.
 // It delegates to application layer command handlers for business logic.
 type AuthHandler struct {
-	registerHandler *commands.RegisterUserHandler
-	loginHandler    *commands.LoginHandler
-	refreshHandler  *commands.RefreshTokenHandler
-	logoutHandler   *commands.LogoutHandler
-	logger          zerolog.Logger
+	registerHandler     *commands.RegisterUserHandler
+	loginHandler        *commands.LoginHandler
+	refreshHandler      *commands.RefreshTokenHandler
+	logoutHandler       *commands.LogoutHandler
+	guestSessionHandler *commands.CreateGuestSessionHandler
+	logger              zerolog.Logger
 }
 
 // NewAuthHandler creates a new AuthHandler with the given dependencies.
@@ -32,14 +33,16 @@ func NewAuthHandler(
 	loginHandler *commands.LoginHandler,
 	refreshHandler *commands.RefreshTokenHandler,
 	logoutHandler *commands.LogoutHandler,
+	guestSessionHandler *commands.CreateGuestSessionHandler,
 	logger zerolog.Logger,
 ) *AuthHandler {
 	return &AuthHandler{
-		registerHandler: registerHandler,
-		loginHandler:    loginHandler,
-		refreshHandler:  refreshHandler,
-		logoutHandler:   logoutHandler,
-		logger:          logger,
+		registerHandler:     registerHandler,
+		loginHandler:        loginHandler,
+		refreshHandler:      refreshHandler,
+		logoutHandler:       logoutHandler,
+		guestSessionHandler: guestSessionHandler,
+		logger:              logger,
 	}
 }
 
@@ -56,6 +59,7 @@ func (h *AuthHandler) Routes() chi.Router {
 	r.Post("/register", h.Register)
 	r.Post("/login", h.Login)
 	r.Post("/refresh", h.Refresh)
+	r.Post("/guest", h.CreateGuestSession) // Sprint 14: Guest uploads
 
 	// Protected route (JWT authentication required)
 	// Note: Logout requires authentication to identify the user and session
@@ -431,5 +435,59 @@ func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",
 		)
+	}
+}
+
+// CreateGuestSession handles POST /api/v1/auth/guest
+// Creates a temporary guest user session without registration.
+// Guest users can upload images but have limited access and auto-expire after 30 days.
+//
+// Request: No body required (uses IP address from request)
+// Response: 201 Created with AuthResponseDTO (guest user + access token)
+// Errors:
+//   - 429: Rate limit exceeded (10 guest sessions per hour per IP)
+//   - 500: Internal server error
+func (h *AuthHandler) CreateGuestSession(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Extract client metadata for security tracking
+	ipAddress := GetClientIP(r)
+	userAgent := GetUserAgent(r)
+
+	h.logger.Debug().
+		Str("ip_address", ipAddress).
+		Str("user_agent", userAgent).
+		Msg("guest session creation request")
+
+	// Delegate to command handler
+	cmd := commands.CreateGuestSessionCommand{
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+	}
+
+	authResponse, err := h.guestSessionHandler.Handle(ctx, cmd)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("ip_address", ipAddress).
+			Msg("guest session creation failed")
+
+		// Map error to HTTP response
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to create guest session. Please try again later.",
+		)
+		return
+	}
+
+	// Guest session created successfully
+	h.logger.Info().
+		Str("guest_user_id", authResponse.User.ID).
+		Str("ip_address", ipAddress).
+		Msg("guest session created successfully")
+
+	if err := EncodeJSON(w, http.StatusCreated, authResponse); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode guest session response")
 	}
 }

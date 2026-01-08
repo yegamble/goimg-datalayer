@@ -1,6 +1,8 @@
 package identity
 
 import (
+	"time"
+
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
@@ -231,5 +233,45 @@ func NewUserUnfollowed(followerID, followedID UserID) UserUnfollowed {
 		BaseEvent:  shared.NewBaseEvent("identity.user.unfollowed", followerID.String()),
 		FollowerID: followerID,
 		FollowedID: followedID,
+	}
+}
+
+// Guest User Events
+
+// GuestUserCreated is emitted when a new guest user is created.
+type GuestUserCreated struct {
+	shared.BaseEvent
+	UserID    UserID
+	IPAddress string
+	ExpiresAt time.Time
+}
+
+// NewGuestUserCreated creates a new GuestUserCreated event.
+func NewGuestUserCreated(userID UserID, ipAddress string, expiresAt time.Time) GuestUserCreated {
+	return GuestUserCreated{
+		BaseEvent: shared.NewBaseEvent("identity.guest.created", userID.String()),
+		UserID:    userID,
+		IPAddress: ipAddress,
+		ExpiresAt: expiresAt,
+	}
+}
+
+// GuestConvertedToRegistered is emitted when a guest account is converted to a registered account.
+type GuestConvertedToRegistered struct {
+	shared.BaseEvent
+	OldUserID UserID
+	NewUserID UserID
+	Email     Email
+	Username  Username
+}
+
+// NewGuestConvertedToRegistered creates a new GuestConvertedToRegistered event.
+func NewGuestConvertedToRegistered(oldUserID, newUserID UserID, email Email, username Username) GuestConvertedToRegistered {
+	return GuestConvertedToRegistered{
+		BaseEvent: shared.NewBaseEvent("identity.guest.converted", oldUserID.String()),
+		OldUserID: oldUserID,
+		NewUserID: newUserID,
+		Email:     email,
+		Username:  username,
 	}
 }

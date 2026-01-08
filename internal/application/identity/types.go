@@ -1,6 +1,8 @@
 package identity
 
-import "context"
+import (
+	"context"
+)
 
 // Command is a marker interface for write operations.
 // Commands represent state-changing operations and follow the Command pattern.

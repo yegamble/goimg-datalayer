@@ -81,6 +81,19 @@ func (m *MockUserRepository) Delete(ctx context.Context, id identity.UserID) err
 	return nil
 }
 
+// FindExpiredGuests retrieves all guest users whose expiration date has passed.
+func (m *MockUserRepository) FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*identity.User, error) {
+	args := m.Called(ctx, asOf, limit)
+	var users []*identity.User
+	if args.Get(0) != nil {
+		users = args.Get(0).([]*identity.User)
+	}
+	if err := args.Error(1); err != nil {
+		return users, fmt.Errorf("mock FindExpiredGuests: %w", err)
+	}
+	return users, nil
+}
+
 // MockJWTService is a mock implementation of services.JWTService.
 type MockJWTService struct {
 	mock.Mock

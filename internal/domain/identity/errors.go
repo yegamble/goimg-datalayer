@@ -92,4 +92,10 @@ var (
 	ErrFollowAlreadyExists = errors.New("already following this user")
 	// ErrFollowNotFound indicates a follow relationship was not found.
 	ErrFollowNotFound = errors.New("follow relationship not found")
+
+	// Guest user-related errors
+	// ErrUserNotGuest indicates the user is not a guest account.
+	ErrUserNotGuest = errors.New("user is not a guest account")
+	// ErrGuestExpired indicates a guest account has expired.
+	ErrGuestExpired = errors.New("guest account has expired")
 )

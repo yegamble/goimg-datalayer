@@ -407,6 +407,14 @@ func (m *MockUserRepository) ExistsByID(ctx context.Context, id identity.UserID)
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockUserRepository) FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*identity.User, error) {
+	args := m.Called(ctx, asOf, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*identity.User), args.Error(1)
+}
+
 // MockIPFSService is a mock implementation of gallery.IPFSService.
 type MockIPFSService struct {
 	mock.Mock

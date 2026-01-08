@@ -1,6 +1,9 @@
 package identity
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // UserRepository defines the interface for persisting and retrieving User aggregates.
 // Implementations should be provided in the infrastructure layer.
@@ -28,4 +31,10 @@ type UserRepository interface {
 	// Delete removes a user from the repository.
 	// This should typically be a soft delete (status change) rather than hard delete.
 	Delete(ctx context.Context, id UserID) error
+
+	// FindExpiredGuests retrieves all guest users whose expiration date has passed.
+	// Used by cleanup jobs to remove expired guest accounts.
+	// The asOf parameter specifies the cutoff time (typically time.Now().UTC()).
+	// The limit parameter prevents loading too many records at once.
+	FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*User, error)
 }
