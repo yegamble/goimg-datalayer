@@ -117,6 +117,32 @@ func (e *ImageTagRemoved) EventType() string {
 	return "gallery.image.tag_removed"
 }
 
+// IPFS Events
+
+// ImagePinnedToIPFS is emitted when an image is uploaded and pinned to IPFS.
+type ImagePinnedToIPFS struct {
+	shared.BaseEvent
+	ImageID ImageID
+	CID     string // IPFS Content Identifier
+}
+
+// EventType returns the event type identifier.
+func (e *ImagePinnedToIPFS) EventType() string {
+	return "gallery.image.ipfs_pinned"
+}
+
+// ImageUnpinnedFromIPFS is emitted when an image is unpinned from IPFS.
+type ImageUnpinnedFromIPFS struct {
+	shared.BaseEvent
+	ImageID ImageID
+	CID     string // The CID that was unpinned
+}
+
+// EventType returns the event type identifier.
+func (e *ImageUnpinnedFromIPFS) EventType() string {
+	return "gallery.image.ipfs_unpinned"
+}
+
 // Album Events
 
 // AlbumCreated is emitted when a new album is created.

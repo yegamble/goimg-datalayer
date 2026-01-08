@@ -131,6 +131,7 @@ func TestSearchImagesHandler_Handle_Success(t *testing.T) {
 		gallery.StatusActive,
 		[]gallery.ImageVariant{},
 		[]gallery.Tag{},
+		nil, // ipfsMetadata
 		100,
 		50,
 		10,
