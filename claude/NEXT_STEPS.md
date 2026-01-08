@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-08
 > **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 13 - IPFS Storage Integration (IN PROGRESS)
-> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-12 COMPLETE, Sprint 13 Phase 2 COMPLETE
+> **Current Sprint**: Sprint 13 - IPFS Storage Integration (COMPLETE)
+> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-13 COMPLETE
 
 ---
 
@@ -66,15 +66,23 @@
 - `DELETE` - Unpin image from IPFS (owner only)
 - `GET` - Get IPFS status (owner or public images)
 
-### Phase 3: Remaining Tasks (PENDING)
+### Phase 3: Router Wiring & Tests (COMPLETE)
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Wire IPFSHandler in router.go | P0 | 📋 Pending |
-| Integration tests | P1 | 📋 Pending |
-| Unit tests for commands/queries | P1 | 📋 Pending |
-| E2E tests (Newman) | P1 | 📋 Pending |
-| Remote pinning (Pinata/Infura) | P2 | 📋 Backlog |
+| Wire IPFSHandler in router.go | P0 | ✅ COMPLETE |
+| Contract tests | P1 | ✅ COMPLETE |
+| Unit tests for commands/queries | P1 | ✅ COMPLETE |
+| E2E tests (Newman) | P1 | ✅ COMPLETE |
+| Remote pinning (Pinata/Infura) | P2 | 📋 Backlog (Future Sprint) |
+
+**Phase 3 Implementation**:
+- `internal/interfaces/http/handlers/router.go` - IPFSHandler wired under `/images/{imageID}/ipfs`
+- `tests/contract/openapi_test.go` - Added IPFS endpoints validation
+- `internal/application/gallery/commands/pin_image_to_ipfs_test.go` - 10 test scenarios
+- `internal/application/gallery/commands/unpin_image_from_ipfs_test.go` - 8 test scenarios
+- `internal/application/gallery/queries/get_image_ipfs_status_test.go` - 9 test scenarios
+- `tests/e2e/postman/goimg-api.postman_collection.json` - 8 E2E test cases
 
 ### Commits (Sprint 13)
 
@@ -83,6 +91,9 @@
 3. `a1964bf` - feat(domain): Add IPFSMetadata value object for Gallery context
 4. `79a0bc3` - feat(domain): Add IPFS metadata support to Image entity
 5. `6a64862` - feat(app): Implement IPFS application layer and HTTP endpoints
+6. `edbd53e` - feat(http): Wire IPFSHandler in router for Sprint 13
+7. `825ee0e` - test(app): Add unit tests for IPFS commands and query handlers
+8. `00cde2c` - test(e2e): Add Newman/Postman tests for IPFS endpoints
 
 ---
 
@@ -245,7 +256,7 @@ Features deferred to Phase 2:
 | OAuth providers (Google, GitHub) | Medium | 12 | ✅ COMPLETE |
 | Follow users / Activity feeds | Medium | 12 | ✅ COMPLETE |
 | Email notifications (SMTP) | Medium | 12 | ✅ COMPLETE |
-| IPFS storage integration | Medium | 13 | 🔄 IN PROGRESS (Phase 2 Complete) |
+| IPFS storage integration | Medium | 13 | ✅ COMPLETE |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -446,4 +457,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-12 COMPLETE ✅, Sprint 13 (IPFS) IN PROGRESS 🔄 (Phase 2 Complete - Router wiring & tests pending)
+**Project Status**: **Phase 2 Active** - Sprints 10-13 COMPLETE ✅ - Ready for Sprint 14 (Remote Pinning Services)
