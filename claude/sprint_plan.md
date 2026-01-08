@@ -1604,6 +1604,27 @@ CREATE TABLE audit_logs (
 
 ---
 
+## Phase 2 Sprint Roadmap (Sprints 13-18)
+
+> **Comprehensive Phase 2 Plan**: See `claude/phase_2_sprints.md` for detailed sprint plans, deliverables, and security gates.
+> **Feature Prioritization**: See `claude/phase_2_feature_prioritization.md` for competitive analysis and prioritization rationale.
+> **Sprint Summary**: See `claude/phase_2_sprint_summary.md` for quick reference.
+
+### Phase 2 Overview
+
+| Sprint | Focus | Duration | Priority | Status |
+|--------|-------|----------|----------|--------|
+| Sprint 13 | IPFS Storage Integration | 2 weeks | P0 | 🔄 IN PROGRESS |
+| Sprint 14 | Content Moderation + Guest Uploads | 2 weeks | **P0 CRITICAL** | 📋 PLANNED |
+| Sprint 15 | AI NSFW Detection + Advanced Search | 2 weeks | P1 | 📋 PLANNED |
+| Sprint 16 | oEmbed + Social Media Cards | 1 week | P1 | 📋 PLANNED |
+| Sprint 17 | Nested Albums + Custom Variants | 2 weeks | P2 | 📋 PLANNED |
+| Sprint 18 | Trending Tags + Featured Picks | 1 week | P2 | 📋 PLANNED |
+
+**Total Phase 2 Duration**: 10 weeks (Sprints 13-18)
+
+---
+
 ## Sprint 13: IPFS Storage Integration (Phase 2)
 
 **STATUS**: **IN PROGRESS** 🔄
