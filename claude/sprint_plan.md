@@ -16,6 +16,16 @@ This sprint plan is informed by:
 
 **Status**: Sprint 1-12 COMPLETE. **Sprint 13 IN PROGRESS** - IPFS Storage Integration (Phase 1 Complete).
 
+**Sprint 13 Summary** (In Progress - Phase 1 Complete 2026-01-08):
+- **Progress**: Phase 1 (Infrastructure Layer) COMPLETE, Phase 2 (Application/HTTP) PENDING
+- **IPFS Client**: ✅ Full Kubo HTTP API client using Go stdlib (net/http)
+- **Storage Orchestrator**: ✅ Dual-storage coordinator with primary + IPFS fallback
+- **Database Migration**: ✅ IPFS fields (ipfs_cid, ipfs_pinned, ipfs_pinned_at) on images/variants
+- **Domain Layer**: ✅ IPFSMetadata value object with CID validation
+- **Storage Modes**: ✅ `primary_only`, `dual_sync`, `dual_async`
+- **Unit Tests**: ✅ 40+ tests with httptest mocking
+- **Pending Phase 2**: Application layer commands/queries, HTTP endpoints, OpenAPI spec
+
 **Sprint 12 Summary** (Completed 2026-01-07):
 - **Progress**: 100% COMPLETE - All features implemented and tested
 - **OAuth Domain Layer**: ✅ OAuthAccount entity, value objects, repository interface

@@ -186,8 +186,9 @@ func TestReconstructActivity(t *testing.T) {
 	actorID := identity.NewUserID()
 	targetID := uuid.New()
 	metadata := map[string]string{"key": "value"}
-	createdAt := activity.NewActivity(actorID, activity.ActivityTypeImageUploaded, targetID, activity.TargetTypeImage, nil)
-	require.NotNil(t, createdAt)
+	refActivity, err := activity.NewActivity(actorID, activity.ActivityTypeImageUploaded, targetID, activity.TargetTypeImage, nil)
+	require.NoError(t, err)
+	require.NotNil(t, refActivity)
 
 	// Act
 	act := activity.ReconstructActivity(
@@ -197,7 +198,7 @@ func TestReconstructActivity(t *testing.T) {
 		targetID,
 		activity.TargetTypeImage,
 		metadata,
-		createdAt.CreatedAt(),
+		refActivity.CreatedAt(),
 	)
 
 	// Assert
@@ -208,7 +209,7 @@ func TestReconstructActivity(t *testing.T) {
 	assert.Equal(t, targetID, act.TargetID())
 	assert.Equal(t, activity.TargetTypeImage, act.TargetType())
 	assert.Equal(t, metadata, act.Metadata())
-	assert.Equal(t, createdAt.CreatedAt(), act.CreatedAt())
+	assert.Equal(t, refActivity.CreatedAt(), act.CreatedAt())
 	assert.Empty(t, act.Events()) // No events on reconstruction
 }
 

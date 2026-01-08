@@ -11,6 +11,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/application/identity/dto"
 	"github.com/yegamble/goimg-datalayer/internal/application/identity/services"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security"
 )
 
 // Verify2FALoginCommand represents the intent to verify 2FA during login.
@@ -38,21 +39,27 @@ func (Verify2FALoginCommand) isCommand() {}
 //   - Issues elevated token with TwoFAVerified=true
 //   - Applies timing defense to prevent enumeration
 type Verify2FALoginHandler struct {
-	users      identity.UserRepository
-	jwtService services.JWTService
-	logger     *zerolog.Logger
+	users       identity.UserRepository
+	totpRepo    TOTPRepository
+	jwtService  services.JWTService
+	totpService *security.TOTPService
+	logger      *zerolog.Logger
 }
 
 // NewVerify2FALoginHandler creates a new handler with the given dependencies.
 func NewVerify2FALoginHandler(
 	users identity.UserRepository,
+	totpRepo TOTPRepository,
 	jwtService services.JWTService,
+	totpService *security.TOTPService,
 	logger *zerolog.Logger,
 ) *Verify2FALoginHandler {
 	return &Verify2FALoginHandler{
-		users:      users,
-		jwtService: jwtService,
-		logger:     logger,
+		users:       users,
+		totpRepo:    totpRepo,
+		jwtService:  jwtService,
+		totpService: totpService,
+		logger:      logger,
 	}
 }
 
@@ -108,7 +115,8 @@ func (h *Verify2FALoginHandler) Handle(ctx context.Context, cmd Verify2FALoginCo
 	// 4. Validate TOTP code or backup code
 	var verifyErr error
 	if cmd.UseBackupCode {
-		verifyErr = user.ValidateBackupCode(cmd.Code)
+		// UseBackupCode validates and marks the backup code as used
+		verifyErr = user.UseBackupCode(cmd.Code)
 		if verifyErr == nil {
 			// Save user to persist backup code usage
 			if saveErr := h.users.Save(ctx, user); saveErr != nil {
@@ -120,7 +128,17 @@ func (h *Verify2FALoginHandler) Handle(ctx context.Context, cmd Verify2FALoginCo
 			}
 		}
 	} else {
-		verifyErr = user.ValidateTOTPCode(cmd.Code)
+		// Load TOTP secret from repository
+		totpSecret, loadErr := h.totpRepo.FindByUserID(ctx, userID)
+		if loadErr != nil {
+			h.logger.Error().
+				Err(loadErr).
+				Str("user_id", userID.String()).
+				Msg("failed to load TOTP secret for verification")
+			return nil, fmt.Errorf("load TOTP secret: %w", loadErr)
+		}
+		// Validate TOTP code against encrypted secret
+		verifyErr = h.totpService.ValidateCode(totpSecret.EncryptedSecret(), cmd.Code)
 	}
 
 	if verifyErr != nil {

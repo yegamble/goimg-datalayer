@@ -12,7 +12,7 @@ type RateLimiter struct {
 	tokens        int
 	maxTokens     int
 	refillRate    time.Duration
-	lastRefillsAt time.Time
+	lastRefillAt time.Time
 }
 
 // NewRateLimiter creates a new rate limiter with the specified limits.
