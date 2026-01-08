@@ -49,6 +49,10 @@ tags:
     description: In-app notifications and alerts
   - name: moderation
     description: Content moderation and abuse reporting
+  - name: reports
+    description: Abuse report creation and management
+  - name: bans
+    description: User ban management (admin only)
   - name: explore
     description: Discovery and exploration features
   - name: health
@@ -2750,11 +2754,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-  # ==================== Moderation (Phase 2) ====================
+  # ==================== Moderation ====================
   /reports:
     post:
-      x-phase: "2"
-      tags: [moderation]
+      tags: [reports]
       summary: Create abuse report
       description: |
         Report an image for abuse, spam, copyright violation, etc.
@@ -2814,7 +2817,6 @@ paths:
 
   /moderation/reports:
     get:
-      x-phase: "2"
       tags: [moderation]
       summary: List reports
       description: List all reports (admin/moderator only)
@@ -2857,7 +2859,6 @@ paths:
 
   /moderation/reports/{id}:
     get:
-      x-phase: "2"
       tags: [moderation]
       summary: Get report details
       description: Retrieve detailed information about a specific report (admin/moderator only)
@@ -2896,9 +2897,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+    post:
+      tags: [moderation]
+      summary: Start review
+      description: Start reviewing a report (marks status as 'reviewing'). Admin/moderator only.
+      operationId: reviewReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Report ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Review started successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin or moderator role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /moderation/reports/{id}/resolve:
     post:
-      x-phase: "2"
       tags: [moderation]
       summary: Resolve report
       description: Resolve a report with an action (admin/moderator only)
@@ -2917,23 +2952,15 @@ paths:
           application/json:
             schema:
               type: object
-              required: [action]
+              required: [resolution]
               properties:
-                action:
-                  type: string
-                  enum: [dismiss, warn, remove, ban]
-                  example: remove
                 resolution:
                   type: string
                   maxLength: 1000
                   example: Image removed for violating content policy
       responses:
-        '200':
+        '204':
           description: Report resolved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Report'
         '400':
           description: Validation error
           content:
@@ -2959,10 +2986,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /moderation/reports/{id}/dismiss:
+    post:
+      tags: [moderation]
+      summary: Dismiss report
+      description: Dismiss a report without action (admin/moderator only)
+      operationId: dismissReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Report ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Report dismissed successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin or moderator role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /users/{id}/ban:
     post:
-      x-phase: "2"
-      tags: [moderation]
+      tags: [bans]
       summary: Ban user
       description: Ban a user from the platform (admin only)
       operationId: banUser
@@ -2980,11 +3042,11 @@ paths:
                   type: string
                   maxLength: 1000
                   example: Multiple content policy violations
-                expires_at:
-                  type: string
-                  format: date-time
-                  description: Ban expiration (null for permanent)
-                  example: 2024-12-31T23:59:59Z
+                duration_hours:
+                  type: integer
+                  minimum: 1
+                  description: Ban duration in hours (omit for permanent ban)
+                  example: 168
       responses:
         '200':
           description: User banned successfully
@@ -2992,19 +3054,17 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [ban_id]
                 properties:
-                  user_id:
+                  ban_id:
                     type: string
                     format: uuid
-                  banned:
-                    type: boolean
-                    example: true
-                  reason:
-                    type: string
+                    example: 123e4567-e89b-12d3-a456-426614174000
                   expires_at:
                     type: string
                     format: date-time
                     nullable: true
+                    example: 2024-12-31T23:59:59Z
         '400':
           description: Validation error
           content:
@@ -3031,27 +3091,15 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
 
     delete:
-      x-phase: "2"
-      tags: [moderation]
+      tags: [bans]
       summary: Unban user
       description: Remove ban from a user (admin only)
       operationId: unbanUser
       parameters:
         - $ref: '#/components/parameters/UserIdParam'
       responses:
-        '200':
+        '204':
           description: User unbanned successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user_id:
-                    type: string
-                    format: uuid
-                  banned:
-                    type: boolean
-                    example: false
         '401':
           description: Unauthorized
           content:
@@ -3066,6 +3114,89 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [bans]
+      summary: Check ban status
+      description: Check if a user is banned (moderator, admin, or self)
+      operationId: getBanStatus
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          description: Ban status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [is_banned]
+                properties:
+                  is_banned:
+                    type: boolean
+                    example: true
+                  reason:
+                    type: string
+                    nullable: true
+                    example: Multiple content policy violations
+                  expires_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    example: 2024-12-31T23:59:59Z
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires moderator, admin, or self
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/bans:
+    get:
+      tags: [bans]
+      summary: List active bans
+      description: List all active bans (admin only)
+      operationId: listBans
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Bans retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ban'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires admin role
           content:
             application/json:
               schema:
@@ -3757,6 +3888,60 @@ components:
           type: string
           format: date-time
           example: 2024-01-15T10:30:00Z
+
+    Ban:
+      type: object
+      required: [id, user_id, reason, created_at, created_by]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        user_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+            display_name:
+              type: string
+              nullable: true
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174001
+            username: spammer123
+            display_name: null
+        reason:
+          type: string
+          maxLength: 1000
+          example: Multiple content policy violations
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2024-12-31T23:59:59Z
+        created_by:
+          type: object
+          required: [id, username]
+          properties:
+            id:
+              type: string
+              format: uuid
+            username:
+              type: string
+          example:
+            id: 123e4567-e89b-12d3-a456-426614174002
+            username: admin
 
     # ==================== User Follow/Following ====================
     FollowUser:
