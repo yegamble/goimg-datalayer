@@ -110,7 +110,22 @@ func NewRouter(
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public auth routes (no authentication required)
-		r.Mount("/auth", authHandler.Routes())
+		// Most auth routes are public, but guest session creation is rate-limited
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", authHandler.Register)
+			r.Post("/login", authHandler.Login)
+			r.Post("/refresh", authHandler.Refresh)
+			r.Post("/logout", authHandler.Logout)
+
+			// Guest session creation with IP-based rate limiting (10/hour per IP)
+			// Prevents abuse of anonymous upload feature
+			if middlewareConfig.RateLimiterConfig != nil {
+				r.With(middleware.GuestSessionRateLimiter(*middlewareConfig.RateLimiterConfig)).
+					Post("/guest", authHandler.CreateGuestSession)
+			} else {
+				r.Post("/guest", authHandler.CreateGuestSession)
+			}
+		})
 
 		// OAuth routes (mixed public and protected)
 		// Public: GET /{provider}, GET /{provider}/callback
@@ -240,9 +255,14 @@ func NewRouter(
 
 			// Moderation endpoints (Sprint 14)
 			// User endpoints (authenticated users can report content)
-			// POST /reports - Create abuse report (rate limited: 10/hour TODO)
+			// POST /reports - Create abuse report (rate limited: 10/hour per user)
 			if moderationHandler != nil {
-				r.Post("/reports", moderationHandler.CreateReport)
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.ReportRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/reports", moderationHandler.CreateReport)
+				} else {
+					r.Post("/reports", moderationHandler.CreateReport)
+				}
 			}
 
 			// Admin/moderator endpoints for report management

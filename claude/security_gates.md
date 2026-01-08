@@ -784,6 +784,106 @@ Use this template for each sprint gate review:
 
 ---
 
+## Sprint 14: Content Moderation & Guest Uploads
+
+**Focus**: Abuse reporting, moderation queue, user bans, guest session management
+**Security Risk**: HIGH (content moderation, anonymous access, privilege escalation)
+
+### Mandatory Controls
+
+| Control ID | Description | Pass Criteria | Verification |
+|------------|-------------|---------------|--------------|
+| **S14-MOD-001** | RBAC enforced at handler layer for moderator actions | Middleware blocks non-moderator access | Code review: `RequireAnyRole("moderator", "admin")` in router |
+| **S14-MOD-002** | RBAC enforced at handler layer for admin-only ban operations | Middleware blocks non-admin access | Code review: `RequireRole("admin")` for ban endpoints |
+| **S14-MOD-003** | Report abuse rate limiting prevents spam | 10 reports/hour per user enforced | Integration test: 11th report in 1 hour returns 429 |
+| **S14-MOD-004** | Self-moderation prevented | Moderators cannot moderate own content | Test: moderator reports own image, cannot resolve |
+| **S14-MOD-005** | Ban authorization requires admin role only | Non-admin users cannot ban | Test: moderator attempts ban, returns 403 |
+| **S14-GUEST-001** | Guest session creation rate limited by IP | 10 sessions/hour per IP enforced | Integration test: 11th guest session from same IP returns 429 |
+| **S14-GUEST-002** | Guest sessions have limited lifecycle | Auto-expiry after 30 days | Verify cleanup job exists, runs daily |
+| **S14-GUEST-003** | Only registered users can claim images | Guest users blocked from claiming | Test: guest attempts claim, returns 403 |
+| **S14-GUEST-004** | Image claim verifies guest ownership | Cannot claim images owned by non-guests | Test: claim non-guest image, returns 403 |
+| **S14-AUDIT-001** | All moderation actions logged with actor ID | Ban, resolve, dismiss logged | Audit log verification |
+| **S14-AUDIT-002** | Guest session creation logged with IP address | IP tracking for abuse detection | Log verification |
+
+### Security Tests Required
+
+```go
+// Moderation security tests
+- TestModeration_RequiresModeratorRole
+- TestModeration_AdminOnlyBan
+- TestModeration_ReportRateLimitEnforced
+- TestModeration_CannotModerateOwnContent
+- TestModeration_BanLogsActorID
+
+// Guest upload security tests
+- TestGuest_SessionRateLimitEnforced
+- TestGuest_GuestCannotClaimImages
+- TestGuest_ClaimRequiresGuestOwnership
+- TestGuest_ClaimVerifiesGuestUserType
+- TestGuest_SessionLogsIPAddress
+
+// Authorization tests
+- TestRBAC_UserCannotBan
+- TestRBAC_ModeratorCannotAccessBanList
+- TestRBAC_GuestCannotAccessProtectedRoutes
+
+// Audit logging tests
+- TestAudit_BanActionLogged
+- TestAudit_ReportResolutionLogged
+- TestAudit_GuestSessionLogged
+```
+
+### Recommended Controls
+
+- [ ] Implement automated abuse pattern detection
+- [ ] Add CAPTCHA after 3 failed report submissions
+- [ ] Monitor moderation queue depth
+- [ ] Alert on guest account creation spikes
+- [ ] Implement appeal process for bans
+- [ ] Add moderator performance dashboard
+
+### SecOps Review Focus
+
+- RBAC implementation (role assignment, middleware enforcement)
+- Rate limiting effectiveness (report spam, guest abuse)
+- Audit logging completeness and immutability
+- Authorization checks at multiple layers (middleware + application)
+- Guest session lifecycle management
+- Input validation for moderation actions
+- Error handling security (no information disclosure)
+
+### Known Risks & Mitigations
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| Report spam overwhelms queue | High | Rate limiting (10/hour per user) + monitoring |
+| Guest account abuse | High | IP-based rate limiting (10/hour) + cleanup job |
+| Privilege escalation (ban access) | Critical | Admin-only middleware + audit logging |
+| Self-moderation (conflict of interest) | Medium | Business rule: reporter_id != resolver_id |
+| Guest session accumulation | Medium | Daily cleanup job for expired sessions |
+| Moderator abuse of power | Medium | Audit logging + peer review dashboard |
+
+### Sprint 14 Gate Status
+
+**Review Date**: 2026-01-08
+**Status**: ✅ **CONDITIONAL APPROVE**
+**Reviewer**: Senior Security Operations Engineer
+
+**Critical Findings**:
+1. ⚠️ **C1**: Missing rate limiting on report creation endpoint (S14-MOD-003)
+2. ⚠️ **C2**: Missing rate limiting on guest session creation (S14-GUEST-001)
+
+**Remediation Required**:
+- Implement rate limiting middleware for both endpoints
+- Add integration tests for rate limit enforcement
+- Verify self-moderation prevention in domain layer
+
+**Production Authorization**: Approved after remediation of C1 and C2 (ETA: 48 hours)
+
+**Detailed Report**: See `claude/SECURITY_GATE_S14_REPORT.md`
+
+---
+
 ## References
 
 - OWASP Top 10 2021: https://owasp.org/Top10/

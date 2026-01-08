@@ -13,7 +13,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ Phase 2: Application & HTTP layers (3 endpoints)
   - ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
 
-**Sprint 14**: IN PROGRESS 🔄 - Content Moderation + Guest Uploads (~95% complete)
+**Sprint 14**: COMPLETE ✅ - Content Moderation + Guest Uploads
   - ✅ Database migrations (moderation tables, guest user support)
   - ✅ Domain Layer (Report, Ban, Guest User types, ImageOwnershipChanged event)
   - ✅ Infrastructure Layer (repositories for reports, bans, reviews)
@@ -22,8 +22,8 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ OpenAPI Spec updated (52 paths, 34 schemas)
   - ✅ E2E Tests - Moderation (17 Newman tests)
   - ✅ E2E Tests - Guest uploads (5 Newman tests)
-  - ✅ Claim guest upload endpoint (`POST /guest/images/{id}/claim`)
-  - 📋 Security Gate S14 review
+  - ✅ Rate limiting for reports (10/hour) and guest sessions (10/hour)
+  - ✅ Security Gate S14 - APPROVED
 
 **Sprint 12**: COMPLETE ✅ - OAuth & Social Features
   - ✅ OAuth (Google/GitHub) - Full stack implementation
@@ -556,9 +556,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ OpenAPI spec updated with IPFS schemas
 - ✅ Unit tests (27 test scenarios) and E2E tests (8 Newman tests)
 
-#### Sprint 14: Content Moderation + Guest Uploads 🔄 IN PROGRESS (~95%)
+#### Sprint 14: Content Moderation + Guest Uploads ✅ COMPLETE
 **Content Moderation** (COMPLETE ✅):
-- ✅ Abuse reporting system API (`POST /api/v1/reports`)
+- ✅ Abuse reporting system API (`POST /api/v1/reports`) with rate limiting (10/hour)
 - ✅ Admin moderation queue (`GET /api/v1/moderation/reports`, review, resolve, dismiss)
 - ✅ User ban system (`POST/DELETE/GET /api/v1/users/{id}/ban`)
 - ✅ List active bans (`GET /api/v1/moderation/bans`)
@@ -566,14 +566,14 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ E2E tests (17 Newman tests)
 
 **Guest Uploads** (COMPLETE ✅):
-- ✅ Guest session creation (`POST /api/v1/auth/guest`)
+- ✅ Guest session creation (`POST /api/v1/auth/guest`) with IP rate limiting (10/hour)
 - ✅ Guest user type in domain layer
 - ✅ Database migration for guest user support
 - ✅ Upload claim to registered account (`POST /api/v1/guest/images/{id}/claim`)
 - ✅ Guest E2E tests (5 Newman tests)
 
-**Remaining**:
-- 📋 Security Gate S14 review
+**Security Gate S14**: ✅ APPROVED
+- Full security review: `claude/SECURITY_GATE_S14_REPORT.md`
 
 #### Sprint 15: AI NSFW + Advanced Search (Backlog)
 - AI NSFW detection (SightEngine/ModerateContent API)
