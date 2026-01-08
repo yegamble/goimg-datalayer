@@ -12,7 +12,7 @@
 ### Content Moderation + Guest Uploads
 
 **Priority**: P0 CRITICAL (Legal requirement - EU DSA compliance)
-**Status**: **IN PROGRESS** (Core implementation complete, ~90%)
+**Status**: **IN PROGRESS** (Core implementation complete, ~95% - Security Gate S14 pending)
 
 | Component | Status | Files |
 |-----------|--------|-------|
@@ -28,7 +28,7 @@
 | HTTP Layer (Guest) | ✅ COMPLETE | Guest session endpoint in auth_handler.go |
 | OpenAPI Spec | ✅ COMPLETE | 50 total paths, 33 schemas |
 | E2E Tests (Moderation) | ✅ COMPLETE | 17 Newman tests |
-| E2E Tests (Guest) | 📋 PENDING | Guest session flow tests |
+| E2E Tests (Guest) | ✅ COMPLETE | 5 Newman tests (session + claim flow) |
 
 ### Sprint 14 Delivered Endpoints
 
@@ -44,9 +44,9 @@
 - ✅ `GET /api/v1/users/{id}/ban` - Check ban status (admin/self)
 - ✅ `GET /api/v1/moderation/bans` - List active bans (admin)
 
-**Guest Uploads** (Core Complete):
+**Guest Uploads** (COMPLETE ✅):
 - ✅ `POST /api/v1/auth/guest` - Create guest session
-- 📋 `POST /api/v1/guest/images/{id}/claim` - Claim upload to account (pending)
+- ✅ `POST /api/v1/guest/images/{id}/claim` - Claim upload to account
 
 ---
 

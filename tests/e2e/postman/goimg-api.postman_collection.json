@@ -8415,6 +8415,326 @@
       ]
     },
     {
+      "name": "Guest Uploads",
+      "description": "Tests for guest session creation and upload claiming functionality. Guest sessions allow anonymous users to upload images, which can later be claimed by registering.",
+      "item": [
+        {
+          "name": "Create Guest Session - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has access token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('access_token');",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.collectionVariables.set('guestAccessToken', jsonData.access_token);",
+                  "});",
+                  "",
+                  "pm.test('Response has refresh token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('refresh_token');",
+                  "    pm.expect(jsonData.refresh_token).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Response has token type', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token_type');",
+                  "    pm.expect(jsonData.token_type).to.eql('Bearer');",
+                  "});",
+                  "",
+                  "pm.test('Response has expires_in', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('expires_in');",
+                  "    pm.expect(jsonData.expires_in).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});",
+                  "",
+                  "// Decode JWT to get guest user ID",
+                  "const jwt = pm.response.json().access_token;",
+                  "const payload = jwt.split('.')[1];",
+                  "const decoded = JSON.parse(atob(payload));",
+                  "pm.collectionVariables.set('guestUserId', decoded.sub);",
+                  "console.log('Guest user ID:', decoded.sub);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_agent\": \"E2E Test Client\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/guest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "guest"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Guest Upload - Guest Cannot Claim (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(403);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates guest users cannot claim', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include('registered');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{guestAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_user_id\": \"{{guestUserId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/guest/images/00000000-0000-0000-0000-000000000000/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guest",
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "claim"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Guest Upload - Image Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates not found', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_user_id\": \"{{guestUserId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/guest/images/00000000-0000-0000-0000-000000000000/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guest",
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "claim"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Guest Upload - Missing Guest User ID (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates missing guest user ID', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include('guest');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/guest/images/00000000-0000-0000-0000-000000000000/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guest",
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "claim"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Guest Upload - Unauthorized (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_user_id\": \"00000000-0000-0000-0000-000000000001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/guest/images/00000000-0000-0000-0000-000000000000/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guest",
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "claim"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Error Handling",
       "item": [
         {

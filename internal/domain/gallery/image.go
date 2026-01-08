@@ -406,6 +406,47 @@ func (i *Image) Flag() error {
 	return nil
 }
 
+// Behavior Methods - Ownership Transfer.
+
+// ChangeOwner transfers ownership of the image to a new owner.
+// This is typically used when a guest user claims their uploaded images
+// after converting to a registered account.
+// Cannot transfer ownership of deleted or flagged images.
+func (i *Image) ChangeOwner(newOwnerID identity.UserID) error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	if i.status == StatusFlagged {
+		return fmt.Errorf("%w: cannot transfer flagged images", ErrUnauthorizedAccess)
+	}
+
+	if newOwnerID.IsZero() {
+		return fmt.Errorf("%w: new owner ID is required", shared.ErrInvalidInput)
+	}
+
+	// No-op if same owner
+	if i.ownerID == newOwnerID {
+		return nil
+	}
+
+	previousOwner := i.ownerID
+	now := time.Now().UTC()
+
+	i.ownerID = newOwnerID
+	i.updatedAt = now
+
+	i.addEvent(&ImageOwnershipChanged{
+		BaseEvent:       shared.NewBaseEvent("gallery.image.ownership_changed", i.id.String()),
+		ImageID:         i.id,
+		PreviousOwner:   previousOwner,
+		NewOwner:        newOwnerID,
+		TransferredAt:   now,
+	})
+
+	return nil
+}
+
 // Behavior Methods - Metadata Updates.
 
 // UpdateMetadata updates the title and description of the image.

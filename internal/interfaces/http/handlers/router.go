@@ -49,6 +49,7 @@ type MiddlewareConfig struct {
 //   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
 //   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
 //   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
+//   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -66,6 +67,7 @@ func NewRouter(
 	notificationHandler *NotificationHandler,
 	ipfsHandler *IPFSHandler,
 	moderationHandler *ModerationHandler,
+	guestHandler *GuestHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -281,6 +283,12 @@ func NewRouter(
 					r.Delete("/users/{userID}/ban", moderationHandler.UnbanUser)
 					r.Get("/moderation/bans", moderationHandler.ListActiveBans)
 				})
+			}
+
+			// Guest endpoints (Sprint 14)
+			// POST /guest/images/{imageID}/claim - Claim guest upload (registered users only)
+			if guestHandler != nil {
+				r.Mount("/guest", guestHandler.Routes())
 			}
 		})
 

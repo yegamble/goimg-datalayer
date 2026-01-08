@@ -3202,6 +3202,125 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== Guest Uploads ====================
+  /auth/guest:
+    post:
+      tags: [auth]
+      summary: Create guest session
+      description: |
+        Create a temporary guest session for anonymous uploads.
+
+        Guest sessions allow users to upload images without registering.
+        The guest account expires after 30 days, and uploads can be
+        claimed by registering or linking to an existing account.
+
+        Rate limits:
+        - 10 guest sessions per hour per IP address
+
+        The returned token can be used for subsequent API calls.
+      operationId: createGuestSession
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_agent:
+                  type: string
+                  description: Optional browser/client user agent
+                  maxLength: 500
+      responses:
+        '201':
+          description: Guest session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '429':
+          description: Rate limit exceeded for guest session creation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /guest/images/{imageId}/claim:
+    post:
+      tags: [images]
+      summary: Claim guest upload
+      description: |
+        Transfer ownership of an image uploaded during a guest session
+        to the authenticated registered user.
+
+        Requirements:
+        - Caller must be authenticated as a registered (non-guest) user
+        - Image must be owned by the specified guest user
+        - Guest user account must exist
+
+        After claiming:
+        - Image ownership is transferred to the authenticated user
+        - An ImageOwnershipChanged event is published for audit trail
+        - The image appears in the new owner's library
+      operationId: claimGuestImage
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          description: The ID of the image to claim
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guest_user_id]
+              properties:
+                guest_user_id:
+                  type: string
+                  format: uuid
+                  description: The ID of the guest user who uploaded the image
+      responses:
+        '200':
+          description: Image claimed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimGuestImageResponse'
+        '400':
+          description: Invalid request body or IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Cannot claim this image (not guest owner, or requester is guest)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Cannot claim deleted image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Explore ====================
   /explore/recent:
     get:
@@ -4172,6 +4291,36 @@ components:
           type: integer
           description: Access token lifetime in seconds
           example: 900
+
+    ClaimGuestImageResponse:
+      type: object
+      required: [image_id, new_owner_id, previous_owner, transferred_at, message]
+      description: Response from successfully claiming a guest upload
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: The ID of the claimed image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        new_owner_id:
+          type: string
+          format: uuid
+          description: The ID of the new owner (authenticated user)
+          example: 456e4567-e89b-12d3-a456-426614174001
+        previous_owner:
+          type: string
+          format: uuid
+          description: The ID of the previous owner (guest user)
+          example: 789e4567-e89b-12d3-a456-426614174002
+        transferred_at:
+          type: string
+          format: date-time
+          description: When the ownership was transferred
+          example: "2026-01-08T14:30:00Z"
+        message:
+          type: string
+          description: Success message
+          example: Image claimed successfully
 
     # ==================== Two-Factor Authentication ====================
     Setup2FAResponse:
