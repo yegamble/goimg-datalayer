@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "goimg-api-e2e-tests",
     "name": "GoImg API E2E Tests",
-    "description": "End-to-end API tests for the GoImg image gallery platform.\n\nThese tests validate the complete API functionality including authentication, user management, image operations, albums, and moderation workflows.\n\n## Test Organization\n\n- **Health Check**: System health and readiness\n- **Auth**: Registration, login, token refresh, logout flows\n- **Users**: Profile management, sessions, account deletion\n- **Images**: Upload, retrieve, update, delete operations\n- **Albums**: Album CRUD operations\n- **Explore**: Public discovery features\n- **E2E Flows**: Complete user journey tests\n- **Error Handling**: RFC 7807 error response validation\n\n## Running Tests\n\nTests are designed to run sequentially as they depend on previous test results (e.g., registration before login).\n\n```bash\nnewman run goimg-api.postman_collection.json -e ci.postman_environment.json\n```",
+    "description": "End-to-end API tests for the GoImg image gallery platform.\n\nThese tests validate the complete API functionality including authentication, user management, image operations, albums, and moderation workflows.\n\n## Test Organization\n\n- **Health Check**: System health and readiness\n- **Auth**: Registration, login, token refresh, logout flows\n- **Users**: Profile management, sessions, account deletion\n- **Images**: Upload, retrieve, update, delete operations\n- **Albums**: Album CRUD operations\n- **Social**: Following, comments, likes\n- **Explore**: Public discovery features\n- **Content Moderation**: Reports, bans, and moderation workflows (admin/moderator only)\n- **E2E Flows**: Complete user journey tests\n- **Error Handling**: RFC 7807 error response validation\n\n## Running Tests\n\nTests are designed to run sequentially as they depend on previous test results (e.g., registration before login).\n\n```bash\nnewman run goimg-api.postman_collection.json -e ci.postman_environment.json\n```",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -6559,8 +6559,8 @@
                       "    pm.expect(jsonData).to.have.property('id');",
                       "    pm.expect(jsonData).to.have.property('content');",
                       "    // Verify Unicode characters preserved",
-                      "    pm.expect(jsonData.content).to.include('\ud83d\ude0d');",
-                      "    pm.expect(jsonData.content).to.include('\u65e5\u672c\u8a9e');",
+                      "    pm.expect(jsonData.content).to.include('😍');",
+                      "    pm.expect(jsonData.content).to.include('日本語');",
                       "});",
                       "",
                       "pm.test('Response has X-Request-ID header', function () {",
@@ -6585,7 +6585,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"content\": \"Amazing shot! \ud83d\ude0d \u7d20\u6674\u3089\u3057\u3044\u5199\u771f\uff01 \u65e5\u672c\u8a9e test @user #photo\"\n}"
+                  "raw": "{\n  \"content\": \"Amazing shot! 😍 素晴らしい写真！ 日本語 test @user #photo\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",
@@ -7211,6 +7211,1203 @@
                   "key": "pageSize",
                   "value": "20"
                 }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Content Moderation",
+      "item": [
+        {
+          "name": "Create Report - Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Create a test image to report",
+                  "const timestamp = Date.now();",
+                  "const randomSuffix = Math.floor(Math.random() * 10000);",
+                  "const uniqueId = `${timestamp}${randomSuffix}`;",
+                  "",
+                  "// First, register a user to create the image",
+                  "const registerRequest = {",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json'",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            email: `reporter-${uniqueId}@example.com`,",
+                  "            username: `reporter${uniqueId}`,",
+                  "            password: pm.collectionVariables.get('testPassword'),",
+                  "            displayName: 'Reporter User'",
+                  "        })",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.sendRequest(registerRequest, function (err, registerResp) {",
+                  "    if (err) {",
+                  "        console.error('Registration failed:', err);",
+                  "        return;",
+                  "    }",
+                  "    ",
+                  "    // Login to get token",
+                  "    const loginRequest = {",
+                  "        url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({",
+                  "                email: `reporter-${uniqueId}@example.com`,",
+                  "                password: pm.collectionVariables.get('testPassword')",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    ",
+                  "    pm.sendRequest(loginRequest, function (err, loginResp) {",
+                  "        if (err) {",
+                  "            console.error('Login failed:', err);",
+                  "            return;",
+                  "        }",
+                  "        ",
+                  "        const authData = loginResp.json();",
+                  "        const reporterToken = authData.access_token;",
+                  "        ",
+                  "        // Create an image to report",
+                  "        const createImageRequest = {",
+                  "            url: pm.collectionVariables.get('baseUrl') + '/images',",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'Authorization': 'Bearer ' + reporterToken,",
+                  "                'Content-Type': 'application/json'",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify({",
+                  "                    title: 'Image to be reported',",
+                  "                    description: 'Test image for moderation',",
+                  "                    visibility: 'public',",
+                  "                    url: 'https://example.com/test-image.jpg',",
+                  "                    thumbnail_url: 'https://example.com/test-thumb.jpg'",
+                  "                })",
+                  "            }",
+                  "        };",
+                  "        ",
+                  "        pm.sendRequest(createImageRequest, function (err, imageResp) {",
+                  "            if (err) {",
+                  "                console.error('Image creation failed:', err);",
+                  "                return;",
+                  "            }",
+                  "            ",
+                  "            const imageData = imageResp.json();",
+                  "            pm.environment.set('reportedImageId', imageData.id);",
+                  "            pm.environment.set('reportedUserId', imageData.owner_id);",
+                  "        });",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has report ID', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData.id).to.be.a('string');",
+                  "    pm.environment.set('testReportId', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('Report has correct status', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('pending');",
+                  "});",
+                  "",
+                  "pm.test('Report has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('reporter_id');",
+                  "    pm.expect(jsonData).to.have.property('image_id');",
+                  "    pm.expect(jsonData).to.have.property('reason');",
+                  "    pm.expect(jsonData).to.have.property('created_at');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_id\": \"{{reportedImageId}}\",\n  \"reason\": \"inappropriate\",\n  \"description\": \"This image contains inappropriate content that violates community guidelines\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Report - Missing Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates validation failure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('validation');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Missing required fields\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Report - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_id\": \"{{reportedImageId}}\",\n  \"reason\": \"spam\",\n  \"description\": \"This should fail without auth\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Pending Reports - Admin Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Create admin user if not exists",
+                  "const adminToken = pm.environment.get('adminToken');",
+                  "if (!adminToken) {",
+                  "    const timestamp = Date.now();",
+                  "    const randomSuffix = Math.floor(Math.random() * 10000);",
+                  "    const uniqueId = `${timestamp}${randomSuffix}`;",
+                  "    ",
+                  "    const registerRequest = {",
+                  "        url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json'",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({",
+                  "                email: `admin-${uniqueId}@example.com`,",
+                  "                username: `admin${uniqueId}`,",
+                  "                password: pm.collectionVariables.get('testPassword'),",
+                  "                displayName: 'Admin User',",
+                  "                role: 'admin'",
+                  "            })",
+                  "        }",
+                  "    };",
+                  "    ",
+                  "    pm.sendRequest(registerRequest, function (err, registerResp) {",
+                  "        if (err) {",
+                  "            console.error('Admin registration failed:', err);",
+                  "            return;",
+                  "        }",
+                  "        ",
+                  "        const userData = registerResp.json();",
+                  "        pm.environment.set('adminUserId', userData.id);",
+                  "        ",
+                  "        // Login as admin",
+                  "        const loginRequest = {",
+                  "            url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'Content-Type': 'application/json'",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify({",
+                  "                    email: `admin-${uniqueId}@example.com`,",
+                  "                    password: pm.collectionVariables.get('testPassword')",
+                  "                })",
+                  "            }",
+                  "        };",
+                  "        ",
+                  "        pm.sendRequest(loginRequest, function (err, loginResp) {",
+                  "            if (err) {",
+                  "                console.error('Admin login failed:', err);",
+                  "                return;",
+                  "            }",
+                  "            ",
+                  "            const authData = loginResp.json();",
+                  "            pm.environment.set('adminToken', authData.access_token);",
+                  "        });",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has items array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination metadata', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('per_page');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "});",
+                  "",
+                  "pm.test('Reports have required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.items.length > 0) {",
+                  "        const report = jsonData.items[0];",
+                  "        pm.expect(report).to.have.property('id');",
+                  "        pm.expect(report).to.have.property('reporter_id');",
+                  "        pm.expect(report).to.have.property('image_id');",
+                  "        pm.expect(report).to.have.property('status');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports?status=pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Pending Reports - User Forbidden",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(403);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates forbidden access', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('forbidden');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Report Details - Admin Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Report has detailed information', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('reporter');",
+                  "    pm.expect(jsonData).to.have.property('image');",
+                  "    pm.expect(jsonData).to.have.property('reason');",
+                  "    pm.expect(jsonData).to.have.property('description');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "});",
+                  "",
+                  "pm.test('Reporter object has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.reporter).to.have.property('id');",
+                  "    pm.expect(jsonData.reporter).to.have.property('username');",
+                  "});",
+                  "",
+                  "pm.test('Image object has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.image).to.have.property('id');",
+                  "    pm.expect(jsonData.image).to.have.property('owner_id');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports/{{testReportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports",
+                "{{testReportId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Start Review - Admin Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports/{{testReportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports",
+                "{{testReportId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolve Report - Admin Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolution\": \"Image removed for violating content policy. User has been notified.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports/{{testReportId}}/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports",
+                "{{testReportId}}",
+                "resolve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dismiss Report - Admin Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Create another report to dismiss",
+                  "const reportRequest = {",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/reports',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Authorization': 'Bearer ' + pm.environment.get('accessToken'),",
+                  "        'Content-Type': 'application/json'",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            image_id: pm.environment.get('reportedImageId'),",
+                  "            reason: 'spam',",
+                  "            description: 'Test report to be dismissed'",
+                  "        })",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.sendRequest(reportRequest, function (err, response) {",
+                  "    if (!err && response.code === 201) {",
+                  "        const reportData = response.json();",
+                  "        pm.collectionVariables.set('dismissReportId', reportData.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports/{{dismissReportId}}/dismiss",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports",
+                "{{dismissReportId}}",
+                "dismiss"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ban User - Admin Success (Temporary)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has ban ID', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('ban_id');",
+                  "    pm.expect(jsonData.ban_id).to.be.a('string');",
+                  "    pm.environment.set('testBanId', jsonData.ban_id);",
+                  "});",
+                  "",
+                  "pm.test('Response has expiration time for temporary ban', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('expires_at');",
+                  "    pm.expect(jsonData.expires_at).to.not.be.null;",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Multiple content policy violations\",\n  \"duration_hours\": 168\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{reportedUserId}}/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{reportedUserId}}",
+                "ban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ban User - User Forbidden",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(403);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates forbidden access', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('forbidden');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"This should fail - regular user cannot ban\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{reportedUserId}}/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{reportedUserId}}",
+                "ban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Ban Status - Admin Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has is_banned field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('is_banned');",
+                  "    pm.expect(jsonData.is_banned).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "pm.test('User is banned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.is_banned).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Ban details are present', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.is_banned) {",
+                  "        pm.expect(jsonData).to.have.property('reason');",
+                  "        pm.expect(jsonData.reason).to.be.a('string');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{reportedUserId}}/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{reportedUserId}}",
+                "ban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unban User - Admin Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{reportedUserId}}/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{reportedUserId}}",
+                "ban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Active Bans - Admin Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Create a new ban for testing list",
+                  "const banRequest = {",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/users/' + pm.environment.get('reportedUserId') + '/ban',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Authorization': 'Bearer ' + pm.environment.get('adminToken'),",
+                  "        'Content-Type': 'application/json'",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            reason: 'Test ban for list endpoint',",
+                  "            duration_hours: 24",
+                  "        })",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.sendRequest(banRequest, function (err, response) {",
+                  "    if (err) {",
+                  "        console.log('Ban creation failed (may already exist):', err);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has items array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination metadata', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('per_page');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "});",
+                  "",
+                  "pm.test('Bans have required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.items.length > 0) {",
+                  "        const ban = jsonData.items[0];",
+                  "        pm.expect(ban).to.have.property('id');",
+                  "        pm.expect(ban).to.have.property('user_id');",
+                  "        pm.expect(ban).to.have.property('reason');",
+                  "        pm.expect(ban).to.have.property('created_at');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/bans?page=1&per_page=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "bans"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Report Not Found - 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates not found', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/reports/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "reports",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ban Non-Existent User - 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('detail');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates user not found', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title.toLowerCase()).to.include('not found');",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Testing 404 error\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/ban",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "00000000-0000-0000-0000-000000000000",
+                "ban"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rate Limit Exceeded - 429 (Future)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// NOTE: This test is for future implementation",
+                  "// Rate limiting may not be fully implemented yet",
+                  "// Expected behavior: 429 status with RFC 7807 error",
+                  "",
+                  "pm.test('Status code is 429 or 201 (if rate limiting not yet implemented)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 429]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 429) {",
+                  "    pm.test('Response follows RFC 7807 Problem Details', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('type');",
+                  "        pm.expect(jsonData).to.have.property('title');",
+                  "        pm.expect(jsonData).to.have.property('status');",
+                  "        pm.expect(jsonData.status).to.eql(429);",
+                  "    });",
+                  "    ",
+                  "    pm.test('Error indicates rate limit exceeded', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.title.toLowerCase()).to.include('rate limit');",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_id\": \"{{reportedImageId}}\",\n  \"reason\": \"spam\",\n  \"description\": \"Testing rate limit - report #11 (exceeds 10/hour limit)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
               ]
             }
           }
