@@ -592,9 +592,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 |---------|----------|-------------|
 | Groups/communities | P3 | User groups, shared albums |
 | Watermarking | P3 | Auto-watermark on uploads |
-| AI NSFW detection | P3 | Automated content moderation |
 | Account tiers | P3 | Storage limits, premium features |
 | Video support | P3 | Video upload and streaming |
+| oEmbed & Social Cards | P2 | Embeddable images, social media previews |
 
 See [claude/sprint_plan.md](claude/sprint_plan.md) for detailed breakdown and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md) for current status.
 

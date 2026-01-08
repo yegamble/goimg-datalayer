@@ -50,4 +50,22 @@ var (
 	ErrResolutionTooLong = errors.New("resolution exceeds 1000 characters")
 	// ErrNotesTooLong indicates review notes exceed the maximum length.
 	ErrNotesTooLong = errors.New("notes exceed 2000 characters")
+
+	// NSFW scan errors
+	// ErrNSFWScanNotFound indicates an NSFW scan was not found.
+	ErrNSFWScanNotFound = errors.New("nsfw scan not found")
+	// ErrNSFWScanAlreadyCompleted indicates the scan has already completed.
+	ErrNSFWScanAlreadyCompleted = errors.New("nsfw scan already completed")
+	// ErrNSFWScanAlreadyFailed indicates the scan has already failed.
+	ErrNSFWScanAlreadyFailed = errors.New("nsfw scan already failed")
+	// ErrNSFWScanInProgress indicates a scan is already in progress for this image.
+	ErrNSFWScanInProgress = errors.New("nsfw scan already in progress")
+	// ErrInvalidNSFWProvider indicates an invalid NSFW provider was specified.
+	ErrInvalidNSFWProvider = errors.New("invalid nsfw provider")
+	// ErrInvalidNSFWCategory indicates an invalid NSFW category was specified.
+	ErrInvalidNSFWCategory = errors.New("invalid nsfw category")
+	// ErrInvalidNSFWScanStatus indicates an invalid NSFW scan status was specified.
+	ErrInvalidNSFWScanStatus = errors.New("invalid nsfw scan status")
+	// ErrNSFWScoreOutOfRange indicates the NSFW score is not in valid range [0.0, 1.0].
+	ErrNSFWScoreOutOfRange = errors.New("nsfw score must be between 0.0 and 1.0")
 )
