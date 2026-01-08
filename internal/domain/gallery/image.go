@@ -437,11 +437,11 @@ func (i *Image) ChangeOwner(newOwnerID identity.UserID) error {
 	i.updatedAt = now
 
 	i.addEvent(&ImageOwnershipChanged{
-		BaseEvent:       shared.NewBaseEvent("gallery.image.ownership_changed", i.id.String()),
-		ImageID:         i.id,
-		PreviousOwner:   previousOwner,
-		NewOwner:        newOwnerID,
-		TransferredAt:   now,
+		BaseEvent:     shared.NewBaseEvent("gallery.image.ownership_changed", i.id.String()),
+		ImageID:       i.id,
+		PreviousOwner: previousOwner,
+		NewOwner:      newOwnerID,
+		TransferredAt: now,
 	})
 
 	return nil

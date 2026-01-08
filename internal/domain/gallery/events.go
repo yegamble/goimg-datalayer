@@ -148,10 +148,10 @@ func (e *ImageUnpinnedFromIPFS) EventType() string {
 // after converting to a registered account.
 type ImageOwnershipChanged struct {
 	shared.BaseEvent
-	ImageID        ImageID
-	PreviousOwner  identity.UserID
-	NewOwner       identity.UserID
-	TransferredAt  time.Time
+	ImageID       ImageID
+	PreviousOwner identity.UserID
+	NewOwner      identity.UserID
+	TransferredAt time.Time
 }
 
 // EventType returns the event type identifier.

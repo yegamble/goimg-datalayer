@@ -16,9 +16,9 @@ import (
 // during a guest session. This transfers ownership from a guest user
 // to the authenticated registered user.
 type ClaimGuestImageCommand struct {
-	ImageID      string // The image to claim
-	RequesterID  string // The authenticated user claiming the image
-	GuestUserID  string // The guest user ID that uploaded the image (for verification)
+	ImageID     string // The image to claim
+	RequesterID string // The authenticated user claiming the image
+	GuestUserID string // The guest user ID that uploaded the image (for verification)
 }
 
 // Ensure ClaimGuestImageCommand implements Command interface.
@@ -26,11 +26,11 @@ func (c ClaimGuestImageCommand) isCommand() {}
 
 // ClaimGuestImageResult represents the result of a successful image claim.
 type ClaimGuestImageResult struct {
-	ImageID        string
-	NewOwnerID     string
-	PreviousOwner  string
-	TransferredAt  string
-	Message        string
+	ImageID       string
+	NewOwnerID    string
+	PreviousOwner string
+	TransferredAt string
+	Message       string
 }
 
 // ClaimGuestImageHandler processes claim guest image commands.
