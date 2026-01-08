@@ -143,6 +143,22 @@ func (e *ImageUnpinnedFromIPFS) EventType() string {
 	return "gallery.image.ipfs_unpinned"
 }
 
+// ImageOwnershipChanged is emitted when an image's owner changes.
+// This typically occurs when a guest user claims their uploaded images
+// after converting to a registered account.
+type ImageOwnershipChanged struct {
+	shared.BaseEvent
+	ImageID        ImageID
+	PreviousOwner  identity.UserID
+	NewOwner       identity.UserID
+	TransferredAt  time.Time
+}
+
+// EventType returns the event type identifier.
+func (e *ImageOwnershipChanged) EventType() string {
+	return "gallery.image.ownership_changed"
+}
+
 // Album Events
 
 // AlbumCreated is emitted when a new album is created.

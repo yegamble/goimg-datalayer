@@ -560,6 +560,178 @@ func TwoFARateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	}
 }
 
+// ReportRateLimiter creates a rate limiting middleware for abuse report creation.
+// Uses a limit of 10 reports/hour per user to prevent report spam and abuse.
+//
+// Redis key pattern: goimg:ratelimit:report:{user_id}
+//
+// This should be applied to the report creation endpoint:
+//
+// Usage:
+//
+//	r.With(middleware.ReportRateLimiter(cfg)).Post("/reports", handlers.Moderation.CreateReport)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func ReportRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Report rate limit: 10 reports per hour
+	reportLimit := 10
+	reportWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user ID in context - should not happen if JWTAuth middleware is present
+				cfg.Logger.Error().
+					Str("request_id", GetRequestID(ctx)).
+					Msg("report rate limiter called without user context")
+
+				WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "Rate limiter configuration error")
+				return
+			}
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:report:%s", userID)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, reportLimit, reportWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("report rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("report")
+				}
+
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Int("limit", reportLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("report rate limit exceeded - potential report spam")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Report Limit Exceeded",
+					fmt.Sprintf(
+						"You have exceeded the report limit of %d reports per %s. Please try again later.",
+						reportLimit, reportWindow,
+					),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// GuestSessionRateLimiter creates a rate limiting middleware for guest session creation.
+// Uses IP-based limiting of 10 sessions/hour to prevent abuse of anonymous upload feature.
+//
+// Redis key pattern: goimg:ratelimit:guest:{ip}
+//
+// Security: Guest sessions allow anonymous uploads. Without rate limiting, attackers
+// could create unlimited guest accounts for storage abuse or spam.
+//
+// This should be applied to the guest session creation endpoint:
+//
+// Usage:
+//
+//	r.With(middleware.GuestSessionRateLimiter(cfg)).Post("/auth/guest", handlers.Auth.CreateGuestSession)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func GuestSessionRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Guest session rate limit: 10 sessions per hour per IP
+	guestLimit := 10
+	guestWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract client IP
+			clientIP := extractClientIP(r, cfg.TrustProxy)
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:guest:%s", clientIP)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, guestLimit, guestWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("ip", clientIP).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("guest session rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("guest")
+				}
+
+				cfg.Logger.Warn().
+					Str("ip", clientIP).
+					Int("limit", guestLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("guest session rate limit exceeded - potential abuse")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Guest Session Limit Exceeded",
+					fmt.Sprintf(
+						"You have exceeded the guest session limit of %d per %s. Please try again later.",
+						guestLimit, guestWindow,
+					),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // extractClientIP extracts the client IP address from the request.
 // If trustProxy is true, it checks X-Forwarded-For and X-Real-IP headers.
 // Otherwise, it uses RemoteAddr directly.
