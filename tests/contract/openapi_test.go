@@ -130,6 +130,8 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/auth/oauth/{provider}/callback": {http.MethodGet},
 		"/auth/oauth/link":                {http.MethodPost},
 		"/auth/oauth/accounts":            {http.MethodGet},
+		// IPFS endpoints (Sprint 13)
+		"/images/{id}/ipfs": {http.MethodGet, http.MethodPost, http.MethodDelete},
 	}
 
 	for path, methods := range expectedEndpoints {

@@ -19,6 +19,7 @@ type Image struct {
 	status       ImageStatus
 	variants     []ImageVariant
 	tags         []Tag
+	ipfsMetadata *IPFSMetadata // Optional IPFS storage info (nil if not pinned)
 	viewCount    int64
 	likeCount    int64
 	commentCount int64
@@ -85,6 +86,7 @@ func ReconstructImage(
 	status ImageStatus,
 	variants []ImageVariant,
 	tags []Tag,
+	ipfsMetadata *IPFSMetadata,
 	viewCount, likeCount, commentCount int64,
 	createdAt, updatedAt time.Time,
 ) *Image {
@@ -96,6 +98,7 @@ func ReconstructImage(
 		status:       status,
 		variants:     variants,
 		tags:         tags,
+		ipfsMetadata: ipfsMetadata,
 		viewCount:    viewCount,
 		likeCount:    likeCount,
 		commentCount: commentCount,
@@ -144,6 +147,17 @@ func (i *Image) Tags() []Tag {
 	result := make([]Tag, len(i.tags))
 	copy(result, i.tags)
 	return result
+}
+
+// IPFSMetadata returns the IPFS metadata if the image is stored on IPFS.
+// Returns nil if the image has not been pinned to IPFS.
+func (i *Image) IPFSMetadata() *IPFSMetadata {
+	return i.ipfsMetadata
+}
+
+// HasIPFS returns true if the image has been uploaded to IPFS.
+func (i *Image) HasIPFS() bool {
+	return i.ipfsMetadata != nil && !i.ipfsMetadata.IsZero()
 }
 
 // ViewCount returns the number of views.
@@ -476,6 +490,58 @@ func (i *Image) IsDeleted() bool {
 // IsFlagged returns true if the image has been flagged.
 func (i *Image) IsFlagged() bool {
 	return i.status.IsFlagged()
+}
+
+// Behavior Methods - IPFS Storage.
+
+// SetIPFSMetadata sets the IPFS metadata after pinning the image to IPFS.
+// This is called when an image is successfully uploaded and pinned to IPFS.
+func (i *Image) SetIPFSMetadata(meta IPFSMetadata) error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	// If already has same CID, just update pin status
+	if i.ipfsMetadata != nil && i.ipfsMetadata.CID() == meta.CID() {
+		i.ipfsMetadata = &meta
+		i.updatedAt = time.Now().UTC()
+		return nil
+	}
+
+	i.ipfsMetadata = &meta
+	i.updatedAt = time.Now().UTC()
+
+	i.addEvent(&ImagePinnedToIPFS{
+		BaseEvent: shared.NewBaseEvent("gallery.image.ipfs_pinned", i.id.String()),
+		ImageID:   i.id,
+		CID:       meta.CID(),
+	})
+
+	return nil
+}
+
+// ClearIPFSMetadata removes IPFS metadata when unpinning from IPFS.
+// The image remains in primary storage; only the IPFS reference is cleared.
+func (i *Image) ClearIPFSMetadata() error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	if i.ipfsMetadata == nil || i.ipfsMetadata.IsZero() {
+		return nil // Already cleared, idempotent
+	}
+
+	cid := i.ipfsMetadata.CID()
+	i.ipfsMetadata = nil
+	i.updatedAt = time.Now().UTC()
+
+	i.addEvent(&ImageUnpinnedFromIPFS{
+		BaseEvent: shared.NewBaseEvent("gallery.image.ipfs_unpinned", i.id.String()),
+		ImageID:   i.id,
+		CID:       cid,
+	})
+
+	return nil
 }
 
 // addEvent appends a domain event to the events slice.

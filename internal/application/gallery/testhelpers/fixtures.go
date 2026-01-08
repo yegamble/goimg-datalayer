@@ -28,11 +28,13 @@ const (
 
 // TestSuite provides mock dependencies for testing.
 type TestSuite struct {
-	ImageRepo      *MockImageRepository
-	Storage        *MockStorage
-	JobEnqueuer    *MockJobEnqueuer
-	EventPublisher *MockEventPublisher
-	Logger         zerolog.Logger
+	ImageRepo       *MockImageRepository
+	Storage         *MockStorage
+	JobEnqueuer     *MockJobEnqueuer
+	EventPublisher  *MockEventPublisher
+	IPFSService     *MockIPFSService
+	StorageProvider *MockStorageProvider
+	Logger          zerolog.Logger
 }
 
 // NewTestSuite creates a new test suite with mocked dependencies.
@@ -40,11 +42,13 @@ func NewTestSuite(t *testing.T) *TestSuite {
 	t.Helper()
 
 	return &TestSuite{
-		ImageRepo:      new(MockImageRepository),
-		Storage:        new(MockStorage),
-		JobEnqueuer:    new(MockJobEnqueuer),
-		EventPublisher: new(MockEventPublisher),
-		Logger:         zerolog.Nop(), // No-op logger for tests
+		ImageRepo:       new(MockImageRepository),
+		Storage:         new(MockStorage),
+		JobEnqueuer:     new(MockJobEnqueuer),
+		EventPublisher:  new(MockEventPublisher),
+		IPFSService:     new(MockIPFSService),
+		StorageProvider: new(MockStorageProvider),
+		Logger:          zerolog.Nop(), // No-op logger for tests
 	}
 }
 
@@ -56,6 +60,8 @@ func (s *TestSuite) AssertExpectations(t *testing.T) {
 	s.Storage.AssertExpectations(t)
 	s.JobEnqueuer.AssertExpectations(t)
 	s.EventPublisher.AssertExpectations(t)
+	s.IPFSService.AssertExpectations(t)
+	s.StorageProvider.AssertExpectations(t)
 }
 
 // ValidUserIDParsed returns a parsed UserID for testing.
@@ -123,6 +129,28 @@ func ValidTag(t *testing.T, name string) gallery.Tag {
 	require.NoError(t, err)
 
 	return tag
+}
+
+// ValidIPFSCID is a valid CIDv0 for testing (46 characters).
+const ValidIPFSCID = "QmTzQ1JRkWErjk39mryYw2WVPhE8u1S6aLNpT3EEDwzJ1X"
+
+// ValidImageWithIPFS creates a valid Image aggregate with IPFS metadata for testing.
+func ValidImageWithIPFS(t *testing.T) *gallery.Image {
+	t.Helper()
+
+	image := ValidImage(t)
+
+	// Add IPFS metadata
+	pinnedAt := ValidTimestamp()
+	ipfsMeta, err := gallery.NewIPFSMetadata(
+		ValidIPFSCID,
+		true,
+		&pinnedAt,
+	)
+	require.NoError(t, err)
+	require.NoError(t, image.SetIPFSMetadata(ipfsMeta))
+
+	return image
 }
 
 // ValidAlbum creates a valid Album aggregate for testing.

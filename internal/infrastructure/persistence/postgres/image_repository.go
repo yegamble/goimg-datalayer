@@ -38,7 +38,10 @@ const (
 		    status = $4,
 		    visibility = $5,
 		    view_count = $6,
-		    updated_at = $7
+		    ipfs_cid = $7,
+		    ipfs_pinned = $8,
+		    ipfs_pinned_at = $9,
+		    updated_at = $10
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
@@ -46,6 +49,7 @@ const (
 		SELECT id, owner_id, title, description, storage_provider, storage_key,
 		       original_filename, mime_type, file_size, width, height,
 		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
 		       created_at, updated_at
 		FROM images
 		WHERE id = $1 AND deleted_at IS NULL
@@ -55,6 +59,7 @@ const (
 		SELECT id, owner_id, title, description, storage_provider, storage_key,
 		       original_filename, mime_type, file_size, width, height,
 		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
 		       created_at, updated_at
 		FROM images
 		WHERE owner_id = $1 AND deleted_at IS NULL
@@ -72,6 +77,7 @@ const (
 		SELECT id, owner_id, title, description, storage_provider, storage_key,
 		       original_filename, mime_type, file_size, width, height,
 		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
 		       created_at, updated_at
 		FROM images
 		WHERE status = 'active' AND visibility = 'public' AND deleted_at IS NULL
@@ -89,6 +95,7 @@ const (
 		SELECT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
 		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,
 		       i.status, i.visibility, i.scan_status, i.view_count,
+		       i.ipfs_cid, i.ipfs_pinned, i.ipfs_pinned_at,
 		       i.created_at, i.updated_at
 		FROM images i
 		INNER JOIN image_tags it ON i.id = it.image_id
@@ -110,6 +117,7 @@ const (
 		SELECT id, owner_id, title, description, storage_provider, storage_key,
 		       original_filename, mime_type, file_size, width, height,
 		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
 		       created_at, updated_at
 		FROM images
 		WHERE status = $1 AND deleted_at IS NULL
@@ -139,6 +147,7 @@ const (
 		SELECT DISTINCT i.id, i.owner_id, i.title, i.description, i.storage_provider, i.storage_key,
 		       i.original_filename, i.mime_type, i.file_size, i.width, i.height,
 		       i.status, i.visibility, i.scan_status, i.view_count,
+		       i.ipfs_cid, i.ipfs_pinned, i.ipfs_pinned_at,
 		       i.created_at, i.updated_at,
 		       ts_rank(i.search_vector, plainto_tsquery('english', $1)) AS relevance_score
 		FROM images i
@@ -194,23 +203,26 @@ const (
 
 // imageRow represents an image row in the database.
 type imageRow struct {
-	ID               string    `db:"id"`
-	OwnerID          string    `db:"owner_id"`
-	Title            string    `db:"title"`
-	Description      string    `db:"description"`
-	StorageProvider  string    `db:"storage_provider"`
-	StorageKey       string    `db:"storage_key"`
-	OriginalFilename string    `db:"original_filename"`
-	MimeType         string    `db:"mime_type"`
-	FileSize         int64     `db:"file_size"`
-	Width            int       `db:"width"`
-	Height           int       `db:"height"`
-	Status           string    `db:"status"`
-	Visibility       string    `db:"visibility"`
-	ScanStatus       string    `db:"scan_status"`
-	ViewCount        int64     `db:"view_count"`
-	CreatedAt        time.Time `db:"created_at"`
-	UpdatedAt        time.Time `db:"updated_at"`
+	ID               string       `db:"id"`
+	OwnerID          string       `db:"owner_id"`
+	Title            string       `db:"title"`
+	Description      string       `db:"description"`
+	StorageProvider  string       `db:"storage_provider"`
+	StorageKey       string       `db:"storage_key"`
+	OriginalFilename string       `db:"original_filename"`
+	MimeType         string       `db:"mime_type"`
+	FileSize         int64        `db:"file_size"`
+	Width            int          `db:"width"`
+	Height           int          `db:"height"`
+	Status           string       `db:"status"`
+	Visibility       string       `db:"visibility"`
+	ScanStatus       string       `db:"scan_status"`
+	ViewCount        int64        `db:"view_count"`
+	IPFSCID          *string      `db:"ipfs_cid"`
+	IPFSPinned       bool         `db:"ipfs_pinned"`
+	IPFSPinnedAt     sql.NullTime `db:"ipfs_pinned_at"`
+	CreatedAt        time.Time    `db:"created_at"`
+	UpdatedAt        time.Time    `db:"updated_at"`
 }
 
 // variantRow represents an image variant row in the database.
@@ -669,6 +681,20 @@ func (r *ImageRepository) insertInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 // updateInTx updates an existing image in the database within a transaction.
 func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *gallery.Image) error {
 	metadata := image.Metadata()
+
+	// Extract IPFS fields
+	var ipfsCID *string
+	var ipfsPinned bool
+	var ipfsPinnedAt sql.NullTime
+	if ipfsMeta := image.IPFSMetadata(); ipfsMeta != nil && !ipfsMeta.IsZero() {
+		cid := ipfsMeta.CID()
+		ipfsCID = &cid
+		ipfsPinned = ipfsMeta.Pinned()
+		if pinnedAt := ipfsMeta.PinnedAt(); pinnedAt != nil {
+			ipfsPinnedAt = sql.NullTime{Time: *pinnedAt, Valid: true}
+		}
+	}
+
 	result, err := tx.ExecContext(
 		ctx,
 		sqlUpdateImage,
@@ -678,6 +704,9 @@ func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 		image.Status().String(),
 		image.Visibility().String(),
 		image.ViewCount(),
+		ipfsCID,
+		ipfsPinned,
+		ipfsPinnedAt,
 		image.UpdatedAt(),
 	)
 	if err != nil {
@@ -878,6 +907,20 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		return nil, fmt.Errorf("invalid metadata: %w", err)
 	}
 
+	// Parse IPFS metadata if present
+	var ipfsMetadata *gallery.IPFSMetadata
+	if row.IPFSCID != nil && *row.IPFSCID != "" {
+		var pinnedAt *time.Time
+		if row.IPFSPinnedAt.Valid {
+			pinnedAt = &row.IPFSPinnedAt.Time
+		}
+		meta, err := gallery.NewIPFSMetadata(*row.IPFSCID, row.IPFSPinned, pinnedAt)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ipfs metadata: %w", err)
+		}
+		ipfsMetadata = &meta
+	}
+
 	// Reconstitute image without validation or events
 	image := gallery.ReconstructImage(
 		imageID,
@@ -887,6 +930,7 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		status,
 		variants,
 		tags,
+		ipfsMetadata,
 		row.ViewCount,
 		0, // likeCount - not stored in images table yet
 		0, // commentCount - not stored in images table yet

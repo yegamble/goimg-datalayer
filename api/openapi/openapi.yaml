@@ -1873,6 +1873,163 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /images/{id}/ipfs:
+    get:
+      tags: [images]
+      summary: Get image IPFS status
+      description: |
+        Retrieve the IPFS (InterPlanetary File System) status for an image.
+        Returns the CID, pin status, and gateway URLs if the image is on IPFS.
+
+        Authorization:
+        - Image owners can always view IPFS status
+        - Public images allow anyone to view IPFS status
+        - Private images require owner authentication
+      operationId: getImageIPFSStatus
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: IPFS status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageIPFSStatus'
+        '401':
+          description: Unauthorized - private image requires authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot view private image's IPFS status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags: [images]
+      summary: Pin image to IPFS
+      description: |
+        Pin an image to IPFS for decentralized storage.
+        Creates an immutable backup of the image content on the IPFS network.
+
+        The image is uploaded to the configured IPFS node and pinned to prevent
+        garbage collection. The CID (Content Identifier) is stored in the database.
+
+        Authorization:
+        - Only the image owner can pin their images to IPFS
+        - Image must not already be pinned
+
+        Returns:
+        - CID: The IPFS Content Identifier (unique hash of the content)
+        - Gateway URL: Public URL to access the content via IPFS gateway
+      operationId: pinImageToIPFS
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '201':
+          description: Image pinned to IPFS successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PinImageToIPFSResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot pin another user's image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict - image already pinned to IPFS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error - IPFS upload failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [images]
+      summary: Unpin image from IPFS
+      description: |
+        Remove an image from IPFS storage.
+        The image remains in primary storage; only the IPFS backup is removed.
+
+        Note: Unpinned content may still be available on IPFS if other nodes
+        have pinned it. The content becomes eligible for garbage collection
+        on the local node.
+
+        Authorization:
+        - Only the image owner can unpin their images from IPFS
+        - Image must be currently pinned
+      operationId: unpinImageFromIPFS
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: Image unpinned from IPFS successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnpinImageFromIPFSResponse'
+        '400':
+          description: Bad Request - image is not pinned to IPFS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot unpin another user's image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error - IPFS unpin failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /images/search:
     get:
       tags: [images]
@@ -3254,6 +3411,86 @@ components:
         height:
           type: integer
           example: 600
+
+    # ==================== IPFS Schemas ====================
+    ImageIPFSStatus:
+      type: object
+      required: [image_id, is_pinned]
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        is_pinned:
+          type: boolean
+          description: Whether the image is pinned to IPFS
+          example: true
+        cid:
+          type: string
+          nullable: true
+          description: IPFS Content Identifier (CID). Null if not pinned.
+          example: QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        ipfs_uri:
+          type: string
+          format: uri
+          nullable: true
+          description: Canonical IPFS URI (ipfs://CID). Null if not pinned.
+          example: ipfs://QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        gateway_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Public gateway URL. Null if not pinned.
+          example: https://ipfs.io/ipfs/QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        pinned_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the image was pinned. Null if not pinned.
+          example: 2024-01-15T10:30:00Z
+
+    PinImageToIPFSResponse:
+      type: object
+      required: [image_id, cid, gateway_url, pinned_at]
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the pinned image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        cid:
+          type: string
+          description: IPFS Content Identifier (CID)
+          example: QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        gateway_url:
+          type: string
+          format: uri
+          description: Public gateway URL to access the content
+          example: https://ipfs.io/ipfs/QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        pinned_at:
+          type: string
+          format: date-time
+          description: When the image was pinned
+          example: 2024-01-15T10:30:00Z
+
+    UnpinImageFromIPFSResponse:
+      type: object
+      required: [image_id, unpinned_cid, message]
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the unpinned image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        unpinned_cid:
+          type: string
+          description: The CID that was unpinned
+          example: QmYwAPJzv5CZsnAzt8auVZRn6amKqCpkR9ij8dkLMCJNxE
+        message:
+          type: string
+          description: Success message
+          example: Image successfully unpinned from IPFS
 
     Album:
       type: object

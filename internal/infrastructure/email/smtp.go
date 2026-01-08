@@ -127,7 +127,6 @@ func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) e
 
 	s.logger.Info().
 		Str("recipient", to).
-		Str("subject", subject).
 		Msg("email sent successfully")
 
 	return nil

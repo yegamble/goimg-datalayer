@@ -406,3 +406,46 @@ func (m *MockUserRepository) ExistsByID(ctx context.Context, id identity.UserID)
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
 }
+
+// MockIPFSService is a mock implementation of gallery.IPFSService.
+type MockIPFSService struct {
+	mock.Mock
+}
+
+func (m *MockIPFSService) Add(ctx context.Context, data []byte) (string, error) {
+	args := m.Called(ctx, data)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockIPFSService) Pin(ctx context.Context, cid string) error {
+	args := m.Called(ctx, cid)
+	return args.Error(0)
+}
+
+func (m *MockIPFSService) Unpin(ctx context.Context, cid string) error {
+	args := m.Called(ctx, cid)
+	return args.Error(0)
+}
+
+func (m *MockIPFSService) IsPinned(ctx context.Context, cid string) (bool, error) {
+	args := m.Called(ctx, cid)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockIPFSService) GatewayURL(cid string) string {
+	args := m.Called(cid)
+	return args.String(0)
+}
+
+// MockStorageProvider is a mock implementation of gallery.StorageProvider.
+type MockStorageProvider struct {
+	mock.Mock
+}
+
+func (m *MockStorageProvider) GetBytes(ctx context.Context, key string) ([]byte, error) {
+	args := m.Called(ctx, key)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]byte), args.Error(1)
+}

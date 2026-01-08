@@ -5272,6 +5272,411 @@
           }
         },
         {
+          "name": "Get IPFS Status - Not Pinned",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates image is not pinned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('image_id');",
+                  "    pm.expect(jsonData).to.have.property('is_pinned');",
+                  "    pm.expect(jsonData.is_pinned).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Response does not have CID when not pinned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.cid).to.be.oneOf([null, undefined]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pin Image to IPFS - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has IPFS pin data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('image_id');",
+                  "    pm.expect(jsonData).to.have.property('cid');",
+                  "    pm.expect(jsonData).to.have.property('gateway_url');",
+                  "    pm.expect(jsonData).to.have.property('pinned_at');",
+                  "    pm.collectionVariables.set('testIPFSCID', jsonData.cid);",
+                  "});",
+                  "",
+                  "pm.test('CID format is valid (starts with Qm or bafy)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const cid = jsonData.cid;",
+                  "    pm.expect(cid.startsWith('Qm') || cid.startsWith('bafy')).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Gateway URL contains CID', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.gateway_url).to.include(jsonData.cid);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get IPFS Status - After Pin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates image is pinned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('image_id');",
+                  "    pm.expect(jsonData).to.have.property('is_pinned');",
+                  "    pm.expect(jsonData.is_pinned).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Response has IPFS details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('cid');",
+                  "    pm.expect(jsonData).to.have.property('ipfs_uri');",
+                  "    pm.expect(jsonData).to.have.property('gateway_url');",
+                  "    pm.expect(jsonData).to.have.property('pinned_at');",
+                  "});",
+                  "",
+                  "pm.test('CID matches previous pin operation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.cid).to.eql(pm.collectionVariables.get('testIPFSCID'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pin Image to IPFS - Already Pinned",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 (Conflict)', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Error response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(409);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates already pinned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include('already');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unpin Image from IPFS - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response confirms unpin', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('image_id');",
+                  "    pm.expect(jsonData).to.have.property('unpinned_cid');",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});",
+                  "",
+                  "pm.test('Unpinned CID matches previously pinned CID', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.unpinned_cid).to.eql(pm.collectionVariables.get('testIPFSCID'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unpin Image from IPFS - Not Pinned",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates not pinned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include('not pinned');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pin Image to IPFS - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (Unauthorized)', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pin Image to IPFS - Image Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 (Not Found)', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/00000000-0000-0000-0000-000000000000/ipfs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "ipfs"
+              ]
+            }
+          }
+        },
+        {
           "name": "Delete Image",
           "event": [
             {

@@ -98,6 +98,12 @@ func (m *MockJWTService) GenerateRefreshToken(userID, email, role, sessionID str
 	return args.String(0), args.Error(1)
 }
 
+// GenerateElevatedAccessToken generates an access token with 2FA verification flag.
+func (m *MockJWTService) GenerateElevatedAccessToken(userID, email, role, sessionID string) (string, error) {
+	args := m.Called(userID, email, role, sessionID)
+	return args.String(0), args.Error(1)
+}
+
 // ValidateToken validates a JWT token and returns claims.
 func (m *MockJWTService) ValidateToken(tokenString string) (*services.JWTClaims, error) {
 	args := m.Called(tokenString)

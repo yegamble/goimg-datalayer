@@ -22,7 +22,7 @@ func TestFollowUserHandler_Handle_Success(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	followerID := identity.NewUserID()
 	followedID := identity.NewUserID()
@@ -58,7 +58,7 @@ func TestFollowUserHandler_Handle_AlreadyFollowing(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	followerID := identity.NewUserID()
 	followedID := identity.NewUserID()
@@ -93,7 +93,7 @@ func TestFollowUserHandler_Handle_FollowSelf(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	userID := identity.NewUserID()
 	user := testhelpers.ValidActiveUser()
@@ -127,7 +127,7 @@ func TestFollowUserHandler_Handle_UserNotFound(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	followerID := identity.NewUserID()
 	followedID := identity.NewUserID()
@@ -160,7 +160,7 @@ func TestFollowUserHandler_Handle_InvalidFollowerID(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	cmd := commands.FollowUserCommand{
 		FollowerID: "invalid-uuid",
@@ -185,7 +185,7 @@ func TestFollowUserHandler_Handle_InvalidFollowedID(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	cmd := commands.FollowUserCommand{
 		FollowerID: identity.NewUserID().String(),
@@ -210,7 +210,7 @@ func TestFollowUserHandler_Handle_CannotFollowInactiveUser(t *testing.T) {
 	mockUsers := new(testhelpers.MockUserRepository)
 	logger := zerolog.Nop()
 
-	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, &logger)
+	handler := commands.NewFollowUserHandler(mockFollows, mockUsers, nil, &logger)
 
 	followerID := identity.NewUserID()
 	followedID := identity.NewUserID()

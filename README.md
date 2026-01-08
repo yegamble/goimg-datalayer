@@ -4,9 +4,22 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-12 complete
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-13 in progress
 
-**Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
+**Sprint 13**: IN PROGRESS 🔄 - IPFS Storage Integration
+  - ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
+  - ✅ Database Migration (IPFS fields)
+  - ✅ Domain Layer (IPFSMetadata value object)
+  - 📋 Phase 2: Application & HTTP layers (pending)
+
+**Sprint 12**: COMPLETE ✅ - OAuth & Social Features
+  - ✅ OAuth (Google/GitHub) - Full stack implementation
+  - ✅ Follow/Unfollow users - Full stack implementation
+  - ✅ Activity feeds - Timeline from followed users
+  - ✅ Email notifications (SMTP) - New follower emails
+  - ✅ Session elevation after 2FA - Enhanced security
+  - ✅ E2E Tests (OAuth: 9, Follow: 18 Newman tests)
+
 **Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
   - ✅ Domain Layer (value objects, aggregate methods, events)
   - ✅ Database Migration (2FA tables)
@@ -16,13 +29,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
   - ✅ Rate Limiting (5 attempts/min on 2FA verification)
   - ✅ E2E Tests (13 Newman tests)
 
-**Sprint 12**: COMPLETE ✅ - OAuth & Social Features
-  - ✅ OAuth (Google/GitHub) - Full stack implementation
-  - ✅ Follow/Unfollow users - Full stack implementation
-  - ✅ Activity feeds - Timeline from followed users
-  - ✅ Email notifications (SMTP) - New follower emails
-  - ✅ Session elevation after 2FA - Enhanced security
-  - ✅ E2E Tests (OAuth: 9, Follow: 18 Newman tests)
+**Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
 
 **Completed Sprints**:
 
@@ -105,6 +112,27 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete roadmap.
 
 ## Recent Achievements
+
+### Sprint 13 In Progress - IPFS Storage Integration 🔄
+
+**Phase 1 Complete** (2026-01-08):
+- IPFS client implementation with full Kubo HTTP API support
+- Storage orchestrator for dual-storage coordination
+- Database migration for IPFS metadata fields
+- IPFSMetadata domain value object with CID validation
+
+**Infrastructure Layer**:
+- `internal/infrastructure/storage/ipfs/client.go` - Kubo API client (~400 lines)
+- `internal/infrastructure/storage/orchestrator/orchestrator.go` - Dual-storage coordinator
+- `migrations/00011_add_ipfs_fields.sql` - IPFS columns for images
+
+### Sprint 12 Complete - OAuth & Social Features ✅
+
+**All Features Implemented** (2026-01-07):
+- OAuth authentication (Google, GitHub) with CSRF protection
+- Follow/unfollow users with activity feeds
+- Email notifications via SMTP with rate limiting
+- Session elevation after 2FA verification
 
 ### Sprint 9 Complete - GO FOR LAUNCH ✅
 
@@ -460,7 +488,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | **10** | Security Enhancements | ✅ **COMPLETE** | Random login delay, HIBP password check, Prometheus metrics |
 | **11** | Two-Factor Authentication | ✅ **COMPLETE** | TOTP setup/verify, backup codes, rate limiting, E2E tests |
 | **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
-| **13** | IPFS Storage | 📋 Planned | Decentralized storage, Pinata/Infura pinning |
+| **13** | IPFS Storage | 🔄 **IN PROGRESS** | Decentralized storage, Phase 1 complete (IPFS client, orchestrator) |
 | **14** | Advanced Moderation | 📋 Backlog | Abuse reporting API, admin queue, user bans |
 
 #### Sprint 10: Security Enhancements ✅ COMPLETE
@@ -493,10 +521,19 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ Session elevation after 2FA (S11-2FA-004 security control)
 - ✅ Notification system (internal + email with preferences)
 
-#### Sprint 13: IPFS Storage (Planned)
-- IPFS node integration (Kubo)
-- Remote pinning (Pinata, Infura)
-- Content-addressed image URLs
+#### Sprint 13: IPFS Storage 🔄 IN PROGRESS
+**Phase 1 (COMPLETE)**:
+- ✅ IPFS client for Kubo node integration
+- ✅ Storage orchestrator (dual-storage: primary + IPFS)
+- ✅ Database migration for IPFS fields (CID, pin status)
+- ✅ IPFSMetadata domain value object
+- ✅ Three storage modes: `primary_only`, `dual_sync`, `dual_async`
+
+**Phase 2 (PENDING)**:
+- 📋 Application layer commands and queries
+- 📋 HTTP endpoints (`GET/POST/DELETE /images/{id}/ipfs`)
+- 📋 OpenAPI spec updates
+- 📋 Remote pinning (Pinata, Infura) - backlog
 
 #### Sprint 14: Advanced Moderation (Backlog)
 - Abuse reporting API
