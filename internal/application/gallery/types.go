@@ -75,3 +75,30 @@ type JobEnqueuer interface {
 	// EnqueueImageCleanup enqueues a job to clean up storage files after deletion.
 	EnqueueImageCleanup(ctx context.Context, imageID, storageProvider string, keys []string) error
 }
+
+// IPFSService provides IPFS storage operations.
+// This interface is defined in the application layer and implemented
+// in the infrastructure layer (internal/infrastructure/storage/ipfs).
+type IPFSService interface {
+	// Add uploads content to IPFS and returns the CID.
+	Add(ctx context.Context, data []byte) (cid string, err error)
+
+	// Pin pins content to the IPFS node by CID.
+	Pin(ctx context.Context, cid string) error
+
+	// Unpin removes a pin from content by CID.
+	Unpin(ctx context.Context, cid string) error
+
+	// IsPinned checks if content is pinned to the IPFS node.
+	IsPinned(ctx context.Context, cid string) (bool, error)
+
+	// GatewayURL returns the public gateway URL for a CID.
+	GatewayURL(cid string) string
+}
+
+// StorageProvider provides access to primary image storage.
+// This interface is used to retrieve image data for IPFS pinning.
+type StorageProvider interface {
+	// GetBytes retrieves file data by storage key.
+	GetBytes(ctx context.Context, key string) ([]byte, error)
+}
