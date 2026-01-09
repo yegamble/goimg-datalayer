@@ -48,7 +48,7 @@ type MiddlewareConfig struct {
 //   - Follow routes: POST/DELETE /api/v1/users/{id}/follow (JWT required), GET /api/v1/users/{id}/followers|following (optional auth)
 //   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
 //   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
-//   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
+//   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, /api/v1/moderation/nsfw/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
 //   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
 //
 //nolint:funlen // Router setup with middleware and routes.
@@ -283,6 +283,12 @@ func NewRouter(
 					r.Post("/moderation/reports/{reportID}/review", moderationHandler.StartReview)
 					r.Post("/moderation/reports/{reportID}/resolve", moderationHandler.ResolveReport)
 					r.Post("/moderation/reports/{reportID}/dismiss", moderationHandler.DismissReport)
+
+					// NSFW detection (Sprint 15)
+					r.Post("/moderation/nsfw/scan", moderationHandler.ScanImageNSFW)
+					r.Get("/moderation/nsfw/scans/{scanID}", moderationHandler.GetNSFWScan)
+					r.Get("/moderation/nsfw/flagged", moderationHandler.ListNSFWFlagged)
+					r.Get("/images/{imageID}/nsfw-scans", moderationHandler.ListNSFWScansByImage)
 				})
 
 				// Ban status endpoint (moderator/admin or self)

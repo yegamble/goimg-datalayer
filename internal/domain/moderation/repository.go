@@ -98,3 +98,42 @@ type ReviewRepository interface {
 	// Reviews are immutable, so this only handles creation.
 	Save(ctx context.Context, review *Review) error
 }
+
+// NSFWScanRepository defines the interface for persisting NSFWScan entities.
+// Implementations must be provided by the infrastructure layer.
+type NSFWScanRepository interface {
+	// NextID generates the next available NSFWScanID.
+	// This is used by the application layer when creating new scans.
+	NextID() NSFWScanID
+
+	// FindByID retrieves an NSFW scan by its unique identifier.
+	// Returns ErrNSFWScanNotFound if the scan does not exist.
+	FindByID(ctx context.Context, id NSFWScanID) (*NSFWScan, error)
+
+	// FindByImageID retrieves the most recent NSFW scan for an image.
+	// Returns ErrNSFWScanNotFound if no scan exists for the image.
+	FindByImageID(ctx context.Context, imageID gallery.ImageID) (*NSFWScan, error)
+
+	// FindByImageIDAll retrieves all NSFW scans for an image.
+	// Scans are returned in chronological order (newest first).
+	FindByImageIDAll(ctx context.Context, imageID gallery.ImageID) ([]*NSFWScan, error)
+
+	// FindPending retrieves all scans with pending status.
+	// This is useful for retry logic and monitoring.
+	FindPending(ctx context.Context, pagination shared.Pagination) ([]*NSFWScan, int64, error)
+
+	// FindByStatus retrieves scans by status with pagination.
+	FindByStatus(ctx context.Context, status NSFWScanStatus, pagination shared.Pagination) ([]*NSFWScan, int64, error)
+
+	// FindNSFWImages retrieves all scans that detected NSFW content.
+	// This is useful for moderation dashboards.
+	FindNSFWImages(ctx context.Context, pagination shared.Pagination) ([]*NSFWScan, int64, error)
+
+	// HasActiveScan checks if an image has a pending or scanning scan.
+	HasActiveScan(ctx context.Context, imageID gallery.ImageID) (bool, error)
+
+	// Save persists an NSFW scan to the data store.
+	// This handles both creation and updates.
+	// Domain events should be published after successful save.
+	Save(ctx context.Context, scan *NSFWScan) error
+}

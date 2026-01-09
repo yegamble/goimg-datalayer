@@ -23,12 +23,37 @@ const (
 	SearchSortByLikeCount SearchSortBy = "like_count"
 )
 
+// NSFWFilter defines how to filter search results based on NSFW content.
+type NSFWFilter string
+
+const (
+	// NSFWFilterExcludeAll excludes all NSFW content (default for public search).
+	NSFWFilterExcludeAll NSFWFilter = "exclude_all"
+	// NSFWFilterSafeOnly shows only content classified as safe.
+	NSFWFilterSafeOnly NSFWFilter = "safe_only"
+	// NSFWFilterIncludeAll includes all content regardless of NSFW status.
+	NSFWFilterIncludeAll NSFWFilter = "include_all"
+	// NSFWFilterSuggestiveOK allows safe and suggestive content (excludes explicit).
+	NSFWFilterSuggestiveOK NSFWFilter = "suggestive_ok"
+)
+
+// IsValid returns true if the NSFWFilter is a valid value.
+func (f NSFWFilter) IsValid() bool {
+	switch f {
+	case NSFWFilterExcludeAll, NSFWFilterSafeOnly, NSFWFilterIncludeAll, NSFWFilterSuggestiveOK:
+		return true
+	default:
+		return false
+	}
+}
+
 // SearchParams encapsulates all search criteria for image queries.
 type SearchParams struct {
 	Query      string            // Full-text search query (searches title and description)
 	Tags       []Tag             // Filter by tags (AND logic for multiple tags)
 	OwnerID    *identity.UserID  // Optional: filter by owner
 	Visibility *Visibility       // Optional: filter by visibility (defaults to public only)
+	NSFWFilter *NSFWFilter       // Optional: NSFW content filter (defaults to ExcludeAll for public)
 	SortBy     SearchSortBy      // Sort order (defaults to relevance)
 	Pagination shared.Pagination // Pagination parameters
 }

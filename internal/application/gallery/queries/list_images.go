@@ -24,6 +24,10 @@ type ListImagesQuery struct {
 	Visibility string // Optional: Filter by visibility (empty = all visible to requester)
 	Tag        string // Optional: Filter by tag slug
 
+	// NSFW filtering
+	ExcludeNSFW bool   // If true, excludes NSFW content (default: true for public)
+	NSFWFilter  string // Advanced: "exclude_all", "safe_only", "include_all", "suggestive_ok"
+
 	// Requesting user (for authorization)
 	RequestingUserID string // Optional: ID of the user requesting
 
@@ -118,6 +122,7 @@ type queryParams struct {
 	requestingUserID identity.UserID
 	visibilityFilter *gallery.Visibility
 	tagFilter        *gallery.Tag
+	nsfwFilter       *gallery.NSFWFilter
 	pagination       shared.Pagination
 	offset           int
 	limit            int
@@ -177,6 +182,23 @@ func (h *ListImagesHandler) parseQueryParams(q ListImagesQuery) (*queryParams, e
 			return nil, fmt.Errorf("invalid tag: %w", err)
 		}
 		params.tagFilter = &tag
+	}
+
+	// Parse NSFW filter
+	// Default: exclude NSFW for public searches, unless explicitly disabled
+	if q.NSFWFilter != "" {
+		filter := gallery.NSFWFilter(q.NSFWFilter)
+		if !filter.IsValid() {
+			h.logger.Debug().
+				Str("nsfw_filter", q.NSFWFilter).
+				Msg("invalid NSFW filter in list query")
+			return nil, fmt.Errorf("invalid NSFW filter: %s", q.NSFWFilter)
+		}
+		params.nsfwFilter = &filter
+	} else if q.ExcludeNSFW {
+		// Simple boolean flag to exclude NSFW
+		filter := gallery.NSFWFilterExcludeAll
+		params.nsfwFilter = &filter
 	}
 
 	// Validate and set pagination
@@ -257,9 +279,31 @@ func (h *ListImagesHandler) loadImagesByOwner(
 }
 
 // loadPublicImages loads all public images.
+// If NSFW filter is specified, uses Search method to apply filtering.
 func (h *ListImagesHandler) loadPublicImages(
 	ctx context.Context, params *queryParams,
 ) ([]*gallery.Image, int64, error) {
+	// If NSFW filtering is needed, use Search method which supports it
+	if params.nsfwFilter != nil {
+		publicVisibility := gallery.VisibilityPublic
+		searchParams := gallery.SearchParams{
+			Query:      "",
+			Visibility: &publicVisibility,
+			NSFWFilter: params.nsfwFilter,
+			SortBy:     gallery.SearchSortByCreatedAt,
+			Pagination: params.pagination,
+		}
+		images, totalCount, err := h.images.Search(ctx, searchParams)
+		if err != nil {
+			h.logger.Error().
+				Err(err).
+				Msg("failed to search public images with NSFW filter")
+			return nil, 0, fmt.Errorf("list public images with NSFW filter: %w", err)
+		}
+		return images, totalCount, nil
+	}
+
+	// Default: no NSFW filtering, use simpler FindPublic
 	images, totalCount, err := h.images.FindPublic(ctx, params.pagination)
 	if err != nil {
 		h.logger.Error().

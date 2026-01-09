@@ -53,6 +53,8 @@ tags:
     description: Abuse report creation and management
   - name: bans
     description: User ban management (admin only)
+  - name: nsfw
+    description: NSFW content detection and moderation
   - name: explore
     description: Discovery and exploration features
   - name: health
@@ -3202,6 +3204,237 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== NSFW Detection ====================
+  /moderation/nsfw/scan:
+    post:
+      tags: [nsfw]
+      summary: Initiate NSFW scan
+      description: |
+        Initiate an NSFW scan for an image. The scan is performed
+        using configured NSFW detection providers (SightEngine,
+        ModerateContent, or mock for testing).
+
+        Requires moderator or admin role.
+
+        The scan is executed synchronously and returns the result.
+        Use the `force` parameter to rescan an image that has
+        already been scanned.
+      operationId: scanImageNSFW
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_id]
+              properties:
+                image_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the image to scan
+                force:
+                  type: boolean
+                  default: false
+                  description: Force rescan even if active scan exists
+      responses:
+        '201':
+          description: NSFW scan completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NSFWScanResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires moderator or admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Active scan already exists (use force=true to override)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '503':
+          description: NSFW detection service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/nsfw/scans/{scanId}:
+    get:
+      tags: [nsfw]
+      summary: Get NSFW scan details
+      description: |
+        Retrieve details of a specific NSFW scan by its ID.
+
+        Requires moderator or admin role.
+      operationId: getNSFWScan
+      parameters:
+        - name: scanId
+          in: path
+          required: true
+          description: UUID of the NSFW scan
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: NSFW scan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NSFWScan'
+        '400':
+          description: Invalid scan ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires moderator or admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Scan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/nsfw/flagged:
+    get:
+      tags: [nsfw]
+      summary: List NSFW flagged images
+      description: |
+        List images that have been flagged as NSFW by the detection system.
+        Supports pagination and filtering by review status.
+
+        Requires moderator or admin role.
+      operationId: listNSFWFlagged
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: requires_review
+          in: query
+          description: Filter to only show items requiring manual review
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: NSFW flagged images retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NSFWFlaggedListResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires moderator or admin role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /images/{imageId}/nsfw-scans:
+    get:
+      tags: [nsfw, images]
+      summary: List NSFW scans for an image
+      description: |
+        Retrieve all NSFW scans performed on a specific image.
+
+        Requires moderator, admin role, or image ownership.
+      operationId: listNSFWScansByImage
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          description: UUID of the image
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: NSFW scans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NSFWScansByImageResponse'
+        '400':
+          description: Invalid image ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - requires moderator, admin, or image owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Guest Uploads ====================
   /auth/guest:
     post:
@@ -3326,7 +3559,11 @@ paths:
     get:
       tags: [explore]
       summary: Recent public images
-      description: Retrieve recently uploaded public images
+      description: |
+        Retrieve recently uploaded public images.
+
+        By default, NSFW content is excluded. Set include_nsfw=true to
+        include NSFW content in results.
       operationId: exploreRecent
       security:
         - {}
@@ -3334,6 +3571,12 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PerPageParam'
+        - name: include_nsfw
+          in: query
+          description: Include NSFW content in results (default false)
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Recent images retrieved successfully
@@ -3353,7 +3596,11 @@ paths:
     get:
       tags: [explore]
       summary: Popular images
-      description: Retrieve popular images sorted by views or likes
+      description: |
+        Retrieve popular images sorted by views or likes.
+
+        By default, NSFW content is excluded. Set include_nsfw=true to
+        include NSFW content in results.
       operationId: explorePopular
       security:
         - {}
@@ -3368,6 +3615,12 @@ paths:
             default: week
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PerPageParam'
+        - name: include_nsfw
+          in: query
+          description: Include NSFW content in results (default false)
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Popular images retrieved successfully
@@ -4061,6 +4314,205 @@ components:
           example:
             id: 123e4567-e89b-12d3-a456-426614174002
             username: admin
+
+    # ==================== NSFW Detection ====================
+    NSFWScan:
+      type: object
+      required: [id, image_id, provider, status, created_at, updated_at]
+      description: NSFW scan result for an image
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the scan
+          example: 123e4567-e89b-12d3-a456-426614174000
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the scanned image
+          example: 123e4567-e89b-12d3-a456-426614174001
+        provider:
+          type: string
+          enum: [sightengine, moderatecontent, mock]
+          description: NSFW detection provider used
+          example: sightengine
+        status:
+          type: string
+          enum: [pending, scanning, completed, failed]
+          description: Current status of the scan
+          example: completed
+        category:
+          type: string
+          enum: [safe, suggestive, nudity, explicit, violence, weapons, drugs, offensive, unknown]
+          description: Primary NSFW category detected
+          example: safe
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Confidence score for NSFW detection (0 = safe, 1 = definite NSFW)
+          example: 0.05
+        is_nsfw:
+          type: boolean
+          description: Whether the image is flagged as NSFW
+          example: false
+        requires_review:
+          type: boolean
+          description: Whether the scan result requires manual review
+          example: false
+        details:
+          $ref: '#/components/schemas/NSFWScanDetails'
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if the scan failed
+          example: null
+        scanned_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the scan completed
+          example: 2024-01-15T10:30:05Z
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the scan was created
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the scan was last updated
+          example: 2024-01-15T10:30:05Z
+
+    NSFWScanDetails:
+      type: object
+      nullable: true
+      description: Detailed category scores from NSFW detection
+      properties:
+        nudity_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Score for nudity detection
+          example: 0.02
+        weapon_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Score for weapon detection
+          example: 0.01
+        violence_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Score for violence detection
+          example: 0.01
+        offensive_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Score for offensive content detection
+          example: 0.05
+        drug_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Score for drug-related content detection
+          example: 0.00
+        sub_categories:
+          type: array
+          items:
+            type: string
+          description: Detected sub-categories
+          example: []
+
+    NSFWScanResponse:
+      type: object
+      required: [scan_id, status, is_nsfw, provider]
+      description: Response after initiating an NSFW scan
+      properties:
+        scan_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the scan
+          example: 123e4567-e89b-12d3-a456-426614174000
+        status:
+          type: string
+          enum: [pending, scanning, completed, failed]
+          description: Current status of the scan
+          example: completed
+        category:
+          type: string
+          enum: [safe, suggestive, nudity, explicit, violence, weapons, drugs, offensive, unknown]
+          description: Primary NSFW category detected
+          example: safe
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Confidence score
+          example: 0.05
+        is_nsfw:
+          type: boolean
+          description: Whether the image is flagged as NSFW
+          example: false
+        requires_review:
+          type: boolean
+          description: Whether the scan result requires manual review
+          example: false
+        provider:
+          type: string
+          description: Provider used for the scan
+          example: sightengine
+
+    NSFWFlaggedListResponse:
+      type: object
+      required: [scans, total_count, page, page_size, total_pages]
+      description: Paginated list of NSFW flagged images
+      properties:
+        scans:
+          type: array
+          items:
+            $ref: '#/components/schemas/NSFWScan'
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of flagged items
+          example: 25
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        page_size:
+          type: integer
+          description: Items per page
+          example: 20
+        total_pages:
+          type: integer
+          format: int64
+          description: Total number of pages
+          example: 2
+
+    NSFWScansByImageResponse:
+      type: object
+      required: [scans, total_count]
+      description: List of NSFW scans for a specific image
+      properties:
+        scans:
+          type: array
+          items:
+            $ref: '#/components/schemas/NSFWScan'
+        total_count:
+          type: integer
+          description: Total number of scans for this image
+          example: 2
 
     # ==================== User Follow/Following ====================
     FollowUser:

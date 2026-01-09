@@ -300,3 +300,43 @@ type ListActiveBansResponse struct {
 
 // BanDTO is an alias for the application layer BanDTO to avoid duplication.
 type BanDTO = moderationqueries.BanDTO
+
+// ============================================================================
+// NSFW Detection DTOs (Sprint 15)
+// ============================================================================
+
+// ScanImageNSFWRequest represents the HTTP request body for initiating an NSFW scan.
+// POST /api/v1/moderation/nsfw/scan
+type ScanImageNSFWRequest struct {
+	ImageID string `json:"image_id" validate:"required,uuid"`
+	Force   bool   `json:"force,omitempty"` // Force rescan even if active scan exists
+}
+
+// ScanImageNSFWResponse represents the HTTP response after initiating an NSFW scan.
+type ScanImageNSFWResponse struct {
+	ScanID         string  `json:"scan_id"`
+	Status         string  `json:"status"`
+	Category       string  `json:"category"`
+	Score          float64 `json:"score"`
+	IsNSFW         bool    `json:"is_nsfw"`
+	RequiresReview bool    `json:"requires_review"`
+	Provider       string  `json:"provider"`
+}
+
+// ListNSFWFlaggedResponse represents a paginated list of NSFW flagged images.
+type ListNSFWFlaggedResponse struct {
+	Scans      []*NSFWScanDTO `json:"scans"`
+	TotalCount int64          `json:"total_count"`
+	Page       int            `json:"page"`
+	PageSize   int            `json:"page_size"`
+	TotalPages int64          `json:"total_pages"`
+}
+
+// NSFWScanDTO is an alias for the application layer NSFWScanDTO to avoid duplication.
+type NSFWScanDTO = moderationqueries.NSFWScanDTO
+
+// ListNSFWScansByImageResponse represents all NSFW scans for an image.
+type ListNSFWScansByImageResponse struct {
+	Scans      []*NSFWScanDTO `json:"scans"`
+	TotalCount int            `json:"total_count"`
+}
