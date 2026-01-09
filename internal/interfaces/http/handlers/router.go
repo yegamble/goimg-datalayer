@@ -51,6 +51,7 @@ type MiddlewareConfig struct {
 //   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, /api/v1/moderation/nsfw/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
 //   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
 //   - oEmbed routes: GET /api/v1/oembed (public, no auth required) - Sprint 16
+//   - Preview routes: GET /images/{id}/preview (public HTML page with social meta tags) - Sprint 16
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -70,6 +71,7 @@ func NewRouter(
 	moderationHandler *ModerationHandler,
 	guestHandler *GuestHandler,
 	oembedHandler *OEmbedHandler,
+	previewHandler *PreviewHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -108,6 +110,13 @@ func NewRouter(
 	// Prometheus metrics endpoint (no authentication required)
 	// In production, consider adding basic auth or IP restriction
 	r.Handle("/metrics", promhttp.Handler())
+
+	// Image preview endpoint (Sprint 16 - no authentication required)
+	// Public HTML page with Open Graph and Twitter Card meta tags
+	// Mounted at /images/{id}/preview (not under /api/v1 for SEO-friendly URLs)
+	if previewHandler != nil {
+		r.Mount("/images", previewHandler.Routes())
+	}
 
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {

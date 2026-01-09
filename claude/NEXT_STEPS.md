@@ -572,7 +572,7 @@ Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full p
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
 - ✅ OpenAPI spec for oEmbed endpoint documented
 - ✅ Router wiring for oEmbed handler complete
-- [ ] Open Graph meta tags for Facebook/LinkedIn
-- [ ] Twitter Card support for rich previews
-- [ ] Public image preview page (`GET /images/{id}/preview`)
+- ✅ Open Graph meta tags for Facebook/LinkedIn
+- ✅ Twitter Card support for rich previews
+- ✅ Public image preview page (`GET /images/{id}/preview`)
 - [ ] E2E tests for oEmbed endpoints

@@ -15,8 +15,11 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ Sprint 15: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
 
 **Current Sprint (16)**: oEmbed + Social Media Cards
-- ✅ oEmbed 1.0 endpoint implemented
-- 📋 Open Graph/Twitter Card meta tags pending
+- ✅ oEmbed 1.0 endpoint implemented (`GET /api/v1/oembed`)
+- ✅ Open Graph meta tags for Facebook/LinkedIn
+- ✅ Twitter Card support for rich previews
+- ✅ Image preview page (`GET /images/{id}/preview`)
+- 📋 E2E tests pending
 
 **Phase 1 Complete** ✅: All Sprints 1-9 delivered (MVP LAUNCHED):
 
@@ -573,11 +576,11 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
 - ✅ OpenAPI spec for oEmbed endpoint
 - ✅ Router wiring for oEmbed handler
+- ✅ Open Graph meta tags for Facebook/LinkedIn
+- ✅ Twitter Card support for rich previews
+- ✅ Image preview page (`GET /images/{id}/preview`) with social meta tags
 
 **Remaining**:
-- 📋 Open Graph meta tags for Facebook/LinkedIn
-- 📋 Twitter Card support for rich previews
-- 📋 Public image preview page (`GET /images/{id}/preview`)
 - 📋 E2E tests for oEmbed endpoint
 
 **Future Sprints**:

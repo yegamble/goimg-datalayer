@@ -3894,6 +3894,85 @@ paths:
               example:
                 error: Image not found
 
+  # ==================== Image Preview (Sprint 16) ====================
+  # Note: This endpoint is at /images/{id}/preview, NOT under /api/v1
+  # It serves HTML content for social media link previews
+  /images/{id}/preview:
+    get:
+      tags: [images]
+      summary: Get image preview page
+      description: |
+        Returns an HTML page with social media meta tags for link previews.
+
+        **Features**:
+        - Open Graph tags for Facebook, LinkedIn
+        - Twitter Card tags for Twitter
+        - oEmbed discovery link
+        - Canonical URL for SEO
+        - Responsive design
+
+        Only works for public images. Returns 404 for private, unlisted,
+        or non-existent images to prevent information disclosure.
+
+        **Note**: This endpoint is NOT under `/api/v1`. It serves HTML at
+        `/images/{id}/preview` for SEO-friendly URLs.
+
+        **Social Media Crawlers**:
+        - Facebook: Uses og:title, og:description, og:image
+        - Twitter: Uses twitter:card, twitter:title, twitter:description, twitter:image
+        - LinkedIn: Uses og:* tags
+        - WhatsApp: Uses og:image for preview
+
+      operationId: getImagePreview
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Image UUID
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: HTML preview page with social meta tags
+          headers:
+            Cache-Control:
+              description: Cache headers for CDN and browser caching
+              schema:
+                type: string
+                example: public, max-age=3600
+            X-Frame-Options:
+              description: Frame embedding policy
+              schema:
+                type: string
+                example: SAMEORIGIN
+          content:
+            text/html:
+              schema:
+                type: string
+              example: |
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta property="og:title" content="Beautiful sunset">
+                  <meta property="og:image" content="https://example.com/api/v1/images/123/variants/large">
+                  <meta name="twitter:card" content="summary_large_image">
+                  ...
+                </head>
+                <body>...</body>
+                </html>
+        '404':
+          description: Image not found or not public
+          content:
+            text/html:
+              schema:
+                type: string
+              example: "404 page not found"
+      x-phase: "3"
+      x-sprint: "16"
+
   # ==================== Health ====================
   /health:
     get:

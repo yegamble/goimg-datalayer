@@ -56,9 +56,9 @@ Enable images to be embedded on external sites and generate rich social media pr
 | oEmbed Endpoint | ✅ COMPLETE | `internal/interfaces/http/handlers/oembed_handler.go` |
 | OpenAPI Spec | ✅ COMPLETE | oEmbed endpoint documented |
 | Router Wiring | ✅ COMPLETE | Mounted at `/api/v1/oembed` |
-| Open Graph Tags | 📋 Pending | Meta tags for Facebook, LinkedIn |
-| Twitter Cards | 📋 Pending | Twitter card meta tags |
-| Image Preview Page | 📋 Pending | `GET /images/{id}/preview` |
+| Open Graph Tags | ✅ COMPLETE | Meta tags in preview_handler.go |
+| Twitter Cards | ✅ COMPLETE | Twitter card meta tags in preview_handler.go |
+| Image Preview Page | ✅ COMPLETE | `GET /images/{id}/preview` |
 | E2E Tests | 📋 Pending | Newman tests for oEmbed |
 
 ### Deliverables
