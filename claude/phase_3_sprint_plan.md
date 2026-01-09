@@ -27,7 +27,7 @@ and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| 16 | oEmbed + Social Media Cards | 1 week | P1 | 🚀 **IN PROGRESS** |
+| 16 | oEmbed + Social Media Cards | 1 week | P1 | 🚧 **IN PROGRESS** (oEmbed endpoint complete) |
 | 17 | Nested Albums + Custom Variants | 2 weeks | P2 | Planned |
 | 18 | Trending Tags + Featured Picks | 1 week | P2 | Planned |
 | 19 | Groups/Communities | 2 weeks | P3 | Backlog |
@@ -43,10 +43,23 @@ and platform scalability.
 **Duration**: 1 week
 **Priority**: P1 - HIGH
 **Dependencies**: None
+**Status**: 🚧 **IN PROGRESS**
 
 ### Objectives
 
 Enable images to be embedded on external sites and generate rich social media previews.
+
+### Progress
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| oEmbed Endpoint | ✅ COMPLETE | `internal/interfaces/http/handlers/oembed_handler.go` |
+| OpenAPI Spec | ✅ COMPLETE | oEmbed endpoint documented |
+| Router Wiring | ✅ COMPLETE | Mounted at `/api/v1/oembed` |
+| Open Graph Tags | 📋 Pending | Meta tags for Facebook, LinkedIn |
+| Twitter Cards | 📋 Pending | Twitter card meta tags |
+| Image Preview Page | 📋 Pending | `GET /images/{id}/preview` |
+| E2E Tests | 📋 Pending | Newman tests for oEmbed |
 
 ### Deliverables
 
@@ -61,11 +74,12 @@ Enable images to be embedded on external sites and generate rich social media pr
 ### API Endpoints
 
 ```yaml
-GET /api/v1/oembed?url={image_url}&format={json|xml}
+GET /api/v1/oembed?url={image_url}&format={json|xml}  # ✅ IMPLEMENTED
   - Returns oEmbed response for embedding
   - Supports maxwidth, maxheight parameters
+  - JSON and XML response formats
 
-GET /images/{id}/preview
+GET /images/{id}/preview  # 📋 PENDING
   - Public image page with social meta tags
   - SEO-friendly URL structure
 ```

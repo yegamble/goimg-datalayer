@@ -560,18 +560,19 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
+**Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚧
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
-| 16 | oEmbed + Social Media Cards | P1 | 🚀 **IN PROGRESS** |
+| 16 | oEmbed + Social Media Cards | P1 | 🚧 **IN PROGRESS** |
 | 17 | Nested Albums + Custom Variants | P2 | 📋 Planned |
 | 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
 
-**Sprint 16 Deliverables**:
-- [ ] oEmbed 1.0 endpoint (`GET /api/v1/oembed`)
+**Sprint 16 Progress**:
+- ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
+- ✅ OpenAPI spec for oEmbed endpoint documented
+- ✅ Router wiring for oEmbed handler complete
 - [ ] Open Graph meta tags for Facebook/LinkedIn
 - [ ] Twitter Card support for rich previews
 - [ ] Public image preview page (`GET /images/{id}/preview`)
-- [ ] OpenAPI spec updates
 - [ ] E2E tests for oEmbed endpoints

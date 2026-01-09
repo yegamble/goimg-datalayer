@@ -38,14 +38,14 @@ type OEmbedResponse struct {
 	Height int    `json:"height" xml:"height"` // Height in pixels
 
 	// Common optional fields
-	Title          string `json:"title,omitempty" xml:"title,omitempty"`
-	AuthorName     string `json:"author_name,omitempty" xml:"author_name,omitempty"`
-	AuthorURL      string `json:"author_url,omitempty" xml:"author_url,omitempty"`
-	ProviderName   string `json:"provider_name,omitempty" xml:"provider_name,omitempty"`
-	ProviderURL    string `json:"provider_url,omitempty" xml:"provider_url,omitempty"`
-	CacheAge       int    `json:"cache_age,omitempty" xml:"cache_age,omitempty"`
-	ThumbnailURL   string `json:"thumbnail_url,omitempty" xml:"thumbnail_url,omitempty"`
-	ThumbnailWidth int    `json:"thumbnail_width,omitempty" xml:"thumbnail_width,omitempty"`
+	Title           string `json:"title,omitempty" xml:"title,omitempty"`
+	AuthorName      string `json:"author_name,omitempty" xml:"author_name,omitempty"`
+	AuthorURL       string `json:"author_url,omitempty" xml:"author_url,omitempty"`
+	ProviderName    string `json:"provider_name,omitempty" xml:"provider_name,omitempty"`
+	ProviderURL     string `json:"provider_url,omitempty" xml:"provider_url,omitempty"`
+	CacheAge        int    `json:"cache_age,omitempty" xml:"cache_age,omitempty"`
+	ThumbnailURL    string `json:"thumbnail_url,omitempty" xml:"thumbnail_url,omitempty"`
+	ThumbnailWidth  int    `json:"thumbnail_width,omitempty" xml:"thumbnail_width,omitempty"`
 	ThumbnailHeight int    `json:"thumbnail_height,omitempty" xml:"thumbnail_height,omitempty"`
 }
 

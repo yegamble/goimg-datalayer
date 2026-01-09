@@ -4,31 +4,25 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** (Planning) - Phase 2 COMPLETE ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 16 IN PROGRESS** 🚧
 
-**Phase 2 Complete**: All Sprints 10-15 delivered:
-  - ✅ Sprint 10: Security Enhancements (login timing, HIBP, metrics)
-  - ✅ Sprint 11: Two-Factor Authentication (TOTP, backup codes)
-  - ✅ Sprint 12: OAuth & Social Features (Google/GitHub, follows, feeds)
-  - ✅ Sprint 13: IPFS Storage Integration (decentralized storage)
-  - ✅ Sprint 14: Content Moderation + Guest Uploads (reports, bans)
-  - ✅ Sprint 15: AI NSFW Detection + Advanced Search
+**Phase 2 Complete** ✅: All Sprints 10-15 delivered:
+- ✅ Sprint 10: Security Enhancements (timing attack mitigation, HIBP password check)
+- ✅ Sprint 11: Two-Factor Authentication (TOTP, backup codes, encrypted secrets)
+- ✅ Sprint 12: OAuth & Social Features (Google/GitHub OAuth, follows, activity feeds)
+- ✅ Sprint 13: IPFS Storage Integration (decentralized storage with dual-mode orchestration)
+- ✅ Sprint 14: Content Moderation + Guest Uploads (abuse reports, admin queue, user bans)
+- ✅ Sprint 15: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
 
-**Next**: Sprint 16 - oEmbed + Social Media Cards (P1 Priority)
+**Current Sprint (16)**: oEmbed + Social Media Cards
+- ✅ oEmbed 1.0 endpoint implemented
+- 📋 Open Graph/Twitter Card meta tags pending
 
-**Completed Sprints (Phase 2)**:
-- **Sprint 15**: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
-- **Sprint 14**: Content Moderation + Guest Uploads (reports, bans, 22 E2E tests)
-- **Sprint 13**: IPFS Storage Integration (decentralized storage, 8 E2E tests)
-- **Sprint 12**: OAuth & Social Features (Google/GitHub, follows, feeds, 27 E2E tests)
-- **Sprint 11**: Two-Factor Authentication (TOTP, backup codes, 13 E2E tests)
-- **Sprint 10**: Security Enhancements (timing attacks, HIBP, Prometheus metrics)
-
-**Completed Sprints**:
+**Phase 1 Complete** ✅: All Sprints 1-9 delivered (MVP LAUNCHED):
 
 - **Sprint 1-2: Foundation & Domain Layer** (4 weeks) ✅
   - Project setup with DDD architecture
-  - OpenAPI 3.1 specification (2,341 lines)
+  - OpenAPI 3.0 specification (5,460+ lines)
   - Complete domain layer (Identity, Gallery, Moderation, Shared contexts)
   - Domain layer test coverage: 91-100% (exceeds 90% requirement)
   - CI/CD pipeline (GitHub Actions with linting, testing, security scanning)
@@ -243,7 +237,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - ✅ Async background job processing (Asynq/Redis)
 
 **API & Security**
-- ✅ RESTful API with OpenAPI 3.1 spec (2,341 lines)
+- ✅ RESTful API with OpenAPI 3.0 spec (5,460+ lines)
 - ✅ Rate limiting: 5 login/min, 100 global/min, 300 authenticated/min, 50 uploads/hour
 - ✅ RFC 7807 Problem Details error responses
 - ✅ Security headers middleware (CSP, HSTS, X-Frame-Options, etc.)
@@ -285,7 +279,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 | Security | ClamAV, JWT, OAuth2 |
 | Storage | Local FS / S3 / DO Spaces / Backblaze B2 |
 | Decentralized Storage | IPFS (Kubo) with remote pinning support |
-| API Docs | OpenAPI 3.1 |
+| API Docs | OpenAPI 3.0 |
 | Observability | zerolog, Prometheus, OpenTelemetry |
 
 ## Quick Start
@@ -340,7 +334,7 @@ make validate-openapi
 
 ```
 goimg-datalayer/
-├── api/openapi/          # OpenAPI 3.1 specification
+├── api/openapi/          # OpenAPI 3.0 specification
 ├── cmd/
 │   ├── api/              # HTTP server
 │   ├── worker/           # Background jobs
@@ -566,18 +560,25 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| **16** | oEmbed + Social Media Cards | 1 week | P1 | 🚀 **NEXT** |
+| **16** | oEmbed + Social Media Cards | 1 week | P1 | 🚧 **IN PROGRESS** |
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 📋 Planned |
 | **18** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Planned |
 | **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
 | **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **21** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
-**Sprint 16 (Next)**: oEmbed + Social Media Cards
-- oEmbed 1.0 endpoint for external embedding
-- Open Graph meta tags for Facebook/LinkedIn
-- Twitter Card support for rich previews
-- Public image preview pages
+#### Sprint 16: oEmbed + Social Media Cards 🚧 IN PROGRESS
+
+**Completed**:
+- ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
+- ✅ OpenAPI spec for oEmbed endpoint
+- ✅ Router wiring for oEmbed handler
+
+**Remaining**:
+- 📋 Open Graph meta tags for Facebook/LinkedIn
+- 📋 Twitter Card support for rich previews
+- 📋 Public image preview page (`GET /images/{id}/preview`)
+- 📋 E2E tests for oEmbed endpoint
 
 **Future Sprints**:
 - **Nested Albums** - Hierarchical album organization with breadcrumb navigation
