@@ -558,6 +558,19 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 	args := []interface{}{params.Query}
 	paramIndex := 2
 
+	// Join NSFW scans table if NSFW filtering is needed (most recent scan per image)
+	nsfwJoin := ""
+	if params.NSFWFilter != nil && *params.NSFWFilter != gallery.NSFWFilterIncludeAll {
+		// Use a subquery to get the most recent scan per image
+		nsfwJoin = ` LEFT JOIN LATERAL (
+			SELECT ns.* FROM nsfw_scans ns
+			WHERE ns.image_id = i.id AND ns.status = 'completed'
+			ORDER BY ns.scanned_at DESC LIMIT 1
+		) nsfw ON true`
+		query += nsfwJoin
+		countQuery += nsfwJoin
+	}
+
 	// Build WHERE conditions
 	conditions := []string{"i.deleted_at IS NULL", "i.status = 'active'"}
 
@@ -584,6 +597,27 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 		conditions = append(conditions, fmt.Sprintf("i.owner_id = $%d", paramIndex))
 		args = append(args, params.OwnerID.String())
 		paramIndex++
+	}
+
+	// Filter by NSFW content
+	// Images without scans are considered safe (for backwards compatibility)
+	if params.NSFWFilter != nil {
+		switch *params.NSFWFilter {
+		case gallery.NSFWFilterExcludeAll:
+			// Exclude all NSFW content (nudity, explicit, violence)
+			conditions = append(conditions,
+				"(nsfw.id IS NULL OR nsfw.is_nsfw = false)")
+		case gallery.NSFWFilterSafeOnly:
+			// Only show content explicitly marked as safe
+			conditions = append(conditions,
+				"(nsfw.id IS NULL OR nsfw.category = 'safe')")
+		case gallery.NSFWFilterSuggestiveOK:
+			// Allow safe and suggestive, exclude explicit NSFW
+			conditions = append(conditions,
+				"(nsfw.id IS NULL OR nsfw.category IN ('safe', 'suggestive'))")
+		case gallery.NSFWFilterIncludeAll:
+			// No NSFW filtering
+		}
 	}
 
 	// Filter by tags (AND logic - image must have ALL specified tags)

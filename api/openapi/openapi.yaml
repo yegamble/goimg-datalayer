@@ -3559,7 +3559,11 @@ paths:
     get:
       tags: [explore]
       summary: Recent public images
-      description: Retrieve recently uploaded public images
+      description: |
+        Retrieve recently uploaded public images.
+
+        By default, NSFW content is excluded. Set include_nsfw=true to
+        include NSFW content in results.
       operationId: exploreRecent
       security:
         - {}
@@ -3567,6 +3571,12 @@ paths:
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PerPageParam'
+        - name: include_nsfw
+          in: query
+          description: Include NSFW content in results (default false)
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Recent images retrieved successfully
@@ -3586,7 +3596,11 @@ paths:
     get:
       tags: [explore]
       summary: Popular images
-      description: Retrieve popular images sorted by views or likes
+      description: |
+        Retrieve popular images sorted by views or likes.
+
+        By default, NSFW content is excluded. Set include_nsfw=true to
+        include NSFW content in results.
       operationId: explorePopular
       security:
         - {}
@@ -3601,6 +3615,12 @@ paths:
             default: week
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/PerPageParam'
+        - name: include_nsfw
+          in: query
+          description: Include NSFW content in results (default false)
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Popular images retrieved successfully

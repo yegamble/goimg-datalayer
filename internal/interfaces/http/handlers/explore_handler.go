@@ -52,6 +52,7 @@ func (h *ExploreHandler) Routes() chi.Router {
 // Query parameters:
 //   - page (int): Page number, default 1
 //   - per_page (int): Items per page, default 20, max 100
+//   - include_nsfw (bool): Include NSFW content, default false
 //
 // Response: Paginated list of public images sorted by created_at DESC
 // Errors:
@@ -73,16 +74,20 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 		perPage = maxPerPage
 	}
 
+	// Parse NSFW filter - default excludes NSFW for public explore
+	includeNSFW := r.URL.Query().Get("include_nsfw") == "true"
+
 	// Calculate offset
 	offset := (page - 1) * perPage
 
 	// Build query for recent public images
 	query := queries.ListImagesQuery{
-		Visibility: "public",
-		Offset:     offset,
-		Limit:      perPage,
-		SortBy:     "created_at",
-		SortOrder:  "desc",
+		Visibility:  "public",
+		ExcludeNSFW: !includeNSFW, // Default to exclude NSFW
+		Offset:      offset,
+		Limit:       perPage,
+		SortBy:      "created_at",
+		SortOrder:   "desc",
 	}
 
 	// Execute query
@@ -129,6 +134,7 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 //   - period (string): Time period (day, week, month, all), default "week"
 //   - page (int): Page number, default 1
 //   - per_page (int): Items per page, default 20, max 100
+//   - include_nsfw (bool): Include NSFW content, default false
 //
 // Response: Paginated list of public images sorted by like_count DESC
 // Errors:
@@ -169,6 +175,9 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 		perPage = maxPerPage
 	}
 
+	// Parse NSFW filter - default excludes NSFW for public explore
+	includeNSFW := r.URL.Query().Get("include_nsfw") == "true"
+
 	// Calculate offset
 	offset := (page - 1) * perPage
 
@@ -176,11 +185,12 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	// Note: Period filtering would ideally be handled in the repository layer
 	// For MVP, we sort by like_count across all time (period is metadata for future enhancement)
 	query := queries.ListImagesQuery{
-		Visibility: "public",
-		Offset:     offset,
-		Limit:      perPage,
-		SortBy:     "like_count",
-		SortOrder:  "desc",
+		Visibility:  "public",
+		ExcludeNSFW: !includeNSFW, // Default to exclude NSFW
+		Offset:      offset,
+		Limit:       perPage,
+		SortBy:      "like_count",
+		SortOrder:   "desc",
 	}
 
 	// Execute query
