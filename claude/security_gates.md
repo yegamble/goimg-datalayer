@@ -884,6 +884,89 @@ Use this template for each sprint gate review:
 
 ---
 
+## Sprint 17: Nested Albums + Custom Variants
+
+**Focus**: Album hierarchy (parent-child relationships), custom image variant configurations
+**Security Risk**: MEDIUM (file processing, input validation, authorization)
+
+### Mandatory Controls
+
+| Control ID | Description | Pass Criteria | Verification |
+|------------|-------------|---------------|--------------|
+| **S17-ALBUM-001** | Album parent_id prevents circular references | Cycle detection before setting parent | Code review: `Update` validates no cycles |
+| **S17-ALBUM-002** | Breadcrumb traversal limited (max depth) | Max 10 ancestor levels enforced | Code review: `FindAncestors` with limit |
+| **S17-ALBUM-003** | Child album access respects parent visibility | Private parent hides public children | Authorization test cases |
+| **S17-ALBUM-004** | Album ownership verified for parent assignment | Only owner can set parent_id | Code review: ownership check in handler |
+| **S17-VAR-001** | Variant config name sanitized | Alphanumeric + hyphen/underscore only | Domain validation regex |
+| **S17-VAR-002** | Variant dimensions bounded | 1-8192 pixels enforced | Domain validation |
+| **S17-VAR-003** | Variant quality bounded | 1-100 enforced | Domain validation |
+| **S17-VAR-004** | Variant format whitelist | Only jpeg/png/webp/avif allowed | Domain validation |
+| **S17-VAR-005** | Variant config ownership enforced | IDOR prevention for update/delete | Handler ownership check |
+| **S17-VAR-006** | Custom variant generation respects image ownership | Only image owner can generate variants | Handler ownership check |
+| **S17-VAR-007** | Rate limiting on variant generation | DoS prevention for CPU-intensive operation | Rate limiter middleware |
+| **S17-PROC-001** | Image processing resource limits | Memory/CPU limits for processing | Container resource limits |
+| **S17-PROC-002** | Temporary files cleaned up | No orphan temp files after processing | Code review: defer cleanup |
+
+### Security Tests Required
+
+```go
+// Required test cases (must exist and pass)
+- TestVariantConfig_NameValidation_RejectsSpecialChars
+- TestVariantConfig_DimensionBounds
+- TestVariantConfig_QualityBounds
+- TestVariantConfig_FormatWhitelist
+- TestVariantConfig_OwnershipEnforced
+- TestCustomVariant_ImageOwnershipRequired
+- TestAlbum_CircularParentPrevented
+- TestAlbum_BreadcrumbDepthLimit
+```
+
+### Recommended Controls
+
+- [ ] Implement rate limiting on custom variant generation (P1)
+- [ ] Add monitoring for variant generation duration
+- [ ] Consider caching generated variants
+- [ ] Add cleanup job for orphaned temporary files
+
+### Risk Register
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| DoS via variant generation abuse | High | Rate limiting + resource limits |
+| Circular album hierarchy | Medium | Cycle detection in domain layer |
+| IDOR on variant configs | High | Ownership validation at handler level |
+| Path traversal in variant storage | High | Sanitized storage keys, no user input in paths |
+| Memory exhaustion from large images | High | Image size limits + processing limits |
+| XSS in variant config names | Low | Alphanumeric-only validation |
+
+### Sprint 17 Gate Status
+
+**Review Date**: 2026-01-09
+**Status**: 🔄 **PENDING REVIEW**
+**Reviewer**: Pending Assignment
+
+**Self-Review Findings**:
+1. ✅ **S17-VAR-001**: Name validation regex implemented (`^[a-zA-Z0-9_-]+$`)
+2. ✅ **S17-VAR-002**: Width/height bounds (1-8192) enforced in domain
+3. ✅ **S17-VAR-003**: Quality bounds (1-100) enforced in domain
+4. ✅ **S17-VAR-004**: Format whitelist (jpeg/png/webp/avif) enforced
+5. ✅ **S17-VAR-005**: Ownership check implemented in handlers
+6. ✅ **S17-VAR-006**: Image ownership verified before variant generation
+7. ⚠️ **S17-VAR-007**: Rate limiting on variant generation - needs verification
+8. ⚠️ **S17-PROC-001**: Container resource limits - needs DevOps review
+9. ✅ **S17-PROC-002**: Defer cleanup implemented for temp files
+
+**Remediation Required**:
+- Verify rate limiting is applied to variant generation endpoint
+- Confirm container resource limits in Docker/K8s configs
+- Add integration tests for authorization edge cases
+
+**Next Steps**:
+- Complete SecOps review
+- Address any findings from automated scanning
+
+---
+
 ## References
 
 - OWASP Top 10 2021: https://owasp.org/Top10/
