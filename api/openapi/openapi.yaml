@@ -63,6 +63,8 @@ tags:
     description: Application monitoring and metrics
   - name: oembed
     description: oEmbed protocol for image embedding (Sprint 16)
+  - name: variant-configs
+    description: Custom image variant configurations (Sprint 17)
 
 paths:
   # ==================== Authentication ====================
@@ -2665,6 +2667,276 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== Variant Configs (Sprint 17) ====================
+  /variant-configs:
+    post:
+      tags: [variant-configs]
+      summary: Create custom variant config
+      description: |
+        Create a custom image variant configuration.
+        Users can define custom sizes, formats, quality, and crop modes
+        for their images.
+      operationId: createVariantConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, max_width, max_height, format, quality, crop_mode]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "mobile-preview"
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  example: 400
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  example: 400
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                  example: webp
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  example: 85
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+                  example: fit
+      responses:
+        '201':
+          description: Variant config created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Config with this name already exists for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [variant-configs]
+      summary: List user's variant configs
+      description: List all custom variant configurations for the authenticated user
+      operationId: listVariantConfigs
+      responses:
+        '200':
+          description: Variant configs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VariantConfig'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /variant-configs/presets:
+    get:
+      tags: [variant-configs]
+      summary: List system presets
+      description: |
+        List all system-defined variant presets available to all users.
+        These are read-only configurations provided by the system.
+      operationId: listVariantConfigPresets
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Preset configs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VariantConfig'
+
+  /variant-configs/{id}:
+    get:
+      tags: [variant-configs]
+      summary: Get variant config
+      description: Retrieve a specific variant configuration
+      operationId: getVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Variant config retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot access another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags: [variant-configs]
+      summary: Update variant config
+      description: |
+        Update a custom variant configuration.
+        Only the owner can update their configs. System presets cannot be modified.
+      operationId: updateVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [max_width, max_height, format, quality, crop_mode]
+              properties:
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+      responses:
+        '200':
+          description: Variant config updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '400':
+          description: Validation error or trying to modify a preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot update another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [variant-configs]
+      summary: Delete variant config
+      description: |
+        Delete a custom variant configuration.
+        Only the owner can delete their configs. System presets cannot be deleted.
+      operationId: deleteVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Variant config deleted successfully
+        '400':
+          description: Cannot delete a system preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Tags (Phase 2) ====================
   /tags:
     get:
@@ -4448,6 +4720,67 @@ components:
         image_count:
           type: integer
           example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T11:00:00Z
+
+    VariantConfig:
+      type: object
+      description: Custom variant configuration for image processing
+      required: [id, user_id, name, max_width, max_height, format, quality, crop_mode, is_preset, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        user_id:
+          type: string
+          format: uuid
+          description: Owner of this variant config
+          example: 123e4567-e89b-12d3-a456-426614174001
+        name:
+          type: string
+          description: Unique name for this config (per user)
+          minLength: 1
+          maxLength: 50
+          example: mobile-preview
+        max_width:
+          type: integer
+          description: Maximum width in pixels
+          minimum: 1
+          maximum: 8192
+          example: 400
+        max_height:
+          type: integer
+          description: Maximum height in pixels
+          minimum: 1
+          maximum: 8192
+          example: 400
+        format:
+          type: string
+          description: Output image format
+          enum: [jpeg, png, webp, avif]
+          example: webp
+        quality:
+          type: integer
+          description: Image quality (1-100)
+          minimum: 1
+          maximum: 100
+          example: 85
+        crop_mode:
+          type: string
+          description: How to handle aspect ratio differences
+          enum: [fit, fill, crop]
+          example: fit
+        is_preset:
+          type: boolean
+          description: Whether this is a system-defined preset (read-only)
+          example: false
         created_at:
           type: string
           format: date-time

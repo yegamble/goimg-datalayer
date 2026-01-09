@@ -52,6 +52,7 @@ type MiddlewareConfig struct {
 //   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
 //   - oEmbed routes: GET /api/v1/oembed (public, no auth required) - Sprint 16
 //   - Preview routes: GET /images/{id}/preview (public HTML page with social meta tags) - Sprint 16
+//   - Variant Config routes: /api/v1/variant-configs/* (JWT required) - Sprint 17
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -72,6 +73,7 @@ func NewRouter(
 	guestHandler *GuestHandler,
 	oembedHandler *OEmbedHandler,
 	previewHandler *PreviewHandler,
+	variantConfigHandler *VariantConfigHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -216,6 +218,12 @@ func NewRouter(
 
 			// Mount album routes
 			r.Mount("/albums", albumHandler.Routes())
+
+			// Mount variant config routes (Sprint 17)
+			// Custom variant configurations for image processing
+			if variantConfigHandler != nil {
+				r.Mount("/variant-configs", variantConfigHandler.Routes())
+			}
 
 			// Social interaction routes (likes and comments)
 			// These are mounted under images and users paths
