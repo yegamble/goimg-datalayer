@@ -5804,6 +5804,229 @@
           }
         },
         {
+          "name": "Create Child Album (Nested)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has nested album data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('parent_id');",
+                  "    pm.expect(jsonData.parent_id).to.eql(pm.collectionVariables.get('testAlbumId'));",
+                  "    pm.collectionVariables.set('childAlbumId', jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Child Album\",\n  \"description\": \"Nested under parent album\",\n  \"visibility\": \"public\",\n  \"parent_id\": \"{{testAlbumId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/albums",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "albums"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Album Breadcrumb",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Breadcrumb is array with correct path', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.at.least(1);",
+                  "    // Last item should be the child album",
+                  "    const lastItem = jsonData[jsonData.length - 1];",
+                  "    pm.expect(lastItem).to.have.property('id');",
+                  "    pm.expect(lastItem).to.have.property('title');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{childAlbumId}}/breadcrumb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "albums",
+                "{{childAlbumId}}",
+                "breadcrumb"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Album Children",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Children is array with child album', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.at.least(1);",
+                  "    const childAlbum = jsonData.find(a => a.id === pm.collectionVariables.get('childAlbumId'));",
+                  "    pm.expect(childAlbum).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{testAlbumId}}/children",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "albums",
+                "{{testAlbumId}}",
+                "children"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Move Album (Change Parent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Parent ID is now null (root)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.parent_id).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parent_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{childAlbumId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "albums",
+                "{{childAlbumId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Child Album",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{childAlbumId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "albums",
+                "{{childAlbumId}}"
+              ]
+            }
+          }
+        },
+        {
           "name": "Delete Album",
           "event": [
             {
@@ -5834,6 +6057,423 @@
               "path": [
                 "albums",
                 "{{testAlbumId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Variant Configs",
+      "item": [
+        {
+          "name": "Create Variant Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has variant config data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('name');",
+                  "    pm.expect(jsonData.name).to.eql('test-thumbnail');",
+                  "    pm.expect(jsonData).to.have.property('max_width');",
+                  "    pm.expect(jsonData.max_width).to.eql(200);",
+                  "    pm.expect(jsonData).to.have.property('max_height');",
+                  "    pm.expect(jsonData.max_height).to.eql(200);",
+                  "    pm.expect(jsonData).to.have.property('format');",
+                  "    pm.expect(jsonData.format).to.eql('webp');",
+                  "    pm.expect(jsonData).to.have.property('quality');",
+                  "    pm.expect(jsonData.quality).to.eql(80);",
+                  "    pm.expect(jsonData).to.have.property('crop_mode');",
+                  "    pm.expect(jsonData.crop_mode).to.eql('fit');",
+                  "    pm.expect(jsonData).to.have.property('is_preset');",
+                  "    pm.expect(jsonData.is_preset).to.be.false;",
+                  "    pm.collectionVariables.set('testVariantConfigId', jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"test-thumbnail\",\n  \"max_width\": 200,\n  \"max_height\": 200,\n  \"format\": \"webp\",\n  \"quality\": 80,\n  \"crop_mode\": \"fit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List User Variant Configs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is array with created config', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.at.least(1);",
+                  "    const config = jsonData.find(c => c.id === pm.collectionVariables.get('testVariantConfigId'));",
+                  "    pm.expect(config).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Variant Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct config data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('testVariantConfigId'));",
+                  "    pm.expect(jsonData.name).to.eql('test-thumbnail');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs/{{testVariantConfigId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs",
+                "{{testVariantConfigId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Variant Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Config was updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.max_width).to.eql(300);",
+                  "    pm.expect(jsonData.max_height).to.eql(300);",
+                  "    pm.expect(jsonData.quality).to.eql(90);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"max_width\": 300,\n  \"max_height\": 300,\n  \"format\": \"webp\",\n  \"quality\": 90,\n  \"crop_mode\": \"fit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs/{{testVariantConfigId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs",
+                "{{testVariantConfigId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Variant Config Presets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is array of presets', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    // All items should be presets",
+                  "    jsonData.forEach(config => {",
+                  "        pm.expect(config.is_preset).to.be.true;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs/presets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs",
+                "presets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Variant Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs/{{testVariantConfigId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs",
+                "{{testVariantConfigId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Deleted Config - 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs/{{testVariantConfigId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs",
+                "{{testVariantConfigId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Config - Duplicate Name Error",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// First create a config to test duplicate name",
+                  "const baseUrl = pm.collectionVariables.get('baseUrl');",
+                  "const accessToken = pm.collectionVariables.get('accessToken');",
+                  "",
+                  "pm.sendRequest({",
+                  "    url: baseUrl + '/variant-configs',",
+                  "    method: 'POST',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json',",
+                  "        'Authorization': 'Bearer ' + accessToken",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            name: 'duplicate-test',",
+                  "            max_width: 100,",
+                  "            max_height: 100,",
+                  "            format: 'jpeg',",
+                  "            quality: 75,",
+                  "            crop_mode: 'fit'",
+                  "        })",
+                  "    }",
+                  "}, function(err, response) {",
+                  "    if (!err && response.code === 201) {",
+                  "        const jsonData = response.json();",
+                  "        pm.collectionVariables.set('duplicateTestConfigId', jsonData.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 (Conflict)', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "});",
+                  "",
+                  "// Cleanup: delete the duplicate test config",
+                  "const baseUrl = pm.collectionVariables.get('baseUrl');",
+                  "const accessToken = pm.collectionVariables.get('accessToken');",
+                  "const configId = pm.collectionVariables.get('duplicateTestConfigId');",
+                  "",
+                  "if (configId) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/variant-configs/' + configId,",
+                  "        method: 'DELETE',",
+                  "        header: {",
+                  "            'Authorization': 'Bearer ' + accessToken",
+                  "        }",
+                  "    }, function(err, response) {});",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"duplicate-test\",\n  \"max_width\": 150,\n  \"max_height\": 150,\n  \"format\": \"png\",\n  \"quality\": 80,\n  \"crop_mode\": \"fill\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/variant-configs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "variant-configs"
               ]
             }
           }

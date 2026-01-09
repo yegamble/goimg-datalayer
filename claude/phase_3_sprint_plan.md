@@ -114,11 +114,14 @@ Support hierarchical album organization and user-configurable image variant size
 | Children Query | ✅ COMPLETE | `GetAlbumChildrenHandler` |
 | Update Album Command | ✅ COMPLETE | parent_id support added |
 | HTTP Handlers | ✅ COMPLETE | `/breadcrumb` and `/children` endpoints |
-| OpenAPI Spec | ✅ COMPLETE | Endpoints documented |
+| OpenAPI Spec | ✅ COMPLETE | All endpoints documented |
 | VariantConfig Entity | ✅ COMPLETE | Domain entity created |
-| VariantConfig Repository | 🔄 PENDING | Implementation needed |
-| Custom Variant Processing | 🔄 PENDING | Implementation needed |
-| E2E Tests | 🔄 PENDING | Tests needed |
+| VariantConfig Repository | ✅ COMPLETE | PostgreSQL implementation |
+| VariantConfig CRUD API | ✅ COMPLETE | Create, Read, Update, Delete handlers |
+| VariantConfig HTTP Handlers | ✅ COMPLETE | Routes mounted at `/variant-configs` |
+| E2E Tests - Nested Albums | ✅ COMPLETE | 5 tests for breadcrumb/children/parent |
+| E2E Tests - Variant Configs | ✅ COMPLETE | 8 tests for CRUD operations |
+| Custom Variant Processing | 🔄 PENDING | Integration with image processing |
 
 ### Deliverables
 
@@ -133,17 +136,38 @@ Support hierarchical album organization and user-configurable image variant size
 ### API Endpoints
 
 ```yaml
-PATCH /api/v1/albums/{id}
-  - Add parent_id field for nesting
+# Album Hierarchy (IMPLEMENTED)
+PUT /api/v1/albums/{id}
+  - Update album with parent_id for nesting
 
 GET /api/v1/albums/{id}/breadcrumb
-  - Returns array of ancestor albums
+  - Returns array of ancestor albums (root to current)
 
+GET /api/v1/albums/{id}/children
+  - Returns direct child albums
+
+# Variant Configs (IMPLEMENTED)
+POST /api/v1/variant-configs
+  - Create custom variant configuration
+
+GET /api/v1/variant-configs
+  - List user's custom configs
+
+GET /api/v1/variant-configs/presets
+  - List system presets (public)
+
+GET /api/v1/variant-configs/{id}
+  - Get specific config
+
+PUT /api/v1/variant-configs/{id}
+  - Update config settings
+
+DELETE /api/v1/variant-configs/{id}
+  - Delete custom config
+
+# Pending Implementation
 POST /api/v1/images/{id}/variants
   - Generate custom variant with specified dimensions
-
-GET /api/v1/variant-presets
-  - List available variant presets
 ```
 
 ### Database Changes
