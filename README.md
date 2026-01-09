@@ -591,17 +591,30 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ NSFW scan management endpoints (4 endpoints)
 - ✅ Database migration for NSFW scan tables
 
-### Phase 3: Future Enhancements (Backlog)
+### Phase 3: Advanced Features (Planning)
 
-| Feature | Priority | Description |
-|---------|----------|-------------|
-| Groups/communities | P3 | User groups, shared albums |
-| Watermarking | P3 | Auto-watermark on uploads |
-| Account tiers | P3 | Storage limits, premium features |
-| Video support | P3 | Video upload and streaming |
-| oEmbed & Social Cards | P2 | Embeddable images, social media previews |
+Phase 3 focuses on discoverability, social sharing, and platform scalability.
 
-See [claude/sprint_plan.md](claude/sprint_plan.md) for detailed breakdown and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md) for current status.
+| Sprint | Focus | Duration | Priority | Status |
+|--------|-------|----------|----------|--------|
+| **16** | oEmbed + Social Media Cards | 1 week | P1 | 📋 Planned |
+| **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 📋 Planned |
+| **18** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Planned |
+| **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
+| **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
+| **21** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
+
+**Key Phase 3 Features**:
+- **oEmbed & Social Cards** - Enable image embedding on external sites, rich social media previews
+- **Nested Albums** - Hierarchical album organization with breadcrumb navigation
+- **Custom Variants** - User-defined image variant sizes (pro feature)
+- **Trending Tags** - Time-weighted tag popularity, tag search, tag-based listing
+- **Featured Picks** - Admin-curated featured content for discovery
+- **Groups** - Interest-based communities with shared albums
+- **Video Support** - Video uploads with HLS/DASH streaming
+- **Account Tiers** - Free, Pro, Business levels with different limits
+
+See [claude/phase_3_sprint_plan.md](claude/phase_3_sprint_plan.md) for detailed Phase 3 planning and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md) for current status.
 
 ## Contributing
 

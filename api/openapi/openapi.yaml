@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: goimg-datalayer API
-  version: 1.0.0
+  version: 2.0.0
   description: |
     A self-hosted image gallery backend inspired by Flickr and Chevereto.
 
@@ -12,9 +12,9 @@ info:
     - Content moderation and abuse reporting
     - RESTful API with RFC 7807 error responses
 
-    **Phase 2 Endpoints**: Some endpoints are marked with `x-phase: "2"` extension
-    to indicate they are planned for Phase 2 development and not yet implemented.
-    These include: moderation endpoints, advanced tag endpoints.
+    **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) have been implemented.
+    Only advanced tag endpoints remain marked with `x-phase: "3"` for future development.
+    These include: popular tags, tag search, tag-based image listing.
 
   contact:
     name: goimg-datalayer API Team
