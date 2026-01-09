@@ -640,7 +640,7 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 3 IN PROGRESS** 🚀 - Sprints 10-16 COMPLETE ✅ - Sprint 17 IN PROGRESS
+**Project Status**: **Phase 3 IN PROGRESS** 🚀 - Sprints 10-16 COMPLETE ✅ - Sprint 17 NEARLY COMPLETE ✅
 
 ---
 
@@ -648,12 +648,12 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation is underway. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
+**Current Sprint**: Sprint 17 - Nested Albums + Custom Variants ✅
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
-| 17 | Nested Albums + Custom Variants | P2 | 🚀 **IN PROGRESS** |
+| 17 | Nested Albums + Custom Variants | P2 | ✅ **NEARLY COMPLETE** |
 | 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
 
 **Sprint 16 Complete** ✅:
@@ -665,10 +665,12 @@ Phase 3 implementation is underway. See `claude/phase_3_sprint_plan.md` for full
 - ✅ Public image preview page (`GET /images/{id}/preview`)
 - ✅ E2E tests (8 Newman tests for oEmbed and preview)
 
-**Sprint 17 In Progress** 🚀:
+**Sprint 17 Nearly Complete** ✅:
 - ✅ Database migration for nested albums and variant configs
 - ✅ Album hierarchy support (parent_id, breadcrumb, children)
 - ✅ Variant config CRUD API (6 endpoints)
 - ✅ Custom variant generation endpoint
+- ✅ Rate limiting (20/hour per user)
+- ✅ Unit tests for VariantConfig domain entity
 - ✅ E2E tests (13 Newman tests)
-- 📋 Security Gate S17 review pending
+- ✅ Security Gate S17: 8/9 controls passed (1 pending DevOps)
