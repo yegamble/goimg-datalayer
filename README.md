@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 16 COMPLETE** ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 17 IN PROGRESS** 🚀
 
 **Phase 2 Complete** ✅: All Sprints 10-15 delivered:
 - ✅ Sprint 10: Security Enhancements (timing attack mitigation, HIBP password check)
@@ -14,12 +14,23 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ Sprint 14: Content Moderation + Guest Uploads (abuse reports, admin queue, user bans)
 - ✅ Sprint 15: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
 
+**Phase 3 In Progress** 🚀: Sprints 16-17 advancing:
+- ✅ Sprint 16 COMPLETE: oEmbed + Social Media Cards
+- 🚀 Sprint 17 IN PROGRESS: Nested Albums + Custom Variants
+
 **Sprint 16 Complete** ✅: oEmbed + Social Media Cards
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) with JSON/XML support
 - ✅ Open Graph meta tags for Facebook/LinkedIn
 - ✅ Twitter Card support for rich previews
 - ✅ Image preview page (`GET /images/{id}/preview`)
 - ✅ E2E tests (8 Newman tests)
+
+**Sprint 17 In Progress** 🚀: Nested Albums + Custom Variants
+- ✅ Database migration for nested albums and variant configs
+- ✅ Album hierarchy (parent-child relationships, breadcrumbs, children)
+- ✅ Variant config CRUD API (6 endpoints)
+- ✅ Custom variant generation endpoint (`POST /images/{id}/variants`)
+- ✅ E2E tests (13 Newman tests for nested albums and variant configs)
 
 **Phase 1 Complete** ✅: All Sprints 1-9 delivered (MVP LAUNCHED):
 
@@ -564,7 +575,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
 | **16** | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
-| **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 🚀 **NEXT** |
+| **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 🚀 **IN PROGRESS** |
 | **18** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Planned |
 | **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
 | **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
@@ -580,9 +591,32 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ Image preview page (`GET /images/{id}/preview`) with social meta tags
 - ✅ E2E tests (8 Newman tests)
 
+#### Sprint 17: Nested Albums + Custom Variants 🚀 IN PROGRESS
+
+**Nested Albums** (COMPLETE ✅):
+- ✅ Database migration for album `parent_id` field
+- ✅ Album domain entity updated with parent relationship
+- ✅ Album repository with `FindChildren`, `FindAncestors` methods
+- ✅ `GET /api/v1/albums/{id}/breadcrumb` - Ancestor path
+- ✅ `GET /api/v1/albums/{id}/children` - Direct child albums
+- ✅ `PUT /api/v1/albums/{id}` - Update with parent_id support
+
+**Custom Variants** (COMPLETE ✅):
+- ✅ VariantConfig domain entity with validation
+- ✅ VariantConfig PostgreSQL repository
+- ✅ `POST /api/v1/variant-configs` - Create custom config
+- ✅ `GET /api/v1/variant-configs` - List user's configs
+- ✅ `GET /api/v1/variant-configs/presets` - System presets
+- ✅ `GET /api/v1/variant-configs/{id}` - Get config
+- ✅ `PUT /api/v1/variant-configs/{id}` - Update config
+- ✅ `DELETE /api/v1/variant-configs/{id}` - Delete config
+- ✅ `POST /api/v1/images/{id}/variants` - Generate custom variant
+
+**Testing** (COMPLETE ✅):
+- ✅ E2E tests for nested albums (5 Newman tests)
+- ✅ E2E tests for variant configs (8 Newman tests)
+
 **Future Sprints**:
-- **Nested Albums** - Hierarchical album organization with breadcrumb navigation
-- **Custom Variants** - User-defined image variant sizes (pro feature)
 - **Trending Tags** - Time-weighted tag popularity, tag search
 - **Groups** - Interest-based communities with shared albums
 - **Video Support** - Video uploads with HLS/DASH streaming

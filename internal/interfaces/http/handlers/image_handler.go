@@ -26,15 +26,15 @@ const (
 // ImageHandler handles image-related HTTP endpoints.
 // It delegates to application layer command and query handlers for business logic.
 type ImageHandler struct {
-	uploadImage            *commands.UploadImageHandler
-	updateImage            *commands.UpdateImageHandler
-	deleteImage            *commands.DeleteImageHandler
-	generateCustomVariant  *commands.GenerateCustomVariantHandler
-	getImage               *queries.GetImageHandler
-	listImages             *queries.ListImagesHandler
-	searchImages           *queries.SearchImagesHandler
-	storage                StorageProvider
-	logger                 zerolog.Logger
+	uploadImage           *commands.UploadImageHandler
+	updateImage           *commands.UpdateImageHandler
+	deleteImage           *commands.DeleteImageHandler
+	generateCustomVariant *commands.GenerateCustomVariantHandler
+	getImage              *queries.GetImageHandler
+	listImages            *queries.ListImagesHandler
+	searchImages          *queries.SearchImagesHandler
+	storage               StorageProvider
+	logger                zerolog.Logger
 }
 
 // StorageProvider is the interface for retrieving image files from storage.
@@ -815,13 +815,13 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 
 // GenerateCustomVariantRequest represents the request body for generating a custom variant.
 type GenerateCustomVariantRequest struct {
-	ConfigID  string `json:"config_id,omitempty"`   // Use a saved variant config
-	Name      string `json:"name,omitempty"`        // Custom variant name
-	MaxWidth  int    `json:"max_width,omitempty"`   // Required if config_id not provided
-	MaxHeight int    `json:"max_height,omitempty"`  // Required if config_id not provided
-	Format    string `json:"format,omitempty"`      // jpeg, png, webp, avif
-	Quality   int    `json:"quality,omitempty"`     // 1-100
-	CropMode  string `json:"crop_mode,omitempty"`   // fit, fill, crop
+	ConfigID  string `json:"config_id,omitempty"`  // Use a saved variant config
+	Name      string `json:"name,omitempty"`       // Custom variant name
+	MaxWidth  int    `json:"max_width,omitempty"`  // Required if config_id not provided
+	MaxHeight int    `json:"max_height,omitempty"` // Required if config_id not provided
+	Format    string `json:"format,omitempty"`     // jpeg, png, webp, avif
+	Quality   int    `json:"quality,omitempty"`    // 1-100
+	CropMode  string `json:"crop_mode,omitempty"`  // fit, fill, crop
 }
 
 // GenerateCustomVariant handles POST /api/v1/images/{imageID}/variants

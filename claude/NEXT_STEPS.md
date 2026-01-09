@@ -2,9 +2,81 @@
 
 > **Last Updated**: 2026-01-09
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
-> **Status**: **Phase 2 Complete** - Sprints 10-15 ALL COMPLETE ✅
+> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
+> **Status**: **Phase 2 Complete** - Sprints 10-15 ALL COMPLETE ✅ | Sprint 16 COMPLETE ✅
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
+
+---
+
+## Sprint 17 Summary (IN PROGRESS 🚀)
+
+### Nested Albums + Custom Variants
+
+**Priority**: P2 MEDIUM
+**Status**: 🚀 **IN PROGRESS** (Most features implemented)
+
+| Component | Status | Files |
+|-----------|--------|-------|
+| Database Migration | ✅ COMPLETE | `migrations/00015_add_nested_albums_and_variant_configs.sql` |
+| Album parent_id Field | ✅ COMPLETE | `internal/domain/gallery/album.go` |
+| Album Repository | ✅ COMPLETE | `FindChildren`, `FindAncestors` methods |
+| Album Breadcrumb Query | ✅ COMPLETE | `get_album_breadcrumb.go` |
+| Album Children Query | ✅ COMPLETE | Album domain GetChildren support |
+| Update Album Command | ✅ COMPLETE | `parent_id` support in update |
+| Album HTTP Endpoints | ✅ COMPLETE | `/breadcrumb`, `/children` routes |
+| VariantConfig Entity | ✅ COMPLETE | `internal/domain/gallery/variant_config.go` |
+| VariantConfig Repository | ✅ COMPLETE | PostgreSQL implementation |
+| VariantConfig CRUD API | ✅ COMPLETE | 6 endpoints |
+| VariantConfig HTTP Handler | ✅ COMPLETE | Mounted at `/variant-configs` |
+| Custom Variant Generation | ✅ COMPLETE | `POST /images/{id}/variants` |
+| E2E Tests - Nested Albums | ✅ COMPLETE | 5 Newman tests |
+| E2E Tests - Variant Configs | ✅ COMPLETE | 8 Newman tests |
+| OpenAPI Spec | ✅ COMPLETE | All endpoints documented |
+
+### Sprint 17 Delivered Endpoints
+
+**Nested Albums**:
+- ✅ `PUT /api/v1/albums/{id}` - Update album with `parent_id`
+- ✅ `GET /api/v1/albums/{id}/breadcrumb` - Get ancestor path
+- ✅ `GET /api/v1/albums/{id}/children` - Get child albums
+
+**Custom Variant Configs**:
+- ✅ `POST /api/v1/variant-configs` - Create custom config
+- ✅ `GET /api/v1/variant-configs` - List user's configs
+- ✅ `GET /api/v1/variant-configs/presets` - List system presets
+- ✅ `GET /api/v1/variant-configs/{id}` - Get specific config
+- ✅ `PUT /api/v1/variant-configs/{id}` - Update config
+- ✅ `DELETE /api/v1/variant-configs/{id}` - Delete config
+
+**Custom Variant Generation**:
+- ✅ `POST /api/v1/images/{id}/variants` - Generate custom variant
+
+### Remaining Work (Sprint 17)
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Integration testing for variant processing | P1 | 📋 Pending |
+| Security Gate S17 review | P0 | 📋 Pending |
+| Performance testing | P2 | 📋 Backlog |
+
+---
+
+## Sprint 16 Summary (COMPLETE ✅)
+
+### oEmbed + Social Media Cards
+
+**Priority**: P1 HIGH
+**Status**: ✅ **COMPLETE** (All features implemented)
+
+| Component | Status |
+|-----------|--------|
+| oEmbed Endpoint | ✅ COMPLETE |
+| OpenAPI Spec | ✅ COMPLETE |
+| Router Wiring | ✅ COMPLETE |
+| Open Graph Tags | ✅ COMPLETE |
+| Twitter Cards | ✅ COMPLETE |
+| Image Preview Page | ✅ COMPLETE |
+| E2E Tests | ✅ COMPLETE |
 
 ---
 
@@ -552,20 +624,20 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 COMPLETE** ✅ - All Sprints 10-15 COMPLETE ✅ - **Phase 3 Planning Ready**
+**Project Status**: **Phase 3 IN PROGRESS** 🚀 - Sprints 10-16 COMPLETE ✅ - Sprint 17 IN PROGRESS
 
 ---
 
 ## Phase 3 Progress
 
-Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full plan.
+Phase 3 implementation is underway. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚧
+**Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
-| 17 | Nested Albums + Custom Variants | P2 | 🚀 **NEXT** |
+| 17 | Nested Albums + Custom Variants | P2 | 🚀 **IN PROGRESS** |
 | 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
 
 **Sprint 16 Complete** ✅:
@@ -576,3 +648,11 @@ Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full p
 - ✅ Twitter Card support for rich previews
 - ✅ Public image preview page (`GET /images/{id}/preview`)
 - ✅ E2E tests (8 Newman tests for oEmbed and preview)
+
+**Sprint 17 In Progress** 🚀:
+- ✅ Database migration for nested albums and variant configs
+- ✅ Album hierarchy support (parent_id, breadcrumb, children)
+- ✅ Variant config CRUD API (6 endpoints)
+- ✅ Custom variant generation endpoint
+- ✅ E2E tests (13 Newman tests)
+- 📋 Security Gate S17 review pending
