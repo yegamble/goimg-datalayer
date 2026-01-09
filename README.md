@@ -4,11 +4,14 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-14 COMPLETE
+**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-15 COMPLETE ✅
 
-**Sprint 15**: 🔄 IN PROGRESS - AI NSFW Detection + Advanced Search
-  - 📋 AI content moderation (SightEngine/ModerateContent API)
-  - 📋 Advanced search filters (date, size, dimensions)
+**Sprint 15**: ✅ **COMPLETE** - AI NSFW Detection + Advanced Search
+  - ✅ AI content moderation (SightEngine/ModerateContent API)
+  - ✅ Advanced search filters (date, size, dimensions, NSFW status)
+  - ✅ Database migration with NSFW scan tables
+  - ✅ Multi-provider NSFW orchestration with fallback
+  - ✅ HTTP endpoints for NSFW scanning and moderation
 
 **Sprint 14**: COMPLETE ✅ - Content Moderation + Guest Uploads
   - ✅ Database migrations (moderation tables, guest user support)
@@ -297,8 +300,8 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - ✅ Guest uploads - Sprint 14 COMPLETE
 - ✅ Content moderation suite - Sprint 14 COMPLETE
 - 🔄 Advanced tag endpoints (popular tags, tag search, tag-based listing) - Future
-- 🔄 AI NSFW detection - Sprint 15 IN PROGRESS
-- 🔄 Advanced search filters - Sprint 15 IN PROGRESS
+- ✅ AI NSFW detection - Sprint 15 COMPLETE
+- ✅ Advanced search filters - Sprint 15 COMPLETE
 - 🔄 Watermarking - Phase 3
 
 ## Tech Stack
@@ -509,7 +512,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | 8 | Integration, Testing & Security Hardening | 2 weeks | **COMPLETE** ✅ |
 | 9 | MVP Polish & Launch Prep | 2 weeks | **COMPLETE** ✅ GO FOR LAUNCH |
 
-### Phase 2: Advanced Features (IN PROGRESS)
+### Phase 2: Advanced Features (COMPLETE ✅)
 
 | Sprint | Focus | Status | Key Deliverables |
 |--------|-------|--------|------------------|
@@ -518,7 +521,7 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 | **12** | OAuth & Social Features | ✅ **COMPLETE** | OAuth, Follow/unfollow, Activity feeds, Email notifications, Session elevation |
 | **13** | IPFS Storage | ✅ **COMPLETE** | Decentralized storage, IPFS client, orchestrator, 3 API endpoints, E2E tests |
 | **14** | Content Moderation + Guest Uploads | ✅ **COMPLETE** | Abuse reporting, admin queue, user bans, guest uploads, Security Gate S14 |
-| **15** | AI NSFW + Advanced Search | 🔄 **IN PROGRESS** | AI content moderation, advanced search filters |
+| **15** | AI NSFW + Advanced Search | ✅ **COMPLETE** | AI content moderation (SightEngine/ModerateContent), advanced search filters |
 
 #### Sprint 10: Security Enhancements ✅ COMPLETE
 - ✅ Random login delay (100-300ms) - Timing attack mitigation
@@ -580,11 +583,13 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 **Security Gate S14**: ✅ APPROVED
 - Full security review: `claude/SECURITY_GATE_S14_REPORT.md`
 
-#### Sprint 15: AI NSFW + Advanced Search 🔄 IN PROGRESS
-- 📋 AI NSFW detection (SightEngine/ModerateContent API integration)
-- 📋 Advanced search filters (date range, file size, dimensions)
-- 📋 Content flagging based on AI analysis
-- 📋 Search performance optimization
+#### Sprint 15: AI NSFW + Advanced Search ✅ COMPLETE
+- ✅ AI NSFW detection (SightEngine/ModerateContent API integration)
+- ✅ Advanced search filters (date range, file size, dimensions, NSFW status)
+- ✅ Content flagging based on AI analysis
+- ✅ Multi-provider orchestration with fallback support
+- ✅ NSFW scan management endpoints (4 endpoints)
+- ✅ Database migration for NSFW scan tables
 
 ### Phase 3: Future Enhancements (Backlog)
 
