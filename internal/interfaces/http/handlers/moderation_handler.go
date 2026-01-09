@@ -923,18 +923,12 @@ func (h *ModerationHandler) ListNSFWFlagged(w http.ResponseWriter, r *http.Reque
 		pageSize = maxPerPage
 	}
 
-	// Parse optional requires_review filter
-	var requiresReview *bool
-	if reqReviewStr := r.URL.Query().Get("requires_review"); reqReviewStr != "" {
-		reqReviewBool := reqReviewStr == "true"
-		requiresReview = &reqReviewBool
-	}
+	// Note: requires_review filter could be added to ListNSFWFlaggedQuery in future
 
 	// 2. Build query
 	query := queries.ListNSFWFlaggedQuery{
-		Page:           page,
-		PageSize:       pageSize,
-		RequiresReview: requiresReview,
+		Page:     page,
+		PageSize: pageSize,
 	}
 
 	// 3. Execute query

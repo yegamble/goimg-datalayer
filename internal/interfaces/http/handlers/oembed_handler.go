@@ -118,7 +118,7 @@ func (h *OEmbedHandler) GetOEmbed(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch image details
 	query := queries.GetImageQuery{
-		ImageID: imageID,
+		ImageID: imageID.String(),
 		// No user ID - only public images are embeddable
 	}
 	result, err := h.getImage.Handle(ctx, query)
@@ -202,8 +202,8 @@ func (h *OEmbedHandler) buildOEmbedResponse(
 		Width:           width,
 		Height:          height,
 		Title:           image.Title,
-		AuthorName:      image.OwnerUsername,
-		AuthorURL:       fmt.Sprintf("%s/users/%s", h.baseURL, image.OwnerID.String()),
+		AuthorName:      "", // Username not available in ImageDTO, could be fetched separately
+		AuthorURL:       fmt.Sprintf("%s/users/%s", h.baseURL, image.OwnerID),
 		ProviderName:    "goimg",
 		ProviderURL:     h.baseURL,
 		CacheAge:        3600, // 1 hour cache
@@ -233,24 +233,24 @@ func (h *OEmbedHandler) selectVariantURL(image *queries.ImageDTO, targetWidth in
 func (h *OEmbedHandler) getVariantURL(image *queries.ImageDTO, variant string) string {
 	// Check if variant exists in the image's variants
 	for _, v := range image.Variants {
-		if v.VariantType == variant {
-			return fmt.Sprintf("%s/api/v1/images/%s/variants/%s", h.baseURL, image.ID.String(), variant)
+		if v.Type == variant {
+			return fmt.Sprintf("%s/api/v1/images/%s/variants/%s", h.baseURL, image.ID, variant)
 		}
 	}
 	// Fallback to original
-	return fmt.Sprintf("%s/api/v1/images/%s/variants/original", h.baseURL, image.ID.String())
+	return fmt.Sprintf("%s/api/v1/images/%s/variants/original", h.baseURL, image.ID)
 }
 
 // selectThumbnailURL returns the thumbnail URL for the image.
 func (h *OEmbedHandler) selectThumbnailURL(image *queries.ImageDTO) string {
-	return fmt.Sprintf("%s/api/v1/images/%s/variants/thumbnail", h.baseURL, image.ID.String())
+	return fmt.Sprintf("%s/api/v1/images/%s/variants/thumbnail", h.baseURL, image.ID)
 }
 
 // getThumbnailDimensions returns the thumbnail dimensions.
 func (h *OEmbedHandler) getThumbnailDimensions(image *queries.ImageDTO) (width, height int) {
 	// Default thumbnail is 150px max width, maintaining aspect ratio
 	for _, v := range image.Variants {
-		if v.VariantType == "thumbnail" {
+		if v.Type == "thumbnail" {
 			return v.Width, v.Height
 		}
 	}

@@ -86,7 +86,7 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 	imageID := chi.URLParam(r, "imageID")
 	if imageID == "" {
 		h.logger.Debug().Msg("missing image ID in claim request")
-		respondWithError(w, http.StatusBadRequest, "invalid_request", "Image ID is required", "path")
+		middleware.WriteError(w, r, http.StatusBadRequest, "invalid_request", "Image ID is required")
 		return
 	}
 
@@ -94,14 +94,14 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 	var req ClaimGuestImageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Debug().Err(err).Msg("failed to decode claim request body")
-		respondWithError(w, http.StatusBadRequest, "invalid_request", "Invalid request body", "body")
+		middleware.WriteError(w, r, http.StatusBadRequest, "invalid_request", "Invalid request body")
 		return
 	}
 
 	// Validate guest user ID
 	if req.GuestUserID == "" {
 		h.logger.Debug().Msg("missing guest user ID in claim request")
-		respondWithError(w, http.StatusBadRequest, "invalid_request", "Guest user ID is required", "body.guest_user_id")
+		middleware.WriteError(w, r, http.StatusBadRequest, "invalid_request", "Guest user ID is required")
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.claimImage.Handle(ctx, cmd)
 	if err != nil {
-		h.handleClaimError(w, err)
+		h.handleClaimError(w, r, err)
 		return
 	}
 
@@ -135,16 +135,16 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleClaimError maps application errors to HTTP error responses.
-func (h *GuestHandler) handleClaimError(w http.ResponseWriter, err error) {
+func (h *GuestHandler) handleClaimError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, gallery.ErrImageNotFound):
-		respondWithError(w, http.StatusNotFound, "not_found", "Image not found", "path.imageID")
+		middleware.WriteError(w, r, http.StatusNotFound, "not_found", "Image not found")
 	case errors.Is(err, gallery.ErrUnauthorizedAccess):
-		respondWithError(w, http.StatusForbidden, "forbidden", err.Error(), "")
+		middleware.WriteError(w, r, http.StatusForbidden, "forbidden", err.Error())
 	case errors.Is(err, gallery.ErrCannotModifyDeleted):
-		respondWithError(w, http.StatusConflict, "conflict", "Cannot claim deleted image", "path.imageID")
+		middleware.WriteError(w, r, http.StatusConflict, "conflict", "Cannot claim deleted image")
 	default:
 		h.logger.Error().Err(err).Msg("unexpected error during image claim")
-		respondWithError(w, http.StatusInternalServerError, "internal_error", "An unexpected error occurred", "")
+		middleware.WriteError(w, r, http.StatusInternalServerError, "internal_error", "An unexpected error occurred")
 	}
 }

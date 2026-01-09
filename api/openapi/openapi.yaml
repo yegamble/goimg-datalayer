@@ -653,6 +653,53 @@ paths:
                 status: 400
                 detail: Invalid OAuth provider
                 traceId: abc123-def456
+    delete:
+      tags: [auth]
+      summary: Unlink OAuth account by provider
+      description: |
+        Remove the link between an OAuth provider and the authenticated user's account.
+
+        After unlinking, the user will no longer be able to login using that OAuth provider.
+        They must have at least one other login method (password or another OAuth provider).
+      operationId: unlinkOAuthAccountByProvider
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider to unlink
+          schema:
+            type: string
+            enum: [google, github]
+          example: google
+      responses:
+        '200':
+          description: OAuth account unlinked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth account unlinked successfully
+        '400':
+          description: Bad request - cannot unlink (e.g., only login method)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: OAuth account not linked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /auth/oauth/{provider}/callback:
     get:
@@ -742,6 +789,18 @@ paths:
                     status: 400
                     detail: User denied access
                     traceId: abc123-def456
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: OAuth authentication failed
+                traceId: abc123-def456
         '409':
           description: Email already registered with different authentication method
           content:
@@ -3038,8 +3097,12 @@ paths:
                   maxLength: 1000
                   example: Image removed for violating content policy
       responses:
-        '204':
+        '200':
           description: Report resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
         '400':
           description: Validation error
           content:
