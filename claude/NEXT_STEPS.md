@@ -2,18 +2,18 @@
 
 > **Last Updated**: 2026-01-09
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
-> **Status**: **Phase 2 Complete** - Sprints 10-15 ALL COMPLETE ✅ | Sprint 16 COMPLETE ✅
+> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants ✅
+> **Status**: **Phase 2 Complete** - Sprints 10-16 ALL COMPLETE ✅ | Sprint 17 NEARLY COMPLETE ✅
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 
 ---
 
-## Sprint 17 Summary (IN PROGRESS 🚀)
+## Sprint 17 Summary (NEARLY COMPLETE ✅)
 
 ### Nested Albums + Custom Variants
 
 **Priority**: P2 MEDIUM
-**Status**: 🚀 **IN PROGRESS** (Most features implemented)
+**Status**: ✅ **NEARLY COMPLETE** (All features implemented, 8/9 security controls passed)
 
 | Component | Status | Files |
 |-----------|--------|-------|
@@ -29,9 +29,12 @@
 | VariantConfig CRUD API | ✅ COMPLETE | 6 endpoints |
 | VariantConfig HTTP Handler | ✅ COMPLETE | Mounted at `/variant-configs` |
 | Custom Variant Generation | ✅ COMPLETE | `POST /images/{id}/variants` |
+| Rate Limiting | ✅ COMPLETE | `VariantGenerationRateLimiter` (20/hour per user) |
+| Unit Tests | ✅ COMPLETE | `variant_config_test.go` (15+ test functions) |
 | E2E Tests - Nested Albums | ✅ COMPLETE | 5 Newman tests |
 | E2E Tests - Variant Configs | ✅ COMPLETE | 8 Newman tests |
 | OpenAPI Spec | ✅ COMPLETE | All endpoints documented |
+| Security Gate S17 | ✅ 8/9 PASSED | 1 pending DevOps review |
 
 ### Sprint 17 Delivered Endpoints
 
@@ -51,13 +54,26 @@
 **Custom Variant Generation**:
 - ✅ `POST /api/v1/images/{id}/variants` - Generate custom variant
 
+### Security Controls (8/9 PASSED)
+
+| Control | Status | Description |
+|---------|--------|-------------|
+| S17-VAR-001 | ✅ | Name validation regex |
+| S17-VAR-002 | ✅ | Width/height bounds (1-8192) |
+| S17-VAR-003 | ✅ | Quality bounds (1-100) |
+| S17-VAR-004 | ✅ | Format whitelist (jpeg/png/webp/avif) |
+| S17-VAR-005 | ✅ | Ownership check for config CRUD |
+| S17-VAR-006 | ✅ | Image ownership for variant generation |
+| S17-VAR-007 | ✅ | Rate limiting (20/hour per user) |
+| S17-PROC-001 | ⚠️ | Container resource limits (DevOps review) |
+| S17-PROC-002 | ✅ | Temp file cleanup |
+
 ### Remaining Work (Sprint 17)
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Integration testing for variant processing | P1 | 📋 Pending |
-| Security Gate S17 review | P0 | 📋 Pending |
-| Performance testing | P2 | 📋 Backlog |
+| Container resource limits review | P1 | ⚠️ Pending DevOps |
+| Full SecOps review sign-off | P1 | 📋 Pending |
 
 ---
 
