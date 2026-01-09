@@ -50,6 +50,7 @@ type MiddlewareConfig struct {
 //   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
 //   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, /api/v1/moderation/nsfw/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
 //   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
+//   - oEmbed routes: GET /api/v1/oembed (public, no auth required) - Sprint 16
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -68,6 +69,7 @@ func NewRouter(
 	ipfsHandler *IPFSHandler,
 	moderationHandler *ModerationHandler,
 	guestHandler *GuestHandler,
+	oembedHandler *OEmbedHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -144,6 +146,12 @@ func NewRouter(
 		// Public explore routes (no authentication required)
 		// Allows anonymous users to discover public content
 		r.Mount("/explore", exploreHandler.Routes())
+
+		// oEmbed endpoint (Sprint 16 - no authentication required)
+		// Enables external sites to embed images using oEmbed protocol
+		if oembedHandler != nil {
+			r.Mount("/oembed", oembedHandler.Routes())
+		}
 
 		// Image variant endpoint with optional authentication
 		// Supports both authenticated and anonymous access (respects image visibility)
