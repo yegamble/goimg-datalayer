@@ -952,12 +952,11 @@ Use this template for each sprint gate review:
 4. ✅ **S17-VAR-004**: Format whitelist (jpeg/png/webp/avif) enforced
 5. ✅ **S17-VAR-005**: Ownership check implemented in handlers
 6. ✅ **S17-VAR-006**: Image ownership verified before variant generation
-7. ⚠️ **S17-VAR-007**: Rate limiting on variant generation - needs verification
+7. ✅ **S17-VAR-007**: Rate limiting implemented (`VariantGenerationRateLimiter`: 20/hour per user)
 8. ⚠️ **S17-PROC-001**: Container resource limits - needs DevOps review
 9. ✅ **S17-PROC-002**: Defer cleanup implemented for temp files
 
 **Remediation Required**:
-- Verify rate limiting is applied to variant generation endpoint
 - Confirm container resource limits in Docker/K8s configs
 - Add integration tests for authorization edge cases
 

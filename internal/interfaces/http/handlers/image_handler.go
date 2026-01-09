@@ -35,6 +35,7 @@ type ImageHandler struct {
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
 	logger                zerolog.Logger
+	rateLimiterConfig     *middleware.RateLimiterConfig // Optional rate limiter for variant generation
 }
 
 // StorageProvider is the interface for retrieving image files from storage.
@@ -55,6 +56,7 @@ func NewImageHandler(
 	searchImages *queries.SearchImagesHandler,
 	storage StorageProvider,
 	logger zerolog.Logger,
+	rateLimiterConfig *middleware.RateLimiterConfig, // Optional: pass nil to disable rate limiting
 ) *ImageHandler {
 	return &ImageHandler{
 		uploadImage:           uploadImage,
@@ -66,6 +68,7 @@ func NewImageHandler(
 		searchImages:          searchImages,
 		storage:               storage,
 		logger:                logger,
+		rateLimiterConfig:     rateLimiterConfig,
 	}
 }
 
@@ -90,8 +93,14 @@ func (h *ImageHandler) Routes() chi.Router {
 	r.Delete("/{imageID}", h.Delete)
 
 	// Custom variant generation (Sprint 17)
+	// Rate-limited to prevent DoS attacks on CPU-intensive processing (20/hour per user)
 	if h.generateCustomVariant != nil {
-		r.Post("/{imageID}/variants", h.GenerateCustomVariant)
+		if h.rateLimiterConfig != nil {
+			r.With(middleware.VariantGenerationRateLimiter(*h.rateLimiterConfig)).
+				Post("/{imageID}/variants", h.GenerateCustomVariant)
+		} else {
+			r.Post("/{imageID}/variants", h.GenerateCustomVariant)
+		}
 	}
 
 	return r

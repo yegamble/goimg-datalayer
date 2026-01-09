@@ -756,3 +756,90 @@ func extractClientIP(r *http.Request, trustProxy bool) string {
 
 	return remoteAddr
 }
+
+// VariantGenerationRateLimiter creates a rate limiting middleware for custom variant generation.
+// Uses a limit of 20 variants/hour per user to prevent DoS attacks on CPU-intensive processing.
+//
+// Redis key pattern: goimg:ratelimit:variant:{user_id}
+//
+// Security: Custom variant generation is CPU-intensive. Without rate limiting, attackers
+// could overwhelm the server by requesting many large custom variants simultaneously.
+//
+// This should be applied to the variant generation endpoint:
+//
+// Usage:
+//
+//	r.With(middleware.VariantGenerationRateLimiter(cfg)).Post("/{imageID}/variants", handlers.Image.GenerateCustomVariant)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func VariantGenerationRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Variant generation rate limit: 20 variants per hour
+	variantLimit := 20
+	variantWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user context - this shouldn't happen as endpoint requires auth
+				// Fall through to handler which will return 401
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Redis key for per-user variant generation rate limiting
+			key := fmt.Sprintf("goimg:ratelimit:variant:%s", userID)
+
+			// Check rate limit using shared helper
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, variantLimit, variantWindow)
+			if err != nil {
+				// Redis error - log and allow request (fail-open for availability)
+				cfg.Logger.Warn().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("variant generation rate limiter: redis error, allowing request")
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("variant_generation")
+				}
+
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Str("path", r.URL.Path).
+					Int("limit", variantLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("variant generation rate limit exceeded")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Rate Limit Exceeded",
+					fmt.Sprintf("Variant generation rate limit exceeded. Limit: %d per hour", variantLimit),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
