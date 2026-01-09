@@ -2006,6 +2006,128 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /images/{id}/variants:
+    post:
+      tags: [images]
+      summary: Generate custom variant
+      description: |
+        Generate a custom image variant using user-defined parameters or a saved variant config.
+
+        You can either:
+        1. Provide a config_id to use a saved variant configuration
+        2. Provide direct parameters (max_width, max_height, format, quality, crop_mode)
+
+        Crop modes:
+        - fit: Scale to fit within dimensions, preserving aspect ratio (default)
+        - fill: Scale to fill dimensions, cropping excess
+        - crop: Crop from center to exact dimensions
+
+        Output formats:
+        - jpeg: Standard JPEG
+        - png: PNG with transparency support
+        - webp: Modern WebP format (default, best compression)
+        - avif: Next-gen AVIF format
+
+        Only image owners can generate custom variants.
+      operationId: generateCustomVariant
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                config_id:
+                  type: string
+                  format: uuid
+                  description: Use a saved variant config (alternative to direct parameters)
+                name:
+                  type: string
+                  maxLength: 50
+                  description: Custom name for the variant (used in storage key)
+                  example: "social-square"
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  description: Maximum width in pixels (required if config_id not provided)
+                  example: 500
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  description: Maximum height in pixels (required if config_id not provided)
+                  example: 500
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                  default: webp
+                  example: webp
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 85
+                  example: 85
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+                  default: fit
+                  example: fit
+            examples:
+              using_config:
+                summary: Using a saved variant config
+                value:
+                  config_id: "123e4567-e89b-12d3-a456-426614174000"
+              direct_params:
+                summary: Direct parameters
+                value:
+                  name: "instagram-square"
+                  max_width: 1080
+                  max_height: 1080
+                  format: "jpeg"
+                  quality: 90
+                  crop_mode: "fill"
+      responses:
+        '201':
+          description: Custom variant generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomVariantResult'
+        '400':
+          description: Invalid parameters or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - only image owner can generate variants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found or variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /images/{id}/ipfs:
     get:
       tags: [images]
@@ -4728,6 +4850,42 @@ components:
           type: string
           format: date-time
           example: 2024-01-15T11:00:00Z
+
+    CustomVariantResult:
+      type: object
+      description: Result of custom variant generation
+      required: [variant_key, variant_url, width, height, format, file_size, content_type]
+      properties:
+        variant_key:
+          type: string
+          description: Storage key for the generated variant
+          example: "images/123e4567-e89b-12d3-a456-426614174000/custom/social-square.webp"
+        variant_url:
+          type: string
+          format: uri
+          description: URL to access the generated variant
+          example: "https://cdn.example.com/images/123e4567-e89b-12d3-a456-426614174000/custom/social-square.webp"
+        width:
+          type: integer
+          description: Actual width of the generated variant
+          example: 500
+        height:
+          type: integer
+          description: Actual height of the generated variant
+          example: 500
+        format:
+          type: string
+          description: Output format of the variant
+          example: "webp"
+        file_size:
+          type: integer
+          format: int64
+          description: File size in bytes
+          example: 45678
+        content_type:
+          type: string
+          description: MIME type of the variant
+          example: "image/webp"
 
     VariantConfig:
       type: object
