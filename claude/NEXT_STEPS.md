@@ -564,15 +564,15 @@ Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full p
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
-| 16 | oEmbed + Social Media Cards | P1 | 🚧 **IN PROGRESS** |
-| 17 | Nested Albums + Custom Variants | P2 | 📋 Planned |
+| 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
+| 17 | Nested Albums + Custom Variants | P2 | 🚀 **NEXT** |
 | 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
 
-**Sprint 16 Progress**:
+**Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
 - ✅ OpenAPI spec for oEmbed endpoint documented
 - ✅ Router wiring for oEmbed handler complete
 - ✅ Open Graph meta tags for Facebook/LinkedIn
 - ✅ Twitter Card support for rich previews
 - ✅ Public image preview page (`GET /images/{id}/preview`)
-- [ ] E2E tests for oEmbed endpoints
+- ✅ E2E tests (8 Newman tests for oEmbed and preview)

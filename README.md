@@ -4,7 +4,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 16 IN PROGRESS** 🚧
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 16 COMPLETE** ✅
 
 **Phase 2 Complete** ✅: All Sprints 10-15 delivered:
 - ✅ Sprint 10: Security Enhancements (timing attack mitigation, HIBP password check)
@@ -14,12 +14,12 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ Sprint 14: Content Moderation + Guest Uploads (abuse reports, admin queue, user bans)
 - ✅ Sprint 15: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
 
-**Current Sprint (16)**: oEmbed + Social Media Cards
-- ✅ oEmbed 1.0 endpoint implemented (`GET /api/v1/oembed`)
+**Sprint 16 Complete** ✅: oEmbed + Social Media Cards
+- ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) with JSON/XML support
 - ✅ Open Graph meta tags for Facebook/LinkedIn
 - ✅ Twitter Card support for rich previews
 - ✅ Image preview page (`GET /images/{id}/preview`)
-- 📋 E2E tests pending
+- ✅ E2E tests (8 Newman tests)
 
 **Phase 1 Complete** ✅: All Sprints 1-9 delivered (MVP LAUNCHED):
 
@@ -563,25 +563,22 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| **16** | oEmbed + Social Media Cards | 1 week | P1 | 🚧 **IN PROGRESS** |
-| **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 📋 Planned |
+| **16** | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
+| **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 🚀 **NEXT** |
 | **18** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Planned |
 | **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
 | **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **21** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
-#### Sprint 16: oEmbed + Social Media Cards 🚧 IN PROGRESS
+#### Sprint 16: oEmbed + Social Media Cards ✅ COMPLETE
 
-**Completed**:
-- ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
-- ✅ OpenAPI spec for oEmbed endpoint
-- ✅ Router wiring for oEmbed handler
+- ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - JSON/XML support
+- ✅ OpenAPI spec for oEmbed and preview endpoints
+- ✅ Router wiring for oEmbed and preview handlers
 - ✅ Open Graph meta tags for Facebook/LinkedIn
 - ✅ Twitter Card support for rich previews
 - ✅ Image preview page (`GET /images/{id}/preview`) with social meta tags
-
-**Remaining**:
-- 📋 E2E tests for oEmbed endpoint
+- ✅ E2E tests (8 Newman tests)
 
 **Future Sprints**:
 - **Nested Albums** - Hierarchical album organization with breadcrumb navigation

@@ -59,7 +59,7 @@ Enable images to be embedded on external sites and generate rich social media pr
 | Open Graph Tags | ✅ COMPLETE | Meta tags in preview_handler.go |
 | Twitter Cards | ✅ COMPLETE | Twitter card meta tags in preview_handler.go |
 | Image Preview Page | ✅ COMPLETE | `GET /images/{id}/preview` |
-| E2E Tests | 📋 Pending | Newman tests for oEmbed |
+| E2E Tests | ✅ COMPLETE | 8 Newman tests for oEmbed and preview |
 
 ### Deliverables
 
@@ -79,7 +79,7 @@ GET /api/v1/oembed?url={image_url}&format={json|xml}  # ✅ IMPLEMENTED
   - Supports maxwidth, maxheight parameters
   - JSON and XML response formats
 
-GET /images/{id}/preview  # 📋 PENDING
+GET /images/{id}/preview  # ✅ IMPLEMENTED
   - Public image page with social meta tags
   - SEO-friendly URL structure
 ```
