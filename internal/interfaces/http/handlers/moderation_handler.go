@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/rs/zerolog"
 
@@ -23,6 +24,9 @@ type ModerationHandler struct {
 	banUser   *commands.BanUserHandler
 	unbanUser *commands.UnbanUserHandler
 
+	// NSFW command handlers
+	scanNSFW *commands.ScanImageNSFWHandler
+
 	// Report query handlers
 	getReport   *queries.GetReportHandler
 	listPending *queries.ListPendingReportsHandler
@@ -30,6 +34,11 @@ type ModerationHandler struct {
 	// Ban query handlers
 	getBanStatus *queries.GetUserBanStatusHandler
 	listBans     *queries.ListActiveBansHandler
+
+	// NSFW query handlers
+	getNSFWScan          *queries.GetNSFWScanHandler
+	listNSFWFlagged      *queries.ListNSFWFlaggedHandler
+	listNSFWScansByImage *queries.ListNSFWScansByImageHandler
 
 	logger zerolog.Logger
 }
@@ -43,24 +52,32 @@ func NewModerationHandler(
 	dismissReport *commands.DismissReportHandler,
 	banUser *commands.BanUserHandler,
 	unbanUser *commands.UnbanUserHandler,
+	scanNSFW *commands.ScanImageNSFWHandler,
 	getReport *queries.GetReportHandler,
 	listPending *queries.ListPendingReportsHandler,
 	getBanStatus *queries.GetUserBanStatusHandler,
 	listBans *queries.ListActiveBansHandler,
+	getNSFWScan *queries.GetNSFWScanHandler,
+	listNSFWFlagged *queries.ListNSFWFlaggedHandler,
+	listNSFWScansByImage *queries.ListNSFWScansByImageHandler,
 	logger zerolog.Logger,
 ) *ModerationHandler {
 	return &ModerationHandler{
-		createReport:  createReport,
-		startReview:   startReview,
-		resolveReport: resolveReport,
-		dismissReport: dismissReport,
-		banUser:       banUser,
-		unbanUser:     unbanUser,
-		getReport:     getReport,
-		listPending:   listPending,
-		getBanStatus:  getBanStatus,
-		listBans:      listBans,
-		logger:        logger,
+		createReport:         createReport,
+		startReview:          startReview,
+		resolveReport:        resolveReport,
+		dismissReport:        dismissReport,
+		banUser:              banUser,
+		unbanUser:            unbanUser,
+		scanNSFW:             scanNSFW,
+		getReport:            getReport,
+		listPending:          listPending,
+		getBanStatus:         getBanStatus,
+		listBans:             listBans,
+		getNSFWScan:          getNSFWScan,
+		listNSFWFlagged:      listNSFWFlagged,
+		listNSFWScansByImage: listNSFWScansByImage,
+		logger:               logger,
 	}
 }
 
@@ -738,6 +755,274 @@ func (h *ModerationHandler) ListActiveBans(w http.ResponseWriter, r *http.Reques
 }
 
 // ============================================================================
+// NSFW Detection Endpoints (Sprint 15)
+// ============================================================================
+
+// ScanImageNSFW handles POST /api/v1/moderation/nsfw/scan
+// Initiates an NSFW scan for an image.
+//
+// Request body:
+//   - image_id (string, required): UUID of the image to scan
+//   - force (bool, optional): Force rescan even if active scan exists
+//
+// Response: 201 Created with ScanImageNSFWResponse
+// Errors:
+//   - 400: Invalid request data or validation failure
+//   - 401: Not authenticated
+//   - 403: Insufficient permissions (requires moderator or admin)
+//   - 404: Image not found
+//   - 409: Active scan already exists (unless force=true)
+//   - 500: Internal server error
+//   - 503: NSFW detection service unavailable
+//
+// Auth: Moderator or admin role required
+func (h *ModerationHandler) ScanImageNSFW(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Decode and validate request body
+	var req ScanImageNSFWRequest
+	if err := DecodeJSON(r, &req); err != nil {
+		h.logger.Debug().Err(err).Msg("invalid NSFW scan request")
+		validationErrors := FormatValidationErrors(err)
+		middleware.WriteErrorWithExtensions(w, r,
+			http.StatusBadRequest,
+			"Validation Failed",
+			"Invalid NSFW scan request data",
+			validationErrors,
+		)
+		return
+	}
+
+	// 2. Build command
+	cmd := commands.ScanImageNSFWCommand{
+		ImageID: req.ImageID,
+		Force:   req.Force,
+	}
+
+	// 3. Execute command
+	result, err := h.scanNSFW.Handle(ctx, cmd)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "scan image NSFW")
+		return
+	}
+
+	// 4. Return response
+	h.logger.Info().
+		Str("scan_id", result.ScanID).
+		Str("image_id", req.ImageID).
+		Str("status", result.Status).
+		Bool("is_nsfw", result.IsNSFW).
+		Msg("NSFW scan completed")
+
+	response := ScanImageNSFWResponse{
+		ScanID:         result.ScanID,
+		Status:         result.Status,
+		Category:       result.Category,
+		Score:          result.Score,
+		IsNSFW:         result.IsNSFW,
+		RequiresReview: result.RequiresReview,
+		Provider:       result.Provider,
+	}
+
+	if err := EncodeJSON(w, http.StatusCreated, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode NSFW scan response")
+	}
+}
+
+// GetNSFWScan handles GET /api/v1/moderation/nsfw/scans/{scanID}
+// Retrieves a single NSFW scan by its ID.
+//
+// Path parameters:
+//   - scanID: UUID of the scan
+//
+// Response: 200 OK with NSFWScanDTO
+// Errors:
+//   - 400: Invalid scan ID format
+//   - 401: Not authenticated
+//   - 403: Insufficient permissions (requires moderator or admin)
+//   - 404: Scan not found
+//   - 500: Internal server error
+//
+// Auth: Moderator or admin role required
+func (h *ModerationHandler) GetNSFWScan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract scan ID from path
+	scanID := GetPathParam(r, "scanID")
+	if scanID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing scan ID",
+		)
+		return
+	}
+
+	// 2. Build query
+	query := queries.GetNSFWScanQuery{
+		ScanID: scanID,
+	}
+
+	// 3. Execute query
+	scan, err := h.getNSFWScan.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "get NSFW scan")
+		return
+	}
+
+	// 4. Return scan
+	h.logger.Debug().
+		Str("scan_id", scanID).
+		Msg("NSFW scan retrieved successfully")
+
+	if err := EncodeJSON(w, http.StatusOK, scan); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode get NSFW scan response")
+	}
+}
+
+// ListNSFWFlagged handles GET /api/v1/moderation/nsfw/flagged
+// Lists images flagged as NSFW for moderator review.
+//
+// Query parameters:
+//   - page (int, default: 1): Page number (1-indexed)
+//   - page_size (int, default: 20, max: 100): Items per page
+//   - requires_review (bool, optional): Filter to only show items requiring review
+//
+// Response: 200 OK with ListNSFWFlaggedResponse
+// Errors:
+//   - 400: Invalid query parameters
+//   - 401: Not authenticated
+//   - 403: Insufficient permissions (requires moderator or admin)
+//   - 500: Internal server error
+//
+// Auth: Moderator or admin role required
+func (h *ModerationHandler) ListNSFWFlagged(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Parse query parameters
+	page, err := parseIntParam(r.URL.Query().Get("page"), 1)
+	if err != nil || page < 1 {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid page parameter",
+		)
+		return
+	}
+
+	pageSize, err := parseIntParam(r.URL.Query().Get("page_size"), defaultPerPage)
+	if err != nil || pageSize < 1 {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid page_size parameter",
+		)
+		return
+	}
+	if pageSize > maxPerPage {
+		pageSize = maxPerPage
+	}
+
+	// Parse optional requires_review filter
+	var requiresReview *bool
+	if reqReviewStr := r.URL.Query().Get("requires_review"); reqReviewStr != "" {
+		reqReviewBool := reqReviewStr == "true"
+		requiresReview = &reqReviewBool
+	}
+
+	// 2. Build query
+	query := queries.ListNSFWFlaggedQuery{
+		Page:           page,
+		PageSize:       pageSize,
+		RequiresReview: requiresReview,
+	}
+
+	// 3. Execute query
+	result, err := h.listNSFWFlagged.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "list NSFW flagged")
+		return
+	}
+
+	// 4. Return response
+	h.logger.Debug().
+		Int("page", page).
+		Int("page_size", pageSize).
+		Int("results", len(result.Scans)).
+		Int64("total_count", result.TotalCount).
+		Msg("NSFW flagged images listed successfully")
+
+	response := ListNSFWFlaggedResponse{
+		Scans:      result.Scans,
+		TotalCount: result.TotalCount,
+		Page:       result.Page,
+		PageSize:   result.PageSize,
+		TotalPages: result.TotalPages,
+	}
+
+	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode list NSFW flagged response")
+	}
+}
+
+// ListNSFWScansByImage handles GET /api/v1/images/{imageID}/nsfw-scans
+// Lists all NSFW scans for a specific image.
+//
+// Path parameters:
+//   - imageID: UUID of the image
+//
+// Response: 200 OK with ListNSFWScansByImageResponse
+// Errors:
+//   - 400: Invalid image ID format
+//   - 401: Not authenticated
+//   - 403: Insufficient permissions (requires moderator, admin, or image owner)
+//   - 404: Image not found
+//   - 500: Internal server error
+//
+// Auth: Moderator, admin, or image owner
+func (h *ModerationHandler) ListNSFWScansByImage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract image ID from path
+	imageID := GetPathParam(r, "imageID")
+	if imageID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing image ID",
+		)
+		return
+	}
+
+	// 2. Build query
+	query := queries.ListNSFWScansByImageQuery{
+		ImageID: imageID,
+	}
+
+	// 3. Execute query
+	result, err := h.listNSFWScansByImage.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "list NSFW scans by image")
+		return
+	}
+
+	// 4. Return response
+	h.logger.Debug().
+		Str("image_id", imageID).
+		Int("total_count", result.TotalCount).
+		Msg("NSFW scans by image listed successfully")
+
+	response := ListNSFWScansByImageResponse{
+		Scans:      result.Scans,
+		TotalCount: result.TotalCount,
+	}
+
+	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode list NSFW scans by image response")
+	}
+}
+
+// ============================================================================
 // Error Mapping
 // ============================================================================
 
@@ -817,6 +1102,42 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 			"Invalid report reason. Must be one of: spam, inappropriate, copyright, other",
 		)
 
+	// NSFW scan errors
+	case containsError(err, "nsfw scan not found") || containsError(err, "find scan by id"):
+		middleware.WriteError(w, r,
+			http.StatusNotFound,
+			"Not Found",
+			"NSFW scan not found",
+		)
+
+	case containsError(err, "invalid scan id"):
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid scan ID format",
+		)
+
+	case containsError(err, "nsfw detection disabled") || containsError(err, "no providers available"):
+		middleware.WriteError(w, r,
+			http.StatusServiceUnavailable,
+			"Service Unavailable",
+			"NSFW detection service is currently unavailable",
+		)
+
+	case containsError(err, "active scan exists"):
+		middleware.WriteError(w, r,
+			http.StatusConflict,
+			"Conflict",
+			"An active NSFW scan already exists for this image",
+		)
+
+	case containsError(err, "all providers failed"):
+		middleware.WriteError(w, r,
+			http.StatusServiceUnavailable,
+			"Service Unavailable",
+			"All NSFW detection providers failed",
+		)
+
 	// Default to internal error
 	default:
 		middleware.WriteError(w, r,
@@ -825,4 +1146,13 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 			"An unexpected error occurred",
 		)
 	}
+}
+
+// containsError checks if an error message contains a specific substring.
+// This is used for flexible error matching as errors may be wrapped.
+func containsError(err error, substr string) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), substr)
 }
