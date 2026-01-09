@@ -63,6 +63,8 @@ tags:
     description: Application monitoring and metrics
   - name: oembed
     description: oEmbed protocol for image embedding (Sprint 16)
+  - name: variant-configs
+    description: Custom image variant configurations (Sprint 17)
 
 paths:
   # ==================== Authentication ====================
@@ -653,6 +655,53 @@ paths:
                 status: 400
                 detail: Invalid OAuth provider
                 traceId: abc123-def456
+    delete:
+      tags: [auth]
+      summary: Unlink OAuth account by provider
+      description: |
+        Remove the link between an OAuth provider and the authenticated user's account.
+
+        After unlinking, the user will no longer be able to login using that OAuth provider.
+        They must have at least one other login method (password or another OAuth provider).
+      operationId: unlinkOAuthAccountByProvider
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider to unlink
+          schema:
+            type: string
+            enum: [google, github]
+          example: google
+      responses:
+        '200':
+          description: OAuth account unlinked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth account unlinked successfully
+        '400':
+          description: Bad request - cannot unlink (e.g., only login method)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: OAuth account not linked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /auth/oauth/{provider}/callback:
     get:
@@ -742,6 +791,18 @@ paths:
                     status: 400
                     detail: User denied access
                     traceId: abc123-def456
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: https://api.goimg.com/problems/unauthorized
+                title: Unauthorized
+                status: 401
+                detail: OAuth authentication failed
+                traceId: abc123-def456
         '409':
           description: Email already registered with different authentication method
           content:
@@ -1945,6 +2006,128 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /images/{id}/variants:
+    post:
+      tags: [images]
+      summary: Generate custom variant
+      description: |
+        Generate a custom image variant using user-defined parameters or a saved variant config.
+
+        You can either:
+        1. Provide a config_id to use a saved variant configuration
+        2. Provide direct parameters (max_width, max_height, format, quality, crop_mode)
+
+        Crop modes:
+        - fit: Scale to fit within dimensions, preserving aspect ratio (default)
+        - fill: Scale to fill dimensions, cropping excess
+        - crop: Crop from center to exact dimensions
+
+        Output formats:
+        - jpeg: Standard JPEG
+        - png: PNG with transparency support
+        - webp: Modern WebP format (default, best compression)
+        - avif: Next-gen AVIF format
+
+        Only image owners can generate custom variants.
+      operationId: generateCustomVariant
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                config_id:
+                  type: string
+                  format: uuid
+                  description: Use a saved variant config (alternative to direct parameters)
+                name:
+                  type: string
+                  maxLength: 50
+                  description: Custom name for the variant (used in storage key)
+                  example: "social-square"
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  description: Maximum width in pixels (required if config_id not provided)
+                  example: 500
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  description: Maximum height in pixels (required if config_id not provided)
+                  example: 500
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                  default: webp
+                  example: webp
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 85
+                  example: 85
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+                  default: fit
+                  example: fit
+            examples:
+              using_config:
+                summary: Using a saved variant config
+                value:
+                  config_id: "123e4567-e89b-12d3-a456-426614174000"
+              direct_params:
+                summary: Direct parameters
+                value:
+                  name: "instagram-square"
+                  max_width: 1080
+                  max_height: 1080
+                  format: "jpeg"
+                  quality: 90
+                  crop_mode: "fill"
+      responses:
+        '201':
+          description: Custom variant generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomVariantResult'
+        '400':
+          description: Invalid parameters or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - only image owner can generate variants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found or variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /images/{id}/ipfs:
     get:
       tags: [images]
@@ -2312,6 +2495,11 @@ paths:
                 cover_image_id:
                   type: string
                   format: uuid
+                parent_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: Parent album ID for nesting. Set to null or empty string to remove parent.
       responses:
         '200':
           description: Album updated successfully
@@ -2526,6 +2714,346 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Album or image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/breadcrumb:
+    get:
+      tags: [albums]
+      summary: Get album breadcrumb
+      description: |
+        Returns the breadcrumb path from root to this album.
+        Useful for navigation in nested album hierarchies.
+      operationId: getAlbumBreadcrumb
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      responses:
+        '200':
+          description: Breadcrumb path from root to album
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BreadcrumbItem'
+        '403':
+          description: Forbidden - cannot view private album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/children:
+    get:
+      tags: [albums]
+      summary: Get child albums
+      description: |
+        Returns the direct child albums of this album.
+        Used for navigating nested album hierarchies.
+      operationId: getAlbumChildren
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      responses:
+        '200':
+          description: List of child albums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Album'
+        '403':
+          description: Forbidden - cannot view private album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ==================== Variant Configs (Sprint 17) ====================
+  /variant-configs:
+    post:
+      tags: [variant-configs]
+      summary: Create custom variant config
+      description: |
+        Create a custom image variant configuration.
+        Users can define custom sizes, formats, quality, and crop modes
+        for their images.
+      operationId: createVariantConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, max_width, max_height, format, quality, crop_mode]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "mobile-preview"
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  example: 400
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                  example: 400
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                  example: webp
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  example: 85
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+                  example: fit
+      responses:
+        '201':
+          description: Variant config created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Config with this name already exists for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    get:
+      tags: [variant-configs]
+      summary: List user's variant configs
+      description: List all custom variant configurations for the authenticated user
+      operationId: listVariantConfigs
+      responses:
+        '200':
+          description: Variant configs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VariantConfig'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /variant-configs/presets:
+    get:
+      tags: [variant-configs]
+      summary: List system presets
+      description: |
+        List all system-defined variant presets available to all users.
+        These are read-only configurations provided by the system.
+      operationId: listVariantConfigPresets
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Preset configs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VariantConfig'
+
+  /variant-configs/{id}:
+    get:
+      tags: [variant-configs]
+      summary: Get variant config
+      description: Retrieve a specific variant configuration
+      operationId: getVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Variant config retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot access another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags: [variant-configs]
+      summary: Update variant config
+      description: |
+        Update a custom variant configuration.
+        Only the owner can update their configs. System presets cannot be modified.
+      operationId: updateVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [max_width, max_height, format, quality, crop_mode]
+              properties:
+                max_width:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                max_height:
+                  type: integer
+                  minimum: 1
+                  maximum: 8192
+                format:
+                  type: string
+                  enum: [jpeg, png, webp, avif]
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                crop_mode:
+                  type: string
+                  enum: [fit, fill, crop]
+      responses:
+        '200':
+          description: Variant config updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantConfig'
+        '400':
+          description: Validation error or trying to modify a preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot update another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags: [variant-configs]
+      summary: Delete variant config
+      description: |
+        Delete a custom variant configuration.
+        Only the owner can delete their configs. System presets cannot be deleted.
+      operationId: deleteVariantConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Variant config ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Variant config deleted successfully
+        '400':
+          description: Cannot delete a system preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden - cannot delete another user's config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Variant config not found
           content:
             application/json:
               schema:
@@ -3038,8 +3566,12 @@ paths:
                   maxLength: 1000
                   example: Image removed for violating content policy
       responses:
-        '204':
+        '200':
           description: Report resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
         '400':
           description: Validation error
           content:
@@ -3831,6 +4363,85 @@ paths:
               example:
                 error: Image not found
 
+  # ==================== Image Preview (Sprint 16) ====================
+  # Note: This endpoint is at /images/{id}/preview, NOT under /api/v1
+  # It serves HTML content for social media link previews
+  /images/{id}/preview:
+    get:
+      tags: [images]
+      summary: Get image preview page
+      description: |
+        Returns an HTML page with social media meta tags for link previews.
+
+        **Features**:
+        - Open Graph tags for Facebook, LinkedIn
+        - Twitter Card tags for Twitter
+        - oEmbed discovery link
+        - Canonical URL for SEO
+        - Responsive design
+
+        Only works for public images. Returns 404 for private, unlisted,
+        or non-existent images to prevent information disclosure.
+
+        **Note**: This endpoint is NOT under `/api/v1`. It serves HTML at
+        `/images/{id}/preview` for SEO-friendly URLs.
+
+        **Social Media Crawlers**:
+        - Facebook: Uses og:title, og:description, og:image
+        - Twitter: Uses twitter:card, twitter:title, twitter:description, twitter:image
+        - LinkedIn: Uses og:* tags
+        - WhatsApp: Uses og:image for preview
+
+      operationId: getImagePreview
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Image UUID
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: HTML preview page with social meta tags
+          headers:
+            Cache-Control:
+              description: Cache headers for CDN and browser caching
+              schema:
+                type: string
+                example: public, max-age=3600
+            X-Frame-Options:
+              description: Frame embedding policy
+              schema:
+                type: string
+                example: SAMEORIGIN
+          content:
+            text/html:
+              schema:
+                type: string
+              example: |
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta property="og:title" content="Beautiful sunset">
+                  <meta property="og:image" content="https://example.com/api/v1/images/123/variants/large">
+                  <meta name="twitter:card" content="summary_large_image">
+                  ...
+                </head>
+                <body>...</body>
+                </html>
+        '404':
+          description: Image not found or not public
+          content:
+            text/html:
+              schema:
+                type: string
+              example: "404 page not found"
+      x-phase: "3"
+      x-sprint: "16"
+
   # ==================== Health ====================
   /health:
     get:
@@ -4202,6 +4813,12 @@ components:
           type: string
           format: uuid
           example: 123e4567-e89b-12d3-a456-426614174001
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Parent album ID for nested albums. Null for root albums.
+          example: 123e4567-e89b-12d3-a456-426614174003
         title:
           type: string
           example: Summer Vacation 2024
@@ -4225,6 +4842,103 @@ components:
         image_count:
           type: integer
           example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T11:00:00Z
+
+    CustomVariantResult:
+      type: object
+      description: Result of custom variant generation
+      required: [variant_key, variant_url, width, height, format, file_size, content_type]
+      properties:
+        variant_key:
+          type: string
+          description: Storage key for the generated variant
+          example: "images/123e4567-e89b-12d3-a456-426614174000/custom/social-square.webp"
+        variant_url:
+          type: string
+          format: uri
+          description: URL to access the generated variant
+          example: "https://cdn.example.com/images/123e4567-e89b-12d3-a456-426614174000/custom/social-square.webp"
+        width:
+          type: integer
+          description: Actual width of the generated variant
+          example: 500
+        height:
+          type: integer
+          description: Actual height of the generated variant
+          example: 500
+        format:
+          type: string
+          description: Output format of the variant
+          example: "webp"
+        file_size:
+          type: integer
+          format: int64
+          description: File size in bytes
+          example: 45678
+        content_type:
+          type: string
+          description: MIME type of the variant
+          example: "image/webp"
+
+    VariantConfig:
+      type: object
+      description: Custom variant configuration for image processing
+      required: [id, user_id, name, max_width, max_height, format, quality, crop_mode, is_preset, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        user_id:
+          type: string
+          format: uuid
+          description: Owner of this variant config
+          example: 123e4567-e89b-12d3-a456-426614174001
+        name:
+          type: string
+          description: Unique name for this config (per user)
+          minLength: 1
+          maxLength: 50
+          example: mobile-preview
+        max_width:
+          type: integer
+          description: Maximum width in pixels
+          minimum: 1
+          maximum: 8192
+          example: 400
+        max_height:
+          type: integer
+          description: Maximum height in pixels
+          minimum: 1
+          maximum: 8192
+          example: 400
+        format:
+          type: string
+          description: Output image format
+          enum: [jpeg, png, webp, avif]
+          example: webp
+        quality:
+          type: integer
+          description: Image quality (1-100)
+          minimum: 1
+          maximum: 100
+          example: 85
+        crop_mode:
+          type: string
+          description: How to handle aspect ratio differences
+          enum: [fit, fill, crop]
+          example: fit
+        is_preset:
+          type: boolean
+          description: Whether this is a system-defined preset (read-only)
+          example: false
         created_at:
           type: string
           format: date-time
@@ -4283,6 +4997,21 @@ components:
             $ref: '#/components/schemas/Image'
         pagination:
           $ref: '#/components/schemas/Pagination'
+
+    BreadcrumbItem:
+      type: object
+      description: A single item in an album breadcrumb path
+      required: [id, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Album ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        title:
+          type: string
+          description: Album title
+          example: Summer Vacation 2024
 
     Tag:
       type: object

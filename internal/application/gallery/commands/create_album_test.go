@@ -72,6 +72,30 @@ func (m *MockAlbumRepository) ExistsByID(ctx context.Context, id gallery.AlbumID
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockAlbumRepository) FindChildren(ctx context.Context, parentID gallery.AlbumID) ([]*gallery.Album, error) {
+	args := m.Called(ctx, parentID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*gallery.Album), args.Error(1)
+}
+
+func (m *MockAlbumRepository) FindRootAlbumsByOwner(ctx context.Context, ownerID identity.UserID) ([]*gallery.Album, error) {
+	args := m.Called(ctx, ownerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*gallery.Album), args.Error(1)
+}
+
+func (m *MockAlbumRepository) FindAncestors(ctx context.Context, albumID gallery.AlbumID) ([]*gallery.Album, error) {
+	args := m.Called(ctx, albumID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*gallery.Album), args.Error(1)
+}
+
 // MockUserRepository is a mock implementation of identity.UserRepository.
 type MockUserRepository struct {
 	mock.Mock

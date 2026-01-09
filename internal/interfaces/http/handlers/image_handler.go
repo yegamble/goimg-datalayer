@@ -26,14 +26,15 @@ const (
 // ImageHandler handles image-related HTTP endpoints.
 // It delegates to application layer command and query handlers for business logic.
 type ImageHandler struct {
-	uploadImage  *commands.UploadImageHandler
-	updateImage  *commands.UpdateImageHandler
-	deleteImage  *commands.DeleteImageHandler
-	getImage     *queries.GetImageHandler
-	listImages   *queries.ListImagesHandler
-	searchImages *queries.SearchImagesHandler
-	storage      StorageProvider
-	logger       zerolog.Logger
+	uploadImage            *commands.UploadImageHandler
+	updateImage            *commands.UpdateImageHandler
+	deleteImage            *commands.DeleteImageHandler
+	generateCustomVariant  *commands.GenerateCustomVariantHandler
+	getImage               *queries.GetImageHandler
+	listImages             *queries.ListImagesHandler
+	searchImages           *queries.SearchImagesHandler
+	storage                StorageProvider
+	logger                 zerolog.Logger
 }
 
 // StorageProvider is the interface for retrieving image files from storage.
@@ -48,6 +49,7 @@ func NewImageHandler(
 	uploadImage *commands.UploadImageHandler,
 	updateImage *commands.UpdateImageHandler,
 	deleteImage *commands.DeleteImageHandler,
+	generateCustomVariant *commands.GenerateCustomVariantHandler,
 	getImage *queries.GetImageHandler,
 	listImages *queries.ListImagesHandler,
 	searchImages *queries.SearchImagesHandler,
@@ -55,14 +57,15 @@ func NewImageHandler(
 	logger zerolog.Logger,
 ) *ImageHandler {
 	return &ImageHandler{
-		uploadImage:  uploadImage,
-		updateImage:  updateImage,
-		deleteImage:  deleteImage,
-		getImage:     getImage,
-		listImages:   listImages,
-		searchImages: searchImages,
-		storage:      storage,
-		logger:       logger,
+		uploadImage:           uploadImage,
+		updateImage:           updateImage,
+		deleteImage:           deleteImage,
+		generateCustomVariant: generateCustomVariant,
+		getImage:              getImage,
+		listImages:            listImages,
+		searchImages:          searchImages,
+		storage:               storage,
+		logger:                logger,
 	}
 }
 
@@ -85,6 +88,11 @@ func (h *ImageHandler) Routes() chi.Router {
 	r.Get("/{imageID}", h.Get)
 	r.Put("/{imageID}", h.Update)
 	r.Delete("/{imageID}", h.Delete)
+
+	// Custom variant generation (Sprint 17)
+	if h.generateCustomVariant != nil {
+		r.Post("/{imageID}/variants", h.GenerateCustomVariant)
+	}
 
 	return r
 }
@@ -803,6 +811,125 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 		Str("content_type", contentType).
 		Int64("file_size", variantDTO.FileSize).
 		Msg("image variant retrieved successfully")
+}
+
+// GenerateCustomVariantRequest represents the request body for generating a custom variant.
+type GenerateCustomVariantRequest struct {
+	ConfigID  string `json:"config_id,omitempty"`   // Use a saved variant config
+	Name      string `json:"name,omitempty"`        // Custom variant name
+	MaxWidth  int    `json:"max_width,omitempty"`   // Required if config_id not provided
+	MaxHeight int    `json:"max_height,omitempty"`  // Required if config_id not provided
+	Format    string `json:"format,omitempty"`      // jpeg, png, webp, avif
+	Quality   int    `json:"quality,omitempty"`     // 1-100
+	CropMode  string `json:"crop_mode,omitempty"`   // fit, fill, crop
+}
+
+// GenerateCustomVariant handles POST /api/v1/images/{imageID}/variants
+// Generates a custom image variant using user-defined parameters or a saved config.
+//
+// Path parameters:
+//   - imageID: UUID of the image
+//
+// Request body: GenerateCustomVariantRequest JSON
+// Response: 201 Created with CustomVariantResult
+// Errors:
+//   - 400: Invalid request data or parameters
+//   - 401: Not authenticated
+//   - 403: User doesn't own the image
+//   - 404: Image not found
+//   - 500: Processing error
+func (h *ImageHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract user context
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("user context not found in generate custom variant handler")
+		middleware.WriteError(w, r,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			"Authentication required",
+		)
+		return
+	}
+
+	// 2. Extract image ID from path
+	imageID := GetPathParam(r, "imageID")
+	if imageID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing image ID",
+		)
+		return
+	}
+
+	// 3. Decode request body
+	var req GenerateCustomVariantRequest
+	if err := DecodeJSON(r, &req); err != nil {
+		h.logger.Debug().Err(err).Msg("invalid generate custom variant request")
+		validationErrors := FormatValidationErrors(err)
+		middleware.WriteErrorWithExtensions(w, r,
+			http.StatusBadRequest,
+			"Validation Failed",
+			"Invalid variant parameters",
+			validationErrors,
+		)
+		return
+	}
+
+	// 4. Validate request - either config_id or direct parameters required
+	if req.ConfigID == "" {
+		// Validate direct parameters
+		if req.MaxWidth == 0 || req.MaxHeight == 0 {
+			middleware.WriteError(w, r,
+				http.StatusBadRequest,
+				"Validation Failed",
+				"Either config_id or max_width/max_height are required",
+			)
+			return
+		}
+		if req.Format == "" {
+			req.Format = "webp" // Default format
+		}
+		if req.Quality == 0 {
+			req.Quality = 85 // Default quality
+		}
+		if req.CropMode == "" {
+			req.CropMode = "fit" // Default crop mode
+		}
+	}
+
+	// 5. Build command
+	cmd := commands.GenerateCustomVariantCommand{
+		ImageID:   imageID,
+		UserID:    userCtx.UserID.String(),
+		ConfigID:  req.ConfigID,
+		Name:      req.Name,
+		MaxWidth:  req.MaxWidth,
+		MaxHeight: req.MaxHeight,
+		Format:    req.Format,
+		Quality:   req.Quality,
+		CropMode:  req.CropMode,
+	}
+
+	// 6. Execute command
+	result, err := h.generateCustomVariant.Handle(ctx, cmd)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "generate custom variant")
+		return
+	}
+
+	// 7. Return result
+	h.logger.Info().
+		Str("image_id", imageID).
+		Str("user_id", userCtx.UserID.String()).
+		Str("variant_key", result.VariantKey).
+		Msg("custom variant generated successfully")
+
+	if err := EncodeJSON(w, http.StatusCreated, result); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode generate custom variant response")
+	}
 }
 
 // formatToMimeType converts a format string (jpeg, png, gif, webp) to a MIME type.

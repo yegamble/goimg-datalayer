@@ -71,7 +71,7 @@ func TestOpenAPISpecLoads(t *testing.T) {
 	require.NotNil(t, doc, "OpenAPI document should be loaded")
 	assert.Equal(t, "3.0.3", doc.OpenAPI)
 	assert.Equal(t, "goimg-datalayer API", doc.Info.Title)
-	assert.Equal(t, "1.0.0", doc.Info.Version)
+	assert.Equal(t, "2.0.0", doc.Info.Version) // Updated to 2.0.0 for Phase 2
 }
 
 // TestEndpointDefinitions verifies all expected endpoints are defined in the spec.

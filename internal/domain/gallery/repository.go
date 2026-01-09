@@ -119,6 +119,19 @@ type AlbumRepository interface {
 	// Only returns albums with VisibilityPublic.
 	FindPublic(ctx context.Context, pagination shared.Pagination) ([]*Album, int64, error)
 
+	// FindChildren retrieves all direct child albums of a parent album.
+	// Used for hierarchical album navigation.
+	FindChildren(ctx context.Context, parentID AlbumID) ([]*Album, error)
+
+	// FindRootAlbumsByOwner retrieves all root albums (no parent) for a user.
+	// Used for displaying top-level album structure.
+	FindRootAlbumsByOwner(ctx context.Context, ownerID identity.UserID) ([]*Album, error)
+
+	// FindAncestors retrieves the breadcrumb path from root to the given album.
+	// Returns albums ordered from root to the target album (inclusive).
+	// Returns ErrAlbumNotFound if the album doesn't exist.
+	FindAncestors(ctx context.Context, albumID AlbumID) ([]*Album, error)
+
 	// Save persists an album (insert or update).
 	Save(ctx context.Context, album *Album) error
 
@@ -127,6 +140,36 @@ type AlbumRepository interface {
 
 	// ExistsByID checks if an album exists.
 	ExistsByID(ctx context.Context, id AlbumID) (bool, error)
+}
+
+// VariantConfigRepository defines the interface for persisting variant configurations.
+// Implementations reside in the infrastructure layer.
+type VariantConfigRepository interface {
+	// NextID generates a new unique VariantConfigID.
+	NextID() VariantConfigID
+
+	// FindByID retrieves a variant config by its ID.
+	// Returns ErrVariantConfigNotFound if the config doesn't exist.
+	FindByID(ctx context.Context, id VariantConfigID) (*VariantConfig, error)
+
+	// FindByUser retrieves all variant configs for a user.
+	FindByUser(ctx context.Context, userID identity.UserID) ([]*VariantConfig, error)
+
+	// FindByUserAndName retrieves a specific variant config by user and name.
+	// Returns ErrVariantConfigNotFound if not found.
+	FindByUserAndName(ctx context.Context, userID identity.UserID, name string) (*VariantConfig, error)
+
+	// FindPresets retrieves all system-defined variant presets.
+	FindPresets(ctx context.Context) ([]*VariantConfig, error)
+
+	// Save persists a variant config (insert or update).
+	Save(ctx context.Context, config *VariantConfig) error
+
+	// Delete permanently removes a variant config.
+	Delete(ctx context.Context, id VariantConfigID) error
+
+	// ExistsByID checks if a variant config exists.
+	ExistsByID(ctx context.Context, id VariantConfigID) (bool, error)
 }
 
 // CommentRepository defines the interface for persisting and retrieving comments.

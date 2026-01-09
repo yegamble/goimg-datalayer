@@ -21,6 +21,7 @@ func TestReconstructAlbum(t *testing.T) {
 	album := gallery.ReconstructAlbum(
 		albumID,
 		ownerID,
+		nil, // parentID
 		"Title",
 		"Description",
 		gallery.VisibilityPublic,

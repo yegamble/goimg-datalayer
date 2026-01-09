@@ -5,7 +5,7 @@
 > Phase 3 focuses on advanced features, scalability improvements, and ecosystem expansion
 > following the successful completion of Phase 2 (Sprints 10-15).
 >
-> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
+> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
 
 ---
 
@@ -27,8 +27,8 @@ and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| 16 | oEmbed + Social Media Cards | 1 week | P1 | 🚀 **IN PROGRESS** |
-| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | Planned |
+| 16 | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
+| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | 🚧 **IN PROGRESS** |
 | 18 | Trending Tags + Featured Picks | 1 week | P2 | Planned |
 | 19 | Groups/Communities | 2 weeks | P3 | Backlog |
 | 20 | Video Support | 3 weeks | P3 | Backlog |
@@ -43,10 +43,23 @@ and platform scalability.
 **Duration**: 1 week
 **Priority**: P1 - HIGH
 **Dependencies**: None
+**Status**: ✅ **COMPLETE**
 
 ### Objectives
 
 Enable images to be embedded on external sites and generate rich social media previews.
+
+### Progress
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| oEmbed Endpoint | ✅ COMPLETE | `internal/interfaces/http/handlers/oembed_handler.go` |
+| OpenAPI Spec | ✅ COMPLETE | oEmbed endpoint documented |
+| Router Wiring | ✅ COMPLETE | Mounted at `/api/v1/oembed` |
+| Open Graph Tags | ✅ COMPLETE | Meta tags in preview_handler.go |
+| Twitter Cards | ✅ COMPLETE | Twitter card meta tags in preview_handler.go |
+| Image Preview Page | ✅ COMPLETE | `GET /images/{id}/preview` |
+| E2E Tests | ✅ COMPLETE | 8 Newman tests for oEmbed and preview |
 
 ### Deliverables
 
@@ -61,11 +74,12 @@ Enable images to be embedded on external sites and generate rich social media pr
 ### API Endpoints
 
 ```yaml
-GET /api/v1/oembed?url={image_url}&format={json|xml}
+GET /api/v1/oembed?url={image_url}&format={json|xml}  # ✅ IMPLEMENTED
   - Returns oEmbed response for embedding
   - Supports maxwidth, maxheight parameters
+  - JSON and XML response formats
 
-GET /images/{id}/preview
+GET /images/{id}/preview  # ✅ IMPLEMENTED
   - Public image page with social meta tags
   - SEO-friendly URL structure
 ```
@@ -83,10 +97,31 @@ GET /images/{id}/preview
 **Duration**: 2 weeks
 **Priority**: P2 - MEDIUM
 **Dependencies**: Sprint 16
+**Status**: 🚧 **IN PROGRESS**
 
 ### Objectives
 
 Support hierarchical album organization and user-configurable image variant sizes.
+
+### Progress
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Database Migration | ✅ COMPLETE | `00015_add_nested_albums_and_variant_configs.sql` |
+| Album parent_id Field | ✅ COMPLETE | Domain entity updated |
+| Album Repository | ✅ COMPLETE | FindChildren, FindAncestors methods added |
+| Breadcrumb Query | ✅ COMPLETE | `GetAlbumBreadcrumbHandler` |
+| Children Query | ✅ COMPLETE | `GetAlbumChildrenHandler` |
+| Update Album Command | ✅ COMPLETE | parent_id support added |
+| HTTP Handlers | ✅ COMPLETE | `/breadcrumb` and `/children` endpoints |
+| OpenAPI Spec | ✅ COMPLETE | All endpoints documented |
+| VariantConfig Entity | ✅ COMPLETE | Domain entity created |
+| VariantConfig Repository | ✅ COMPLETE | PostgreSQL implementation |
+| VariantConfig CRUD API | ✅ COMPLETE | Create, Read, Update, Delete handlers |
+| VariantConfig HTTP Handlers | ✅ COMPLETE | Routes mounted at `/variant-configs` |
+| E2E Tests - Nested Albums | ✅ COMPLETE | 5 tests for breadcrumb/children/parent |
+| E2E Tests - Variant Configs | ✅ COMPLETE | 8 tests for CRUD operations |
+| Custom Variant Processing | 🔄 PENDING | Integration with image processing |
 
 ### Deliverables
 
@@ -101,17 +136,38 @@ Support hierarchical album organization and user-configurable image variant size
 ### API Endpoints
 
 ```yaml
-PATCH /api/v1/albums/{id}
-  - Add parent_id field for nesting
+# Album Hierarchy (IMPLEMENTED)
+PUT /api/v1/albums/{id}
+  - Update album with parent_id for nesting
 
 GET /api/v1/albums/{id}/breadcrumb
-  - Returns array of ancestor albums
+  - Returns array of ancestor albums (root to current)
 
+GET /api/v1/albums/{id}/children
+  - Returns direct child albums
+
+# Variant Configs (IMPLEMENTED)
+POST /api/v1/variant-configs
+  - Create custom variant configuration
+
+GET /api/v1/variant-configs
+  - List user's custom configs
+
+GET /api/v1/variant-configs/presets
+  - List system presets (public)
+
+GET /api/v1/variant-configs/{id}
+  - Get specific config
+
+PUT /api/v1/variant-configs/{id}
+  - Update config settings
+
+DELETE /api/v1/variant-configs/{id}
+  - Delete custom config
+
+# Pending Implementation
 POST /api/v1/images/{id}/variants
   - Generate custom variant with specified dimensions
-
-GET /api/v1/variant-presets
-  - List available variant presets
 ```
 
 ### Database Changes

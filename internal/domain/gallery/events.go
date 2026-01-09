@@ -223,6 +223,19 @@ func (e *AlbumCoverImageChanged) EventType() string {
 	return "gallery.album.cover_image_changed"
 }
 
+// AlbumParentChanged is emitted when an album's parent is changed (nesting).
+type AlbumParentChanged struct {
+	shared.BaseEvent
+	AlbumID     AlbumID
+	OldParentID *AlbumID
+	NewParentID *AlbumID
+}
+
+// EventType returns the event type identifier.
+func (e *AlbumParentChanged) EventType() string {
+	return "gallery.album.parent_changed"
+}
+
 // AlbumImageAdded is emitted when an image is added to an album.
 type AlbumImageAdded struct {
 	shared.BaseEvent

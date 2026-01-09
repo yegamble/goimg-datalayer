@@ -9,11 +9,16 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
+// MaxNestingDepth is the maximum allowed depth for nested albums.
+const MaxNestingDepth = 10
+
 // Album is an entity representing a collection of images.
 // Albums organize images and can have their own visibility settings.
+// Albums can be nested by setting a parent album.
 type Album struct {
 	id           AlbumID
 	ownerID      identity.UserID
+	parentID     *AlbumID // Optional parent album for nesting
 	title        string
 	description  string
 	visibility   Visibility
@@ -43,6 +48,7 @@ func NewAlbum(ownerID identity.UserID, title string) (*Album, error) {
 	album := &Album{
 		id:           NewAlbumID(),
 		ownerID:      ownerID,
+		parentID:     nil, // Root album by default
 		title:        title,
 		description:  "",
 		visibility:   VisibilityPrivate, // Start private by default
@@ -68,6 +74,7 @@ func NewAlbum(ownerID identity.UserID, title string) (*Album, error) {
 func ReconstructAlbum(
 	id AlbumID,
 	ownerID identity.UserID,
+	parentID *AlbumID,
 	title, description string,
 	visibility Visibility,
 	coverImageID *ImageID,
@@ -77,6 +84,7 @@ func ReconstructAlbum(
 	return &Album{
 		id:           id,
 		ownerID:      ownerID,
+		parentID:     parentID,
 		title:        title,
 		description:  description,
 		visibility:   visibility,
@@ -98,6 +106,11 @@ func (a *Album) ID() AlbumID {
 // OwnerID returns the ID of the user who owns this album.
 func (a *Album) OwnerID() identity.UserID {
 	return a.ownerID
+}
+
+// ParentID returns the ID of the parent album, or nil if this is a root album.
+func (a *Album) ParentID() *AlbumID {
+	return a.parentID
 }
 
 // Title returns the album title.
@@ -262,6 +275,30 @@ func (a *Album) DecrementImageCount() {
 	}
 }
 
+// SetParent sets the parent album for nesting.
+// Pass nil to make this a root album.
+// Note: Circular reference and depth checks are enforced at the database level.
+func (a *Album) SetParent(parentID *AlbumID) {
+	// Check if actually changing
+	if a.parentID == nil && parentID == nil {
+		return // Both nil
+	}
+	if a.parentID != nil && parentID != nil && a.parentID.Equals(*parentID) {
+		return // Same parent
+	}
+
+	oldParentID := a.parentID
+	a.parentID = parentID
+	a.updatedAt = time.Now().UTC()
+
+	a.addEvent(&AlbumParentChanged{
+		BaseEvent:   shared.NewBaseEvent("gallery.album.parent_changed", a.id.String()),
+		AlbumID:     a.id,
+		OldParentID: oldParentID,
+		NewParentID: parentID,
+	})
+}
+
 // Helper Methods
 
 // IsOwnedBy returns true if the album is owned by the given user.
@@ -272,6 +309,16 @@ func (a *Album) IsOwnedBy(userID identity.UserID) bool {
 // IsEmpty returns true if the album has no images.
 func (a *Album) IsEmpty() bool {
 	return a.imageCount == 0
+}
+
+// HasParent returns true if the album has a parent (is nested).
+func (a *Album) HasParent() bool {
+	return a.parentID != nil
+}
+
+// IsRoot returns true if the album is a root album (no parent).
+func (a *Album) IsRoot() bool {
+	return a.parentID == nil
 }
 
 // addEvent appends a domain event to the events slice.

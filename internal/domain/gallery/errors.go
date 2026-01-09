@@ -50,9 +50,16 @@ var (
 	ErrInvalidImageStatus = errors.New("invalid image status")
 
 	// Album validation errors.
-	ErrAlbumTitleRequired = errors.New("album title is required")
-	ErrAlbumTitleTooLong  = errors.New("album title exceeds 255 characters")
-	ErrAlbumDescTooLong   = errors.New("album description exceeds 2000 characters")
+	ErrAlbumTitleRequired    = errors.New("album title is required")
+	ErrAlbumTitleTooLong     = errors.New("album title exceeds 255 characters")
+	ErrAlbumDescTooLong      = errors.New("album description exceeds 2000 characters")
+	ErrAlbumCircularRef      = errors.New("circular reference detected in album hierarchy")
+	ErrAlbumNestingTooDeep   = errors.New("album nesting depth exceeds maximum")
+	ErrAlbumParentNotFound   = errors.New("parent album not found")
+	ErrAlbumParentWrongOwner = errors.New("parent album must belong to same owner")
+
+	// Variant config errors.
+	ErrVariantConfigNotFound = errors.New("variant config not found")
 
 	// Comment validation errors.
 	ErrCommentRequired = errors.New("comment content is required")
