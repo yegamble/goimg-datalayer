@@ -48,7 +48,8 @@ make lint && make test && make validate-openapi
 
 | Topic | File | When to Load |
 | --- | --- | --- |
-| **Sprint Plan** | `claude/sprint_plan.md` | Overall roadmap, completed sprints |
+| **Sprint Plan** | `claude/sprint_plan.md` | Overall roadmap, completed sprints (Phase 1-2) |
+| **Phase 3 Plan** | `claude/phase_3_sprint_plan.md` | Phase 3 sprints (16-21), future features |
 | **MVP Features** | `claude/mvp_features.md` | Feature requirements, API specs |
 | **Agent Workflow** | `claude/agent_workflow.md` | Multi-agent coordination, quality gates |
 

@@ -1,9 +1,10 @@
 # goimg-datalayer - Project Status
 
 > **Last Updated**: 2026-01-09
-> **Phase**: Phase 2 - Advanced Features (COMPLETE)
-> **Current Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search ✅ **COMPLETE**
+> **Phase**: Phase 3 - Advanced Features (PLANNING)
+> **Previous Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search ✅ **COMPLETE**
 > **Status**: **Phase 2 Complete** - MVP launched, Sprints 10-15 ALL COMPLETE ✅
+> **Next**: Phase 3 Sprint Planning - See `claude/phase_3_sprint_plan.md`
 
 ---
 
@@ -551,4 +552,26 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 COMPLETE** ✅ - All Sprints 10-15 COMPLETE ✅ - Ready for Phase 3 Planning
+**Project Status**: **Phase 2 COMPLETE** ✅ - All Sprints 10-15 COMPLETE ✅ - **Phase 3 Planning Ready**
+
+---
+
+## Phase 3 Planning
+
+Phase 3 sprint plan has been created. See `claude/phase_3_sprint_plan.md` for details.
+
+**Upcoming Sprints**:
+
+| Sprint | Focus | Priority | Status |
+|--------|-------|----------|--------|
+| 16 | oEmbed + Social Media Cards | P1 | 📋 Planned |
+| 17 | Nested Albums + Custom Variants | P2 | 📋 Planned |
+| 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
+
+**Key Features**:
+- oEmbed 1.0 endpoint for external embedding
+- Open Graph and Twitter Card meta tags
+- Nested album hierarchies
+- Custom image variant sizes
+- Tag discovery and trending algorithms
+- Featured picks curation

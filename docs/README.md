@@ -163,6 +163,19 @@ All security controls verified for production deployment.
 | 14 | Content Moderation + Guest Uploads | ✅ **Complete** |
 | 15 | AI NSFW Detection + Advanced Search | ✅ **Complete** |
 
+### Phase 3 Roadmap (Planning)
+
+| Sprint | Focus | Priority |
+|--------|-------|----------|
+| 16 | oEmbed + Social Media Cards | P1 |
+| 17 | Nested Albums + Custom Variants | P2 |
+| 18 | Trending Tags + Featured Picks | P2 |
+| 19 | Groups/Communities | P3 |
+| 20 | Video Support | P3 |
+| 21 | Account Tiers/Subscriptions | P3 |
+
+See [Phase 3 Sprint Plan](../claude/phase_3_sprint_plan.md) for detailed planning.
+
 ---
 
 ## Support
