@@ -18,10 +18,10 @@ import (
 const (
 	sqlInsertAlbum = `
 		INSERT INTO albums (
-			id, owner_id, title, description, visibility, cover_image_id,
+			id, owner_id, parent_id, title, description, visibility, cover_image_id,
 			image_count, created_at, updated_at
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 		)
 	`
 
@@ -32,19 +32,20 @@ const (
 		    visibility = $4,
 		    cover_image_id = $5,
 		    image_count = $6,
-		    updated_at = $7
+		    parent_id = $7,
+		    updated_at = $8
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectAlbumByID = `
-		SELECT id, owner_id, title, description, visibility, cover_image_id,
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
 		       image_count, created_at, updated_at
 		FROM albums
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectAlbumsByOwner = `
-		SELECT id, owner_id, title, description, visibility, cover_image_id,
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
 		       image_count, created_at, updated_at
 		FROM albums
 		WHERE owner_id = $1 AND deleted_at IS NULL
@@ -52,7 +53,7 @@ const (
 	`
 
 	sqlSelectPublicAlbums = `
-		SELECT id, owner_id, title, description, visibility, cover_image_id,
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
 		       image_count, created_at, updated_at
 		FROM albums
 		WHERE visibility = 'public' AND deleted_at IS NULL
@@ -73,12 +74,52 @@ const (
 	sqlExistsAlbum = `
 		SELECT EXISTS(SELECT 1 FROM albums WHERE id = $1 AND deleted_at IS NULL)
 	`
+
+	// Nested album queries
+	sqlSelectChildAlbums = `
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
+		       image_count, created_at, updated_at
+		FROM albums
+		WHERE parent_id = $1 AND deleted_at IS NULL
+		ORDER BY title ASC
+	`
+
+	sqlSelectRootAlbumsByOwner = `
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
+		       image_count, created_at, updated_at
+		FROM albums
+		WHERE owner_id = $1 AND parent_id IS NULL AND deleted_at IS NULL
+		ORDER BY created_at DESC
+	`
+
+	// Recursive CTE to get all ancestors (breadcrumb)
+	sqlSelectAlbumAncestors = `
+		WITH RECURSIVE ancestors AS (
+			SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
+			       image_count, created_at, updated_at, 0 as depth
+			FROM albums
+			WHERE id = $1 AND deleted_at IS NULL
+
+			UNION ALL
+
+			SELECT a.id, a.owner_id, a.parent_id, a.title, a.description, a.visibility,
+			       a.cover_image_id, a.image_count, a.created_at, a.updated_at, anc.depth + 1
+			FROM albums a
+			INNER JOIN ancestors anc ON a.id = anc.parent_id
+			WHERE a.deleted_at IS NULL
+		)
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
+		       image_count, created_at, updated_at
+		FROM ancestors
+		ORDER BY depth DESC
+	`
 )
 
 // albumRow represents an album row in the database.
 type albumRow struct {
 	ID           string    `db:"id"`
 	OwnerID      string    `db:"owner_id"`
+	ParentID     *string   `db:"parent_id"`
 	Title        string    `db:"title"`
 	Description  string    `db:"description"`
 	Visibility   string    `db:"visibility"`
@@ -233,11 +274,18 @@ func (r *AlbumRepository) insert(ctx context.Context, album *gallery.Album) erro
 		coverImageID = &id
 	}
 
+	var parentID *string
+	if album.ParentID() != nil {
+		id := album.ParentID().String()
+		parentID = &id
+	}
+
 	_, err := r.db.ExecContext(
 		ctx,
 		sqlInsertAlbum,
 		album.ID().String(),
 		album.OwnerID().String(),
+		parentID,
 		album.Title(),
 		album.Description(),
 		album.Visibility().String(),
@@ -261,6 +309,12 @@ func (r *AlbumRepository) update(ctx context.Context, album *gallery.Album) erro
 		coverImageID = &id
 	}
 
+	var parentID *string
+	if album.ParentID() != nil {
+		id := album.ParentID().String()
+		parentID = &id
+	}
+
 	result, err := r.db.ExecContext(
 		ctx,
 		sqlUpdateAlbum,
@@ -270,6 +324,7 @@ func (r *AlbumRepository) update(ctx context.Context, album *gallery.Album) erro
 		album.Visibility().String(),
 		coverImageID,
 		album.ImageCount(),
+		parentID,
 		album.UpdatedAt(),
 	)
 	if err != nil {
@@ -301,6 +356,16 @@ func rowToAlbum(row albumRow) (*gallery.Album, error) {
 		return nil, fmt.Errorf("invalid owner id: %w", err)
 	}
 
+	// Parse parent ID if present
+	var parentID *gallery.AlbumID
+	if row.ParentID != nil {
+		pID, err := gallery.ParseAlbumID(*row.ParentID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid parent album id: %w", err)
+		}
+		parentID = &pID
+	}
+
 	// Parse cover image ID if present
 	var coverImageID *gallery.ImageID
 	if row.CoverImageID != nil {
@@ -321,6 +386,7 @@ func rowToAlbum(row albumRow) (*gallery.Album, error) {
 	album := gallery.ReconstructAlbum(
 		albumID,
 		ownerID,
+		parentID,
 		row.Title,
 		row.Description,
 		visibility,
@@ -331,4 +397,69 @@ func rowToAlbum(row albumRow) (*gallery.Album, error) {
 	)
 
 	return album, nil
+}
+
+// FindChildren retrieves all direct child albums of a parent album.
+func (r *AlbumRepository) FindChildren(ctx context.Context, parentID gallery.AlbumID) ([]*gallery.Album, error) {
+	var rows []albumRow
+	err := r.db.SelectContext(ctx, &rows, sqlSelectChildAlbums, parentID.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to find child albums: %w", err)
+	}
+
+	albums := make([]*gallery.Album, 0, len(rows))
+	for _, row := range rows {
+		album, err := rowToAlbum(row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert row to album: %w", err)
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, nil
+}
+
+// FindRootAlbumsByOwner retrieves all root albums (no parent) for a user.
+func (r *AlbumRepository) FindRootAlbumsByOwner(ctx context.Context, ownerID identity.UserID) ([]*gallery.Album, error) {
+	var rows []albumRow
+	err := r.db.SelectContext(ctx, &rows, sqlSelectRootAlbumsByOwner, ownerID.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to find root albums by owner: %w", err)
+	}
+
+	albums := make([]*gallery.Album, 0, len(rows))
+	for _, row := range rows {
+		album, err := rowToAlbum(row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert row to album: %w", err)
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, nil
+}
+
+// FindAncestors retrieves all ancestors of an album (breadcrumb path).
+// Returns albums from root to the given album (inclusive).
+func (r *AlbumRepository) FindAncestors(ctx context.Context, albumID gallery.AlbumID) ([]*gallery.Album, error) {
+	var rows []albumRow
+	err := r.db.SelectContext(ctx, &rows, sqlSelectAlbumAncestors, albumID.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to find album ancestors: %w", err)
+	}
+
+	if len(rows) == 0 {
+		return nil, gallery.ErrAlbumNotFound
+	}
+
+	albums := make([]*gallery.Album, 0, len(rows))
+	for _, row := range rows {
+		album, err := rowToAlbum(row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert row to album: %w", err)
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, nil
 }

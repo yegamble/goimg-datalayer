@@ -138,6 +138,7 @@ type UpdateAlbumRequest struct {
 	Description  *string `json:"description,omitempty"    validate:"omitempty,max=2000"`
 	Visibility   *string `json:"visibility,omitempty"     validate:"omitempty,oneof=public private unlisted"`
 	CoverImageID *string `json:"cover_image_id,omitempty" validate:"omitempty,uuid"`
+	ParentID     *string `json:"parent_id,omitempty"      validate:"omitempty"` // Empty string removes parent
 }
 
 // AddImageToAlbumRequest represents the HTTP request body for adding an image to an album.

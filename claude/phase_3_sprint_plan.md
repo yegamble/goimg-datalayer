@@ -5,7 +5,7 @@
 > Phase 3 focuses on advanced features, scalability improvements, and ecosystem expansion
 > following the successful completion of Phase 2 (Sprints 10-15).
 >
-> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
+> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
 
 ---
 
@@ -27,8 +27,8 @@ and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| 16 | oEmbed + Social Media Cards | 1 week | P1 | 🚧 **IN PROGRESS** (oEmbed endpoint complete) |
-| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | Planned |
+| 16 | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
+| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | 🚧 **IN PROGRESS** |
 | 18 | Trending Tags + Featured Picks | 1 week | P2 | Planned |
 | 19 | Groups/Communities | 2 weeks | P3 | Backlog |
 | 20 | Video Support | 3 weeks | P3 | Backlog |
@@ -43,7 +43,7 @@ and platform scalability.
 **Duration**: 1 week
 **Priority**: P1 - HIGH
 **Dependencies**: None
-**Status**: 🚧 **IN PROGRESS**
+**Status**: ✅ **COMPLETE**
 
 ### Objectives
 
@@ -97,10 +97,28 @@ GET /images/{id}/preview  # ✅ IMPLEMENTED
 **Duration**: 2 weeks
 **Priority**: P2 - MEDIUM
 **Dependencies**: Sprint 16
+**Status**: 🚧 **IN PROGRESS**
 
 ### Objectives
 
 Support hierarchical album organization and user-configurable image variant sizes.
+
+### Progress
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Database Migration | ✅ COMPLETE | `00015_add_nested_albums_and_variant_configs.sql` |
+| Album parent_id Field | ✅ COMPLETE | Domain entity updated |
+| Album Repository | ✅ COMPLETE | FindChildren, FindAncestors methods added |
+| Breadcrumb Query | ✅ COMPLETE | `GetAlbumBreadcrumbHandler` |
+| Children Query | ✅ COMPLETE | `GetAlbumChildrenHandler` |
+| Update Album Command | ✅ COMPLETE | parent_id support added |
+| HTTP Handlers | ✅ COMPLETE | `/breadcrumb` and `/children` endpoints |
+| OpenAPI Spec | ✅ COMPLETE | Endpoints documented |
+| VariantConfig Entity | ✅ COMPLETE | Domain entity created |
+| VariantConfig Repository | 🔄 PENDING | Implementation needed |
+| Custom Variant Processing | 🔄 PENDING | Implementation needed |
+| E2E Tests | 🔄 PENDING | Tests needed |
 
 ### Deliverables
 

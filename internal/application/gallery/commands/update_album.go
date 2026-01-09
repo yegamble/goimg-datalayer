@@ -18,6 +18,7 @@ type UpdateAlbumCommand struct {
 	Title       *string // Optional: nil means no change
 	Description *string // Optional: nil means no change
 	Visibility  *string // Optional: nil means no change
+	ParentID    *string // Optional: nil means no change, empty string means remove parent
 }
 
 // UpdateAlbumHandler processes album update commands.
@@ -181,6 +182,17 @@ func (h *UpdateAlbumHandler) applyAlbumUpdates(album *gallery.Album, cmd UpdateA
 		}
 	}
 
+	// Update parent if provided
+	if cmd.ParentID != nil {
+		updated, err := h.updateAlbumParent(album, *cmd.ParentID)
+		if err != nil {
+			return false, err
+		}
+		if updated {
+			updateNeeded = true
+		}
+	}
+
 	return updateNeeded, nil
 }
 
@@ -207,6 +219,57 @@ func (h *UpdateAlbumHandler) updateAlbumVisibility(album *gallery.Album, visibil
 			Msg("failed to update album visibility")
 		return false, fmt.Errorf("update visibility: %w", err)
 	}
+
+	return true, nil
+}
+
+// updateAlbumParent updates the album parent if it has changed.
+// Returns true if the parent was updated, false otherwise.
+// An empty string removes the parent (makes album a root album).
+func (h *UpdateAlbumHandler) updateAlbumParent(album *gallery.Album, parentIDStr string) (bool, error) {
+	// Handle removal of parent (make it a root album)
+	if parentIDStr == "" {
+		if album.ParentID() == nil {
+			return false, nil // Already a root album
+		}
+		album.SetParent(nil)
+		h.logger.Debug().
+			Str("album_id", album.ID().String()).
+			Msg("removed album parent (now root album)")
+		return true, nil
+	}
+
+	// Parse new parent ID
+	parentID, err := gallery.ParseAlbumID(parentIDStr)
+	if err != nil {
+		h.logger.Debug().
+			Err(err).
+			Str("parent_id", parentIDStr).
+			Msg("invalid parent id for album update")
+		return false, fmt.Errorf("invalid parent id: %w", err)
+	}
+
+	// Check if it's the same parent
+	if album.ParentID() != nil && album.ParentID().Equals(parentID) {
+		return false, nil
+	}
+
+	// Prevent self-reference
+	if album.ID().Equals(parentID) {
+		h.logger.Debug().
+			Str("album_id", album.ID().String()).
+			Msg("cannot set album as its own parent")
+		return false, fmt.Errorf("cannot set album as its own parent")
+	}
+
+	// Note: Additional validation (circular reference, depth, same owner)
+	// is enforced at the database level via trigger
+
+	album.SetParent(&parentID)
+	h.logger.Debug().
+		Str("album_id", album.ID().String()).
+		Str("parent_id", parentIDStr).
+		Msg("updated album parent")
 
 	return true, nil
 }

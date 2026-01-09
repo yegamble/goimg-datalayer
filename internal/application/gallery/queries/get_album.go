@@ -19,6 +19,7 @@ type GetAlbumQuery struct {
 type AlbumDTO struct {
 	ID           string  `json:"id"`
 	OwnerID      string  `json:"owner_id"`
+	ParentID     *string `json:"parent_id,omitempty"`
 	Title        string  `json:"title"`
 	Description  string  `json:"description"`
 	Visibility   string  `json:"visibility"`
@@ -110,9 +111,16 @@ func albumToDTO(album *gallery.Album) AlbumDTO {
 		coverImageID = &id
 	}
 
+	var parentID *string
+	if album.ParentID() != nil {
+		id := album.ParentID().String()
+		parentID = &id
+	}
+
 	return AlbumDTO{
 		ID:           album.ID().String(),
 		OwnerID:      album.OwnerID().String(),
+		ParentID:     parentID,
 		Title:        album.Title(),
 		Description:  album.Description(),
 		Visibility:   album.Visibility().String(),

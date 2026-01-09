@@ -2371,6 +2371,11 @@ paths:
                 cover_image_id:
                   type: string
                   format: uuid
+                parent_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: Parent album ID for nesting. Set to null or empty string to remove parent.
       responses:
         '200':
           description: Album updated successfully
@@ -2585,6 +2590,76 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Album or image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/breadcrumb:
+    get:
+      tags: [albums]
+      summary: Get album breadcrumb
+      description: |
+        Returns the breadcrumb path from root to this album.
+        Useful for navigation in nested album hierarchies.
+      operationId: getAlbumBreadcrumb
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      responses:
+        '200':
+          description: Breadcrumb path from root to album
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BreadcrumbItem'
+        '403':
+          description: Forbidden - cannot view private album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /albums/{id}/children:
+    get:
+      tags: [albums]
+      summary: Get child albums
+      description: |
+        Returns the direct child albums of this album.
+        Used for navigating nested album hierarchies.
+      operationId: getAlbumChildren
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AlbumIdParam'
+      responses:
+        '200':
+          description: List of child albums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Album'
+        '403':
+          description: Forbidden - cannot view private album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
           content:
             application/json:
               schema:
@@ -4344,6 +4419,12 @@ components:
           type: string
           format: uuid
           example: 123e4567-e89b-12d3-a456-426614174001
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Parent album ID for nested albums. Null for root albums.
+          example: 123e4567-e89b-12d3-a456-426614174003
         title:
           type: string
           example: Summer Vacation 2024
@@ -4425,6 +4506,21 @@ components:
             $ref: '#/components/schemas/Image'
         pagination:
           $ref: '#/components/schemas/Pagination'
+
+    BreadcrumbItem:
+      type: object
+      description: A single item in an album breadcrumb path
+      required: [id, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Album ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        title:
+          type: string
+          description: Album title
+          example: Summer Vacation 2024
 
     Tag:
       type: object

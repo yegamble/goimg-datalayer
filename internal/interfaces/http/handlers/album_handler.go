@@ -23,6 +23,8 @@ type AlbumHandler struct {
 	getAlbum             *queries.GetAlbumHandler
 	listAlbums           *queries.ListAlbumsHandler
 	listAlbumImages      *queries.ListAlbumImagesHandler
+	getBreadcrumb        *queries.GetAlbumBreadcrumbHandler
+	getChildren          *queries.GetAlbumChildrenHandler
 	logger               zerolog.Logger
 }
 
@@ -36,6 +38,8 @@ func NewAlbumHandler(
 	getAlbum *queries.GetAlbumHandler,
 	listAlbums *queries.ListAlbumsHandler,
 	listAlbumImages *queries.ListAlbumImagesHandler,
+	getBreadcrumb *queries.GetAlbumBreadcrumbHandler,
+	getChildren *queries.GetAlbumChildrenHandler,
 	logger zerolog.Logger,
 ) *AlbumHandler {
 	return &AlbumHandler{
@@ -47,6 +51,8 @@ func NewAlbumHandler(
 		getAlbum:             getAlbum,
 		listAlbums:           listAlbums,
 		listAlbumImages:      listAlbumImages,
+		getBreadcrumb:        getBreadcrumb,
+		getChildren:          getChildren,
 		logger:               logger,
 	}
 }
@@ -64,6 +70,8 @@ func (h *AlbumHandler) Routes() chi.Router {
 	r.Post("/{albumID}/images", h.AddImage)
 	r.Delete("/{albumID}/images/{imageID}", h.RemoveImage)
 	r.Get("/{albumID}/images", h.ListImages)
+	r.Get("/{albumID}/breadcrumb", h.GetBreadcrumb)
+	r.Get("/{albumID}/children", h.GetChildren)
 
 	return r
 }
@@ -273,7 +281,7 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Visibility:  req.Visibility,
-		// Note: CoverImageID not supported in current command structure
+		ParentID:    req.ParentID,
 	}
 
 	// 5. Execute update command
@@ -793,4 +801,118 @@ func convertTagDTOs(tags []queries.TagDTO) []TagDTO {
 	result := make([]TagDTO, len(tags))
 	copy(result, tags)
 	return result
+}
+
+// GetBreadcrumb handles GET /api/v1/albums/{albumID}/breadcrumb
+// Returns the breadcrumb path from root to the album.
+//
+// Path parameters:
+//   - albumID: UUID of the album
+//
+// Response: 200 OK with []BreadcrumbItemDTO
+// Errors:
+//   - 400: Invalid album ID format
+//   - 403: Album is private and user is not the owner
+//   - 404: Album not found
+//   - 500: Internal server error
+func (h *AlbumHandler) GetBreadcrumb(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract album ID from path
+	albumID := GetPathParam(r, "albumID")
+	if albumID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing album ID",
+		)
+		return
+	}
+
+	// 2. Extract requesting user ID (optional)
+	var requestingUserID string
+	userCtx, err := GetUserFromContext(ctx)
+	if err == nil {
+		requestingUserID = userCtx.UserID.String()
+	}
+
+	// 3. Build query
+	query := queries.GetAlbumBreadcrumbQuery{
+		AlbumID:          albumID,
+		RequestingUserID: requestingUserID,
+	}
+
+	// 4. Execute query
+	breadcrumb, err := h.getBreadcrumb.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "get album breadcrumb")
+		return
+	}
+
+	// 5. Return breadcrumb
+	h.logger.Debug().
+		Str("album_id", albumID).
+		Int("depth", len(breadcrumb)).
+		Msg("album breadcrumb retrieved successfully")
+
+	if err := EncodeJSON(w, http.StatusOK, breadcrumb); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode breadcrumb response")
+	}
+}
+
+// GetChildren handles GET /api/v1/albums/{albumID}/children
+// Returns the direct child albums of an album.
+//
+// Path parameters:
+//   - albumID: UUID of the album
+//
+// Response: 200 OK with []AlbumDTO
+// Errors:
+//   - 400: Invalid album ID format
+//   - 403: Album is private and user is not the owner
+//   - 404: Album not found
+//   - 500: Internal server error
+func (h *AlbumHandler) GetChildren(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract album ID from path
+	albumID := GetPathParam(r, "albumID")
+	if albumID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing album ID",
+		)
+		return
+	}
+
+	// 2. Extract requesting user ID (optional)
+	var requestingUserID string
+	userCtx, err := GetUserFromContext(ctx)
+	if err == nil {
+		requestingUserID = userCtx.UserID.String()
+	}
+
+	// 3. Build query
+	query := queries.GetAlbumChildrenQuery{
+		AlbumID:          albumID,
+		RequestingUserID: requestingUserID,
+	}
+
+	// 4. Execute query
+	children, err := h.getChildren.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "get album children")
+		return
+	}
+
+	// 5. Return children
+	h.logger.Debug().
+		Str("album_id", albumID).
+		Int("children_count", len(children)).
+		Msg("album children retrieved successfully")
+
+	if err := EncodeJSON(w, http.StatusOK, children); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode children response")
+	}
 }
