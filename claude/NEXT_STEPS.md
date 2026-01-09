@@ -1,10 +1,10 @@
 # goimg-datalayer - Project Status
 
 > **Last Updated**: 2026-01-09
-> **Phase**: Phase 3 - Advanced Features (PLANNING)
-> **Previous Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search ✅ **COMPLETE**
-> **Status**: **Phase 2 Complete** - MVP launched, Sprints 10-15 ALL COMPLETE ✅
-> **Next**: Phase 3 Sprint Planning - See `claude/phase_3_sprint_plan.md`
+> **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
+> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
+> **Status**: **Phase 2 Complete** - Sprints 10-15 ALL COMPLETE ✅
+> **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 
 ---
 
@@ -556,22 +556,22 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-## Phase 3 Planning
+## Phase 3 Progress
 
-Phase 3 sprint plan has been created. See `claude/phase_3_sprint_plan.md` for details.
+Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Upcoming Sprints**:
+**Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
-| 16 | oEmbed + Social Media Cards | P1 | 📋 Planned |
+| 16 | oEmbed + Social Media Cards | P1 | 🚀 **IN PROGRESS** |
 | 17 | Nested Albums + Custom Variants | P2 | 📋 Planned |
 | 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
 
-**Key Features**:
-- oEmbed 1.0 endpoint for external embedding
-- Open Graph and Twitter Card meta tags
-- Nested album hierarchies
-- Custom image variant sizes
-- Tag discovery and trending algorithms
-- Featured picks curation
+**Sprint 16 Deliverables**:
+- [ ] oEmbed 1.0 endpoint (`GET /api/v1/oembed`)
+- [ ] Open Graph meta tags for Facebook/LinkedIn
+- [ ] Twitter Card support for rich previews
+- [ ] Public image preview page (`GET /images/{id}/preview`)
+- [ ] OpenAPI spec updates
+- [ ] E2E tests for oEmbed endpoints

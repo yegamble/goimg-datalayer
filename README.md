@@ -4,52 +4,25 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 2 - Advanced Features** - MVP complete, Sprints 10-15 COMPLETE ✅
+**Current Phase**: **Phase 3 - Advanced Features** (Planning) - Phase 2 COMPLETE ✅
 
-**Sprint 15**: ✅ **COMPLETE** - AI NSFW Detection + Advanced Search
-  - ✅ AI content moderation (SightEngine/ModerateContent API)
-  - ✅ Advanced search filters (date, size, dimensions, NSFW status)
-  - ✅ Database migration with NSFW scan tables
-  - ✅ Multi-provider NSFW orchestration with fallback
-  - ✅ HTTP endpoints for NSFW scanning and moderation
+**Phase 2 Complete**: All Sprints 10-15 delivered:
+  - ✅ Sprint 10: Security Enhancements (login timing, HIBP, metrics)
+  - ✅ Sprint 11: Two-Factor Authentication (TOTP, backup codes)
+  - ✅ Sprint 12: OAuth & Social Features (Google/GitHub, follows, feeds)
+  - ✅ Sprint 13: IPFS Storage Integration (decentralized storage)
+  - ✅ Sprint 14: Content Moderation + Guest Uploads (reports, bans)
+  - ✅ Sprint 15: AI NSFW Detection + Advanced Search
 
-**Sprint 14**: COMPLETE ✅ - Content Moderation + Guest Uploads
-  - ✅ Database migrations (moderation tables, guest user support)
-  - ✅ Domain Layer (Report, Ban, Guest User types, ImageOwnershipChanged event)
-  - ✅ Infrastructure Layer (repositories for reports, bans, reviews)
-  - ✅ Application Layer (7 commands + 5 queries for moderation/guest)
-  - ✅ HTTP Layer (ModerationHandler with 10 endpoints, GuestHandler with claim endpoint)
-  - ✅ OpenAPI Spec updated (52 paths, 34 schemas)
-  - ✅ E2E Tests - Moderation (17 Newman tests)
-  - ✅ E2E Tests - Guest uploads (5 Newman tests)
-  - ✅ Rate limiting for reports (10/hour) and guest sessions (10/hour)
-  - ✅ Security Gate S14 - APPROVED
+**Next**: Sprint 16 - oEmbed + Social Media Cards (P1 Priority)
 
-**Sprint 13**: COMPLETE ✅ - IPFS Storage Integration
-  - ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
-  - ✅ Database Migration (IPFS fields)
-  - ✅ Domain Layer (IPFSMetadata value object)
-  - ✅ Phase 2: Application & HTTP layers (3 endpoints)
-  - ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
-
-**Sprint 12**: COMPLETE ✅ - OAuth & Social Features
-  - ✅ OAuth (Google/GitHub) - Full stack implementation
-  - ✅ Follow/Unfollow users - Full stack implementation
-  - ✅ Activity feeds - Timeline from followed users
-  - ✅ Email notifications (SMTP) - New follower emails
-  - ✅ Session elevation after 2FA - Enhanced security
-  - ✅ E2E Tests (OAuth: 9, Follow: 18 Newman tests)
-
-**Sprint 11**: COMPLETE ✅ - Two-Factor Authentication
-  - ✅ Domain Layer (value objects, aggregate methods, events)
-  - ✅ Database Migration (2FA tables)
-  - ✅ Infrastructure Layer (encryption, TOTP, repositories)
-  - ✅ Application Layer (commands and queries)
-  - ✅ HTTP Layer (5 endpoints, OpenAPI spec)
-  - ✅ Rate Limiting (5 attempts/min on 2FA verification)
-  - ✅ E2E Tests (13 Newman tests)
-
-**Sprint 10**: COMPLETE ✅ - Security Enhancements (Random login delay ✅, HIBP password check ✅, Prometheus metrics ✅)
+**Completed Sprints (Phase 2)**:
+- **Sprint 15**: AI NSFW Detection + Advanced Search (SightEngine/ModerateContent, filters)
+- **Sprint 14**: Content Moderation + Guest Uploads (reports, bans, 22 E2E tests)
+- **Sprint 13**: IPFS Storage Integration (decentralized storage, 8 E2E tests)
+- **Sprint 12**: OAuth & Social Features (Google/GitHub, follows, feeds, 27 E2E tests)
+- **Sprint 11**: Two-Factor Authentication (TOTP, backup codes, 13 E2E tests)
+- **Sprint 10**: Security Enhancements (timing attacks, HIBP, Prometheus metrics)
 
 **Completed Sprints**:
 
@@ -133,34 +106,30 @@ See [claude/sprint_plan.md](claude/sprint_plan.md) for the complete roadmap.
 
 ## Recent Achievements
 
-### Sprint 13 Complete - IPFS Storage Integration ✅
+### Phase 2 Complete (2026-01-09) ✅
 
-**All Phases Complete** (2026-01-08):
-- ✅ Phase 1: Infrastructure Layer (IPFS client, storage orchestrator)
-- ✅ Phase 2: Application & HTTP layers (commands, queries, endpoints)
-- ✅ Phase 3: Router wiring, unit tests, E2E tests (8 Newman tests)
+All Phase 2 sprints (10-15) have been successfully delivered. The platform now includes:
 
-**Key Deliverables**:
-- `internal/infrastructure/storage/ipfs/client.go` - Kubo API client (~400 lines)
-- `internal/infrastructure/storage/orchestrator/orchestrator.go` - Dual-storage coordinator
-- `internal/application/gallery/commands/pin_image_to_ipfs.go` - Pin command
-- `internal/application/gallery/commands/unpin_image_from_ipfs.go` - Unpin command
-- `internal/application/gallery/queries/get_image_ipfs_status.go` - Status query
-- `internal/interfaces/http/handlers/ipfs_handler.go` - HTTP endpoints
-- `migrations/00011_add_ipfs_fields.sql` - IPFS columns for images
+**Sprint 15 - AI Content Moderation**:
+- Multi-provider NSFW detection (SightEngine + ModerateContent fallback)
+- Advanced search filters (date, size, dimensions, NSFW status)
+- Content flagging workflow for moderators
 
-**API Endpoints**:
-- `POST /api/v1/images/{imageID}/ipfs` - Pin image to IPFS
-- `DELETE /api/v1/images/{imageID}/ipfs` - Unpin image from IPFS
-- `GET /api/v1/images/{imageID}/ipfs` - Get IPFS status
+**Sprint 14 - Content Moderation & Guest Uploads**:
+- Abuse reporting system with rate limiting
+- Admin moderation queue (10 endpoints)
+- User ban system (temporary & permanent)
+- Guest upload sessions with claim-to-account flow
 
-### Sprint 12 Complete - OAuth & Social Features ✅
+**Sprint 13 - IPFS Decentralized Storage**:
+- Pin/unpin images to IPFS network
+- Dual-storage orchestrator (primary + IPFS fallback)
+- Gateway URL generation for content-addressed retrieval
 
-**All Features Implemented** (2026-01-07):
+**Sprint 12 - OAuth & Social Features**:
 - OAuth authentication (Google, GitHub) with CSRF protection
 - Follow/unfollow users with activity feeds
 - Email notifications via SMTP with rate limiting
-- Session elevation after 2FA verification
 
 ### Sprint 9 Complete - GO FOR LAUNCH ✅
 
@@ -591,30 +560,34 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ NSFW scan management endpoints (4 endpoints)
 - ✅ Database migration for NSFW scan tables
 
-### Phase 3: Advanced Features (Planning)
+### Phase 3: Advanced Features (In Progress)
 
 Phase 3 focuses on discoverability, social sharing, and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| **16** | oEmbed + Social Media Cards | 1 week | P1 | 📋 Planned |
+| **16** | oEmbed + Social Media Cards | 1 week | P1 | 🚀 **NEXT** |
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | 📋 Planned |
 | **18** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Planned |
 | **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
 | **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **21** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
-**Key Phase 3 Features**:
-- **oEmbed & Social Cards** - Enable image embedding on external sites, rich social media previews
+**Sprint 16 (Next)**: oEmbed + Social Media Cards
+- oEmbed 1.0 endpoint for external embedding
+- Open Graph meta tags for Facebook/LinkedIn
+- Twitter Card support for rich previews
+- Public image preview pages
+
+**Future Sprints**:
 - **Nested Albums** - Hierarchical album organization with breadcrumb navigation
 - **Custom Variants** - User-defined image variant sizes (pro feature)
-- **Trending Tags** - Time-weighted tag popularity, tag search, tag-based listing
-- **Featured Picks** - Admin-curated featured content for discovery
+- **Trending Tags** - Time-weighted tag popularity, tag search
 - **Groups** - Interest-based communities with shared albums
 - **Video Support** - Video uploads with HLS/DASH streaming
 - **Account Tiers** - Free, Pro, Business levels with different limits
 
-See [claude/phase_3_sprint_plan.md](claude/phase_3_sprint_plan.md) for detailed Phase 3 planning and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md) for current status.
+See [claude/phase_3_sprint_plan.md](claude/phase_3_sprint_plan.md) for detailed Phase 3 planning.
 
 ## Contributing
 

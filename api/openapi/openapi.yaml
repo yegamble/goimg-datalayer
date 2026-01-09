@@ -61,6 +61,8 @@ tags:
     description: Health check endpoints
   - name: monitoring
     description: Application monitoring and metrics
+  - name: oembed
+    description: oEmbed protocol for image embedding (Sprint 16)
 
 paths:
   # ==================== Authentication ====================
@@ -3711,6 +3713,124 @@ paths:
                         items:
                           $ref: '#/components/schemas/Image'
 
+  # ==================== oEmbed (Sprint 16) ====================
+  /oembed:
+    get:
+      tags: [oembed]
+      summary: Get oEmbed response for image
+      description: |
+        Returns an oEmbed 1.0 response for embedding images on external sites.
+
+        Implements the oEmbed specification (https://oembed.com/).
+
+        Only public images can be embedded. Private and unlisted images will
+        return a 404 error.
+
+        **Usage**:
+        ```
+        GET /api/v1/oembed?url=https://example.com/images/{uuid}
+        ```
+
+        **Supported URL patterns**:
+        - `/images/{uuid}`
+        - `/api/v1/images/{uuid}`
+        - Full URLs with domain
+
+        **Response formats**:
+        - JSON (default)
+        - XML (when format=xml)
+      operationId: getOEmbed
+      security: []
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: URL of the image to embed
+          schema:
+            type: string
+            format: uri
+          example: https://example.com/images/123e4567-e89b-12d3-a456-426614174000
+        - name: format
+          in: query
+          required: false
+          description: Response format (json or xml)
+          schema:
+            type: string
+            enum: [json, xml]
+            default: json
+        - name: maxwidth
+          in: query
+          required: false
+          description: Maximum width of embedded content in pixels
+          schema:
+            type: integer
+            minimum: 1
+        - name: maxheight
+          in: query
+          required: false
+          description: Maximum height of embedded content in pixels
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: oEmbed response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OEmbedResponse'
+              example:
+                type: photo
+                version: "1.0"
+                url: https://example.com/api/v1/images/123e4567-e89b-12d3-a456-426614174000/variants/large
+                width: 1600
+                height: 1200
+                title: Beautiful sunset
+                author_name: johndoe
+                author_url: https://example.com/users/456e4567-e89b-12d3-a456-426614174000
+                provider_name: goimg
+                provider_url: https://example.com
+                cache_age: 3600
+                thumbnail_url: https://example.com/api/v1/images/123e4567-e89b-12d3-a456-426614174000/variants/thumbnail
+                thumbnail_width: 150
+                thumbnail_height: 112
+            text/xml:
+              schema:
+                type: string
+              example: |
+                <?xml version="1.0" encoding="utf-8"?>
+                <oembed>
+                  <type>photo</type>
+                  <version>1.0</version>
+                  <url>https://example.com/api/v1/images/123/variants/large</url>
+                  <width>1600</width>
+                  <height>1200</height>
+                  <title>Beautiful sunset</title>
+                  <provider_name>goimg</provider_name>
+                </oembed>
+        '400':
+          description: Invalid request (missing or invalid URL parameter)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: url parameter is required
+        '404':
+          description: Image not found or not public
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: Image not found
+
   # ==================== Health ====================
   /health:
     get:
@@ -5209,6 +5329,82 @@ components:
           example: 5
       example:
         count: 5
+
+    # ==================== oEmbed (Sprint 16) ====================
+    OEmbedResponse:
+      type: object
+      description: |
+        oEmbed 1.0 response for photo type.
+        See https://oembed.com/#section2.3.4.1
+      required:
+        - type
+        - version
+        - url
+        - width
+        - height
+      properties:
+        type:
+          type: string
+          description: Resource type (always "photo" for images)
+          enum: [photo]
+          example: photo
+        version:
+          type: string
+          description: oEmbed version (always "1.0")
+          enum: ["1.0"]
+          example: "1.0"
+        url:
+          type: string
+          format: uri
+          description: URL of the image
+          example: https://example.com/api/v1/images/123/variants/large
+        width:
+          type: integer
+          description: Width of image in pixels
+          example: 1600
+        height:
+          type: integer
+          description: Height of image in pixels
+          example: 1200
+        title:
+          type: string
+          description: Image title
+          example: Beautiful sunset
+        author_name:
+          type: string
+          description: Username of image owner
+          example: johndoe
+        author_url:
+          type: string
+          format: uri
+          description: URL to author's profile
+          example: https://example.com/users/456
+        provider_name:
+          type: string
+          description: Name of the provider (goimg)
+          example: goimg
+        provider_url:
+          type: string
+          format: uri
+          description: URL to the provider
+          example: https://example.com
+        cache_age:
+          type: integer
+          description: Suggested cache duration in seconds
+          example: 3600
+        thumbnail_url:
+          type: string
+          format: uri
+          description: URL of the thumbnail image
+          example: https://example.com/api/v1/images/123/variants/thumbnail
+        thumbnail_width:
+          type: integer
+          description: Width of thumbnail in pixels
+          example: 150
+        thumbnail_height:
+          type: integer
+          description: Height of thumbnail in pixels
+          example: 112
 
     # ==================== Health ====================
     HealthStatus:

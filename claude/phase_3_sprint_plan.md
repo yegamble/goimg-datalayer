@@ -1,9 +1,11 @@
 # Phase 3 Sprint Plan
 
-> **Status**: Planning | **Version**: 1.0 | **Created**: 2026-01-09
+> **Status**: In Progress | **Version**: 1.1 | **Updated**: 2026-01-09
 >
 > Phase 3 focuses on advanced features, scalability improvements, and ecosystem expansion
 > following the successful completion of Phase 2 (Sprints 10-15).
+>
+> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
 
 ---
 
@@ -25,7 +27,7 @@ and platform scalability.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
-| 16 | oEmbed + Social Media Cards | 1 week | P1 | Planned |
+| 16 | oEmbed + Social Media Cards | 1 week | P1 | 🚀 **IN PROGRESS** |
 | 17 | Nested Albums + Custom Variants | 2 weeks | P2 | Planned |
 | 18 | Trending Tags + Featured Picks | 1 week | P2 | Planned |
 | 19 | Groups/Communities | 2 weeks | P3 | Backlog |
