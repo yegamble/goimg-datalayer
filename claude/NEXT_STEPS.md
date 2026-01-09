@@ -1,50 +1,53 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-08
-> **Phase**: Phase 2 - Advanced Features
-> **Current Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search (IN PROGRESS 🔄)
-> **Status**: **Phase 2 Active** - MVP launched, Sprints 10-14 COMPLETE
+> **Last Updated**: 2026-01-09
+> **Phase**: Phase 2 - Advanced Features (COMPLETE)
+> **Current Sprint**: Sprint 15 - AI NSFW Detection + Advanced Search ✅ **COMPLETE**
+> **Status**: **Phase 2 Complete** - MVP launched, Sprints 10-15 ALL COMPLETE ✅
 
 ---
 
-## Sprint 15 Summary (IN PROGRESS 🔄)
+## Sprint 15 Summary (COMPLETE ✅)
 
 ### AI NSFW Detection + Advanced Search
 
 **Priority**: P1 HIGH (User safety and experience)
-**Status**: **IN PROGRESS** 🔄
+**Status**: ✅ **COMPLETE** (All 5 Phases Implemented)
 
-| Component | Status | Target Files |
-|-----------|--------|--------------|
-| AI NSFW Integration | 📋 PLANNED | `internal/infrastructure/moderation/nsfw_client.go` |
-| NSFW Domain Types | 📋 PLANNED | `internal/domain/moderation/nsfw_result.go` |
-| NSFW Application Commands | 📋 PLANNED | `internal/application/moderation/commands/scan_image_nsfw.go` |
-| Advanced Search Filters | 📋 PLANNED | Enhanced query parameters |
-| Date Range Filter | 📋 PLANNED | `created_after`, `created_before` parameters |
-| File Size Filter | 📋 PLANNED | `min_size`, `max_size` parameters |
-| Dimension Filters | 📋 PLANNED | `min_width`, `max_width`, `min_height`, `max_height` |
+| Component | Status | Files |
+|-----------|--------|-------|
+| Database Migration | ✅ COMPLETE | `migrations/00014_create_nsfw_scans.sql` |
+| NSFW Domain Types | ✅ COMPLETE | `internal/domain/moderation/nsfw_scan.go`, `nsfw_category.go`, `nsfw_provider.go` |
+| NSFW Infrastructure | ✅ COMPLETE | `internal/infrastructure/security/nsfw/client.go`, `sightengine.go`, `moderatecontent.go`, `orchestrator.go` |
+| NSFW Application Commands | ✅ COMPLETE | `internal/application/moderation/commands/scan_image_nsfw.go` |
+| NSFW Application Queries | ✅ COMPLETE | `get_nsfw_scan.go`, `list_nsfw_scans_by_image.go`, `list_nsfw_flagged.go` |
+| HTTP Endpoints | ✅ COMPLETE | ModerationHandler with NSFW endpoints |
+| Advanced Search Filters | ✅ COMPLETE | Enhanced query parameters in ListImages |
 
-### Sprint 15 Planned Endpoints
+### Sprint 15 Delivered Endpoints
 
 **AI NSFW Detection**:
-- `POST /api/v1/images/{id}/scan` - Trigger NSFW scan on image
-- `GET /api/v1/images/{id}/nsfw-status` - Get NSFW analysis result
+- ✅ `POST /api/v1/moderation/nsfw/scan` - Trigger NSFW scan on image (moderator/admin)
+- ✅ `GET /api/v1/moderation/nsfw/scans/{scanID}` - Get scan result
+- ✅ `GET /api/v1/moderation/nsfw/flagged` - List flagged images for moderation
+- ✅ `GET /api/v1/images/{imageID}/nsfw-scans` - Get image's scan history
 
 **Advanced Search**:
-- Enhanced `GET /api/v1/images` with new query parameters:
+- ✅ Enhanced `GET /api/v1/images` with new query parameters:
   - `created_after`, `created_before` - Date range filtering
   - `min_size`, `max_size` - File size filtering (bytes)
   - `min_width`, `max_width`, `min_height`, `max_height` - Dimension filtering
-  - `nsfw_status` - Filter by NSFW classification
+  - `nsfw_status` - Filter by NSFW classification (pending, safe, flagged, blocked)
 
-### Security Considerations
+### Security Implementation
 
-| Concern | Mitigation |
-|---------|------------|
-| API key exposure | Store in encrypted env vars |
-| False positives | Human review queue for flagged content |
-| Rate limiting | Queue NSFW scans, don't block upload |
-| PII in logs | Don't log image content or API responses |
+| Concern | Implementation |
+|---------|----------------|
+| API key exposure | Stored in encrypted env vars |
+| False positives | Human review queue via moderation endpoints |
+| Rate limiting | NSFW scans rate-limited, non-blocking |
+| PII in logs | Image content and API responses excluded from logs |
+| Multi-provider | Orchestrator with SightEngine + ModerateContent fallback |
 
 ---
 
@@ -346,8 +349,8 @@ Features deferred to Phase 2:
 | IPFS storage integration | Medium | 13 | ✅ COMPLETE |
 | Content moderation suite | High | 14 | ✅ COMPLETE |
 | Guest uploads | High | 14 | ✅ COMPLETE |
-| AI NSFW detection | Medium | 15 | 🔄 IN PROGRESS |
-| Advanced search filters | Medium | 15 | 🔄 IN PROGRESS |
+| AI NSFW detection | Medium | 15 | ✅ COMPLETE |
+| Advanced search filters | Medium | 15 | ✅ COMPLETE |
 
 **Sprint 10 (Security Enhancements) is COMPLETE** ✅:
 - ✅ Random login delay (100-300ms) for timing attack mitigation - IMPLEMENTED
@@ -548,4 +551,4 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ---
 
-**Project Status**: **Phase 2 Active** - Sprints 10-14 COMPLETE ✅ - Sprint 15 (AI NSFW + Advanced Search) IN PROGRESS 🔄
+**Project Status**: **Phase 2 COMPLETE** ✅ - All Sprints 10-15 COMPLETE ✅ - Ready for Phase 3 Planning

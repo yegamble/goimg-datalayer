@@ -536,6 +536,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /auth/2fa/login-verify:
+    post:
+      tags: [auth]
+      summary: Verify 2FA during login
+      description: |
+        Verify TOTP code during login for session elevation.
+
+        When a user with 2FA enabled logs in, they receive a non-elevated token.
+        This endpoint verifies the TOTP code and returns an elevated access token
+        with the `2fa_verified` claim set to true.
+
+        Security:
+        - Requires authentication (non-elevated JWT token)
+        - Rate limit: 5 attempts per minute
+        - TOTP code must be from registered authenticator app
+        - Returns elevated token on success
+      operationId: verify2FALogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  pattern: '^\d{6}$'
+                  description: 6-digit TOTP code from authenticator app
+                  example: "123456"
+      responses:
+        '200':
+          description: 2FA verification successful, returns elevated token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid or expired TOTP code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized - no valid token provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: 2FA not enabled for this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '429':
+          description: Too many attempts - rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== OAuth 2.0 ====================
   /auth/oauth/{provider}:
     get:
@@ -2899,11 +2963,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /moderation/reports/{id}/review:
     post:
       tags: [moderation]
-      summary: Start review
-      description: Start reviewing a report (marks status as 'reviewing'). Admin/moderator only.
-      operationId: reviewReport
+      summary: Start report review
+      description: |
+        Start reviewing a report (marks status as 'under_review').
+        Admin/moderator only.
+
+        Use this endpoint to claim a report for review before resolving or dismissing it.
+      operationId: startReportReview
       parameters:
         - name: id
           in: path
@@ -2929,6 +2998,12 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Report already under review or resolved
           content:
             application/json:
               schema:
