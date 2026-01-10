@@ -1,11 +1,12 @@
 # Phase 3 Sprint Plan
 
-> **Status**: In Progress | **Version**: 1.2 | **Updated**: 2026-01-10
+> **Status**: In Progress | **Version**: 1.3 | **Updated**: 2026-01-10
 >
 > Phase 3 focuses on advanced features, scalability improvements, and ecosystem expansion
 > following the successful completion of Phase 2 (Sprints 10-15).
 >
-> **Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
+> **Current Sprint**: Sprint 18 - Test Coverage Improvement 🚀
+> **Test Coverage**: 35.9% overall (target: 80%)
 
 ---
 
@@ -29,12 +30,13 @@ and platform scalability.
 |--------|-------|----------|----------|--------|
 | 16 | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
 | 17 | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
-| 18 | Trending Tags + Featured Picks | 1 week | P2 | 🚀 **NEXT** |
-| 19 | Groups/Communities | 2 weeks | P3 | Backlog |
-| 20 | Video Support | 3 weeks | P3 | Backlog |
-| 21 | Account Tiers/Subscriptions | 2 weeks | P3 | Backlog |
+| 18 | Test Coverage Improvement | 2 weeks | P1 | 🚀 **NEXT** |
+| 19 | Trending Tags + Featured Picks | 1 week | P2 | Backlog |
+| 20 | Groups/Communities | 2 weeks | P3 | Backlog |
+| 21 | Video Support | 3 weeks | P3 | Backlog |
+| 22 | Account Tiers/Subscriptions | 2 weeks | P3 | Backlog |
 
-**Total Phase 3 Duration**: ~11 weeks (Sprints 16-21)
+**Total Phase 3 Duration**: ~13 weeks (Sprints 16-22)
 
 ---
 
@@ -195,7 +197,84 @@ CREATE TABLE variant_configs (
 
 ---
 
-## Sprint 18: Trending Tags + Featured Picks
+## Sprint 18: Test Coverage Improvement
+
+**Duration**: 2 weeks
+**Priority**: P1 - HIGH
+**Dependencies**: None
+**Status**: 🚀 **NEXT**
+
+### Objectives
+
+Improve overall test coverage from 35.9% to meet the 80% project target. Focus on critical packages with low coverage.
+
+### Current Coverage Baseline (2026-01-10)
+
+**Overall: 35.9%**
+
+| Priority | Package | Current | Target |
+|----------|---------|---------|--------|
+| P0 | persistence/redis | 7.9% | 70% |
+| P0 | storage/s3 | 17.9% | 70% |
+| P0 | domain/identity | 32.9% | 90% |
+| P1 | security/nsfw | 32.3% | 70% |
+| P1 | identity/commands | 34.9% | 85% |
+| P1 | http/middleware | 36.0% | 70% |
+| P1 | security/jwt | 36.4% | 70% |
+| P2 | storage/orchestrator | 55.6% | 75% |
+| P2 | identity/queries | 62.5% | 85% |
+
+### Deliverables
+
+| Component | Description |
+|-----------|-------------|
+| Redis Repository Tests | Unit tests with mock Redis for session/cache operations |
+| S3 Storage Tests | Unit tests with mock S3 client for upload/download |
+| Identity Domain Tests | Comprehensive tests for User aggregate, value objects |
+| NSFW Service Tests | Mock provider tests for SightEngine/ModerateContent |
+| JWT Service Tests | Token generation, validation, rotation tests |
+| Middleware Tests | Request handling, auth middleware, rate limiting |
+
+### Test Implementation Plan
+
+**Week 1: Infrastructure Layer (P0)**
+
+| Task | Package | Expected Coverage Gain |
+|------|---------|------------------------|
+| Redis mock and session tests | persistence/redis | +50% |
+| S3 mock and storage tests | storage/s3 | +40% |
+| Identity domain value objects | domain/identity | +40% |
+
+**Week 2: Application & Security (P1)**
+
+| Task | Package | Expected Coverage Gain |
+|------|---------|------------------------|
+| NSFW orchestrator mock tests | security/nsfw | +35% |
+| Identity command handler tests | identity/commands | +40% |
+| Middleware unit tests | http/middleware | +30% |
+| JWT token lifecycle tests | security/jwt | +30% |
+
+### Technical Notes
+
+- Use `github.com/stretchr/testify` for assertions and mocks
+- Use `testcontainers-go` for integration tests where appropriate
+- Mock external services (Redis, S3, NSFW APIs) for unit tests
+- Focus on error paths and edge cases, not just happy paths
+- Update coverage badge in README after each milestone
+
+### Success Criteria
+
+| Metric | Target |
+|--------|--------|
+| Overall Coverage | ≥ 60% |
+| Domain Layer | ≥ 80% |
+| Application Layer | ≥ 75% |
+| Infrastructure Layer | ≥ 60% |
+| No P0 packages below | 70% |
+
+---
+
+## Sprint 19: Trending Tags + Featured Picks
 
 **Duration**: 1 week
 **Priority**: P2 - MEDIUM
@@ -245,7 +324,7 @@ POST /api/v1/moderation/featured (admin)
 
 ---
 
-## Sprint 19: Groups/Communities (Backlog)
+## Sprint 20: Groups/Communities (Backlog)
 
 **Duration**: 2 weeks
 **Priority**: P3 - LOW
@@ -267,7 +346,7 @@ Enable users to create and join interest-based groups with shared albums.
 
 ---
 
-## Sprint 20: Video Support (Backlog)
+## Sprint 21: Video Support (Backlog)
 
 **Duration**: 3 weeks
 **Priority**: P3 - LOW
@@ -296,7 +375,7 @@ Extend the platform to support video uploads with streaming and thumbnails.
 
 ---
 
-## Sprint 21: Account Tiers/Subscriptions (Backlog)
+## Sprint 22: Account Tiers/Subscriptions (Backlog)
 
 **Duration**: 2 weeks
 **Priority**: P3 - LOW
@@ -326,10 +405,11 @@ Each sprint requires security review before merge:
 |--------|---------|--------------|
 | 16 | S16-EMBED | oEmbed URL validation, CSRF protection on previews |
 | 17 | S17-ALBUM | Authorization on nested album access |
-| 18 | S18-TAG | Tag injection prevention, featured image validation |
-| 19 | S19-GROUP | Group privacy enforcement, role-based access |
-| 20 | S20-VIDEO | Video file validation, transcoding security |
-| 21 | S21-TIER | Payment security, quota enforcement |
+| 18 | S18-TEST | Test coverage verification, no security regressions |
+| 19 | S19-TAG | Tag injection prevention, featured image validation |
+| 20 | S20-GROUP | Group privacy enforcement, role-based access |
+| 21 | S21-VIDEO | Video file validation, transcoding security |
+| 22 | S22-TIER | Payment security, quota enforcement |
 
 ---
 
@@ -354,10 +434,11 @@ The following items should be addressed during Phase 3:
 |--------|------------|-----------------|
 | 16 | senior-go-architect | image-gallery-expert, senior-secops-engineer |
 | 17 | senior-go-architect | backend-test-architect |
-| 18 | image-gallery-expert | senior-go-architect |
-| 19 | senior-go-architect | senior-secops-engineer |
-| 20 | senior-go-architect | image-gallery-expert, cicd-guardian |
-| 21 | senior-secops-engineer | senior-go-architect |
+| 18 | backend-test-architect | senior-go-architect, test-strategist |
+| 19 | image-gallery-expert | senior-go-architect |
+| 20 | senior-go-architect | senior-secops-engineer |
+| 21 | senior-go-architect | image-gallery-expert, cicd-guardian |
+| 22 | senior-secops-engineer | senior-go-architect |
 
 ---
 
