@@ -1,11 +1,11 @@
 # Phase 3 Sprint Plan
 
-> **Status**: In Progress | **Version**: 1.1 | **Updated**: 2026-01-09
+> **Status**: In Progress | **Version**: 1.2 | **Updated**: 2026-01-10
 >
 > Phase 3 focuses on advanced features, scalability improvements, and ecosystem expansion
 > following the successful completion of Phase 2 (Sprints 10-15).
 >
-> **Current Sprint**: Sprint 17 - Nested Albums + Custom Variants 🚀
+> **Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
 
 ---
 
@@ -28,8 +28,8 @@ and platform scalability.
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
 | 16 | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
-| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | 🚧 **IN PROGRESS** |
-| 18 | Trending Tags + Featured Picks | 1 week | P2 | Planned |
+| 17 | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
+| 18 | Trending Tags + Featured Picks | 1 week | P2 | 🚀 **NEXT** |
 | 19 | Groups/Communities | 2 weeks | P3 | Backlog |
 | 20 | Video Support | 3 weeks | P3 | Backlog |
 | 21 | Account Tiers/Subscriptions | 2 weeks | P3 | Backlog |
@@ -97,7 +97,7 @@ GET /images/{id}/preview  # ✅ IMPLEMENTED
 **Duration**: 2 weeks
 **Priority**: P2 - MEDIUM
 **Dependencies**: Sprint 16
-**Status**: 🚧 **IN PROGRESS**
+**Status**: ✅ **COMPLETE**
 
 ### Objectives
 
@@ -121,7 +121,8 @@ Support hierarchical album organization and user-configurable image variant size
 | VariantConfig HTTP Handlers | ✅ COMPLETE | Routes mounted at `/variant-configs` |
 | E2E Tests - Nested Albums | ✅ COMPLETE | 5 tests for breadcrumb/children/parent |
 | E2E Tests - Variant Configs | ✅ COMPLETE | 8 tests for CRUD operations |
-| Custom Variant Processing | 🔄 PENDING | Integration with image processing |
+| Custom Variant Processing | ✅ COMPLETE | `POST /api/v1/images/{id}/variants` endpoint |
+| Custom Variant E2E Tests | ✅ COMPLETE | 4 tests for variant generation |
 
 ### Deliverables
 
@@ -165,9 +166,11 @@ PUT /api/v1/variant-configs/{id}
 DELETE /api/v1/variant-configs/{id}
   - Delete custom config
 
-# Pending Implementation
+# Custom Variant Generation (IMPLEMENTED)
 POST /api/v1/images/{id}/variants
   - Generate custom variant with specified dimensions
+  - Supports fit, fill, and crop modes
+  - Output formats: jpeg, png, webp, avif
 ```
 
 ### Database Changes
