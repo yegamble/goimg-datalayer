@@ -398,18 +398,33 @@ make test-integration  # Integration tests (requires DB)
 make test-e2e          # End-to-end tests (Newman/Postman)
 ```
 
-### Test Coverage Achievements (Sprint 8)
+### Test Coverage (Last Updated: 2026-01-10)
 
-**Achieved Coverage** (exceeded all targets):
+**Overall Coverage: 35.9%**
 
-| Layer | Target | Actual | Status |
-|-------|--------|--------|--------|
-| Domain | 90% | **91-100%** | ✅ **EXCEEDED** |
-| Application - Gallery Commands | 85% | **93.4%** | ✅ **EXCEEDED** |
-| Application - Gallery Queries | 85% | **94.2%** | ✅ **EXCEEDED** |
-| Application - Identity | 85% | **91-93%** | ✅ **EXCEEDED** |
-| Infrastructure - Storage | 70% | **78-97%** | ✅ **EXCEEDED** |
-| Overall Project | 80% | In Progress | 🔄 Sprint 9 |
+| Layer | Package | Coverage |
+|-------|---------|----------|
+| **Domain** | activity | 88.9% |
+| | gallery | 72.6% |
+| | identity | 32.9% |
+| | moderation | 100.0% |
+| | shared | 78.0% |
+| **Application** | gallery/commands | 67.7% |
+| | gallery/queries | 75.4% |
+| | identity/commands | 34.9% |
+| | identity/queries | 62.5% |
+| | identity (service) | 90.9% |
+| **Infrastructure** | jobs/asynq | 75.9% |
+| | persistence/redis | 7.9% |
+| | secrets | 68.0% |
+| | security/jwt | 36.4% |
+| | security/nsfw | 32.3% |
+| | storage/ipfs | 83.5% |
+| | storage/local | 75.9% |
+| | storage/orchestrator | 55.6% |
+| | storage/s3 | 17.9% |
+| | storage/validator | 96.3% |
+| **HTTP** | middleware | 36.0% |
 
 **E2E Test Coverage**:
 - 62 total test requests across 9 feature areas

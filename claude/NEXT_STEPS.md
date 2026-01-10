@@ -2,9 +2,10 @@
 
 > **Last Updated**: 2026-01-10
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
+> **Current Sprint**: Sprint 18 - Test Coverage Improvement 🚀
 > **Status**: **Sprints 16-17 Complete** ✅ - Phase 3 in progress
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
+> **Test Coverage**: 35.9% overall (target: 80%)
 
 ---
 
@@ -560,13 +561,14 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
+**Current Sprint**: Sprint 18 - Test Coverage Improvement 🚀
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
 | 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
-| 18 | Trending Tags + Featured Picks | P2 | 🚀 **NEXT** |
+| 18 | Test Coverage Improvement | P1 | 🚀 **NEXT** |
+| 19 | Trending Tags + Featured Picks | P2 | Backlog |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -586,3 +588,13 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 - ✅ Support for fit, fill, and crop modes
 - ✅ Output formats: jpeg, png, webp, avif
 - ✅ E2E tests (17 tests total for nested albums, variant configs, and custom variants)
+
+**Sprint 18 Targets** 🚀:
+- Current overall coverage: 35.9%
+- Target overall coverage: ≥ 60%
+- Priority packages to improve:
+  - persistence/redis: 7.9% → 70%
+  - storage/s3: 17.9% → 70%
+  - domain/identity: 32.9% → 90%
+  - security/nsfw: 32.3% → 70%
+  - identity/commands: 34.9% → 85%
