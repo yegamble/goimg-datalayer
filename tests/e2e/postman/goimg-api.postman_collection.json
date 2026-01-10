@@ -5677,6 +5677,219 @@
           }
         },
         {
+          "name": "Generate Custom Variant - Direct Params",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has variant result', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('variant_key');",
+                  "    pm.expect(jsonData).to.have.property('variant_url');",
+                  "    pm.expect(jsonData).to.have.property('width');",
+                  "    pm.expect(jsonData).to.have.property('height');",
+                  "    pm.expect(jsonData).to.have.property('format');",
+                  "    pm.expect(jsonData).to.have.property('file_size');",
+                  "    pm.expect(jsonData).to.have.property('content_type');",
+                  "});",
+                  "",
+                  "pm.test('Variant dimensions are correct', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.width).to.be.at.most(500);",
+                  "    pm.expect(jsonData.height).to.be.at.most(500);",
+                  "    pm.expect(jsonData.format).to.eql('webp');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"test-square\",\n  \"max_width\": 500,\n  \"max_height\": 500,\n  \"format\": \"webp\",\n  \"quality\": 85,\n  \"crop_mode\": \"fit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Custom Variant - Fill Crop Mode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Variant uses fill crop mode', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.width).to.eql(200);",
+                  "    pm.expect(jsonData.height).to.eql(200);",
+                  "    pm.expect(jsonData.format).to.eql('jpeg');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"profile-avatar\",\n  \"max_width\": 200,\n  \"max_height\": 200,\n  \"format\": \"jpeg\",\n  \"quality\": 90,\n  \"crop_mode\": \"fill\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Custom Variant - Missing Params Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error response is RFC 7807', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"missing-params\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Custom Variant - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"max_width\": 500,\n  \"max_height\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "images",
+                "{{testImageId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
           "name": "Delete Image",
           "event": [
             {

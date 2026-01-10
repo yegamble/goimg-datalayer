@@ -1,9 +1,9 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-09
+> **Last Updated**: 2026-01-10
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚀
-> **Status**: **Phase 2 Complete** - Sprints 10-15 ALL COMPLETE ✅
+> **Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
+> **Status**: **Sprints 16-17 Complete** ✅ - Phase 3 in progress
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 
 ---
@@ -558,15 +558,15 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 ## Phase 3 Progress
 
-Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full plan.
+Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 16 - oEmbed + Social Media Cards 🚧
+**Current Sprint**: Sprint 18 - Trending Tags + Featured Picks 🚀
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
-| 17 | Nested Albums + Custom Variants | P2 | 🚀 **NEXT** |
-| 18 | Trending Tags + Featured Picks | P2 | 📋 Planned |
+| 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
+| 18 | Trending Tags + Featured Picks | P2 | 🚀 **NEXT** |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -576,3 +576,13 @@ Phase 3 implementation has begun. See `claude/phase_3_sprint_plan.md` for full p
 - ✅ Twitter Card support for rich previews
 - ✅ Public image preview page (`GET /images/{id}/preview`)
 - ✅ E2E tests (8 Newman tests for oEmbed and preview)
+
+**Sprint 17 Complete** ✅:
+- ✅ Database migration for nested albums and variant configs
+- ✅ Album parent_id field for hierarchical albums
+- ✅ Breadcrumb and children queries for album navigation
+- ✅ VariantConfig entity with CRUD API
+- ✅ Custom variant generation endpoint (`POST /api/v1/images/{id}/variants`)
+- ✅ Support for fit, fill, and crop modes
+- ✅ Output formats: jpeg, png, webp, avif
+- ✅ E2E tests (17 tests total for nested albums, variant configs, and custom variants)

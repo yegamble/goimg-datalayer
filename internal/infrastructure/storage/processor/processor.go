@@ -320,3 +320,189 @@ func (p *Processor) Shutdown() {
 	// Note: bimg/libvips manages its own memory and cache internally.
 	// No explicit cleanup is required as libvips handles this automatically.
 }
+
+// CustomVariantOptions defines parameters for custom variant generation.
+type CustomVariantOptions struct {
+	MaxWidth  int
+	MaxHeight int
+	Format    string // jpeg, png, webp, avif
+	Quality   int    // 1-100
+	CropMode  string // fit, fill, crop
+}
+
+// CustomVariantData represents the output of custom variant generation.
+type CustomVariantData struct {
+	Data        []byte
+	Width       int
+	Height      int
+	Format      string
+	ContentType string
+	FileSize    int64
+}
+
+// GenerateCustomVariant generates a single custom variant with user-specified parameters.
+// This method supports custom dimensions, format, quality, and crop mode.
+//
+// Parameters:
+//   - input: Raw image bytes
+//   - maxWidth: Maximum width in pixels (1-8192)
+//   - maxHeight: Maximum height in pixels (1-8192)
+//   - format: Output format (jpeg, png, webp, avif)
+//   - quality: Compression quality (1-100)
+//   - cropMode: Resize behavior (fit, fill, crop)
+//
+// Crop modes:
+//   - fit: Resize to fit within bounds, preserving aspect ratio (may not fill bounds)
+//   - fill: Resize to fill bounds, preserving aspect ratio (may crop)
+//   - crop: Resize and center-crop to exact dimensions
+func (p *Processor) GenerateCustomVariant(
+	ctx context.Context,
+	input []byte,
+	maxWidth, maxHeight int,
+	format string,
+	quality int,
+	cropMode string,
+) (*CustomVariantData, error) {
+	// Acquire semaphore slot (limits concurrent operations)
+	select {
+	case p.semaphore <- struct{}{}:
+		defer func() { <-p.semaphore }()
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context cancelled: %w", ctx.Err())
+	}
+
+	// Validate parameters
+	if maxWidth < 1 || maxWidth > 8192 {
+		return nil, fmt.Errorf("%w: max_width must be between 1 and 8192", ErrInvalidDimensions)
+	}
+	if maxHeight < 1 || maxHeight > 8192 {
+		return nil, fmt.Errorf("%w: max_height must be between 1 and 8192", ErrInvalidDimensions)
+	}
+	if quality < 1 || quality > 100 {
+		return nil, fmt.Errorf("%w: quality must be between 1 and 100", ErrInvalidConfig)
+	}
+
+	// Convert format string to bimg type
+	outputFormat, err := stringToBimgType(format)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create bimg image
+	img := bimg.NewImage(input)
+
+	// Get original dimensions
+	size, err := img.Size()
+	if err != nil {
+		return nil, fmt.Errorf("get image size: %w", err)
+	}
+
+	// Calculate target dimensions based on crop mode
+	targetWidth, targetHeight := calculateCustomDimensions(
+		size.Width, size.Height,
+		maxWidth, maxHeight,
+		cropMode,
+	)
+
+	// Build processing options
+	options := bimg.Options{
+		Width:         targetWidth,
+		Height:        targetHeight,
+		Quality:       quality,
+		StripMetadata: p.config.StripMetadata,
+		Type:          outputFormat,
+	}
+
+	// Apply crop mode specific options
+	switch cropMode {
+	case "fill", "crop":
+		// For fill/crop: resize and crop to exact dimensions
+		options.Crop = true
+		options.Gravity = bimg.GravityCentre
+	case "fit":
+		// For fit: resize to fit within bounds, preserving aspect ratio
+		options.Crop = false
+		options.Force = false
+		options.Enlarge = false
+	default:
+		// Default to fit behavior
+		options.Crop = false
+		options.Force = false
+		options.Enlarge = false
+	}
+
+	// Process the image
+	processed, err := img.Process(options)
+	if err != nil {
+		return nil, fmt.Errorf("process image: %w: %w", ErrProcessingFailed, err)
+	}
+
+	// Get dimensions of processed image
+	processedImg := bimg.NewImage(processed)
+	processedSize, err := processedImg.Size()
+	if err != nil {
+		return nil, fmt.Errorf("get processed size: %w", err)
+	}
+
+	formatStr := bimgTypeToString(outputFormat)
+
+	return &CustomVariantData{
+		Data:        processed,
+		Width:       processedSize.Width,
+		Height:      processedSize.Height,
+		Format:      formatStr,
+		ContentType: formatToContentType(formatStr),
+		FileSize:    int64(len(processed)),
+	}, nil
+}
+
+// stringToBimgType converts a format string to bimg.ImageType.
+func stringToBimgType(format string) (bimg.ImageType, error) {
+	switch format {
+	case "jpeg", "jpg":
+		return bimg.JPEG, nil
+	case "png":
+		return bimg.PNG, nil
+	case "webp":
+		return bimg.WEBP, nil
+	case "avif":
+		return bimg.AVIF, nil
+	case "gif":
+		return bimg.GIF, nil
+	default:
+		return bimg.UNKNOWN, fmt.Errorf("%w: %s", ErrUnsupportedFormat, format)
+	}
+}
+
+// calculateCustomDimensions calculates target dimensions based on crop mode.
+func calculateCustomDimensions(
+	originalWidth, originalHeight int,
+	maxWidth, maxHeight int,
+	cropMode string,
+) (int, int) {
+	aspectRatio := float64(originalWidth) / float64(originalHeight)
+	targetAspect := float64(maxWidth) / float64(maxHeight)
+
+	switch cropMode {
+	case "fill", "crop":
+		// Fill/crop: resize to fill bounds, then crop
+		// Return exact dimensions - bimg will handle the crop
+		return maxWidth, maxHeight
+
+	case "fit":
+		// Fit: resize to fit within bounds, preserving aspect ratio
+		if aspectRatio > targetAspect {
+			// Image is wider than target - constrain by width
+			return maxWidth, int(float64(maxWidth) / aspectRatio)
+		}
+		// Image is taller than target - constrain by height
+		return int(float64(maxHeight) * aspectRatio), maxHeight
+
+	default:
+		// Default to fit behavior
+		if aspectRatio > targetAspect {
+			return maxWidth, int(float64(maxWidth) / aspectRatio)
+		}
+		return int(float64(maxHeight) * aspectRatio), maxHeight
+	}
+}

@@ -66,12 +66,12 @@ type StorageProvider interface {
 
 // GenerateCustomVariantHandler processes custom variant generation commands.
 type GenerateCustomVariantHandler struct {
-	images        gallery.ImageRepository
+	images         gallery.ImageRepository
 	variantConfigs gallery.VariantConfigRepository
-	storage       StorageProvider
-	processor     ImageProcessor
-	publisher     EventPublisher
-	logger        *zerolog.Logger
+	storage        StorageProvider
+	processor      ImageProcessor
+	publisher      EventPublisher
+	logger         *zerolog.Logger
 }
 
 // NewGenerateCustomVariantHandler creates a new GenerateCustomVariantHandler.
@@ -84,12 +84,12 @@ func NewGenerateCustomVariantHandler(
 	logger *zerolog.Logger,
 ) *GenerateCustomVariantHandler {
 	return &GenerateCustomVariantHandler{
-		images:        images,
+		images:         images,
 		variantConfigs: variantConfigs,
-		storage:       storage,
-		processor:     processor,
-		publisher:     publisher,
-		logger:        logger,
+		storage:        storage,
+		processor:      processor,
+		publisher:      publisher,
+		logger:         logger,
 	}
 }
 
