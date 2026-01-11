@@ -411,3 +411,131 @@ func (m *MockFollowRepository) CountFollowing(ctx context.Context, userID identi
 	args := m.Called(ctx, userID)
 	return args.Int(0), args.Error(1)
 }
+
+// MockOAuthAccountRepository is a mock implementation of identity.OAuthAccountRepository.
+type MockOAuthAccountRepository struct {
+	mock.Mock
+}
+
+// FindByID retrieves an OAuth account by its unique ID.
+func (m *MockOAuthAccountRepository) FindByID(ctx context.Context, id identity.OAuthAccountID) (*identity.OAuthAccount, error) {
+	args := m.Called(ctx, id)
+	var account *identity.OAuthAccount
+	if args.Get(0) != nil {
+		account = args.Get(0).(*identity.OAuthAccount)
+	}
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("mock FindByID: %w", err)
+	}
+	return account, nil
+}
+
+// FindByProviderAndUserID retrieves an OAuth account by provider and provider user ID.
+func (m *MockOAuthAccountRepository) FindByProviderAndUserID(
+	ctx context.Context,
+	provider identity.OAuthProvider,
+	providerUserID identity.ProviderUserID,
+) (*identity.OAuthAccount, error) {
+	args := m.Called(ctx, provider, providerUserID)
+	var account *identity.OAuthAccount
+	if args.Get(0) != nil {
+		account = args.Get(0).(*identity.OAuthAccount)
+	}
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("mock FindByProviderAndUserID: %w", err)
+	}
+	return account, nil
+}
+
+// FindByUserID retrieves all OAuth accounts for a user.
+func (m *MockOAuthAccountRepository) FindByUserID(ctx context.Context, userID identity.UserID) ([]*identity.OAuthAccount, error) {
+	args := m.Called(ctx, userID)
+	var accounts []*identity.OAuthAccount
+	if args.Get(0) != nil {
+		accounts = args.Get(0).([]*identity.OAuthAccount)
+	}
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("mock FindByUserID: %w", err)
+	}
+	return accounts, nil
+}
+
+// FindByUserIDAndProvider retrieves a specific OAuth account for a user and provider.
+func (m *MockOAuthAccountRepository) FindByUserIDAndProvider(
+	ctx context.Context,
+	userID identity.UserID,
+	provider identity.OAuthProvider,
+) (*identity.OAuthAccount, error) {
+	args := m.Called(ctx, userID, provider)
+	var account *identity.OAuthAccount
+	if args.Get(0) != nil {
+		account = args.Get(0).(*identity.OAuthAccount)
+	}
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("mock FindByUserIDAndProvider: %w", err)
+	}
+	return account, nil
+}
+
+// Save persists an OAuth account.
+func (m *MockOAuthAccountRepository) Save(ctx context.Context, account *identity.OAuthAccount) error {
+	args := m.Called(ctx, account)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Save: %w", err)
+	}
+	return nil
+}
+
+// Delete removes an OAuth account.
+func (m *MockOAuthAccountRepository) Delete(ctx context.Context, id identity.OAuthAccountID) error {
+	args := m.Called(ctx, id)
+	if err := args.Error(0); err != nil {
+		return fmt.Errorf("mock Delete: %w", err)
+	}
+	return nil
+}
+
+// ExistsByProviderAndUserID checks if an OAuth account exists for the provider and provider user ID.
+func (m *MockOAuthAccountRepository) ExistsByProviderAndUserID(
+	ctx context.Context,
+	provider identity.OAuthProvider,
+	providerUserID identity.ProviderUserID,
+) (bool, error) {
+	args := m.Called(ctx, provider, providerUserID)
+	return args.Bool(0), args.Error(1)
+}
+
+// MockTOTPRepository is a mock implementation of queries.TOTPRepository.
+type MockTOTPRepository struct {
+	mock.Mock
+}
+
+// FindByUserID retrieves a TOTP secret by user ID.
+func (m *MockTOTPRepository) FindByUserID(ctx context.Context, userID identity.UserID) (*identity.TOTPSecret, error) {
+	args := m.Called(ctx, userID)
+	var secret *identity.TOTPSecret
+	if args.Get(0) != nil {
+		secret = args.Get(0).(*identity.TOTPSecret)
+	}
+	if err := args.Error(1); err != nil {
+		return nil, fmt.Errorf("mock FindByUserID: %w", err)
+	}
+	return secret, nil
+}
+
+// IsEnabled checks if 2FA is enabled for a user.
+func (m *MockTOTPRepository) IsEnabled(ctx context.Context, userID identity.UserID) (bool, error) {
+	args := m.Called(ctx, userID)
+	return args.Bool(0), args.Error(1)
+}
+
+// MockBackupCodeRepository is a mock implementation of queries.BackupCodeRepository.
+type MockBackupCodeRepository struct {
+	mock.Mock
+}
+
+// CountUnused returns the number of unused backup codes for a user.
+func (m *MockBackupCodeRepository) CountUnused(ctx context.Context, userID identity.UserID) (int, error) {
+	args := m.Called(ctx, userID)
+	return args.Int(0), args.Error(1)
+}
