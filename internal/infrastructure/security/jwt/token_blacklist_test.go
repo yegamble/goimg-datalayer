@@ -6,34 +6,35 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func getTestRedisClient(t *testing.T) *redis.Client {
+// setupTestRedisForBlacklist creates a miniredis instance for blacklist testing.
+func setupTestRedisForBlacklist(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
 	t.Helper()
 
+	mr := miniredis.RunT(t)
+
 	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-		DB:   15, // Use a different DB for tests
+		Addr: mr.Addr(),
+		DB:   0,
 	})
 
-	// Test connection
-	ctx := context.Background()
-	if err := client.Ping(ctx).Err(); err != nil {
-		t.Skipf("Skipping integration test: Redis not available: %v", err)
-	}
+	t.Cleanup(func() {
+		_ = client.Close()
+		mr.Close()
+	})
 
-	return client
+	return mr, client
 }
 
 func TestNewTokenBlacklist(t *testing.T) {
 	t.Parallel()
 
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 
@@ -42,8 +43,7 @@ func TestNewTokenBlacklist(t *testing.T) {
 }
 
 func TestTokenBlacklist_Add(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -69,9 +69,7 @@ func TestTokenBlacklist_Add(t *testing.T) {
 func TestTokenBlacklist_Add_EmptyTokenID(t *testing.T) {
 	t.Parallel()
 
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -85,9 +83,7 @@ func TestTokenBlacklist_Add_EmptyTokenID(t *testing.T) {
 func TestTokenBlacklist_Add_ZeroExpiration(t *testing.T) {
 	t.Parallel()
 
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -99,8 +95,7 @@ func TestTokenBlacklist_Add_ZeroExpiration(t *testing.T) {
 }
 
 func TestTokenBlacklist_Add_AlreadyExpired(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -119,8 +114,7 @@ func TestTokenBlacklist_Add_AlreadyExpired(t *testing.T) {
 }
 
 func TestTokenBlacklist_Add_WithTTL(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	mr, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -142,8 +136,8 @@ func TestTokenBlacklist_Add_WithTTL(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, isBlacklisted)
 
-	// Wait for expiration
-	time.Sleep(2500 * time.Millisecond)
+	// Fast-forward time in miniredis to trigger expiration
+	mr.FastForward(3 * time.Second)
 
 	// Verify token is no longer blacklisted (expired from Redis)
 	isBlacklisted, err = blacklist.IsBlacklisted(ctx, tokenID)
@@ -152,8 +146,7 @@ func TestTokenBlacklist_Add_WithTTL(t *testing.T) {
 }
 
 func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -184,9 +177,7 @@ func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
 func TestTokenBlacklist_IsBlacklisted_EmptyTokenID(t *testing.T) {
 	t.Parallel()
 
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -199,8 +190,7 @@ func TestTokenBlacklist_IsBlacklisted_EmptyTokenID(t *testing.T) {
 }
 
 func TestTokenBlacklist_Remove(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -230,9 +220,7 @@ func TestTokenBlacklist_Remove(t *testing.T) {
 func TestTokenBlacklist_Remove_EmptyTokenID(t *testing.T) {
 	t.Parallel()
 
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -244,8 +232,7 @@ func TestTokenBlacklist_Remove_EmptyTokenID(t *testing.T) {
 }
 
 func TestTokenBlacklist_Count(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -279,8 +266,7 @@ func TestTokenBlacklist_Count(t *testing.T) {
 }
 
 func TestTokenBlacklist_Clear(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()
@@ -309,8 +295,7 @@ func TestTokenBlacklist_Clear(t *testing.T) {
 }
 
 func TestTokenBlacklist_MultipleTokens(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer client.Close()
+	_, client := setupTestRedisForBlacklist(t)
 
 	blacklist := NewTokenBlacklist(client)
 	ctx := context.Background()

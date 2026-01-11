@@ -24,6 +24,16 @@ const (
 	ModeDualAsync Mode = "dual_async"
 )
 
+// IPFSClient defines the interface for IPFS operations.
+// This allows for testing with mock implementations.
+type IPFSClient interface {
+	AddBytes(ctx context.Context, data []byte) (*ipfs.AddResult, error)
+	Get(ctx context.Context, cid string) (io.ReadCloser, error)
+	GetBytes(ctx context.Context, cid string) ([]byte, error)
+	URL(cid string) string
+	IPFSURI(cid string) string
+}
+
 // Config configures the storage orchestrator.
 type Config struct {
 	// Mode determines write behavior.
@@ -50,13 +60,13 @@ func DefaultConfig() Config {
 // It implements the storage.Storage interface for seamless integration.
 type Orchestrator struct {
 	primary    storage.Storage
-	ipfsClient *ipfs.Client
+	ipfsClient IPFSClient
 	config     Config
 }
 
 // New creates a new storage orchestrator.
 // The primary storage is required; IPFS client is optional based on config.
-func New(primary storage.Storage, ipfsClient *ipfs.Client, cfg Config) (*Orchestrator, error) {
+func New(primary storage.Storage, ipfsClient IPFSClient, cfg Config) (*Orchestrator, error) {
 	if primary == nil {
 		return nil, fmt.Errorf("orchestrator: primary storage is required")
 	}
@@ -266,6 +276,6 @@ func (o *Orchestrator) shouldWriteIPFS() bool {
 
 // IPFS returns the underlying IPFS client for direct access.
 // Use sparingly - prefer the orchestrator's interface.
-func (o *Orchestrator) IPFS() *ipfs.Client {
+func (o *Orchestrator) IPFS() IPFSClient {
 	return o.ipfsClient
 }

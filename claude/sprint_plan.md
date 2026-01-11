@@ -14,7 +14,23 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: Sprint 1-15 COMPLETE. **Phase 2 COMPLETE** ✅ - **Phase 3 IN PROGRESS** (Sprint 16 🚧)
+**Status**: Sprint 1-17 COMPLETE. **Phase 2 COMPLETE** ✅ - **Phase 3 IN PROGRESS** (Sprint 18 🚧)
+
+**Sprint 17 Summary** (COMPLETE - 2026-01-10):
+- **Progress**: 100% COMPLETE - Nested Albums + Custom Variants
+- **Nested Albums**: ✅ Parent-child hierarchy, breadcrumb navigation, children listing
+- **VariantConfig**: ✅ CRUD API for custom variant presets
+- **Custom Variants**: ✅ `POST /api/v1/images/{id}/variants` with fit/fill/crop modes
+- **Output Formats**: ✅ jpeg, png, webp, avif support
+- **E2E Tests**: ✅ 17 Newman tests
+
+**Sprint 16 Summary** (COMPLETE - 2026-01-10):
+- **Progress**: 100% COMPLETE - oEmbed + Social Media Cards
+- **oEmbed**: ✅ `GET /api/v1/oembed` with JSON/XML support
+- **Open Graph**: ✅ Meta tags for Facebook/LinkedIn
+- **Twitter Cards**: ✅ Rich preview support
+- **Preview Page**: ✅ `GET /images/{id}/preview` with social meta tags
+- **E2E Tests**: ✅ 8 Newman tests
 
 **Sprint 13 Summary** (COMPLETE - 2026-01-08):
 - **Progress**: 100% COMPLETE - All phases implemented and tested

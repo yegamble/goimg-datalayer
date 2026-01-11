@@ -12,9 +12,10 @@ info:
     - Content moderation and abuse reporting
     - RESTful API with RFC 7807 error responses
 
-    **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) have been implemented.
-    Only advanced tag endpoints remain marked with `x-phase: "3"` for future development.
-    These include: popular tags, tag search, tag-based image listing.
+    **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) implemented.
+    **Phase 3 Progress**: Sprints 16-17 complete (oEmbed, nested albums, custom variants).
+    Sprint 18 (Test Coverage) in progress. Future features include: trending tags, groups,
+    video support, and account tiers.
 
   contact:
     name: goimg-datalayer API Team
