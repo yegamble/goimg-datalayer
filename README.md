@@ -284,7 +284,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.25+ |
+| Language | Go 1.24+ (CI uses 1.25.x) |
 | Database | PostgreSQL 16+ |
 | Cache/Sessions | Redis 7+ |
 | Migrations | Goose |
@@ -300,7 +300,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.25
+go >= 1.24  # CI uses Go 1.25.x
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
@@ -590,10 +590,11 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 |--------|-------|----------|----------|--------|
 | **16** | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
-| **18** | Trending Tags + Featured Picks | 1 week | P2 | 🚀 **NEXT** |
-| **19** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
-| **20** | Video Support | 3 weeks | P3 | 📋 Backlog |
-| **21** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
+| **18** | Test Coverage Improvement | 2 weeks | P1 | 🚀 **NEXT** |
+| **19** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Backlog |
+| **20** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
+| **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
+| **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
 #### Sprint 16: oEmbed + Social Media Cards ✅ COMPLETE
 
@@ -616,6 +617,13 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ Crop modes: fit, fill, crop
 - ✅ Output formats: jpeg, png, webp, avif
 - ✅ E2E tests (17 Newman tests)
+
+#### Sprint 18: Test Coverage Improvement 🚀 NEXT
+
+- 📋 Improve overall coverage from 35.9% to 60%+
+- 📋 Priority packages: redis (7.9%), s3 (17.9%), identity/domain (32.9%)
+- 📋 Target: No P0 packages below 70% coverage
+- 📋 Focus on infrastructure and application layers
 
 **Future Sprints**:
 - **Trending Tags** - Time-weighted tag popularity, tag search
