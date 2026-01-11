@@ -562,3 +562,169 @@ func TestMetricsCollector_RecordHIBPCheckDuration_BooleanLabels(t *testing.T) {
 	require.NotNil(t, collector.hibpCheckDurationSeconds.WithLabelValues("true"))
 	require.NotNil(t, collector.hibpCheckDurationSeconds.WithLabelValues("false"))
 }
+
+func TestMetricsCollector_RecordStorageOperation(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		storageOperationsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "test_storage_operations_total",
+				Help: "Total storage operations",
+			},
+			[]string{"provider", "operation", "status"},
+		),
+	}
+
+	// Act
+	collector.RecordStorageOperation("s3", "upload", true)
+	collector.RecordStorageOperation("local", "download", true)
+	collector.RecordStorageOperation("s3", "upload", false)
+
+	// Assert
+	uploadSuccess := testutil.ToFloat64(collector.storageOperationsTotal.WithLabelValues("s3", "upload", "success"))
+	assert.InDelta(t, float64(1), uploadSuccess, 0.001)
+
+	uploadFailure := testutil.ToFloat64(collector.storageOperationsTotal.WithLabelValues("s3", "upload", "failure"))
+	assert.InDelta(t, float64(1), uploadFailure, 0.001)
+}
+
+func TestMetricsCollector_UpdateBusinessMetrics(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		usersTotal: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "test_users_total",
+				Help: "Total users",
+			},
+		),
+		imagesTotal: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "test_images_total",
+				Help: "Total images",
+			},
+		),
+		activeSessionsTotal: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "test_active_sessions_total",
+				Help: "Total active sessions",
+			},
+		),
+		storageBytesUsed: prometheus.NewGauge(
+			prometheus.GaugeOpts{
+				Name: "test_storage_bytes_used",
+				Help: "Storage bytes used",
+			},
+		),
+	}
+
+	// Act
+	collector.UpdateBusinessMetrics(100, 500, 50, 1024000)
+
+	// Assert
+	users := testutil.ToFloat64(collector.usersTotal)
+	assert.InDelta(t, float64(100), users, 0.001)
+
+	images := testutil.ToFloat64(collector.imagesTotal)
+	assert.InDelta(t, float64(500), images, 0.001)
+
+	sessions := testutil.ToFloat64(collector.activeSessionsTotal)
+	assert.InDelta(t, float64(50), sessions, 0.001)
+
+	storage := testutil.ToFloat64(collector.storageBytesUsed)
+	assert.InDelta(t, float64(1024000), storage, 0.001)
+}
+
+func TestMetricsCollector_RecordAuthFailure(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		authFailuresTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "test_auth_failures_total",
+				Help: "Total auth failures",
+			},
+			[]string{"reason"},
+		),
+	}
+
+	// Act
+	collector.RecordAuthFailure("invalid_password")
+	collector.RecordAuthFailure("invalid_password")
+	collector.RecordAuthFailure("expired_token")
+
+	// Assert
+	invalidPassword := testutil.ToFloat64(collector.authFailuresTotal.WithLabelValues("invalid_password"))
+	assert.InDelta(t, float64(2), invalidPassword, 0.001)
+
+	expiredToken := testutil.ToFloat64(collector.authFailuresTotal.WithLabelValues("expired_token"))
+	assert.InDelta(t, float64(1), expiredToken, 0.001)
+}
+
+func TestMetricsCollector_RecordRateLimitExceeded(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		rateLimitExceededTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "test_rate_limit_exceeded_total",
+				Help: "Total rate limit exceeded",
+			},
+			[]string{"scope"},
+		),
+	}
+
+	// Act
+	collector.RecordRateLimitExceeded("login")
+	collector.RecordRateLimitExceeded("login")
+	collector.RecordRateLimitExceeded("upload")
+
+	// Assert
+	login := testutil.ToFloat64(collector.rateLimitExceededTotal.WithLabelValues("login"))
+	assert.InDelta(t, float64(2), login, 0.001)
+
+	upload := testutil.ToFloat64(collector.rateLimitExceededTotal.WithLabelValues("upload"))
+	assert.InDelta(t, float64(1), upload, 0.001)
+}
+
+func TestMetricsCollector_RecordAuthorizationDenied(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		authorizationDeniedTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "test_authorization_denied_total",
+				Help: "Total authorization denied",
+			},
+			[]string{"role", "required_permission"},
+		),
+	}
+
+	// Act
+	collector.RecordAuthorizationDenied("user", "admin")
+	collector.RecordAuthorizationDenied("user", "moderator")
+
+	// Assert
+	adminDenied := testutil.ToFloat64(collector.authorizationDeniedTotal.WithLabelValues("user", "admin"))
+	assert.InDelta(t, float64(1), adminDenied, 0.001)
+
+	modDenied := testutil.ToFloat64(collector.authorizationDeniedTotal.WithLabelValues("user", "moderator"))
+	assert.InDelta(t, float64(1), modDenied, 0.001)
+}
+
+func TestMetricsCollector_RecordMalwareDetection(t *testing.T) {
+	// Arrange
+	collector := &MetricsCollector{
+		malwareDetectedTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "test_malware_detected_total",
+				Help: "Total malware detected",
+			},
+			[]string{},
+		),
+	}
+
+	// Act
+	collector.RecordMalwareDetection()
+	collector.RecordMalwareDetection()
+
+	// Assert
+	count := testutil.ToFloat64(collector.malwareDetectedTotal.WithLabelValues())
+	assert.InDelta(t, float64(2), count, 0.001)
+}
