@@ -2,19 +2,40 @@ package jwt
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// setupTestRedis creates a miniredis instance for testing.
+func setupTestRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
+	t.Helper()
+
+	mr := miniredis.RunT(t)
+
+	client := redis.NewClient(&redis.Options{
+		Addr: mr.Addr(),
+		DB:   0,
+	})
+
+	t.Cleanup(func() {
+		_ = client.Close()
+		mr.Close()
+	})
+
+	return mr, client
+}
+
 func TestNewRefreshTokenService(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	ttl := 7 * 24 * time.Hour
 	service := NewRefreshTokenService(client, ttl)
@@ -25,8 +46,7 @@ func TestNewRefreshTokenService(t *testing.T) {
 }
 
 func TestRefreshTokenService_GenerateToken(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -61,10 +81,7 @@ func TestRefreshTokenService_GenerateToken(t *testing.T) {
 func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -105,8 +122,7 @@ func TestRefreshTokenService_GenerateToken_InvalidInputs(t *testing.T) {
 }
 
 func TestRefreshTokenService_ValidateToken(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -140,10 +156,7 @@ func TestRefreshTokenService_ValidateToken(t *testing.T) {
 func TestRefreshTokenService_ValidateToken_InvalidToken(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -180,8 +193,7 @@ func TestRefreshTokenService_ValidateToken_InvalidToken(t *testing.T) {
 }
 
 func TestRefreshTokenService_MarkAsUsed(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	mr, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -195,9 +207,6 @@ func TestRefreshTokenService_MarkAsUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	defer func() {
-		_ = service.RevokeToken(ctx, token)
-	}()
 	defer func() {
 		_ = service.RevokeFamily(ctx, familyID)
 	}()
@@ -211,17 +220,27 @@ func TestRefreshTokenService_MarkAsUsed(t *testing.T) {
 	err = service.MarkAsUsed(ctx, token)
 	require.NoError(t, err)
 
-	// Token should be marked as used
-	metadata, err = service.ValidateToken(ctx, token)
+	// Verify the token metadata was updated in Redis by checking directly
+	tokenHash := hashToken(token)
+	key := refreshTokenKeyPrefix + tokenHash
+	data, err := mr.Get(key)
 	require.NoError(t, err)
-	assert.True(t, metadata.Used)
+
+	var updatedMetadata RefreshTokenMetadata
+	err = json.Unmarshal([]byte(data), &updatedMetadata)
+	require.NoError(t, err)
+	assert.True(t, updatedMetadata.Used, "Token should be marked as used in Redis")
+
+	// After marking as used, ValidateToken should fail with replay attack error
+	_, err = service.ValidateToken(ctx, token)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "replay attack detected")
 }
 
 func TestRefreshTokenService_MarkAsUsed_EmptyToken(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -233,8 +252,7 @@ func TestRefreshTokenService_MarkAsUsed_EmptyToken(t *testing.T) {
 }
 
 func TestRefreshTokenService_ReplayDetection(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -243,37 +261,37 @@ func TestRefreshTokenService_ReplayDetection(t *testing.T) {
 	sessionID := uuid.New().String()
 	familyID := uuid.New().String()
 
-	// Generate token
-	token, _, err := service.GenerateToken(ctx, userID, sessionID, familyID, "", "192.168.1.1", "Mozilla/5.0")
+	// Generate first token
+	token1, _, err := service.GenerateToken(ctx, userID, sessionID, familyID, "", "192.168.1.1", "Mozilla/5.0")
+	require.NoError(t, err)
+
+	// Generate second token in same family
+	token2, _, err := service.GenerateToken(ctx, userID, sessionID, familyID, "", "192.168.1.1", "Mozilla/5.0")
 	require.NoError(t, err)
 
 	// Clean up
 	defer func() { _ = service.RevokeFamily(ctx, familyID) }()
 
-	// Mark as used
-	err = service.MarkAsUsed(ctx, token)
+	// Mark first token as used
+	err = service.MarkAsUsed(ctx, token1)
 	require.NoError(t, err)
 
 	// Try to validate the used token (replay attack)
-	metadata, err := service.ValidateToken(ctx, token)
+	metadata, err := service.ValidateToken(ctx, token1)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "replay attack detected")
 	assert.Nil(t, metadata)
 
-	// Entire token family should be revoked
-	// Try to generate another token in the same family and validate
-	token2, _, err := service.GenerateToken(ctx, userID, sessionID, familyID, "", "192.168.1.1", "Mozilla/5.0")
-	require.NoError(t, err)
-
-	// This token should not validate because the family was revoked
+	// After replay detection, entire token family should be revoked
+	// Second token should also be invalid now
 	_, err = service.ValidateToken(ctx, token2)
 	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid or expired")
 }
 
 func TestRefreshTokenService_RevokeToken(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -306,8 +324,7 @@ func TestRefreshTokenService_RevokeToken(t *testing.T) {
 func TestRefreshTokenService_RevokeToken_EmptyToken(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -319,8 +336,7 @@ func TestRefreshTokenService_RevokeToken_EmptyToken(t *testing.T) {
 }
 
 func TestRefreshTokenService_RevokeFamily(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -358,8 +374,7 @@ func TestRefreshTokenService_RevokeFamily(t *testing.T) {
 func TestRefreshTokenService_RevokeFamily_EmptyFamilyID(t *testing.T) {
 	t.Parallel()
 
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -464,8 +479,7 @@ func TestRefreshTokenService_DetectAnomalies(t *testing.T) {
 }
 
 func TestRefreshTokenService_TokenRotation(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	_, client := setupTestRedis(t)
 
 	service := NewRefreshTokenService(client, 7*24*time.Hour)
 	ctx := context.Background()
@@ -502,8 +516,7 @@ func TestRefreshTokenService_TokenRotation(t *testing.T) {
 }
 
 func TestRefreshTokenService_TokenExpiration(t *testing.T) {
-	client := getTestRedisClient(t)
-	defer func() { _ = client.Close() }()
+	mr, client := setupTestRedis(t)
 
 	// Create service with short TTL for testing
 	service := NewRefreshTokenService(client, 2*time.Second)
@@ -524,8 +537,8 @@ func TestRefreshTokenService_TokenExpiration(t *testing.T) {
 	_, err = service.ValidateToken(ctx, token)
 	require.NoError(t, err)
 
-	// Wait for expiration
-	time.Sleep(2500 * time.Millisecond)
+	// Fast-forward time in miniredis to trigger expiration
+	mr.FastForward(3 * time.Second)
 
 	// Token should be expired
 	_, err = service.ValidateToken(ctx, token)
