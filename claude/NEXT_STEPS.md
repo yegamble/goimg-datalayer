@@ -3,8 +3,8 @@
 > **Last Updated**: 2026-01-12
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
 > **Completed Sprints**: 16, 17, 18, 19 ✅
-> **Next Sprint**: Sprint 20 (Groups/Communities) - Backlog
-> **Status**: **Phase 3 Sprints 16-19 COMPLETE** - oEmbed, nested albums, test coverage, trending tags, featured picks
+> **Current Sprint**: Sprint 20 (Groups/Communities) 🚧 IN PROGRESS
+> **Status**: Domain layer and migration complete, infrastructure layer next
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
 > **Go Version**: 1.24+ minimum, CI uses 1.25.x (latest stable: 1.25.5)
@@ -563,7 +563,7 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Phase 3 Progress**: Sprints 16-19 Complete ✅ | Next: Sprint 20 (Backlog)
+**Phase 3 Progress**: Sprints 16-19 Complete ✅ | Sprint 20 IN PROGRESS 🚧
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
@@ -571,7 +571,7 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 | 17 | Nested Albums + Custom Variants | P2 | ✅ COMPLETE |
 | 18 | Test Coverage Improvement | P1 | ✅ COMPLETE |
 | 19 | Trending Tags + Featured Picks | P2 | ✅ COMPLETE |
-| 20 | Groups/Communities | P3 | 📋 Backlog |
+| 20 | Groups/Communities | P3 | 🚧 **IN PROGRESS** |
 | 21 | Video Support | P3 | 📋 Backlog |
 | 22 | Account Tiers/Subscriptions | P3 | 📋 Backlog |
 
@@ -635,14 +635,41 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 
 ---
 
-## Next Steps: Sprint 20 (Backlog)
+## Sprint 20: Groups/Communities (IN PROGRESS) 🚧
 
-Sprint 20 (Groups/Communities) is in the backlog with P3 priority. Key features planned:
+Sprint 20 implementation has started. See `claude/sprint_20_plan.md` for detailed planning.
 
-- Group entity (name, description, privacy, member count)
-- Group membership (join/leave, roles: owner, admin, member)
-- Group albums (shared albums within groups)
-- Group activity feed
-- Group discovery (search and browse public groups)
+### Completed ✅
 
-See `claude/phase_3_sprint_plan.md` for full Sprint 20 planning
+- **Domain Layer** (internal/domain/community/):
+  - Group aggregate root with business logic
+  - GroupMembership entity with role transitions
+  - Value objects: GroupID, GroupName, GroupSlug, GroupSettings
+  - Enums: GroupType, GroupRole, MemberStatus
+  - 19 domain events
+  - Repository interfaces
+  - 97.5% test coverage (26 files, 3600+ lines)
+
+- **Database Migration** (migrations/00017_create_groups.sql):
+  - 7 tables: groups, memberships, albums, images, invitations, activities
+  - Automatic count triggers
+  - Performance indexes
+  - pg_trgm fuzzy search
+
+### In Progress ⏳
+
+- **Infrastructure Layer**: PostgreSQL repository implementations
+- **Application Layer**: Commands and queries for CRUD operations
+- **HTTP Layer**: REST API handlers following OpenAPI spec
+- **E2E Tests**: 27 Newman/Postman test scenarios
+
+### Key Features
+
+- Groups (public, private, invite-only)
+- Member roles (Owner, Admin, Member) with RBAC
+- Shared image pools with group-level permissions
+- Group albums (unique differentiator from Flickr)
+- Moderation queue for content approval
+- Group discovery and search
+
+See `claude/sprint_20_plan.md` for comprehensive Sprint 20 planning.

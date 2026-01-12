@@ -4,7 +4,14 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 19 COMPLETE** ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 20 IN PROGRESS** 🚧
+
+**Sprint 20 (IN PROGRESS)**: Groups/Communities
+- 🚧 Domain layer complete (community bounded context)
+- 🚧 Database migration complete (00017_create_groups.sql)
+- ⏳ Infrastructure layer (PostgreSQL repositories)
+- ⏳ Application layer (commands/queries)
+- ⏳ HTTP handlers and OpenAPI spec
 
 **Sprint 19 Complete** ✅: Trending Tags + Featured Picks
 - ✅ TagRepository interface and PostgreSQL implementation
@@ -618,7 +625,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
 | **18** | Test Coverage Improvement | 2 weeks | P1 | ✅ **COMPLETE** |
 | **19** | Trending Tags + Featured Picks | 1 week | P2 | ✅ **COMPLETE** |
-| **20** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
+| **20** | Groups/Communities | 2 weeks | P3 | 🚧 **IN PROGRESS** |
 | **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
