@@ -3060,13 +3060,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-  # ==================== Tags (Phase 2) ====================
-  /tags:
+  # ==================== Tags (Sprint 19) ====================
+  /tags/popular:
     get:
-      x-phase: "2"
+      x-phase: "3"
+      x-sprint: "19"
       tags: [tags]
       summary: List popular tags
-      description: Retrieve a list of popular tags with usage counts
+      description: |
+        Retrieve the most popular tags sorted by usage count.
+        Supports filtering by time period to see what's popular recently.
       operationId: listPopularTags
       security:
         - {}
@@ -3074,21 +3077,64 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of tags to return
+          description: Maximum number of tags to return
           schema:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
+            default: 20
+        - name: period
+          in: query
+          description: Time period for popularity calculation
+          schema:
+            type: string
+            enum: [day, week, month, all]
+            default: all
       responses:
         '200':
-          description: Tags retrieved successfully
+          description: Popular tags retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Tag'
+                $ref: '#/components/schemas/TagListResponse'
+
+  /tags/trending:
+    get:
+      x-phase: "3"
+      x-sprint: "19"
+      tags: [tags]
+      summary: List trending tags
+      description: |
+        Retrieve trending tags with time-weighted popularity scores.
+        Algorithm: (recent_count / total_count) * 100
+        This highlights tags that have high recent activity relative to their total usage.
+      operationId: listTrendingTags
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of tags to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: period
+          in: query
+          description: Time window for trending calculation
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: week
+      responses:
+        '200':
+          description: Trending tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingTagListResponse'
 
   /tags/search:
     get:
@@ -5028,6 +5074,61 @@ components:
           type: integer
           description: Number of images with this tag
           example: 1234
+
+    TagWithTrendScore:
+      type: object
+      description: Tag with trending score for trending endpoints
+      required: [name, slug, usage_count]
+      properties:
+        name:
+          type: string
+          example: sunset
+        slug:
+          type: string
+          example: sunset
+        usage_count:
+          type: integer
+          description: Total number of images with this tag
+          example: 1234
+        trend_score:
+          type: number
+          format: float
+          description: Time-weighted trending score (recent_count/total_count * 100)
+          example: 45.7
+
+    TagListResponse:
+      type: object
+      description: Response for popular tags endpoint (Sprint 19)
+      required: [tags, period, limit]
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        period:
+          type: string
+          enum: [day, week, month, all]
+          example: all
+        limit:
+          type: integer
+          example: 20
+
+    TrendingTagListResponse:
+      type: object
+      description: Response for trending tags endpoint (Sprint 19)
+      required: [tags, period, limit]
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagWithTrendScore'
+        period:
+          type: string
+          enum: [day, week, month]
+          example: week
+        limit:
+          type: integer
+          example: 20
 
     Comment:
       type: object
