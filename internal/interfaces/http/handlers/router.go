@@ -54,6 +54,7 @@ type MiddlewareConfig struct {
 //   - Preview routes: GET /images/{id}/preview (public HTML page with social meta tags) - Sprint 16
 //   - Variant Config routes: /api/v1/variant-configs/* (JWT required) - Sprint 17
 //   - Tag routes: GET /api/v1/tags/* (public, no auth required) - Sprint 19
+//   - Group routes: /api/v1/groups/* (mixed public/protected, Sprint 20)
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -77,6 +78,7 @@ func NewRouter(
 	variantConfigHandler *VariantConfigHandler,
 	tagHandler *TagHandler,
 	featuredHandler *FeaturedHandler,
+	groupHandler *GroupHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -171,6 +173,12 @@ func NewRouter(
 		// Public tag search, popular, and trending endpoints
 		if tagHandler != nil {
 			r.Mount("/tags", tagHandler.Routes())
+		}
+
+		// Public group endpoints (Sprint 20 - no authentication required)
+		// List, search, and get group operations are public
+		if groupHandler != nil {
+			r.Mount("/groups", groupHandler.PublicRoutes())
 		}
 
 		// Image variant endpoint with optional authentication
@@ -356,6 +364,18 @@ func NewRouter(
 			// POST /guest/images/{imageID}/claim - Claim guest upload (registered users only)
 			if guestHandler != nil {
 				r.Mount("/guest", guestHandler.Routes())
+			}
+
+			// Protected group endpoints (Sprint 20)
+			// Create, update, delete, join, leave, member management
+			if groupHandler != nil {
+				r.Mount("/groups", groupHandler.ProtectedRoutes())
+			}
+
+			// User's groups endpoint
+			// GET /me/groups - List current user's group memberships
+			if groupHandler != nil {
+				r.Get("/me/groups", groupHandler.GetUserGroups)
 			}
 		})
 
