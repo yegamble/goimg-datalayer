@@ -115,8 +115,8 @@ type tagRow struct {
 // tagWithScoreRow represents a tag row with trending score.
 type tagWithScoreRow struct {
 	tagRow
-	TrendScore   float64 `db:"trend_score"`
-	PeriodCount  int64   `db:"period_count"`
+	TrendScore  float64 `db:"trend_score"`
+	PeriodCount int64   `db:"period_count"`
 }
 
 // TagRepository implements tag operations for PostgreSQL.

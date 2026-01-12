@@ -3824,6 +3824,75 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ==================== Featured Picks (Sprint 19) ====================
+  /moderation/featured:
+    post:
+      tags: [featured]
+      summary: Feature an image (Admin only)
+      description: |
+        Adds an image to the featured picks list.
+
+        Only public, active images can be featured.
+        Requires admin role.
+      operationId: featureImage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeatureImageRequest'
+      responses:
+        '201':
+          description: Image successfully featured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureImageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Image is already featured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /moderation/featured/{imageID}:
+    delete:
+      tags: [featured]
+      summary: Unfeature an image (Admin only)
+      description: |
+        Removes an image from the featured picks list.
+        Requires admin role.
+      operationId: unfeatureImage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: imageID
+          in: path
+          required: true
+          description: ID of the image to unfeature
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Image successfully unfeatured
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /moderation/bans:
     get:
       tags: [bans]
@@ -4291,6 +4360,47 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/Image'
+
+  /explore/featured:
+    get:
+      tags: [explore]
+      summary: Featured images
+      description: |
+        Retrieve admin-curated featured images.
+
+        These are high-quality images selected by moderators for the explore page.
+        Featured images are ordered by display priority.
+
+        This endpoint is public and does not require authentication.
+      operationId: exploreFeatured
+      security: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of featured images to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Featured images retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [featured_images, total_count]
+                properties:
+                  featured_images:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeaturedImageResponse'
+                  total_count:
+                    type: integer
+                    example: 5
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   # ==================== oEmbed (Sprint 16) ====================
   /oembed:
@@ -6236,6 +6346,123 @@ components:
           type: integer
           description: Height of thumbnail in pixels
           example: 112
+
+    # ==================== Featured Picks (Sprint 19) ====================
+    FeatureImageRequest:
+      type: object
+      required: [image_id, display_order]
+      description: Request to feature an image on the explore page
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the image to feature
+          example: 123e4567-e89b-12d3-a456-426614174000
+        reason:
+          type: string
+          maxLength: 500
+          description: Optional reason or notes for featuring this image
+          example: "Stunning landscape composition"
+        display_order:
+          type: integer
+          minimum: 0
+          description: Display priority (0 = highest, increments for lower priority)
+          example: 0
+        featured_from:
+          type: string
+          format: date-time
+          description: Start date/time for featuring (default now)
+          example: "2024-01-01T00:00:00Z"
+        featured_until:
+          type: string
+          format: date-time
+          description: End date/time for featuring (null = no expiration)
+          example: "2024-12-31T23:59:59Z"
+
+    FeatureImageResponse:
+      type: object
+      required: [pick_id, image_id, display_order, featured_from]
+      description: Response after successfully featuring an image
+      properties:
+        pick_id:
+          type: string
+          format: uuid
+          description: ID of the featured pick record
+          example: 123e4567-e89b-12d3-a456-426614174100
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the featured image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        display_order:
+          type: integer
+          description: Display priority
+          example: 0
+        featured_from:
+          type: string
+          format: date-time
+          description: Start date/time of featuring
+          example: "2024-01-01T00:00:00Z"
+        featured_until:
+          type: string
+          format: date-time
+          nullable: true
+          description: End date/time of featuring (null = no expiration)
+          example: null
+
+    FeaturedImageResponse:
+      type: object
+      required: [pick_id, image_id, image, display_order, featured_since]
+      description: A featured image with full details for display
+      properties:
+        pick_id:
+          type: string
+          format: uuid
+          description: ID of the featured pick record
+          example: 123e4567-e89b-12d3-a456-426614174100
+        image_id:
+          type: string
+          format: uuid
+          description: ID of the featured image
+          example: 123e4567-e89b-12d3-a456-426614174000
+        image:
+          type: object
+          description: Full image details
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            title:
+              type: string
+              example: "Beautiful Sunset"
+            description:
+              type: string
+              example: "A stunning sunset over the mountains"
+            owner_id:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174001
+            visibility:
+              type: string
+              example: "public"
+            created_at:
+              type: string
+              format: date-time
+              example: "2024-01-15T10:30:00Z"
+        display_order:
+          type: integer
+          description: Display priority (lower = higher priority)
+          example: 0
+        featured_since:
+          type: string
+          format: date-time
+          description: When the image was first featured
+          example: "2024-01-20T00:00:00Z"
+        reason:
+          type: string
+          description: Optional reason for featuring
+          example: "Stunning landscape composition"
 
     # ==================== Health ====================
     HealthStatus:

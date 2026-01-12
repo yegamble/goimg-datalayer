@@ -48,11 +48,12 @@ type MiddlewareConfig struct {
 //   - Follow routes: POST/DELETE /api/v1/users/{id}/follow (JWT required), GET /api/v1/users/{id}/followers|following (optional auth)
 //   - Notification routes: GET /api/v1/notifications, GET /api/v1/notifications/count, POST /api/v1/notifications/read (JWT required)
 //   - IPFS routes: POST/DELETE/GET /api/v1/images/{id}/ipfs (JWT required, pin/unpin owner only)
-//   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, /api/v1/moderation/nsfw/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans
+//   - Moderation routes: POST /api/v1/reports (JWT required), moderator/admin: /api/v1/moderation/reports/*, /api/v1/moderation/nsfw/*, admin only: /api/v1/users/{id}/ban, /api/v1/moderation/bans, /api/v1/moderation/featured/*
 //   - Guest routes: POST /api/v1/guest/images/{id}/claim (JWT required, claim guest uploads)
 //   - oEmbed routes: GET /api/v1/oembed (public, no auth required) - Sprint 16
 //   - Preview routes: GET /images/{id}/preview (public HTML page with social meta tags) - Sprint 16
 //   - Variant Config routes: /api/v1/variant-configs/* (JWT required) - Sprint 17
+//   - Tag routes: GET /api/v1/tags/* (public, no auth required) - Sprint 19
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -74,6 +75,8 @@ func NewRouter(
 	oembedHandler *OEmbedHandler,
 	previewHandler *PreviewHandler,
 	variantConfigHandler *VariantConfigHandler,
+	tagHandler *TagHandler,
+	featuredHandler *FeaturedHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -162,6 +165,12 @@ func NewRouter(
 		// Enables external sites to embed images using oEmbed protocol
 		if oembedHandler != nil {
 			r.Mount("/oembed", oembedHandler.Routes())
+		}
+
+		// Tag discovery endpoints (Sprint 19 - no authentication required)
+		// Public tag search, popular, and trending endpoints
+		if tagHandler != nil {
+			r.Mount("/tags", tagHandler.Routes())
 		}
 
 		// Image variant endpoint with optional authentication
@@ -333,6 +342,13 @@ func NewRouter(
 					r.Post("/users/{userID}/ban", moderationHandler.BanUser)
 					r.Delete("/users/{userID}/ban", moderationHandler.UnbanUser)
 					r.Get("/moderation/bans", moderationHandler.ListActiveBans)
+
+					// Featured Picks management (Sprint 19)
+					// POST /moderation/featured - Feature an image
+					// DELETE /moderation/featured/{imageID} - Unfeature an image
+					if featuredHandler != nil {
+						r.Mount("/moderation/featured", featuredHandler.Routes())
+					}
 				})
 			}
 

@@ -4,7 +4,25 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprints 16-18 COMPLETE** ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 19 COMPLETE** ✅
+
+**Sprint 19 Complete** ✅: Trending Tags + Featured Picks
+- ✅ TagRepository interface and PostgreSQL implementation
+- ✅ Popular Tags API (`GET /api/v1/tags/popular`)
+- ✅ Trending Tags API (`GET /api/v1/tags/trending`)
+- ✅ Tag Search API (`GET /api/v1/tags/search`)
+- ✅ HTTP Handlers (TagHandler) wired in router
+- ✅ OpenAPI spec for tag endpoints
+- ✅ E2E Tests for tag endpoints (6 Newman tests)
+- ✅ Featured Picks database migration with scheduling
+- ✅ FeaturedPick domain entity and repository
+- ✅ Feature/Unfeature commands and ListFeatured query
+- ✅ OpenAPI spec for Featured Picks (`/explore/featured`, `/moderation/featured`)
+- ✅ FeaturedHandler HTTP handler wired in router
+- ✅ ExploreHandler featured endpoint (`GET /api/v1/explore/featured`)
+- ✅ Admin Featured management (`POST/DELETE /api/v1/moderation/featured`)
+- ✅ E2E Tests for Featured Picks (6 Newman tests)
+- ✅ Contract tests for Featured Picks endpoints
 
 **Sprint 18 Complete** ✅: Test Coverage Improvement
 - ✅ Overall test coverage improved from 35.9% to ~65%
@@ -599,7 +617,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 | **16** | oEmbed + Social Media Cards | 1 week | P1 | ✅ **COMPLETE** |
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
 | **18** | Test Coverage Improvement | 2 weeks | P1 | ✅ **COMPLETE** |
-| **19** | Trending Tags + Featured Picks | 1 week | P2 | 📋 Backlog |
+| **19** | Trending Tags + Featured Picks | 1 week | P2 | 🚧 **IN PROGRESS** |
 | **20** | Groups/Communities | 2 weeks | P3 | 📋 Backlog |
 | **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
@@ -634,11 +652,29 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ storage/orchestrator (95.1%), identity/queries (95.8%)
 - ⚠️ 2 packages limited by architecture (concrete types vs interfaces)
 
-**Future Sprints**:
-- **Trending Tags** - Time-weighted tag popularity, tag search
-- **Groups** - Interest-based communities with shared albums
-- **Video Support** - Video uploads with HLS/DASH streaming
-- **Account Tiers** - Free, Pro, Business levels with different limits
+#### Sprint 19: Trending Tags + Featured Picks ✅ COMPLETE
+
+- ✅ TagRepository interface (domain layer with FindPopular, FindTrending, SearchByPrefix)
+- ✅ TagRepository PostgreSQL implementation with trending algorithm
+- ✅ Popular Tags API (`GET /api/v1/tags/popular`) with period filtering
+- ✅ Trending Tags API (`GET /api/v1/tags/trending`) with trend scores
+- ✅ Tag Search API (`GET /api/v1/tags/search`) with prefix matching
+- ✅ HTTP Handlers (TagHandler at /api/v1/tags/)
+- ✅ OpenAPI spec for tag endpoints
+- ✅ E2E Tests for tag endpoints (6 Newman tests)
+- ✅ Featured Picks database migration with scheduling support
+- ✅ FeaturedPick domain entity and repository interface
+- ✅ Feature/Unfeature commands and ListFeatured query
+- ✅ FeaturedHandler wired in router (admin-only)
+- ✅ ExploreHandler featured endpoint (public)
+- ✅ OpenAPI spec for Featured Picks endpoints
+- ✅ E2E Tests for Featured Picks (6 Newman tests)
+- ✅ Contract tests for Featured Picks endpoints
+
+**Future Sprints** (Backlog):
+- **Groups** (Sprint 20) - Interest-based communities with shared albums
+- **Video Support** (Sprint 21) - Video uploads with HLS/DASH streaming
+- **Account Tiers** (Sprint 22) - Free, Pro, Business levels with different limits
 
 See [claude/phase_3_sprint_plan.md](claude/phase_3_sprint_plan.md) for detailed Phase 3 planning.
 

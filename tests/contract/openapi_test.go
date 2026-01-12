@@ -97,8 +97,9 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/albums/{id}":                  {http.MethodGet, http.MethodPut, http.MethodDelete},
 		"/albums/{id}/images":           {http.MethodPost},
 		"/albums/{id}/images/{imageId}": {http.MethodDelete},
-		// Tag endpoints
-		"/tags":              {http.MethodGet},
+		// Tag endpoints (Sprint 19)
+		"/tags/popular":      {http.MethodGet},
+		"/tags/trending":     {http.MethodGet},
 		"/tags/search":       {http.MethodGet},
 		"/tags/{tag}/images": {http.MethodGet},
 		// Social endpoints - note: /images/{id}/likes is NOT in spec (planned for future)
@@ -112,8 +113,12 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/moderation/reports/{id}/resolve": {http.MethodPost},
 		"/users/{id}/ban":                  {http.MethodPost},
 		// Explore endpoints
-		"/explore/recent":  {http.MethodGet},
-		"/explore/popular": {http.MethodGet},
+		"/explore/recent":   {http.MethodGet},
+		"/explore/popular":  {http.MethodGet},
+		"/explore/featured": {http.MethodGet},
+		// Featured Picks management (admin-only)
+		"/moderation/featured":           {http.MethodPost},
+		"/moderation/featured/{imageId}": {http.MethodDelete},
 		// Health endpoints
 		"/health":       {http.MethodGet},
 		"/health/ready": {http.MethodGet},
@@ -590,7 +595,7 @@ func TestSocialEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestTagEndpointsContract tests contract compliance for tag endpoints.
+// TestTagEndpointsContract tests contract compliance for tag endpoints (Sprint 19).
 func TestTagEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -602,12 +607,21 @@ func TestTagEndpointsContract(t *testing.T) {
 		responseSchemas map[int]string
 	}{
 		{
-			name:         "GET /tags",
-			path:         "/tags",
+			name:         "GET /tags/popular",
+			path:         "/tags/popular",
 			method:       http.MethodGet,
 			requiresAuth: false,
 			responseSchemas: map[int]string{
-				200: "tags_response",
+				200: "PopularTagsResponse",
+			},
+		},
+		{
+			name:         "GET /tags/trending",
+			path:         "/tags/trending",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "TrendingTagsResponse",
 			},
 		},
 		{
@@ -974,6 +988,15 @@ func TestExploreEndpointsContract(t *testing.T) {
 				200: "PaginatedResponse",
 			},
 		},
+		{
+			name:         "GET /explore/featured",
+			path:         "/explore/featured",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "FeaturedImagesResponse",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -981,6 +1004,61 @@ func TestExploreEndpointsContract(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, nil, tt.responseSchemas)
+		})
+	}
+}
+
+// TestFeaturedPicksEndpointsContract tests contract compliance for featured picks management (Sprint 19).
+func TestFeaturedPicksEndpointsContract(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		path            string
+		method          string
+		requiresAuth    bool
+		requestSchema   map[string]interface{}
+		responseSchemas map[int]string
+	}{
+		{
+			name:         "POST /moderation/featured",
+			path:         "/moderation/featured",
+			method:       http.MethodPost,
+			requiresAuth: true,
+			requestSchema: map[string]interface{}{
+				"image_id":      "string",
+				"reason":        "string",
+				"display_order": "integer",
+			},
+			responseSchemas: map[int]string{
+				201: "FeatureImageResponse",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+				409: "ProblemDetail",
+			},
+		},
+		{
+			name:         "DELETE /moderation/featured/{imageId}",
+			path:         "/moderation/featured/{imageId}",
+			method:       http.MethodDelete,
+			requiresAuth: true,
+			responseSchemas: map[int]string{
+				204: "no_content",
+				400: "ProblemDetail",
+				401: "ProblemDetail",
+				403: "ProblemDetail",
+				404: "ProblemDetail",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			validateEndpointContract(t, tt.path, tt.method, tt.requiresAuth, tt.requestSchema, tt.responseSchemas)
 		})
 	}
 }
@@ -1608,12 +1686,14 @@ func TestOptionalAuthenticationEndpoints(t *testing.T) {
 		{"/images/{id}/comments", http.MethodGet},
 		{"/albums", http.MethodGet},
 		{"/albums/{id}", http.MethodGet},
-		{"/tags", http.MethodGet},
+		{"/tags/popular", http.MethodGet},
+		{"/tags/trending", http.MethodGet},
 		{"/tags/search", http.MethodGet},
 		{"/tags/{tag}/images", http.MethodGet},
 		{"/users/{id}/likes", http.MethodGet},
 		{"/explore/recent", http.MethodGet},
 		{"/explore/popular", http.MethodGet},
+		{"/explore/featured", http.MethodGet},
 	}
 
 	for _, endpoint := range optionalAuthEndpoints {

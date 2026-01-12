@@ -18,18 +18,21 @@ const (
 // ExploreHandler handles explore/discovery HTTP endpoints.
 // These endpoints are public and allow anonymous users to discover content.
 type ExploreHandler struct {
-	listImages *queries.ListImagesHandler
-	logger     zerolog.Logger
+	listImages   *queries.ListImagesHandler
+	listFeatured *queries.ListFeaturedImagesHandler
+	logger       zerolog.Logger
 }
 
 // NewExploreHandler creates a new ExploreHandler with the given dependencies.
 func NewExploreHandler(
 	listImages *queries.ListImagesHandler,
+	listFeatured *queries.ListFeaturedImagesHandler,
 	logger zerolog.Logger,
 ) *ExploreHandler {
 	return &ExploreHandler{
-		listImages: listImages,
-		logger:     logger,
+		listImages:   listImages,
+		listFeatured: listFeatured,
+		logger:       logger,
 	}
 }
 
@@ -42,6 +45,7 @@ func (h *ExploreHandler) Routes() chi.Router {
 
 	r.Get("/recent", h.ListRecent)
 	r.Get("/popular", h.ListPopular)
+	r.Get("/featured", h.ListFeatured)
 
 	return r
 }
@@ -230,5 +234,65 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode explore popular response")
+	}
+}
+
+// ListFeatured handles GET /api/v1/explore/featured
+// Retrieves admin-curated featured images.
+//
+// Query parameters:
+//   - limit (int): Maximum number of featured images, default 10, max 50
+//
+// Response: List of featured images with display order
+// Errors:
+//   - 400: Invalid query parameters
+func (h *ExploreHandler) ListFeatured(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Check if handler is configured
+	if h.listFeatured == nil {
+		h.logger.Warn().Msg("listFeatured handler not configured")
+		middleware.WriteError(w, r,
+			http.StatusNotImplemented,
+			"Not Implemented",
+			"Featured images endpoint is not configured",
+		)
+		return
+	}
+
+	// Parse limit parameter
+	limit, err := parseIntParam(r.URL.Query().Get("limit"), 10)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+
+	// Build and execute query
+	query := queries.ListFeaturedImagesQuery{
+		Limit: limit,
+	}
+
+	result, err := h.listFeatured.Handle(ctx, query)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Msg("failed to list featured images")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to retrieve featured images",
+		)
+		return
+	}
+
+	h.logger.Debug().
+		Int("limit", limit).
+		Int("results", result.TotalCount).
+		Msg("explore featured images retrieved")
+
+	if err := EncodeJSON(w, http.StatusOK, result); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode explore featured response")
 	}
 }

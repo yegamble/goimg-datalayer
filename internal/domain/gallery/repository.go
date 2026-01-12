@@ -312,6 +312,38 @@ type TagRepository interface {
 	ExistsBySlug(ctx context.Context, slug string) (bool, error)
 }
 
+// FeaturedPickRepository defines the interface for managing featured image picks.
+// Featured picks are admin-curated images displayed on the explore page.
+type FeaturedPickRepository interface {
+	// FindByID retrieves a featured pick by its ID.
+	// Returns ErrFeaturedPickNotFound if the pick doesn't exist.
+	FindByID(ctx context.Context, id FeaturedPickID) (*FeaturedPick, error)
+
+	// FindByImageID retrieves the active featured pick for an image.
+	// Returns ErrFeaturedPickNotFound if the image is not currently featured.
+	FindByImageID(ctx context.Context, imageID ImageID) (*FeaturedPick, error)
+
+	// ListActive retrieves currently active featured picks.
+	// Active means: featured_from <= NOW() AND (featured_until IS NULL OR featured_until > NOW())
+	// Results are ordered by display_order ASC, featured_from DESC.
+	// limit: maximum number of picks to return (1-100)
+	ListActive(ctx context.Context, limit int) ([]*FeaturedPick, error)
+
+	// ListAll retrieves all featured picks (active and expired) for admin management.
+	// includeExpired: if true, includes picks with featured_until < NOW()
+	// offset/limit: pagination parameters
+	ListAll(ctx context.Context, includeExpired bool, offset, limit int) ([]*FeaturedPick, int, error)
+
+	// Save persists a featured pick (insert or update).
+	Save(ctx context.Context, pick *FeaturedPick) error
+
+	// Delete removes a featured pick.
+	Delete(ctx context.Context, id FeaturedPickID) error
+
+	// ExistsByImageID checks if an image is currently featured.
+	ExistsByImageID(ctx context.Context, imageID ImageID) (bool, error)
+}
+
 // LikeRepository defines the interface for managing image likes.
 // Likes represent a many-to-many relationship between users and images.
 type LikeRepository interface {
