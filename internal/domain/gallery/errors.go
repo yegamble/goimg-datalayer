@@ -39,6 +39,7 @@ var (
 	ErrInvalidVariantData = errors.New("invalid variant data")
 
 	// Validation errors - Tag.
+	ErrTagNotFound      = errors.New("tag not found")
 	ErrTagInvalid       = errors.New("invalid tag format")
 	ErrTagTooShort      = errors.New("tag must be at least 2 characters")
 	ErrTagTooLong       = errors.New("tag exceeds 50 characters")

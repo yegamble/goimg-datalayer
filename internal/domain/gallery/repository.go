@@ -233,6 +233,85 @@ type AlbumImageRepository interface {
 	CountImagesInAlbum(ctx context.Context, albumID AlbumID) (int, error)
 }
 
+// TagPeriod defines the time period for tag popularity calculations.
+type TagPeriod string
+
+const (
+	// TagPeriodDay calculates popularity over the last 24 hours.
+	TagPeriodDay TagPeriod = "day"
+	// TagPeriodWeek calculates popularity over the last 7 days.
+	TagPeriodWeek TagPeriod = "week"
+	// TagPeriodMonth calculates popularity over the last 30 days.
+	TagPeriodMonth TagPeriod = "month"
+	// TagPeriodAll calculates popularity over all time.
+	TagPeriodAll TagPeriod = "all"
+)
+
+// IsValid returns true if the TagPeriod is a valid value.
+func (p TagPeriod) IsValid() bool {
+	switch p {
+	case TagPeriodDay, TagPeriodWeek, TagPeriodMonth, TagPeriodAll:
+		return true
+	default:
+		return false
+	}
+}
+
+// TagWithUsage represents a tag with its usage statistics.
+type TagWithUsage struct {
+	Tag
+	UsageCount int64   // Total usage count
+	TrendScore float64 // Time-weighted trending score (optional)
+}
+
+// TagRepository defines the interface for persisting and retrieving tags.
+// Implementations reside in the infrastructure layer.
+type TagRepository interface {
+	// FindBySlug retrieves a tag by its URL-friendly slug.
+	// Returns ErrTagNotFound if the tag doesn't exist.
+	FindBySlug(ctx context.Context, slug string) (*Tag, error)
+
+	// FindByName retrieves a tag by its display name.
+	// Returns ErrTagNotFound if the tag doesn't exist.
+	FindByName(ctx context.Context, name string) (*Tag, error)
+
+	// FindPopular retrieves the most popular tags by usage count.
+	// limit: maximum number of tags to return (1-100)
+	// period: time period for counting (all = total usage count)
+	FindPopular(ctx context.Context, limit int, period TagPeriod) ([]TagWithUsage, error)
+
+	// FindTrending retrieves trending tags with time-weighted popularity.
+	// Uses algorithm: (recent_count / total_count) * time_decay_factor
+	// limit: maximum number of tags to return (1-100)
+	// period: time window for trending calculation
+	FindTrending(ctx context.Context, limit int, period TagPeriod) ([]TagWithUsage, error)
+
+	// SearchByPrefix finds tags matching a name prefix for autocomplete.
+	// query: prefix to search for (min 2 chars)
+	// limit: maximum number of tags to return (1-50)
+	SearchByPrefix(ctx context.Context, query string, limit int) ([]TagWithUsage, error)
+
+	// Save persists a tag (insert or update).
+	// If the tag already exists (by slug), updates the usage count.
+	Save(ctx context.Context, tag Tag) error
+
+	// GetOrCreate retrieves a tag by name or creates it if it doesn't exist.
+	// Returns the tag (possibly newly created) and any error.
+	GetOrCreate(ctx context.Context, name string) (*Tag, error)
+
+	// IncrementUsage increments the usage count for a tag by 1.
+	// Used when a tag is added to an image.
+	IncrementUsage(ctx context.Context, tagSlug string) error
+
+	// DecrementUsage decrements the usage count for a tag by 1.
+	// Used when a tag is removed from an image.
+	// Usage count cannot go below 0.
+	DecrementUsage(ctx context.Context, tagSlug string) error
+
+	// ExistsBySlug checks if a tag exists by slug.
+	ExistsBySlug(ctx context.Context, slug string) (bool, error)
+}
+
 // LikeRepository defines the interface for managing image likes.
 // Likes represent a many-to-many relationship between users and images.
 type LikeRepository interface {
