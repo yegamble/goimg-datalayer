@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-01-12
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 18 COMPLETE ✅ | Sprint 19 (Trending Tags + Featured Picks) NEXT 🚀
+> **Current Sprint**: Sprint 19 (Trending Tags + Featured Picks) IN PROGRESS 🚧
 > **Status**: **Sprint 18 COMPLETE** - 7 of 9 priority packages exceed targets
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
@@ -569,7 +569,7 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
 | 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
 | 18 | Test Coverage Improvement | P1 | ✅ **COMPLETE** |
-| 19 | Trending Tags + Featured Picks | P2 | 🚀 **NEXT** |
+| 19 | Trending Tags + Featured Picks | P2 | 🚧 **IN PROGRESS** |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -602,12 +602,18 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - storage/orchestrator: 55.6% → **95.1%** ✅
   - identity/queries: 62.5% → **95.8%** ✅
 
-**Sprint 19 (NEXT)** 🚀:
+**Sprint 19 (IN PROGRESS)** 🚧:
 - **Focus**: Trending Tags + Featured Picks
 - **Duration**: 1 week
 - **Priority**: P2
-- **Deliverables**:
-  - Popular Tags API (`GET /api/v1/tags/popular`)
-  - Trending Tags (time-weighted popularity)
-  - Tag Search (`GET /api/v1/tags/search`)
-  - Featured Picks (admin-curated)
+- **Completed**:
+  - ✅ TagRepository interface (domain layer)
+  - ✅ TagRepository implementation (PostgreSQL)
+  - ✅ Popular Tags API (`GET /api/v1/tags/popular`)
+  - ✅ Trending Tags API (`GET /api/v1/tags/trending`)
+  - ✅ Tag Search API (`GET /api/v1/tags/search`)
+  - ✅ HTTP Handlers (TagHandler)
+  - ✅ OpenAPI spec for tag endpoints
+- **Remaining**:
+  - ⏳ Featured Picks (database migration, API)
+  - ⏳ E2E Tests for tag endpoints

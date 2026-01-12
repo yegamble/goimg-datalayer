@@ -1674,7 +1674,7 @@ CREATE TABLE audit_logs (
 | Sprint 16 | oEmbed + Social Media Cards | 1 week | P1 | ✅ COMPLETE |
 | Sprint 17 | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ COMPLETE |
 | Sprint 18 | Test Coverage Improvement | 2 weeks | P1 | ✅ COMPLETE |
-| Sprint 19 | Trending Tags + Featured Picks | 1 week | P2 | 🚀 NEXT |
+| Sprint 19 | Trending Tags + Featured Picks | 1 week | P2 | 🚧 IN PROGRESS |
 | Sprint 20 | Groups/Communities | 2 weeks | P3 | Backlog |
 | Sprint 21 | Video Support | 3 weeks | P3 | Backlog |
 | Sprint 22 | Account Tiers/Subscriptions | 2 weeks | P3 | Backlog |
