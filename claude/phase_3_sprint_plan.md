@@ -304,7 +304,13 @@ Implement tag discovery features and curator-selected featured content.
 | OpenAPI Spec | ✅ COMPLETE | /tags/popular, /tags/trending endpoints |
 | Contract Tests | ✅ COMPLETE | Updated for new tag endpoints |
 | E2E Tests | ✅ COMPLETE | 6 Newman tests for tag endpoints |
-| Featured Picks | ⏳ PENDING | Database migration and API needed |
+| Featured Picks Migration | ✅ COMPLETE | 00016_create_featured_picks.sql with scheduling |
+| FeaturedPick Entity | ✅ COMPLETE | Domain entity with scheduling and expiration |
+| FeaturedPick Repository | ✅ COMPLETE | PostgreSQL implementation with CRUD |
+| Featured Picks Application | ✅ COMPLETE | FeatureImage, UnfeatureImage commands, ListFeatured query |
+| Featured Picks OpenAPI | ✅ COMPLETE | /explore/featured, /moderation/featured endpoints |
+| Featured HTTP Handlers | ⏳ PENDING | Wire handlers in router |
+| Featured E2E Tests | ⏳ PENDING | Newman tests for featured endpoints |
 
 ### Deliverables
 

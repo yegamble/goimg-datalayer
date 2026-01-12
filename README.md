@@ -11,10 +11,15 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ Popular Tags API (`GET /api/v1/tags/popular`)
 - ✅ Trending Tags API (`GET /api/v1/tags/trending`)
 - ✅ Tag Search API (`GET /api/v1/tags/search`)
-- ✅ HTTP Handlers (TagHandler)
+- ✅ HTTP Handlers (TagHandler) wired in router
 - ✅ OpenAPI spec for tag endpoints
-- ⏳ Featured Picks (database migration, API) - pending
-- ⏳ E2E Tests for tag endpoints - pending
+- ✅ E2E Tests for tag endpoints (6 Newman tests)
+- ✅ Featured Picks database migration with scheduling
+- ✅ FeaturedPick domain entity and repository
+- ✅ Feature/Unfeature commands and ListFeatured query
+- ✅ OpenAPI spec for Featured Picks (`/explore/featured`, `/moderation/featured`)
+- ⏳ Wire Featured Picks HTTP handlers - pending
+- ⏳ E2E Tests for Featured Picks - pending
 
 **Sprint 18 Complete** ✅: Test Coverage Improvement
 - ✅ Overall test coverage improved from 35.9% to ~65%

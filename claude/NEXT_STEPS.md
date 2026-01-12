@@ -617,5 +617,12 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - ✅ TagHandler wired in router.go
   - ✅ Contract tests updated for tag endpoints
   - ✅ E2E Tests for tag endpoints (6 Newman tests)
+  - ✅ Featured Picks database migration (00016_create_featured_picks.sql)
+  - ✅ FeaturedPick domain entity with scheduling
+  - ✅ FeaturedPickRepository interface and PostgreSQL implementation
+  - ✅ Feature/Unfeature commands in application layer
+  - ✅ ListFeaturedImages query handler
+  - ✅ OpenAPI spec for Featured Picks endpoints
 - **Remaining**:
-  - ⏳ Featured Picks (database migration, API)
+  - ⏳ Wire Featured Picks HTTP handlers
+  - ⏳ E2E Tests for Featured Picks endpoints
