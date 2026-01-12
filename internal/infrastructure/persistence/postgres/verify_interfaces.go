@@ -4,11 +4,14 @@ package postgres
 // These variables will never be instantiated at runtime.
 
 import (
+	"github.com/yegamble/goimg-datalayer/internal/domain/community"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 )
 
 // Compile-time interface implementation checks.
 var (
-	_ gallery.ImageRepository = (*ImageRepository)(nil)
-	_ gallery.AlbumRepository = (*AlbumRepository)(nil)
+	_ gallery.ImageRepository             = (*ImageRepository)(nil)
+	_ gallery.AlbumRepository             = (*AlbumRepository)(nil)
+	_ community.GroupRepository           = (*GroupRepository)(nil)
+	_ community.GroupMembershipRepository = (*GroupMembershipRepository)(nil)
 )
