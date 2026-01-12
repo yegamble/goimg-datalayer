@@ -131,3 +131,35 @@ type GroupActivityRepository interface {
 	// Returns the activities, total count, and error.
 	FindByGroupAndType(ctx context.Context, groupID GroupID, activityType ActivityType, pagination shared.Pagination) ([]*GroupActivity, int, error)
 }
+
+// GroupInvitationRepository is the repository interface for GroupInvitation entities.
+// Manages invitation persistence and retrieval for group access control.
+type GroupInvitationRepository interface {
+	// Save persists the invitation to storage.
+	// This handles both creation and updates (e.g., marking as used).
+	Save(ctx context.Context, invitation *GroupInvitation) error
+
+	// FindByID retrieves an invitation by its ID.
+	// Returns ErrInvitationNotFound if the invitation doesn't exist.
+	FindByID(ctx context.Context, id InvitationID) (*GroupInvitation, error)
+
+	// FindByToken retrieves an invitation by its secure token.
+	// Used when accepting/declining invitations via the token link.
+	// Returns ErrInvitationNotFound if the invitation doesn't exist.
+	FindByToken(ctx context.Context, token InvitationToken) (*GroupInvitation, error)
+
+	// FindPendingByGroup retrieves all pending (unused, non-expired) invitations for a group.
+	// Used by group admins to view outstanding invitations.
+	// Returns the invitations and error.
+	FindPendingByGroup(ctx context.Context, groupID GroupID) ([]*GroupInvitation, error)
+
+	// FindPendingByUser retrieves all pending invitations sent to a specific user.
+	// This includes both email-based invitations (if email matches user's email)
+	// and direct user ID invitations.
+	// Returns the invitations and error.
+	FindPendingByUser(ctx context.Context, userID identity.UserID) ([]*GroupInvitation, error)
+
+	// Delete removes the invitation from storage.
+	// Used when declining an invitation or cleaning up expired invitations.
+	Delete(ctx context.Context, id InvitationID) error
+}

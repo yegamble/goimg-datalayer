@@ -449,3 +449,35 @@ type PaginatedUserGroupsResponse struct {
 	PerPage     int                  `json:"per_page"`
 	TotalPages  int64                `json:"total_pages"`
 }
+
+// ============================================================================
+// Group Invitations DTOs (Sprint 20 - S20-GROUP-006)
+// ============================================================================
+
+// InviteToGroupRequest represents the HTTP request body for inviting a user to a group.
+// POST /api/v1/groups/{groupID}/invitations
+//
+// Either email OR user_id must be provided (mutually exclusive).
+type InviteToGroupRequest struct {
+	Email  *string `json:"email,omitempty" validate:"omitempty,email,max=255"`
+	UserID *string `json:"user_id,omitempty" validate:"omitempty,uuid"`
+}
+
+// InvitationResponse represents a group invitation in HTTP responses.
+type InvitationResponse struct {
+	ID        string     `json:"id"`
+	GroupID   string     `json:"group_id"`
+	InvitedBy string     `json:"invited_by"`
+	Email     *string    `json:"email,omitempty"`
+	UserID    *string    `json:"user_id,omitempty"`
+	Token     string     `json:"token"` // Secure token for accepting invitation
+	ExpiresAt time.Time  `json:"expires_at"`
+	UsedAt    *time.Time `json:"used_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+// PaginatedInvitationsResponse represents a paginated list of group invitations.
+type PaginatedInvitationsResponse struct {
+	Invitations []InvitationResponse `json:"invitations"`
+	TotalCount  int                  `json:"total_count"`
+}

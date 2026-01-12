@@ -1,6 +1,8 @@
 package community
 
 import (
+	"time"
+
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -191,4 +193,32 @@ type ImageRemovedFromGroupAlbum struct {
 	GroupID      GroupID
 	ImageID      gallery.ImageID
 	RemovedBy    identity.UserID
+}
+
+// Group Invitation Events
+
+// GroupInvitationCreated is emitted when a group invitation is created.
+type GroupInvitationCreated struct {
+	shared.BaseEvent
+	InvitationID InvitationID
+	GroupID      GroupID
+	InvitedBy    identity.UserID
+	Email        *string          // Email address for non-registered users
+	UserID       *identity.UserID // User ID for existing users
+}
+
+// GroupInvitationAccepted is emitted when a group invitation is accepted.
+type GroupInvitationAccepted struct {
+	shared.BaseEvent
+	InvitationID InvitationID
+	GroupID      GroupID
+	AcceptedAt   time.Time
+}
+
+// GroupInvitationDeclined is emitted when a group invitation is declined.
+type GroupInvitationDeclined struct {
+	shared.BaseEvent
+	InvitationID InvitationID
+	GroupID      GroupID
+	DeclinedAt   time.Time
 }
