@@ -13,9 +13,8 @@ info:
     - RESTful API with RFC 7807 error responses
 
     **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) implemented.
-    **Phase 3 Progress**: Sprints 16-18 complete (oEmbed, nested albums, custom variants, test coverage).
-    Sprint 19 (Trending Tags + Featured Picks) is next. Future features include: groups,
-    video support, and account tiers.
+    **Phase 3 Progress**: Sprints 16-19 complete (oEmbed, nested albums, custom variants, test coverage, trending tags, featured picks).
+    Sprint 20 (Groups/Communities) is IN PROGRESS. Future features include: video support and account tiers.
 
   contact:
     name: goimg-datalayer API Team
@@ -66,6 +65,8 @@ tags:
     description: oEmbed protocol for image embedding (Sprint 16)
   - name: variant-configs
     description: Custom image variant configurations (Sprint 17)
+  - name: groups
+    description: Groups/Communities feature (Sprint 20)
 
 paths:
   # ==================== Authentication ====================
@@ -4665,6 +4666,501 @@ paths:
                   # TYPE goimg_http_requests_total counter
                   goimg_http_requests_total{method="GET",path="/health",status="200"} 42
 
+  # ==================== Groups (Sprint 20) ====================
+  /groups:
+    get:
+      tags: [groups]
+      summary: List public groups
+      description: |
+        Returns a paginated list of public and invite-only groups.
+        Private groups are not included in results.
+      operationId: listGroups
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          description: Filter by group type (public, invite_only)
+          schema:
+            type: string
+            enum: [public, invite_only]
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [recent, popular, name]
+            default: recent
+      responses:
+        '200':
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupListResponse'
+      x-sprint: "20"
+
+    post:
+      tags: [groups]
+      summary: Create a new group
+      description: Creates a new group with the current user as owner
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Group slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      x-sprint: "20"
+
+  /groups/search:
+    get:
+      tags: [groups]
+      summary: Search groups
+      description: Full-text search for groups by name and description
+      operationId: searchGroups
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+            minLength: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupListResponse'
+      x-sprint: "20"
+
+  /groups/{groupID}:
+    get:
+      tags: [groups]
+      summary: Get group by ID
+      description: Retrieve a group by its UUID
+      operationId: getGroupByID
+      security: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+    put:
+      tags: [groups]
+      summary: Update group
+      description: Update group details (admin+ only)
+      operationId: updateGroup
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Group updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+    delete:
+      tags: [groups]
+      summary: Delete group
+      description: Delete a group (owner only)
+      operationId: deleteGroup
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Group deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/by-slug/{slug}:
+    get:
+      tags: [groups]
+      summary: Get group by slug
+      description: Retrieve a group by its URL-friendly slug
+      operationId: getGroupBySlug
+      security: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/join:
+    post:
+      tags: [groups]
+      summary: Join group
+      description: |
+        Join a group. Behavior varies by group type:
+        - Public: Instant join (active status)
+        - Invite-only: Creates join request (requested status)
+        - Private: Forbidden (requires invitation)
+      operationId: joinGroup
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Joined group (public) or request created (invite-only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Cannot join private group without invitation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already a member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+      x-sprint: "20"
+
+  /groups/{groupID}/leave:
+    delete:
+      tags: [groups]
+      summary: Leave group
+      description: Leave a group. Owners cannot leave without transferring ownership.
+      operationId: leaveGroup
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Left group
+        '400':
+          description: Owner cannot leave group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/members:
+    get:
+      tags: [groups]
+      summary: List group members
+      description: Get paginated list of group members with optional role/status filtering
+      operationId: listGroupMembers
+      security: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: role
+          in: query
+          description: Filter by member role
+          schema:
+            type: string
+            enum: [owner, admin, member]
+        - name: status
+          in: query
+          description: Filter by membership status
+          schema:
+            type: string
+            enum: [active, invited, requested, banned]
+      responses:
+        '200':
+          description: List of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMemberListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/members/{userID}/role:
+    put:
+      tags: [groups]
+      summary: Update member role
+      description: |
+        Change a member's role. Role hierarchy: owner > admin > member.
+        Only owners can promote to admin. Admins can only manage members.
+      operationId: updateMemberRole
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/members/{userID}:
+    delete:
+      tags: [groups]
+      summary: Remove member
+      description: Remove a member from the group (admin+ only). Cannot remove owner.
+      operationId: removeMember
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Member removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/members/{userID}/ban:
+    post:
+      tags: [groups]
+      summary: Ban member
+      description: |
+        Ban a member from the group (admin+ only).
+        Cannot ban owner or other admins.
+      operationId: banMember
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for ban
+                  maxLength: 500
+      responses:
+        '200':
+          description: Member banned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /me/groups:
+    get:
+      tags: [groups]
+      summary: List current user's groups
+      description: Get all groups the current user belongs to
+      operationId: listUserGroups
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: role
+          in: query
+          description: Filter by user's role in groups
+          schema:
+            type: string
+            enum: [owner, admin, member]
+      responses:
+        '200':
+          description: List of user's groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGroupsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      x-sprint: "20"
+
 # ==================== Components ====================
 components:
   securitySchemes:
@@ -6516,3 +7012,180 @@ components:
           type: string
           description: Error message if check failed
           example: connection refused
+
+    # ==================== Groups (Sprint 20) ====================
+    GroupResponse:
+      type: object
+      description: Full group details
+      required: [id, name, slug, group_type, owner_id, member_count, image_count, album_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        name:
+          type: string
+          example: "Landscape Photography"
+        slug:
+          type: string
+          example: "landscape-photography"
+        description:
+          type: string
+          example: "Share your best landscape shots"
+        group_type:
+          type: string
+          enum: [public, private, invite_only]
+          example: "public"
+        owner_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        member_count:
+          type: integer
+          example: 42
+        image_count:
+          type: integer
+          example: 256
+        album_count:
+          type: integer
+          example: 8
+        cover_image_id:
+          type: string
+          format: uuid
+          nullable: true
+        settings:
+          $ref: '#/components/schemas/GroupSettings'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GroupSettings:
+      type: object
+      description: Group configuration settings
+      properties:
+        require_approval:
+          type: boolean
+          description: Require admin approval for shared images
+          default: false
+        allow_member_invites:
+          type: boolean
+          description: Allow members to invite others
+          default: true
+        allow_member_albums:
+          type: boolean
+          description: Allow members to create group albums
+          default: true
+        max_members:
+          type: integer
+          description: Maximum members (0 = unlimited)
+          default: 0
+
+    CreateGroupRequest:
+      type: object
+      required: [name, group_type]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "Landscape Photography"
+        description:
+          type: string
+          maxLength: 1000
+          example: "Share your best landscape shots"
+        group_type:
+          type: string
+          enum: [public, private, invite_only]
+          example: "public"
+        settings:
+          $ref: '#/components/schemas/GroupSettings'
+
+    UpdateGroupRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 1000
+        cover_image_id:
+          type: string
+          format: uuid
+        settings:
+          $ref: '#/components/schemas/GroupSettings'
+
+    GroupListResponse:
+      type: object
+      required: [groups, pagination]
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupResponse'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    GroupMembershipResponse:
+      type: object
+      required: [id, group_id, user_id, role, status, joined_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [owner, admin, member]
+          example: "member"
+        status:
+          type: string
+          enum: [active, invited, requested, banned]
+          example: "active"
+        joined_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GroupMemberListResponse:
+      type: object
+      required: [members, pagination]
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMembershipResponse'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    UpdateMemberRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [admin, member]
+          description: New role for the member (cannot set to owner via API)
+
+    UserGroupsResponse:
+      type: object
+      required: [groups, pagination]
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              group:
+                $ref: '#/components/schemas/GroupResponse'
+              membership:
+                $ref: '#/components/schemas/GroupMembershipResponse'
+        pagination:
+          $ref: '#/components/schemas/Pagination'

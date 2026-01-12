@@ -5,6 +5,7 @@ import (
 
 	galleryqueries "github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
 	moderationqueries "github.com/yegamble/goimg-datalayer/internal/application/moderation/queries"
+	"github.com/yegamble/goimg-datalayer/internal/domain/community"
 )
 
 // HTTP-specific request DTOs for the handlers layer.
@@ -340,4 +341,180 @@ type NSFWScanDTO = moderationqueries.NSFWScanDTO
 type ListNSFWScansByImageResponse struct {
 	Scans      []*NSFWScanDTO `json:"scans"`
 	TotalCount int            `json:"total_count"`
+}
+
+// ============================================================================
+// Groups/Communities DTOs (Sprint 20)
+// ============================================================================
+
+// CreateGroupRequest represents the HTTP request body for creating a group.
+// POST /api/v1/groups
+type CreateGroupRequest struct {
+	Name        string                   `json:"name" validate:"required,min=3,max=100"`
+	Slug        string                   `json:"slug" validate:"required,min=3,max=100,alphanum"`
+	Description string                   `json:"description,omitempty" validate:"omitempty,max=1000"`
+	GroupType   string                   `json:"group_type" validate:"required,oneof=public private invite-only"`
+	Settings    *community.GroupSettings `json:"settings,omitempty"`
+}
+
+// UpdateGroupRequest represents the HTTP request body for updating a group.
+// PUT /api/v1/groups/{groupID}
+type UpdateGroupRequest struct {
+	Description *string                  `json:"description,omitempty" validate:"omitempty,max=1000"`
+	Settings    *community.GroupSettings `json:"settings,omitempty"`
+}
+
+// UpdateMemberRoleRequest represents the HTTP request body for updating a member's role.
+// PUT /api/v1/groups/{groupID}/members/{userID}/role
+type UpdateMemberRoleRequest struct {
+	Role string `json:"role" validate:"required,oneof=owner admin moderator member"`
+}
+
+// BanMemberRequest represents the HTTP request body for banning a member.
+// POST /api/v1/groups/{groupID}/members/{userID}/ban
+type BanMemberRequest struct {
+	Reason string `json:"reason" validate:"required,min=10,max=500"`
+}
+
+// GroupResponse represents a group in HTTP responses.
+type GroupResponse struct {
+	ID           string                `json:"id"`
+	Name         string                `json:"name"`
+	Slug         string                `json:"slug"`
+	Description  string                `json:"description"`
+	GroupType    string                `json:"group_type"`
+	OwnerID      string                `json:"owner_id"`
+	Settings     GroupSettingsResponse `json:"settings"`
+	MemberCount  int                   `json:"member_count"`
+	ImageCount   int                   `json:"image_count"`
+	AlbumCount   int                   `json:"album_count"`
+	CoverImageID *string               `json:"cover_image_id,omitempty"`
+	CreatedAt    time.Time             `json:"created_at"`
+	UpdatedAt    time.Time             `json:"updated_at"`
+}
+
+// GroupSettingsResponse represents group settings in HTTP responses.
+type GroupSettingsResponse struct {
+	MaxMembers          int    `json:"max_members"`
+	RequireApproval     bool   `json:"require_approval"`
+	AllowGuestUploads   bool   `json:"allow_guest_uploads"`
+	AllowComments       bool   `json:"allow_comments"`
+	DefaultImagePrivacy string `json:"default_image_privacy"`
+}
+
+// MembershipResponse represents a group membership in HTTP responses.
+type MembershipResponse struct {
+	ID        string    `json:"id"`
+	GroupID   string    `json:"group_id"`
+	UserID    string    `json:"user_id"`
+	Role      string    `json:"role"`
+	Status    string    `json:"status"`
+	JoinedAt  time.Time `json:"joined_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// PaginatedGroupsResponse represents a paginated list of groups.
+type PaginatedGroupsResponse struct {
+	Groups     []GroupResponse `json:"groups"`
+	TotalCount int64           `json:"total_count"`
+	Page       int             `json:"page"`
+	PerPage    int             `json:"per_page"`
+	TotalPages int64           `json:"total_pages"`
+}
+
+// SearchGroupsResponse represents search results for groups.
+type SearchGroupsResponse struct {
+	Groups     []GroupResponse `json:"groups"`
+	TotalCount int64           `json:"total_count"`
+	Page       int             `json:"page"`
+	PerPage    int             `json:"per_page"`
+	TotalPages int64           `json:"total_pages"`
+	Query      string          `json:"query"`
+}
+
+// PaginatedMembersResponse represents a paginated list of group members.
+type PaginatedMembersResponse struct {
+	Members    []MembershipResponse `json:"members"`
+	TotalCount int64                `json:"total_count"`
+	Page       int                  `json:"page"`
+	PerPage    int                  `json:"per_page"`
+	TotalPages int64                `json:"total_pages"`
+}
+
+// PaginatedUserGroupsResponse represents a paginated list of groups for a user.
+type PaginatedUserGroupsResponse struct {
+	Memberships []MembershipResponse `json:"memberships"`
+	TotalCount  int64                `json:"total_count"`
+	Page        int                  `json:"page"`
+	PerPage     int                  `json:"per_page"`
+	TotalPages  int64                `json:"total_pages"`
+}
+
+// ============================================================================
+// Group Invitations DTOs (Sprint 20 - S20-GROUP-006)
+// ============================================================================
+
+// InviteToGroupRequest represents the HTTP request body for inviting a user to a group.
+// POST /api/v1/groups/{groupID}/invitations
+//
+// Either email OR user_id must be provided (mutually exclusive).
+type InviteToGroupRequest struct {
+	Email  *string `json:"email,omitempty" validate:"omitempty,email,max=255"`
+	UserID *string `json:"user_id,omitempty" validate:"omitempty,uuid"`
+}
+
+// InvitationResponse represents a group invitation in HTTP responses.
+type InvitationResponse struct {
+	ID        string     `json:"id"`
+	GroupID   string     `json:"group_id"`
+	InvitedBy string     `json:"invited_by"`
+	Email     *string    `json:"email,omitempty"`
+	UserID    *string    `json:"user_id,omitempty"`
+	Token     string     `json:"token"` // Secure token for accepting invitation
+	ExpiresAt time.Time  `json:"expires_at"`
+	UsedAt    *time.Time `json:"used_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+// PaginatedInvitationsResponse represents a paginated list of group invitations.
+type PaginatedInvitationsResponse struct {
+	Invitations []InvitationResponse `json:"invitations"`
+	TotalCount  int                  `json:"total_count"`
+}
+
+// ============================================================================
+// Group Images DTOs (Sprint 20 - S20-GROUP-005 Moderation Queue)
+// ============================================================================
+
+// ShareImageRequest represents the HTTP request body for sharing an image to a group.
+// POST /api/v1/groups/{groupID}/images
+type ShareImageRequest struct {
+	ImageID string `json:"image_id" validate:"required,uuid"`
+}
+
+// RejectImageRequest represents the HTTP request body for rejecting a group image.
+// POST /api/v1/groups/{groupID}/images/{groupImageID}/reject
+type RejectImageRequest struct {
+	Reason string `json:"reason,omitempty" validate:"omitempty,max=500"`
+}
+
+// GroupImageResponse represents a group image in HTTP responses.
+type GroupImageResponse struct {
+	ID         string     `json:"id"`
+	GroupID    string     `json:"group_id"`
+	ImageID    string     `json:"image_id"`
+	SharedBy   string     `json:"shared_by"`
+	Status     string     `json:"status"` // pending, approved, rejected
+	ReviewedBy *string    `json:"reviewed_by,omitempty"`
+	SharedAt   *time.Time `json:"shared_at,omitempty"`
+	ReviewedAt *time.Time `json:"reviewed_at,omitempty"`
+}
+
+// PaginatedGroupImagesResponse represents a paginated list of group images.
+type PaginatedGroupImagesResponse struct {
+	Images     []GroupImageResponse `json:"images"`
+	TotalCount int64                `json:"total_count"`
+	Page       int                  `json:"page"`
+	PerPage    int                  `json:"per_page"`
+	TotalPages int64                `json:"total_pages"`
 }
