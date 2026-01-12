@@ -61,7 +61,6 @@ func NewRemoveMemberHandler(
 //   - nil on successful removal
 //   - ErrInsufficientGroupRole if actor lacks permission
 //   - ErrCannotRemoveOwner if trying to remove the owner
-//
 func (h *RemoveMemberHandler) Handle(ctx context.Context, cmd RemoveMemberCommand) error {
 	// 1. Load actor's membership
 	actorMembership, err := h.membershipRepo.FindByGroupAndUser(ctx, cmd.GroupID, cmd.ActorID)

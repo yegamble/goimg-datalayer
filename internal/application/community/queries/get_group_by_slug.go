@@ -33,7 +33,6 @@ func NewGetGroupBySlugHandler(groupRepo community.GroupRepository) *GetGroupBySl
 // Returns:
 //   - *community.Group: The group aggregate
 //   - error: ErrGroupNotFound if the group does not exist
-//
 func (h *GetGroupBySlugHandler) Handle(ctx context.Context, q GetGroupBySlugQuery) (*community.Group, error) {
 	group, err := h.groupRepo.FindBySlug(ctx, q.Slug)
 	if err != nil {

@@ -24,21 +24,21 @@ const (
 // GroupHandler handles group-related HTTP endpoints.
 // It delegates to application layer command and query handlers for business logic.
 type GroupHandler struct {
-	createGroup       *commands.CreateGroupHandler
-	updateGroup       *commands.UpdateGroupHandler
-	deleteGroup       *commands.DeleteGroupHandler
-	joinGroup         *commands.JoinGroupHandler
-	leaveGroup        *commands.LeaveGroupHandler
-	updateMemberRole  *commands.UpdateMemberRoleHandler
-	removeMember      *commands.RemoveMemberHandler
-	banMember         *commands.BanMemberHandler
-	getGroup          *queries.GetGroupHandler
-	getGroupBySlug    *queries.GetGroupBySlugHandler
-	listPublicGroups  *queries.ListPublicGroupsHandler
-	searchGroups      *queries.SearchGroupsHandler
-	listGroupMembers  *queries.ListGroupMembersHandler
-	listUserGroups    *queries.ListUserGroupsHandler
-	logger            zerolog.Logger
+	createGroup      *commands.CreateGroupHandler
+	updateGroup      *commands.UpdateGroupHandler
+	deleteGroup      *commands.DeleteGroupHandler
+	joinGroup        *commands.JoinGroupHandler
+	leaveGroup       *commands.LeaveGroupHandler
+	updateMemberRole *commands.UpdateMemberRoleHandler
+	removeMember     *commands.RemoveMemberHandler
+	banMember        *commands.BanMemberHandler
+	getGroup         *queries.GetGroupHandler
+	getGroupBySlug   *queries.GetGroupBySlugHandler
+	listPublicGroups *queries.ListPublicGroupsHandler
+	searchGroups     *queries.SearchGroupsHandler
+	listGroupMembers *queries.ListGroupMembersHandler
+	listUserGroups   *queries.ListUserGroupsHandler
+	logger           zerolog.Logger
 }
 
 // NewGroupHandler creates a new GroupHandler with the given dependencies.
@@ -85,9 +85,9 @@ func (h *GroupHandler) PublicRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	// Public routes (no authentication required)
-	r.Get("/", h.ListPublicGroups)         // List discoverable groups
-	r.Get("/search", h.SearchGroups)       // Search groups
-	r.Get("/{groupID}", h.GetGroup)        // Get group by ID
+	r.Get("/", h.ListPublicGroups)             // List discoverable groups
+	r.Get("/search", h.SearchGroups)           // Search groups
+	r.Get("/{groupID}", h.GetGroup)            // Get group by ID
 	r.Get("/by-slug/{slug}", h.GetGroupBySlug) // Get group by slug
 
 	return r
@@ -99,14 +99,14 @@ func (h *GroupHandler) ProtectedRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	// Group CRUD routes (require authentication)
-	r.Post("/", h.CreateGroup)             // Create group
-	r.Put("/{groupID}", h.UpdateGroup)     // Update group (admin+)
-	r.Delete("/{groupID}", h.DeleteGroup)  // Delete group (owner only)
+	r.Post("/", h.CreateGroup)            // Create group
+	r.Put("/{groupID}", h.UpdateGroup)    // Update group (admin+)
+	r.Delete("/{groupID}", h.DeleteGroup) // Delete group (owner only)
 
 	// Membership routes (require authentication)
-	r.Post("/{groupID}/join", h.JoinGroup)      // Join group
-	r.Delete("/{groupID}/leave", h.LeaveGroup)  // Leave group
-	r.Get("/{groupID}/members", h.ListMembers)  // List group members
+	r.Post("/{groupID}/join", h.JoinGroup)     // Join group
+	r.Delete("/{groupID}/leave", h.LeaveGroup) // Leave group
+	r.Get("/{groupID}/members", h.ListMembers) // List group members
 
 	// Member management routes (admin+ only)
 	r.Put("/{groupID}/members/{userID}/role", h.UpdateMemberRole) // Update role

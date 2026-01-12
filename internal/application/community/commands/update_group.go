@@ -14,8 +14,8 @@ import (
 // UpdateGroupCommand represents the intent to update a group's metadata or settings.
 type UpdateGroupCommand struct {
 	GroupID     community.GroupID
-	ActorID     identity.UserID // User performing the action
-	Description *string         // Optional: update description
+	ActorID     identity.UserID          // User performing the action
+	Description *string                  // Optional: update description
 	Settings    *community.GroupSettings // Optional: update settings
 }
 
@@ -58,7 +58,6 @@ func NewUpdateGroupHandler(
 //   - *community.Group on successful update
 //   - ErrGroupNotFound if the group doesn't exist
 //   - ErrInsufficientGroupRole if actor lacks permission
-//
 func (h *UpdateGroupHandler) Handle(ctx context.Context, cmd UpdateGroupCommand) (*community.Group, error) {
 	// 1. Load the group aggregate
 	group, err := h.groupRepo.FindByID(ctx, cmd.GroupID)

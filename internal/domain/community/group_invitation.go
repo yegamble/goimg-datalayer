@@ -22,7 +22,7 @@ type GroupInvitation struct {
 	id        InvitationID
 	groupID   GroupID
 	invitedBy identity.UserID
-	email     *string // Email address for non-registered users (mutually exclusive with userID)
+	email     *string          // Email address for non-registered users (mutually exclusive with userID)
 	userID    *identity.UserID // User ID for existing users (mutually exclusive with email)
 	token     InvitationToken
 	expiresAt time.Time
@@ -88,12 +88,12 @@ func NewGroupInvitation(
 	}
 
 	invitation.addEvent(&GroupInvitationCreated{
-		BaseEvent:  shared.NewBaseEvent("community.invitation.created", invitation.id.String()),
+		BaseEvent:    shared.NewBaseEvent("community.invitation.created", invitation.id.String()),
 		InvitationID: invitation.id,
-		GroupID:    invitation.groupID,
-		InvitedBy:  invitation.invitedBy,
-		Email:      email,
-		UserID:     userID,
+		GroupID:      invitation.groupID,
+		InvitedBy:    invitation.invitedBy,
+		Email:        email,
+		UserID:       userID,
 	})
 
 	return invitation, nil

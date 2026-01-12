@@ -12,10 +12,10 @@ import (
 // Can be filtered by role and status.
 type ListGroupMembersQuery struct {
 	GroupID community.GroupID
-	Role    *community.GroupRole   // Optional: filter by role
+	Role    *community.GroupRole    // Optional: filter by role
 	Status  *community.MemberStatus // Optional: filter by status
-	Page    int                    // Page number (1-indexed)
-	PerPage int                    // Items per page
+	Page    int                     // Page number (1-indexed)
+	PerPage int                     // Items per page
 }
 
 // Implement Query interface.
@@ -45,7 +45,6 @@ func NewListGroupMembersHandler(membershipRepo community.GroupMembershipReposito
 // Returns:
 //   - *ListGroupMembersResult: Members with pagination metadata
 //   - error: Repository errors
-//
 func (h *ListGroupMembersHandler) Handle(ctx context.Context, q ListGroupMembersQuery) (*ListGroupMembersResult, error) {
 	// Build filter
 	filter := community.MemberFilter{

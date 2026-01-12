@@ -53,7 +53,6 @@ func NewDeleteGroupHandler(
 //   - nil on successful deletion
 //   - ErrGroupNotFound if the group doesn't exist
 //   - Authorization error if actor is not the owner
-//
 func (h *DeleteGroupHandler) Handle(ctx context.Context, cmd DeleteGroupCommand) error {
 	// 1. Load the group aggregate
 	group, err := h.groupRepo.FindByID(ctx, cmd.GroupID)

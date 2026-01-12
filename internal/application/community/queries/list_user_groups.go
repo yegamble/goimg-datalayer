@@ -45,7 +45,6 @@ func NewListUserGroupsHandler(membershipRepo community.GroupMembershipRepository
 // Returns:
 //   - *ListUserGroupsResult: Memberships with pagination metadata
 //   - error: Repository errors
-//
 func (h *ListUserGroupsHandler) Handle(ctx context.Context, q ListUserGroupsQuery) (*ListUserGroupsResult, error) {
 	// Build pagination
 	pagination, err := shared.NewPagination(q.Page, q.PerPage)

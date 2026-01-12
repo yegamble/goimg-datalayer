@@ -45,7 +45,6 @@ func NewSearchGroupsHandler(groupRepo community.GroupRepository) *SearchGroupsHa
 // Returns:
 //   - *SearchGroupsResult: Groups matching the query with pagination metadata
 //   - error: Repository errors
-//
 func (h *SearchGroupsHandler) Handle(ctx context.Context, q SearchGroupsQuery) (*SearchGroupsResult, error) {
 	// Sanitize query
 	query := strings.TrimSpace(q.Query)

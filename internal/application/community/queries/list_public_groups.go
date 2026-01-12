@@ -11,10 +11,10 @@ import (
 // ListPublicGroupsQuery retrieves a paginated list of discoverable groups (public and invite-only).
 // Private groups are excluded from this listing.
 type ListPublicGroupsQuery struct {
-	GroupType *community.GroupType      // Optional: filter by group type
-	SortBy    community.GroupSortBy     // Sort order (recent, popular, name, activity)
-	Page      int                       // Page number (1-indexed)
-	PerPage   int                       // Items per page
+	GroupType *community.GroupType  // Optional: filter by group type
+	SortBy    community.GroupSortBy // Sort order (recent, popular, name, activity)
+	Page      int                   // Page number (1-indexed)
+	PerPage   int                   // Items per page
 }
 
 // Implement Query interface.
@@ -44,7 +44,6 @@ func NewListPublicGroupsHandler(groupRepo community.GroupRepository) *ListPublic
 // Returns:
 //   - *ListPublicGroupsResult: Groups with pagination metadata
 //   - error: Repository errors
-//
 func (h *ListPublicGroupsHandler) Handle(ctx context.Context, q ListPublicGroupsQuery) (*ListPublicGroupsResult, error) {
 	// Build filter
 	filter := community.GroupFilter{

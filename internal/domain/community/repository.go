@@ -3,6 +3,7 @@ package community
 import (
 	"context"
 
+	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
@@ -162,4 +163,39 @@ type GroupInvitationRepository interface {
 	// Delete removes the invitation from storage.
 	// Used when declining an invitation or cleaning up expired invitations.
 	Delete(ctx context.Context, id InvitationID) error
+}
+
+// GroupImageRepository is the repository interface for GroupImage entities.
+// Manages image sharing and moderation queue for groups.
+type GroupImageRepository interface {
+	// Save persists the group image to storage.
+	// This handles both creation and updates (e.g., approval/rejection).
+	Save(ctx context.Context, groupImage *GroupImage) error
+
+	// FindByID retrieves a group image by its ID.
+	// Returns ErrGroupImageNotFound if the group image doesn't exist.
+	FindByID(ctx context.Context, id GroupImageID) (*GroupImage, error)
+
+	// FindByGroupAndImage retrieves a group image by group ID and image ID.
+	// Returns ErrGroupImageNotFound if not found.
+	FindByGroupAndImage(ctx context.Context, groupID GroupID, imageID gallery.ImageID) (*GroupImage, error)
+
+	// FindByGroup retrieves images for a specific group with optional status filtering.
+	// If status is nil, returns all images regardless of status.
+	// Returns the images, total count, and error.
+	FindByGroup(ctx context.Context, groupID GroupID, status *GroupImageStatus, pagination shared.Pagination) ([]*GroupImage, int, error)
+
+	// FindPendingByGroup retrieves all pending images for a group (moderation queue).
+	// Returns images in chronological order (oldest first) for FIFO moderation.
+	FindPendingByGroup(ctx context.Context, groupID GroupID, pagination shared.Pagination) ([]*GroupImage, int, error)
+
+	// FindApprovedByGroup retrieves all approved images for a group.
+	// Returns images in reverse chronological order (newest first).
+	FindApprovedByGroup(ctx context.Context, groupID GroupID, pagination shared.Pagination) ([]*GroupImage, int, error)
+
+	// Delete removes the group image from storage.
+	Delete(ctx context.Context, id GroupImageID) error
+
+	// ExistsByGroupAndImage checks if an image is already shared to the group.
+	ExistsByGroupAndImage(ctx context.Context, groupID GroupID, imageID gallery.ImageID) (bool, error)
 }

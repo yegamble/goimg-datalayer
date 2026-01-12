@@ -15,10 +15,10 @@ import (
 // Only admins and owners can promote/demote members.
 // Only owners can promote to admin.
 type UpdateMemberRoleCommand struct {
-	GroupID   community.GroupID
-	ActorID   identity.UserID      // User performing the action
-	TargetID  identity.UserID      // User whose role is being changed
-	NewRole   community.GroupRole
+	GroupID  community.GroupID
+	ActorID  identity.UserID // User performing the action
+	TargetID identity.UserID // User whose role is being changed
+	NewRole  community.GroupRole
 }
 
 // Implement Command interface.
@@ -59,7 +59,6 @@ func NewUpdateMemberRoleHandler(
 //   - *community.GroupMembership on successful role change
 //   - ErrInsufficientGroupRole if actor lacks permission
 //   - ErrCannotDemoteOwner if trying to demote the owner
-//
 func (h *UpdateMemberRoleHandler) Handle(ctx context.Context, cmd UpdateMemberRoleCommand) (*community.GroupMembership, error) {
 	// 1. Load actor's membership
 	actorMembership, err := h.membershipRepo.FindByGroupAndUser(ctx, cmd.GroupID, cmd.ActorID)

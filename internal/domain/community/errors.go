@@ -11,6 +11,7 @@ var (
 	ErrMembershipNotFound = errors.New("membership not found")
 	ErrGroupAlbumNotFound = errors.New("group album not found")
 	ErrInvitationNotFound = errors.New("invitation not found")
+	ErrGroupImageNotFound = errors.New("group image not found")
 
 	// Group lifecycle errors.
 	ErrGroupDeleted = errors.New("group has been deleted")
@@ -62,6 +63,11 @@ var (
 	ErrGroupAlbumTitleRequired = errors.New("group album title is required")
 	ErrGroupAlbumTitleTooLong  = errors.New("group album title exceeds 255 characters")
 	ErrGroupAlbumDescTooLong   = errors.New("group album description exceeds 2000 characters")
+
+	// Group image errors.
+	ErrImageAlreadyShared      = errors.New("image is already shared to this group")
+	ErrImageNotPending         = errors.New("image is not in pending status")
+	ErrInvalidGroupImageStatus = errors.New("invalid group image status")
 
 	// Business rule violations.
 	ErrUnauthorizedGroupAccess = errors.New("unauthorized to access this group")

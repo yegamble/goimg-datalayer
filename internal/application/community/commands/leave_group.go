@@ -58,7 +58,6 @@ func NewLeaveGroupHandler(
 //   - nil on successful leave
 //   - ErrCannotLeaveAsOwner if user is the owner
 //   - ErrMembershipNotFound if user is not a member
-//
 func (h *LeaveGroupHandler) Handle(ctx context.Context, cmd LeaveGroupCommand) error {
 	// 1. Load group and membership
 	group, err := h.groupRepo.FindByID(ctx, cmd.GroupID)

@@ -350,10 +350,10 @@ type ListNSFWScansByImageResponse struct {
 // CreateGroupRequest represents the HTTP request body for creating a group.
 // POST /api/v1/groups
 type CreateGroupRequest struct {
-	Name        string                  `json:"name" validate:"required,min=3,max=100"`
-	Slug        string                  `json:"slug" validate:"required,min=3,max=100,alphanum"`
-	Description string                  `json:"description,omitempty" validate:"omitempty,max=1000"`
-	GroupType   string                  `json:"group_type" validate:"required,oneof=public private invite-only"`
+	Name        string                   `json:"name" validate:"required,min=3,max=100"`
+	Slug        string                   `json:"slug" validate:"required,min=3,max=100,alphanum"`
+	Description string                   `json:"description,omitempty" validate:"omitempty,max=1000"`
+	GroupType   string                   `json:"group_type" validate:"required,oneof=public private invite-only"`
 	Settings    *community.GroupSettings `json:"settings,omitempty"`
 }
 
@@ -378,19 +378,19 @@ type BanMemberRequest struct {
 
 // GroupResponse represents a group in HTTP responses.
 type GroupResponse struct {
-	ID           string                 `json:"id"`
-	Name         string                 `json:"name"`
-	Slug         string                 `json:"slug"`
-	Description  string                 `json:"description"`
-	GroupType    string                 `json:"group_type"`
-	OwnerID      string                 `json:"owner_id"`
-	Settings     GroupSettingsResponse  `json:"settings"`
-	MemberCount  int                    `json:"member_count"`
-	ImageCount   int                    `json:"image_count"`
-	AlbumCount   int                    `json:"album_count"`
-	CoverImageID *string                `json:"cover_image_id,omitempty"`
-	CreatedAt    time.Time              `json:"created_at"`
-	UpdatedAt    time.Time              `json:"updated_at"`
+	ID           string                `json:"id"`
+	Name         string                `json:"name"`
+	Slug         string                `json:"slug"`
+	Description  string                `json:"description"`
+	GroupType    string                `json:"group_type"`
+	OwnerID      string                `json:"owner_id"`
+	Settings     GroupSettingsResponse `json:"settings"`
+	MemberCount  int                   `json:"member_count"`
+	ImageCount   int                   `json:"image_count"`
+	AlbumCount   int                   `json:"album_count"`
+	CoverImageID *string               `json:"cover_image_id,omitempty"`
+	CreatedAt    time.Time             `json:"created_at"`
+	UpdatedAt    time.Time             `json:"updated_at"`
 }
 
 // GroupSettingsResponse represents group settings in HTTP responses.
@@ -480,4 +480,41 @@ type InvitationResponse struct {
 type PaginatedInvitationsResponse struct {
 	Invitations []InvitationResponse `json:"invitations"`
 	TotalCount  int                  `json:"total_count"`
+}
+
+// ============================================================================
+// Group Images DTOs (Sprint 20 - S20-GROUP-005 Moderation Queue)
+// ============================================================================
+
+// ShareImageRequest represents the HTTP request body for sharing an image to a group.
+// POST /api/v1/groups/{groupID}/images
+type ShareImageRequest struct {
+	ImageID string `json:"image_id" validate:"required,uuid"`
+}
+
+// RejectImageRequest represents the HTTP request body for rejecting a group image.
+// POST /api/v1/groups/{groupID}/images/{groupImageID}/reject
+type RejectImageRequest struct {
+	Reason string `json:"reason,omitempty" validate:"omitempty,max=500"`
+}
+
+// GroupImageResponse represents a group image in HTTP responses.
+type GroupImageResponse struct {
+	ID         string     `json:"id"`
+	GroupID    string     `json:"group_id"`
+	ImageID    string     `json:"image_id"`
+	SharedBy   string     `json:"shared_by"`
+	Status     string     `json:"status"` // pending, approved, rejected
+	ReviewedBy *string    `json:"reviewed_by,omitempty"`
+	SharedAt   *time.Time `json:"shared_at,omitempty"`
+	ReviewedAt *time.Time `json:"reviewed_at,omitempty"`
+}
+
+// PaginatedGroupImagesResponse represents a paginated list of group images.
+type PaginatedGroupImagesResponse struct {
+	Images     []GroupImageResponse `json:"images"`
+	TotalCount int64                `json:"total_count"`
+	Page       int                  `json:"page"`
+	PerPage    int                  `json:"per_page"`
+	TotalPages int64                `json:"total_pages"`
 }

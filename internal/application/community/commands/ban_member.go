@@ -67,7 +67,6 @@ func NewBanMemberHandler(
 //   - ErrInsufficientGroupRole if actor lacks permission
 //   - ErrCannotBanOwner if trying to ban the owner
 //   - ErrMemberAlreadyBanned if member is already banned
-//
 func (h *BanMemberHandler) Handle(ctx context.Context, cmd BanMemberCommand) error {
 	// 1. Load actor's membership
 	actorMembership, err := h.membershipRepo.FindByGroupAndUser(ctx, cmd.GroupID, cmd.ActorID)

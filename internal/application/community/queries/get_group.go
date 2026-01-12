@@ -34,7 +34,6 @@ func NewGetGroupHandler(groupRepo community.GroupRepository) *GetGroupHandler {
 // Returns:
 //   - *community.Group: The group aggregate
 //   - error: ErrGroupNotFound if the group does not exist
-//
 func (h *GetGroupHandler) Handle(ctx context.Context, q GetGroupQuery) (*community.Group, error) {
 	group, err := h.groupRepo.FindByID(ctx, q.GroupID)
 	if err != nil {
