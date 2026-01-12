@@ -2,8 +2,8 @@
 
 > **Last Updated**: 2026-01-12
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 19 (Trending Tags + Featured Picks) IN PROGRESS 🚧
-> **Status**: **Sprint 18 COMPLETE** - 7 of 9 priority packages exceed targets
+> **Current Sprint**: Sprint 19 (Trending Tags + Featured Picks) COMPLETE ✅
+> **Status**: **Sprint 19 COMPLETE** - Trending tags, featured picks, full API coverage
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
 > **Go Version**: 1.24+ minimum, CI uses 1.25.x (latest stable: 1.25.5)
@@ -569,7 +569,7 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
 | 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
 | 18 | Test Coverage Improvement | P1 | ✅ **COMPLETE** |
-| 19 | Trending Tags + Featured Picks | P2 | 🚧 **IN PROGRESS** |
+| 19 | Trending Tags + Featured Picks | P2 | ✅ **COMPLETE** |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -623,6 +623,9 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - ✅ Feature/Unfeature commands in application layer
   - ✅ ListFeaturedImages query handler
   - ✅ OpenAPI spec for Featured Picks endpoints
-- **Remaining**:
-  - ⏳ Wire Featured Picks HTTP handlers
-  - ⏳ E2E Tests for Featured Picks endpoints
+  - ✅ FeaturedHandler HTTP handler (feature/unfeature endpoints)
+  - ✅ ExploreHandler featured endpoint updated
+  - ✅ Router wiring for Featured Picks
+  - ✅ E2E Tests for Featured Picks endpoints (6 Newman tests)
+  - ✅ Contract tests for Featured Picks endpoints
+- **Status**: Sprint 19 COMPLETE ✅

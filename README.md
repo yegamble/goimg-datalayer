@@ -4,9 +4,9 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 19 IN PROGRESS** 🚧
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 19 COMPLETE** ✅
 
-**Sprint 19 In Progress** 🚧: Trending Tags + Featured Picks
+**Sprint 19 Complete** ✅: Trending Tags + Featured Picks
 - ✅ TagRepository interface and PostgreSQL implementation
 - ✅ Popular Tags API (`GET /api/v1/tags/popular`)
 - ✅ Trending Tags API (`GET /api/v1/tags/trending`)
@@ -18,8 +18,11 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ FeaturedPick domain entity and repository
 - ✅ Feature/Unfeature commands and ListFeatured query
 - ✅ OpenAPI spec for Featured Picks (`/explore/featured`, `/moderation/featured`)
-- ⏳ Wire Featured Picks HTTP handlers - pending
-- ⏳ E2E Tests for Featured Picks - pending
+- ✅ FeaturedHandler HTTP handler wired in router
+- ✅ ExploreHandler featured endpoint (`GET /api/v1/explore/featured`)
+- ✅ Admin Featured management (`POST/DELETE /api/v1/moderation/featured`)
+- ✅ E2E Tests for Featured Picks (6 Newman tests)
+- ✅ Contract tests for Featured Picks endpoints
 
 **Sprint 18 Complete** ✅: Test Coverage Improvement
 - ✅ Overall test coverage improved from 35.9% to ~65%
@@ -649,7 +652,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ storage/orchestrator (95.1%), identity/queries (95.8%)
 - ⚠️ 2 packages limited by architecture (concrete types vs interfaces)
 
-#### Sprint 19: Trending Tags + Featured Picks 🚧 IN PROGRESS
+#### Sprint 19: Trending Tags + Featured Picks ✅ COMPLETE
 
 - ✅ TagRepository interface (domain layer with FindPopular, FindTrending, SearchByPrefix)
 - ✅ TagRepository PostgreSQL implementation with trending algorithm
@@ -658,8 +661,15 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ Tag Search API (`GET /api/v1/tags/search`) with prefix matching
 - ✅ HTTP Handlers (TagHandler at /api/v1/tags/)
 - ✅ OpenAPI spec for tag endpoints
-- ⏳ Featured Picks (database migration, admin API) - pending
-- ⏳ E2E Tests for tag endpoints - pending
+- ✅ E2E Tests for tag endpoints (6 Newman tests)
+- ✅ Featured Picks database migration with scheduling support
+- ✅ FeaturedPick domain entity and repository interface
+- ✅ Feature/Unfeature commands and ListFeatured query
+- ✅ FeaturedHandler wired in router (admin-only)
+- ✅ ExploreHandler featured endpoint (public)
+- ✅ OpenAPI spec for Featured Picks endpoints
+- ✅ E2E Tests for Featured Picks (6 Newman tests)
+- ✅ Contract tests for Featured Picks endpoints
 
 **Future Sprints** (Backlog):
 - **Groups** (Sprint 20) - Interest-based communities with shared albums

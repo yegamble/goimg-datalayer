@@ -23,12 +23,12 @@ type ListFeaturedImagesQuery struct {
 
 // FeaturedImageDTO represents a featured image with metadata for API responses.
 type FeaturedImageDTO struct {
-	PickID        string      `json:"pick_id"`
-	ImageID       string      `json:"image_id"`
-	Image         *ImageDTO   `json:"image"`
-	DisplayOrder  int         `json:"display_order"`
-	FeaturedSince string      `json:"featured_since"` // ISO 8601
-	Reason        string      `json:"reason,omitempty"`
+	PickID        string    `json:"pick_id"`
+	ImageID       string    `json:"image_id"`
+	Image         *ImageDTO `json:"image"`
+	DisplayOrder  int       `json:"display_order"`
+	FeaturedSince string    `json:"featured_since"` // ISO 8601
+	Reason        string    `json:"reason,omitempty"`
 }
 
 // ImageDTO represents a minimal image response for featured picks.
@@ -102,12 +102,12 @@ func (h *ListFeaturedImagesHandler) Handle(ctx context.Context, query ListFeatur
 
 		// Build DTO with full image details
 		featuredImages = append(featuredImages, FeaturedImageDTO{
-			PickID:   pick.ID().String(),
-			ImageID:  pick.ImageID().String(),
-			Image:    mapImageToDTO(image),
-			DisplayOrder: pick.DisplayOrder(),
+			PickID:        pick.ID().String(),
+			ImageID:       pick.ImageID().String(),
+			Image:         mapImageToDTO(image),
+			DisplayOrder:  pick.DisplayOrder(),
 			FeaturedSince: pick.FeaturedFrom().Format(time.RFC3339),
-			Reason:   pick.Reason(),
+			Reason:        pick.Reason(),
 		})
 	}
 

@@ -63,9 +63,9 @@ var (
 	ErrVariantConfigNotFound = errors.New("variant config not found")
 
 	// Featured picks errors.
-	ErrFeaturedPickNotFound  = errors.New("featured pick not found")
-	ErrImageAlreadyFeatured  = errors.New("image is already featured")
-	ErrReasonTooLong         = errors.New("reason exceeds 500 characters")
+	ErrFeaturedPickNotFound = errors.New("featured pick not found")
+	ErrImageAlreadyFeatured = errors.New("image is already featured")
+	ErrReasonTooLong        = errors.New("reason exceeds 500 characters")
 
 	// Comment validation errors.
 	ErrCommentRequired = errors.New("comment content is required")

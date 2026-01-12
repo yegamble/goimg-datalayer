@@ -19,8 +19,8 @@ type FeaturedPick struct {
 	id            FeaturedPickID
 	imageID       ImageID
 	featuredBy    identity.UserID
-	reason        string     // Optional reason/notes for featuring
-	displayOrder  int        // Display priority (0 = highest)
+	reason        string // Optional reason/notes for featuring
+	displayOrder  int    // Display priority (0 = highest)
 	featuredFrom  time.Time
 	featuredUntil *time.Time // nil = no expiration
 	createdAt     time.Time
