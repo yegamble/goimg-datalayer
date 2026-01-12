@@ -53,6 +53,7 @@ type MiddlewareConfig struct {
 //   - oEmbed routes: GET /api/v1/oembed (public, no auth required) - Sprint 16
 //   - Preview routes: GET /images/{id}/preview (public HTML page with social meta tags) - Sprint 16
 //   - Variant Config routes: /api/v1/variant-configs/* (JWT required) - Sprint 17
+//   - Tag routes: GET /api/v1/tags/* (public, no auth required) - Sprint 19
 //
 //nolint:funlen // Router setup with middleware and routes.
 func NewRouter(
@@ -74,6 +75,7 @@ func NewRouter(
 	oembedHandler *OEmbedHandler,
 	previewHandler *PreviewHandler,
 	variantConfigHandler *VariantConfigHandler,
+	tagHandler *TagHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -162,6 +164,12 @@ func NewRouter(
 		// Enables external sites to embed images using oEmbed protocol
 		if oembedHandler != nil {
 			r.Mount("/oembed", oembedHandler.Routes())
+		}
+
+		// Tag discovery endpoints (Sprint 19 - no authentication required)
+		// Public tag search, popular, and trending endpoints
+		if tagHandler != nil {
+			r.Mount("/tags", tagHandler.Routes())
 		}
 
 		// Image variant endpoint with optional authentication

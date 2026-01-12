@@ -97,8 +97,9 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/albums/{id}":                  {http.MethodGet, http.MethodPut, http.MethodDelete},
 		"/albums/{id}/images":           {http.MethodPost},
 		"/albums/{id}/images/{imageId}": {http.MethodDelete},
-		// Tag endpoints
-		"/tags":              {http.MethodGet},
+		// Tag endpoints (Sprint 19)
+		"/tags/popular":      {http.MethodGet},
+		"/tags/trending":     {http.MethodGet},
 		"/tags/search":       {http.MethodGet},
 		"/tags/{tag}/images": {http.MethodGet},
 		// Social endpoints - note: /images/{id}/likes is NOT in spec (planned for future)
@@ -590,7 +591,7 @@ func TestSocialEndpointsContract(t *testing.T) {
 	}
 }
 
-// TestTagEndpointsContract tests contract compliance for tag endpoints.
+// TestTagEndpointsContract tests contract compliance for tag endpoints (Sprint 19).
 func TestTagEndpointsContract(t *testing.T) {
 	t.Parallel()
 
@@ -602,12 +603,21 @@ func TestTagEndpointsContract(t *testing.T) {
 		responseSchemas map[int]string
 	}{
 		{
-			name:         "GET /tags",
-			path:         "/tags",
+			name:         "GET /tags/popular",
+			path:         "/tags/popular",
 			method:       http.MethodGet,
 			requiresAuth: false,
 			responseSchemas: map[int]string{
-				200: "tags_response",
+				200: "PopularTagsResponse",
+			},
+		},
+		{
+			name:         "GET /tags/trending",
+			path:         "/tags/trending",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "TrendingTagsResponse",
 			},
 		},
 		{
@@ -1608,7 +1618,8 @@ func TestOptionalAuthenticationEndpoints(t *testing.T) {
 		{"/images/{id}/comments", http.MethodGet},
 		{"/albums", http.MethodGet},
 		{"/albums/{id}", http.MethodGet},
-		{"/tags", http.MethodGet},
+		{"/tags/popular", http.MethodGet},
+		{"/tags/trending", http.MethodGet},
 		{"/tags/search", http.MethodGet},
 		{"/tags/{tag}/images", http.MethodGet},
 		{"/users/{id}/likes", http.MethodGet},

@@ -8071,6 +8071,331 @@
       ]
     },
     {
+      "name": "Tags",
+      "description": "E2E tests for tag discovery endpoints (Sprint 19). Includes popular tags, trending tags, and tag search.",
+      "item": [
+        {
+          "name": "Get Popular Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
+                  "pm.test('Response has tags array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('tags');",
+                  "    pm.expect(jsonData.tags).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has period field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('period');",
+                  "    pm.expect(jsonData.period).to.be.oneOf(['day', 'week', 'month', 'all']);",
+                  "});",
+                  "",
+                  "pm.test('Response has limit field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('limit');",
+                  "    pm.expect(jsonData.limit).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/popular?limit=10&period=all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "period",
+                  "value": "all"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Popular Tags - Weekly",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Period is week', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.period).to.eql('week');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/popular?limit=20&period=week",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "period",
+                  "value": "week"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
+                  "pm.test('Response has tags array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('tags');",
+                  "    pm.expect(jsonData.tags).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has period field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('period');",
+                  "    pm.expect(jsonData.period).to.be.oneOf(['day', 'week', 'month']);",
+                  "});",
+                  "",
+                  "pm.test('Response has limit field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('limit');",
+                  "    pm.expect(jsonData.limit).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/trending?limit=10&period=week",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "trending"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "period",
+                  "value": "week"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Tags - Invalid Period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 for invalid period', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 format', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/trending?period=all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "trending"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "all"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct Content-Type', function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                  "});",
+                  "",
+                  "pm.test('Response has tags array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('tags');",
+                  "    pm.expect(jsonData.tags).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has query field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('query');",
+                  "    pm.expect(jsonData.query).to.eql('na');",
+                  "});",
+                  "",
+                  "pm.test('Response has limit field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('limit');",
+                  "    pm.expect(jsonData.limit).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/search?q=na&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "na"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Tags - Query Too Short",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 for short query', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 format', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/search?q=n",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "n"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Content Moderation",
       "item": [
         {

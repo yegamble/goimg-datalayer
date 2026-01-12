@@ -34,8 +34,8 @@ type TagWithUsageDTO struct {
 // ListPopularTagsResult represents the result of a popular tags query.
 type ListPopularTagsResult struct {
 	Tags   []TagWithUsageDTO `json:"tags"`
-	Period string   `json:"period"`
-	Limit  int      `json:"limit"`
+	Period string            `json:"period"`
+	Limit  int               `json:"limit"`
 }
 
 // ListPopularTagsHandler processes ListPopularTagsQuery requests.

@@ -27,8 +27,8 @@ type SearchTagsQuery struct {
 // SearchTagsResult represents the result of a tag search query.
 type SearchTagsResult struct {
 	Tags  []TagWithUsageDTO `json:"tags"`
-	Query string   `json:"query"`
-	Limit int      `json:"limit"`
+	Query string            `json:"query"`
+	Limit int               `json:"limit"`
 }
 
 // SearchTagsHandler processes SearchTagsQuery requests for autocomplete.

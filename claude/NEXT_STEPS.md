@@ -614,6 +614,8 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - ✅ Tag Search API (`GET /api/v1/tags/search`)
   - ✅ HTTP Handlers (TagHandler)
   - ✅ OpenAPI spec for tag endpoints
+  - ✅ TagHandler wired in router.go
+  - ✅ Contract tests updated for tag endpoints
+  - ✅ E2E Tests for tag endpoints (6 Newman tests)
 - **Remaining**:
   - ⏳ Featured Picks (database migration, API)
-  - ⏳ E2E Tests for tag endpoints

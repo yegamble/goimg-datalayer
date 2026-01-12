@@ -20,8 +20,8 @@ type ListTrendingTagsQuery struct {
 // ListTrendingTagsResult represents the result of a trending tags query.
 type ListTrendingTagsResult struct {
 	Tags   []TagWithUsageDTO `json:"tags"`
-	Period string   `json:"period"`
-	Limit  int      `json:"limit"`
+	Period string            `json:"period"`
+	Limit  int               `json:"limit"`
 }
 
 // ListTrendingTagsHandler processes ListTrendingTagsQuery requests.
