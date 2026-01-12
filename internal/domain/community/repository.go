@@ -113,3 +113,21 @@ type MemberFilter struct {
 	Role   *GroupRole    // Filter by role (optional)
 	Status *MemberStatus // Filter by status (optional)
 }
+
+// GroupActivityRepository is the repository interface for GroupActivity entities.
+// Used for audit logging and activity feeds.
+type GroupActivityRepository interface {
+	// Save persists a group activity to storage.
+	// This is an append-only operation - activities are never updated.
+	Save(ctx context.Context, activity *GroupActivity) error
+
+	// FindByGroup retrieves activities for a specific group with pagination.
+	// Activities are returned in reverse chronological order (newest first).
+	// Returns the activities, total count, and error.
+	FindByGroup(ctx context.Context, groupID GroupID, pagination shared.Pagination) ([]*GroupActivity, int, error)
+
+	// FindByGroupAndType retrieves activities for a specific group filtered by activity type.
+	// Useful for filtering admin actions (banned, removed, etc.) or specific event types.
+	// Returns the activities, total count, and error.
+	FindByGroupAndType(ctx context.Context, groupID GroupID, activityType ActivityType, pagination shared.Pagination) ([]*GroupActivity, int, error)
+}

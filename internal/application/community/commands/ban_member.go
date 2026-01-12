@@ -29,6 +29,7 @@ func (BanMemberCommand) isCommand() {}
 type BanMemberHandler struct {
 	groupRepo      community.GroupRepository
 	membershipRepo community.GroupMembershipRepository
+	activityRepo   community.GroupActivityRepository
 	eventPublisher appcommunity.EventPublisher
 	logger         *zerolog.Logger
 }
@@ -37,12 +38,14 @@ type BanMemberHandler struct {
 func NewBanMemberHandler(
 	groupRepo community.GroupRepository,
 	membershipRepo community.GroupMembershipRepository,
+	activityRepo community.GroupActivityRepository,
 	eventPublisher appcommunity.EventPublisher,
 	logger *zerolog.Logger,
 ) *BanMemberHandler {
 	return &BanMemberHandler{
 		groupRepo:      groupRepo,
 		membershipRepo: membershipRepo,
+		activityRepo:   activityRepo,
 		eventPublisher: eventPublisher,
 		logger:         logger,
 	}
@@ -177,6 +180,32 @@ func (h *BanMemberHandler) Handle(ctx context.Context, cmd BanMemberCommand) err
 		}
 	}
 	targetMembership.ClearEvents()
+
+	// 8. Create audit log activity for the ban action
+	activity, err := community.NewMemberBannedActivity(
+		cmd.GroupID,
+		cmd.ActorID,
+		cmd.TargetID,
+		cmd.Reason,
+	)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("group_id", cmd.GroupID.String()).
+			Str("actor_id", cmd.ActorID.String()).
+			Str("target_id", cmd.TargetID.String()).
+			Msg("failed to create ban activity")
+		// Don't fail the command if audit logging fails
+	} else {
+		if err := h.activityRepo.Save(ctx, activity); err != nil {
+			h.logger.Error().
+				Err(err).
+				Str("group_id", cmd.GroupID.String()).
+				Str("activity_id", activity.ID().String()).
+				Msg("failed to save ban activity")
+			// Don't fail the command if audit logging fails
+		}
+	}
 
 	h.logger.Info().
 		Str("group_id", cmd.GroupID.String()).
