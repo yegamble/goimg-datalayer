@@ -369,7 +369,36 @@ func NewRouter(
 			// Protected group endpoints (Sprint 20)
 			// Create, update, delete, join, leave, member management
 			if groupHandler != nil {
-				r.Mount("/groups", groupHandler.ProtectedRoutes())
+				r.Route("/groups", func(r chi.Router) {
+					// Group creation with rate limiting (5 groups/hour per user)
+					if middlewareConfig.RateLimiterConfig != nil {
+						r.With(middleware.GroupCreationRateLimiter(*middlewareConfig.RateLimiterConfig)).
+							Post("/", groupHandler.CreateGroup)
+					} else {
+						r.Post("/", groupHandler.CreateGroup)
+					}
+
+					// Group update and delete (no rate limiting - these are updates to existing groups)
+					r.Put("/{groupID}", groupHandler.UpdateGroup)
+					r.Delete("/{groupID}", groupHandler.DeleteGroup)
+
+					// Group join with rate limiting (10 joins/hour per user)
+					if middlewareConfig.RateLimiterConfig != nil {
+						r.With(middleware.GroupJoinRateLimiter(*middlewareConfig.RateLimiterConfig)).
+							Post("/{groupID}/join", groupHandler.JoinGroup)
+					} else {
+						r.Post("/{groupID}/join", groupHandler.JoinGroup)
+					}
+
+					// Other membership operations (no rate limiting)
+					r.Delete("/{groupID}/leave", groupHandler.LeaveGroup)
+					r.Get("/{groupID}/members", groupHandler.ListMembers)
+
+					// Member management routes (admin+ only)
+					r.Put("/{groupID}/members/{userID}/role", groupHandler.UpdateMemberRole)
+					r.Delete("/{groupID}/members/{userID}", groupHandler.RemoveMember)
+					r.Post("/{groupID}/members/{userID}/ban", groupHandler.BanMember)
+				})
 			}
 
 			// User's groups endpoint

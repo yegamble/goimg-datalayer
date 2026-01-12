@@ -732,6 +732,184 @@ func GuestSessionRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Hand
 	}
 }
 
+// GroupCreationRateLimiter creates a rate limiting middleware for group creation.
+// Uses a limit of 5 groups/hour per user to prevent spam and abuse.
+//
+// Redis key pattern: goimg:ratelimit:group:create:{user_id}
+//
+// This should be applied to the group creation endpoint:
+//
+// Usage:
+//
+//	r.With(middleware.GroupCreationRateLimiter(cfg)).Post("/groups", handlers.Group.Create)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func GroupCreationRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Group creation rate limit: 5 groups per hour
+	groupCreateLimit := 5
+	groupCreateWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user ID in context - should not happen if JWTAuth middleware is present
+				cfg.Logger.Error().
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group creation rate limiter called without user context")
+
+				WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "Rate limiter configuration error")
+				return
+			}
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:group:create:%s", userID)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, groupCreateLimit, groupCreateWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group creation rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("group_create")
+				}
+
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Int("limit", groupCreateLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group creation rate limit exceeded - potential spam")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Group Creation Limit Exceeded",
+					fmt.Sprintf(
+						"You have exceeded the group creation limit of %d groups per %s. Please try again later.",
+						groupCreateLimit, groupCreateWindow,
+					),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// GroupJoinRateLimiter creates a rate limiting middleware for group join requests.
+// Uses a limit of 10 join requests/hour per user to prevent spam and abuse.
+//
+// Redis key pattern: goimg:ratelimit:group:join:{user_id}
+//
+// This should be applied to the group join endpoint:
+//
+// Usage:
+//
+//	r.With(middleware.GroupJoinRateLimiter(cfg)).Post("/groups/{groupID}/join", handlers.Group.Join)
+//
+//nolint:funlen // Rate limiting middleware with Redis.
+func GroupJoinRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
+	// Group join rate limit: 10 join requests per hour
+	groupJoinLimit := 10
+	groupJoinWindow := time.Hour
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// Extract user ID from context (set by JWT middleware)
+			userID, ok := GetUserIDString(ctx)
+			if !ok {
+				// No user ID in context - should not happen if JWTAuth middleware is present
+				cfg.Logger.Error().
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group join rate limiter called without user context")
+
+				WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "Rate limiter configuration error")
+				return
+			}
+
+			// Build rate limit key
+			key := fmt.Sprintf("goimg:ratelimit:group:join:%s", userID)
+
+			// Check rate limit
+			allowed, info, err := checkRateLimit(ctx, cfg.RedisClient, key, groupJoinLimit, groupJoinWindow)
+			if err != nil {
+				cfg.Logger.Error().
+					Err(err).
+					Str("user_id", userID).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group join rate limit check failed")
+
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Set rate limit headers
+			setRateLimitHeaders(w, info)
+
+			// Deny request if rate limit exceeded
+			if !allowed {
+				// Record metrics
+				if cfg.MetricsCollector != nil {
+					cfg.MetricsCollector.RecordRateLimitExceeded("group_join")
+				}
+
+				cfg.Logger.Warn().
+					Str("user_id", userID).
+					Int("limit", groupJoinLimit).
+					Str("request_id", GetRequestID(ctx)).
+					Msg("group join rate limit exceeded - potential spam")
+
+				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
+
+				WriteErrorWithExtensions(w, r,
+					http.StatusTooManyRequests,
+					"Group Join Limit Exceeded",
+					fmt.Sprintf(
+						"You have exceeded the group join limit of %d join requests per %s. Please try again later.",
+						groupJoinLimit, groupJoinWindow,
+					),
+					map[string]interface{}{
+						"limit":      info.Limit,
+						"remaining":  info.Remaining,
+						"reset":      info.Reset,
+						"retryAfter": info.RetryAfter,
+					},
+				)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // extractClientIP extracts the client IP address from the request.
 // If trustProxy is true, it checks X-Forwarded-For and X-Real-IP headers.
 // Otherwise, it uses RemoteAddr directly.
