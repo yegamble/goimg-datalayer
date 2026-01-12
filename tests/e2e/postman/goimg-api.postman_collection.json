@@ -10243,8 +10243,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ],
               "query": [
                 {
                   "key": "url",
@@ -10294,8 +10300,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=xml",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ],
               "query": [
                 {
                   "key": "url",
@@ -10339,8 +10351,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&maxwidth=800",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ],
               "query": [
                 {
                   "key": "url",
@@ -10380,8 +10398,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ]
             }
           }
         },
@@ -10411,8 +10435,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=invalid",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ],
               "query": [
                 {
                   "key": "url",
@@ -10451,8 +10481,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "oembed"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "oembed"
+              ],
               "query": [
                 {
                   "key": "url",
@@ -10516,8 +10552,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/images/{{publicImageId}}/preview",
-              "host": ["{{baseUrl}}"],
-              "path": ["images", "{{publicImageId}}", "preview"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "images",
+                "{{publicImageId}}",
+                "preview"
+              ]
             }
           }
         },
@@ -10541,8 +10583,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/preview",
-              "host": ["{{baseUrl}}"],
-              "path": ["images", "00000000-0000-0000-0000-000000000000", "preview"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "images",
+                "00000000-0000-0000-0000-000000000000",
+                "preview"
+              ]
             }
           }
         }
@@ -10684,6 +10732,1778 @@
               ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "description": "Sprint 20: Groups/Communities API endpoints - 27 comprehensive tests covering group management, membership, member management, search & discovery, and error handling",
+      "item": [
+        {
+          "name": "1. Group Management",
+          "description": "Tests for creating, retrieving, updating, and deleting groups",
+          "item": [
+            {
+              "name": "Create Public Group - Success",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Generate unique group data",
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "pm.collectionVariables.set('testGroupName', `Test Public Group ${uniqueId}`);",
+                      "pm.collectionVariables.set('testGroupSlug', `test-public-group-${uniqueId}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has correct Content-Type', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/json; charset=utf-8');",
+                      "});",
+                      "",
+                      "pm.test('Response has group data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('name');",
+                      "    pm.expect(jsonData).to.have.property('slug');",
+                      "    pm.expect(jsonData).to.have.property('group_type');",
+                      "    pm.expect(jsonData).to.have.property('owner_id');",
+                      "    pm.expect(jsonData).to.have.property('member_count');",
+                      "    pm.expect(jsonData).to.have.property('image_count');",
+                      "    pm.expect(jsonData).to.have.property('album_count');",
+                      "    pm.expect(jsonData).to.have.property('created_at');",
+                      "    ",
+                      "    // Store group ID and slug for subsequent tests",
+                      "    pm.collectionVariables.set('testPublicGroupId', jsonData.id);",
+                      "    pm.collectionVariables.set('testPublicGroupSlug', jsonData.slug);",
+                      "});",
+                      "",
+                      "pm.test('Group type is public', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.group_type).to.eql('public');",
+                      "});",
+                      "",
+                      "pm.test('Group name matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.name).to.eql(pm.collectionVariables.get('testGroupName'));",
+                      "});",
+                      "",
+                      "pm.test('Owner is current user', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.owner_id).to.eql(pm.collectionVariables.get('testUserId'));",
+                      "});",
+                      "",
+                      "pm.test('Initial member count is 1', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.member_count).to.eql(1);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{testGroupName}}\",\n  \"description\": \"A public group for testing purposes\",\n  \"group_type\": \"public\",\n  \"slug\": \"{{testGroupSlug}}\",\n  \"settings\": {\n    \"allow_member_invites\": true,\n    \"allow_member_albums\": true,\n    \"require_image_approval\": false\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Private Group - Success",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Generate unique group data",
+                      "const timestamp = Date.now();",
+                      "const randomSuffix = Math.floor(Math.random() * 10000);",
+                      "const uniqueId = `${timestamp}${randomSuffix}`;",
+                      "",
+                      "pm.collectionVariables.set('testPrivateGroupName', `Test Private Group ${uniqueId}`);",
+                      "pm.collectionVariables.set('testPrivateGroupSlug', `test-private-group-${uniqueId}`);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has group data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('group_type');",
+                      "    ",
+                      "    // Store private group ID for subsequent tests",
+                      "    pm.collectionVariables.set('testPrivateGroupId', jsonData.id);",
+                      "});",
+                      "",
+                      "pm.test('Group type is private', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.group_type).to.eql('private');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{testPrivateGroupName}}\",\n  \"description\": \"A private group for testing\",\n  \"group_type\": \"private\",\n  \"slug\": \"{{testPrivateGroupSlug}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Group - Invalid Data (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates validation failure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Bad Request');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"ab\",\n  \"group_type\": \"invalid_type\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Group by ID - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has group data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('name');",
+                      "    pm.expect(jsonData).to.have.property('slug');",
+                      "    pm.expect(jsonData).to.have.property('group_type');",
+                      "    pm.expect(jsonData).to.have.property('owner_id');",
+                      "});",
+                      "",
+                      "pm.test('Group ID matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('testPublicGroupId'));",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Group by Slug - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has group data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('slug');",
+                      "});",
+                      "",
+                      "pm.test('Group slug matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.slug).to.eql(pm.collectionVariables.get('testPublicGroupSlug'));",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/by-slug/{{testPublicGroupSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "by-slug",
+                    "{{testPublicGroupSlug}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Group - Admin Only Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has updated group data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('description');",
+                      "});",
+                      "",
+                      "pm.test('Description was updated', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.description).to.eql('Updated description for testing');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Updated description for testing\",\n  \"settings\": {\n    \"allow_member_invites\": false\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Group - Owner Only Success",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create a temporary group to delete",
+                      "const timestamp = Date.now();",
+                      "const uniqueId = `${timestamp}${Math.floor(Math.random() * 10000)}`;",
+                      "",
+                      "const postRequest = {",
+                      "  url: pm.collectionVariables.get('baseUrl') + '/groups',",
+                      "  method: 'POST',",
+                      "  header: {",
+                      "    'Authorization': 'Bearer ' + pm.collectionVariables.get('accessToken'),",
+                      "    'Content-Type': 'application/json'",
+                      "  },",
+                      "  body: {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "      name: `Temp Delete Group ${uniqueId}`,",
+                      "      group_type: 'public'",
+                      "    })",
+                      "  }",
+                      "};",
+                      "",
+                      "pm.sendRequest(postRequest, function (err, response) {",
+                      "  if (!err && response.code === 201) {",
+                      "    const groupData = response.json();",
+                      "    pm.collectionVariables.set('testDeleteGroupId', groupData.id);",
+                      "  }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.eql('');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testDeleteGroupId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testDeleteGroupId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Group Membership",
+          "description": "Tests for joining, leaving, and listing group memberships",
+          "item": [
+            {
+              "name": "Join Public Group - Instant Join",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create a second user for membership tests",
+                      "const timestamp = Date.now();",
+                      "const uniqueId = `${timestamp}${Math.floor(Math.random() * 10000)}`;",
+                      "",
+                      "// Register second user",
+                      "const registerRequest = {",
+                      "  url: pm.collectionVariables.get('baseUrl') + '/auth/register',",
+                      "  method: 'POST',",
+                      "  header: {",
+                      "    'Content-Type': 'application/json'",
+                      "  },",
+                      "  body: {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "      email: `member-${uniqueId}@example.com`,",
+                      "      username: `member${uniqueId}`,",
+                      "      password: pm.collectionVariables.get('testPassword')",
+                      "    })",
+                      "  }",
+                      "};",
+                      "",
+                      "pm.sendRequest(registerRequest, function (err, response) {",
+                      "  if (!err && response.code === 201) {",
+                      "    const userData = response.json();",
+                      "    pm.collectionVariables.set('testMemberId', userData.id);",
+                      "    ",
+                      "    // Login to get token",
+                      "    const loginRequest = {",
+                      "      url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                      "      method: 'POST',",
+                      "      header: {",
+                      "        'Content-Type': 'application/json'",
+                      "      },",
+                      "      body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({",
+                      "          email: `member-${uniqueId}@example.com`,",
+                      "          password: pm.collectionVariables.get('testPassword')",
+                      "        })",
+                      "      }",
+                      "    };",
+                      "    ",
+                      "    pm.sendRequest(loginRequest, function (err, response) {",
+                      "      if (!err && response.code === 200) {",
+                      "        const authData = response.json();",
+                      "        pm.collectionVariables.set('memberAccessToken', authData.access_token);",
+                      "      }",
+                      "    });",
+                      "  }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has membership data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('group_id');",
+                      "    pm.expect(jsonData).to.have.property('user_id');",
+                      "    pm.expect(jsonData).to.have.property('role');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('joined_at');",
+                      "    ",
+                      "    // Store membership ID for cleanup",
+                      "    pm.collectionVariables.set('testMembershipId', jsonData.id);",
+                      "});",
+                      "",
+                      "pm.test('Membership status is active (instant join)', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.eql('active');",
+                      "});",
+                      "",
+                      "pm.test('Membership role is member', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.role).to.eql('member');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/join",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "join"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Join Invite-Only Group - Request Created",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Create an invite-only group",
+                      "const timestamp = Date.now();",
+                      "const uniqueId = `${timestamp}${Math.floor(Math.random() * 10000)}`;",
+                      "",
+                      "const postRequest = {",
+                      "  url: pm.collectionVariables.get('baseUrl') + '/groups',",
+                      "  method: 'POST',",
+                      "  header: {",
+                      "    'Authorization': 'Bearer ' + pm.collectionVariables.get('accessToken'),",
+                      "    'Content-Type': 'application/json'",
+                      "  },",
+                      "  body: {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "      name: `Invite Only Group ${uniqueId}`,",
+                      "      group_type: 'invite_only'",
+                      "    })",
+                      "  }",
+                      "};",
+                      "",
+                      "pm.sendRequest(postRequest, function (err, response) {",
+                      "  if (!err && response.code === 201) {",
+                      "    const groupData = response.json();",
+                      "    pm.collectionVariables.set('testInviteOnlyGroupId', groupData.id);",
+                      "  }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Membership status is requested (pending approval)', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.eql('requested');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testInviteOnlyGroupId}}/join",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testInviteOnlyGroupId}}",
+                    "join"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Join Private Group - Forbidden (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(403);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates forbidden access', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Forbidden');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPrivateGroupId}}/join",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPrivateGroupId}}",
+                    "join"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Join Group - Already Member (409)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 409', function () {",
+                      "    pm.response.to.have.status(409);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(409);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates conflict', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Conflict');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/join",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "join"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Leave Group - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.eql('');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/leave",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "leave"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Leave Group - Owner Cannot Leave (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates owner cannot leave', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.detail).to.include('owner');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/leave",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "leave"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Group Members - With Pagination",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has members array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('members');",
+                      "    pm.expect(jsonData.members).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination metadata', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "    pm.expect(jsonData.pagination).to.have.property('page');",
+                      "    pm.expect(jsonData.pagination).to.have.property('limit');",
+                      "    pm.expect(jsonData.pagination).to.have.property('total');",
+                      "    pm.expect(jsonData.pagination).to.have.property('total_pages');",
+                      "});",
+                      "",
+                      "pm.test('Members have required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.members.length > 0) {",
+                      "        const member = jsonData.members[0];",
+                      "        pm.expect(member).to.have.property('id');",
+                      "        pm.expect(member).to.have.property('group_id');",
+                      "        pm.expect(member).to.have.property('user_id');",
+                      "        pm.expect(member).to.have.property('role');",
+                      "        pm.expect(member).to.have.property('status');",
+                      "        pm.expect(member).to.have.property('joined_at');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members?page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List User's Groups - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has groups array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('groups');",
+                      "    pm.expect(jsonData.groups).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination metadata', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "});",
+                      "",
+                      "pm.test('User has at least one group', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.groups.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/me/groups",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "me",
+                    "groups"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Member Management",
+          "description": "Tests for managing member roles, removing members, and banning users",
+          "item": [
+            {
+              "name": "Promote Member to Admin - Owner Only",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Rejoin the group as member for promotion test",
+                      "const joinRequest = {",
+                      "  url: pm.collectionVariables.get('baseUrl') + '/groups/' + pm.collectionVariables.get('testPublicGroupId') + '/join',",
+                      "  method: 'POST',",
+                      "  header: {",
+                      "    'Authorization': 'Bearer ' + pm.collectionVariables.get('memberAccessToken')",
+                      "  }",
+                      "};",
+                      "",
+                      "pm.sendRequest(joinRequest, function (err, response) {",
+                      "  // Member rejoined, ready for promotion",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has updated membership', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('role');",
+                      "});",
+                      "",
+                      "pm.test('Member role updated to admin', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.role).to.eql('admin');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"admin\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testMemberId}}/role",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testMemberId}}",
+                    "role"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Demote Admin to Member - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Member role updated to member', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.role).to.eql('member');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"member\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testMemberId}}/role",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testMemberId}}",
+                    "role"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Role - Non-Owner Cannot Promote (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(403);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates insufficient permissions', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Forbidden');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"admin\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testUserId}}/role",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testUserId}}",
+                    "role"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Member - Admin+ Can Remove",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.eql('');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testMemberId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testMemberId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Member - Cannot Remove Owner (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 403', function () {",
+                      "    pm.expect([400, 403]).to.include(pm.response.code);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testUserId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testUserId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Ban Member - Admin+ Can Ban",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Rejoin the group for ban test",
+                      "const joinRequest = {",
+                      "  url: pm.collectionVariables.get('baseUrl') + '/groups/' + pm.collectionVariables.get('testPublicGroupId') + '/join',",
+                      "  method: 'POST',",
+                      "  header: {",
+                      "    'Authorization': 'Bearer ' + pm.collectionVariables.get('memberAccessToken')",
+                      "  }",
+                      "};",
+                      "",
+                      "pm.sendRequest(joinRequest, function (err, response) {",
+                      "  // Member rejoined, ready for ban test",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has membership data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "});",
+                      "",
+                      "pm.test('Member status is banned', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.eql('banned');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Violating group rules\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/members/{{testMemberId}}/ban",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "members",
+                    "{{testMemberId}}",
+                    "ban"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Search & Discovery",
+          "description": "Tests for listing, searching, and filtering groups",
+          "item": [
+            {
+              "name": "List Public Groups - With Pagination",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has groups array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('groups');",
+                      "    pm.expect(jsonData.groups).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination metadata', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "    pm.expect(jsonData.pagination).to.have.property('page');",
+                      "    pm.expect(jsonData.pagination).to.have.property('limit');",
+                      "    pm.expect(jsonData.pagination).to.have.property('total');",
+                      "    pm.expect(jsonData.pagination).to.have.property('total_pages');",
+                      "});",
+                      "",
+                      "pm.test('Groups have required fields', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.groups.length > 0) {",
+                      "        const group = jsonData.groups[0];",
+                      "        pm.expect(group).to.have.property('id');",
+                      "        pm.expect(group).to.have.property('name');",
+                      "        pm.expect(group).to.have.property('slug');",
+                      "        pm.expect(group).to.have.property('group_type');",
+                      "        pm.expect(group).to.have.property('owner_id');",
+                      "        pm.expect(group).to.have.property('member_count');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups?page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Groups by Name - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has groups array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('groups');",
+                      "    pm.expect(jsonData.groups).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination metadata', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('pagination');",
+                      "});",
+                      "",
+                      "pm.test('Search results match query', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.groups.length > 0) {",
+                      "        const group = jsonData.groups[0];",
+                      "        pm.expect(group.name.toLowerCase()).to.include('test');",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/search?q=test&page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "test"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Groups - Private Not in Results",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Private groups not included', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const privateGroups = jsonData.groups.filter(g => g.group_type === 'private');",
+                      "    pm.expect(privateGroups.length).to.eql(0);",
+                      "});",
+                      "",
+                      "pm.test('Only public and invite_only groups included', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const validTypes = ['public', 'invite_only'];",
+                      "    jsonData.groups.forEach(group => {",
+                      "        pm.expect(validTypes).to.include(group.group_type);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups?page=1&limit=50",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filter Groups by Type - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has groups array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('groups');",
+                      "});",
+                      "",
+                      "pm.test('All groups match filter type', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    jsonData.groups.forEach(group => {",
+                      "        pm.expect(group.group_type).to.eql('public');",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups?type=public&page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "public"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Error Handling",
+          "description": "Tests for RFC 7807 error responses",
+          "item": [
+            {
+              "name": "Get Group - Not Found (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData).to.have.property('detail');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error title indicates not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Not Found');",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Group - Unauthorized (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(401);",
+                      "});",
+                      "",
+                      "pm.test('Error title indicates unauthorized', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Unauthorized');",
+                      "});",
+                      "",
+                      "pm.test('Response has WWW-Authenticate header', function () {",
+                      "    pm.response.to.have.header('WWW-Authenticate');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test Group\",\n  \"group_type\": \"public\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }
