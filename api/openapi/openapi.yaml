@@ -13,8 +13,8 @@ info:
     - RESTful API with RFC 7807 error responses
 
     **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) implemented.
-    **Phase 3 Progress**: Sprints 16-17 complete (oEmbed, nested albums, custom variants).
-    Sprint 18 (Test Coverage) in progress. Future features include: trending tags, groups,
+    **Phase 3 Progress**: Sprints 16-18 complete (oEmbed, nested albums, custom variants, test coverage).
+    Sprint 19 (Trending Tags + Featured Picks) is next. Future features include: groups,
     video support, and account tiers.
 
   contact:

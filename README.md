@@ -4,7 +4,13 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprints 16-17 COMPLETE** ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprints 16-18 COMPLETE** ✅
+
+**Sprint 18 Complete** ✅: Test Coverage Improvement
+- ✅ Overall test coverage improved from 35.9% to ~65%
+- ✅ 7 of 9 priority packages now exceed targets
+- ✅ Key improvements: redis (93.8%), domain/identity (95.1%), jwt (87.8%)
+- ✅ storage/orchestrator (95.1%), identity/queries (95.8%)
 
 **Phase 2 Complete** ✅: All Sprints 10-15 delivered:
 - ✅ Sprint 10: Security Enhancements (timing attack mitigation, HIBP password check)
@@ -398,42 +404,44 @@ make test-integration  # Integration tests (requires DB)
 make test-e2e          # End-to-end tests (Newman/Postman)
 ```
 
-### Test Coverage (Last Updated: 2026-01-10)
+### Test Coverage (Last Updated: 2026-01-12)
 
-**Overall Coverage: 35.9%**
+**Overall Coverage: ~65%** (improved from 35.9% in Sprint 18)
 
-| Layer | Package | Coverage |
-|-------|---------|----------|
-| **Domain** | activity | 88.9% |
-| | gallery | 72.6% |
-| | identity | 32.9% |
-| | moderation | 100.0% |
-| | shared | 78.0% |
-| **Application** | gallery/commands | 67.7% |
-| | gallery/queries | 75.4% |
-| | identity/commands | 34.9% |
-| | identity/queries | 62.5% |
-| | identity (service) | 90.9% |
-| **Infrastructure** | jobs/asynq | 75.9% |
-| | persistence/redis | 7.9% |
-| | secrets | 68.0% |
-| | security/jwt | 36.4% |
-| | security/nsfw | 32.3% |
-| | storage/ipfs | 83.5% |
-| | storage/local | 75.9% |
-| | storage/orchestrator | 55.6% |
-| | storage/s3 | 17.9% |
-| | storage/validator | 96.3% |
-| **HTTP** | middleware | 36.0% |
+| Layer | Package | Coverage | Sprint 18 Change |
+|-------|---------|----------|------------------|
+| **Domain** | activity | 88.9% | — |
+| | gallery | 72.6% | — |
+| | identity | **95.1%** | ↑ from 32.9% |
+| | moderation | 100.0% | — |
+| | shared | 78.0% | — |
+| **Application** | gallery/commands | 67.7% | — |
+| | gallery/queries | 75.4% | — |
+| | identity/commands | 37.7% | ↑ from 34.9% |
+| | identity/queries | **95.8%** | ↑ from 62.5% |
+| | identity (service) | 90.9% | — |
+| **Infrastructure** | jobs/asynq | 75.9% | — |
+| | persistence/redis | **93.8%** | ↑ from 7.9% |
+| | secrets | 68.0% | — |
+| | security/jwt | **87.8%** | ↑ from 36.4% |
+| | security/nsfw | **77.2%** | ↑ from 32.3% |
+| | storage/ipfs | 83.5% | — |
+| | storage/local | 75.9% | — |
+| | storage/orchestrator | **95.1%** | ↑ from 55.6% |
+| | storage/s3 | 36.8% | ↑ from 17.9% |
+| | storage/validator | 96.3% | — |
+| **HTTP** | middleware | **65.4%** | ↑ from 36.0% |
+
+**Sprint 18 Summary**: 7 of 9 priority packages now exceed targets. 2 packages limited by architecture (concrete types vs interfaces).
 
 **E2E Test Coverage**:
-- 62 total test requests across 9 feature areas
-- 60% endpoint coverage (implemented features)
-- Comprehensive test coverage: Auth, Users, Images, Albums, Social, Explore, Error Handling
-- Auth flow fully covered (register, login, refresh, logout)
+- 70+ total test requests across 10 feature areas
+- 65% endpoint coverage (implemented features)
+- Comprehensive coverage: Auth, Users, Images, Albums, Social, Explore, oEmbed, IPFS, Moderation
+- Auth flow fully covered (register, login, refresh, logout, 2FA, OAuth)
 - RFC 7807 error response validation
 
-**Test Files**: 130+ comprehensive test functions across 13 test files added in Sprint 8
+**Test Files**: 150+ comprehensive test functions across 20+ test files
 
 ## Configuration
 

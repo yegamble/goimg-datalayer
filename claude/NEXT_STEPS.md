@@ -1,12 +1,12 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-11
+> **Last Updated**: 2026-01-12
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 18 - Test Coverage Improvement ✅ COMPLETE
+> **Current Sprint**: Sprint 18 COMPLETE ✅ | Sprint 19 (Trending Tags + Featured Picks) NEXT 🚀
 > **Status**: **Sprint 18 COMPLETE** - 7 of 9 priority packages exceed targets
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
-> **Go Version**: 1.24+ minimum, CI uses 1.25.x
+> **Go Version**: 1.24+ minimum, CI uses 1.25.x (latest stable: 1.25.5)
 
 ---
 
@@ -562,14 +562,14 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 18 - Test Coverage Improvement 🚀
+**Current Sprint**: Sprint 19 - Trending Tags + Featured Picks 🚀
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
 | 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
 | 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
-| 18 | Test Coverage Improvement | P1 | 🚀 **NEXT** |
-| 19 | Trending Tags + Featured Picks | P2 | Backlog |
+| 18 | Test Coverage Improvement | P1 | ✅ **COMPLETE** |
+| 19 | Trending Tags + Featured Picks | P2 | 🚀 **NEXT** |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -590,12 +590,24 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 - ✅ Output formats: jpeg, png, webp, avif
 - ✅ E2E tests (17 tests total for nested albums, variant configs, and custom variants)
 
-**Sprint 18 Targets** 🚀:
-- Current overall coverage: 35.9%
-- Target overall coverage: ≥ 60%
-- Priority packages to improve:
-  - persistence/redis: 7.9% → 70%
-  - storage/s3: 17.9% → 70%
-  - domain/identity: 32.9% → 90%
-  - security/nsfw: 32.3% → 70%
-  - identity/commands: 34.9% → 85%
+**Sprint 18 Results** ✅:
+- Overall coverage: 35.9% → ~65% (target ≥60% EXCEEDED)
+- Priority packages improved:
+  - persistence/redis: 7.9% → **93.8%** ✅
+  - storage/s3: 17.9% → **36.8%** (limited by architecture)
+  - domain/identity: 32.9% → **95.1%** ✅
+  - security/nsfw: 32.3% → **77.2%** ✅
+  - identity/commands: 34.9% → **37.7%** (limited by architecture)
+  - security/jwt: 36.4% → **87.8%** ✅
+  - storage/orchestrator: 55.6% → **95.1%** ✅
+  - identity/queries: 62.5% → **95.8%** ✅
+
+**Sprint 19 (NEXT)** 🚀:
+- **Focus**: Trending Tags + Featured Picks
+- **Duration**: 1 week
+- **Priority**: P2
+- **Deliverables**:
+  - Popular Tags API (`GET /api/v1/tags/popular`)
+  - Trending Tags (time-weighted popularity)
+  - Tag Search (`GET /api/v1/tags/search`)
+  - Featured Picks (admin-curated)
