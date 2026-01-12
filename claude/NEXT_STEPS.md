@@ -2,8 +2,9 @@
 
 > **Last Updated**: 2026-01-12
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
-> **Current Sprint**: Sprint 19 (Trending Tags + Featured Picks) COMPLETE ✅
-> **Status**: **Sprint 19 COMPLETE** - Trending tags, featured picks, full API coverage
+> **Completed Sprints**: 16, 17, 18, 19 ✅
+> **Next Sprint**: Sprint 20 (Groups/Communities) - Backlog
+> **Status**: **Phase 3 Sprints 16-19 COMPLETE** - oEmbed, nested albums, test coverage, trending tags, featured picks
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
 > **Go Version**: 1.24+ minimum, CI uses 1.25.x (latest stable: 1.25.5)
@@ -562,14 +563,17 @@ See `/docs/security/sprint_11_2fa_security_spec.md` for security specification.
 
 Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full plan.
 
-**Current Sprint**: Sprint 19 - Trending Tags + Featured Picks 🚀
+**Phase 3 Progress**: Sprints 16-19 Complete ✅ | Next: Sprint 20 (Backlog)
 
 | Sprint | Focus | Priority | Status |
 |--------|-------|----------|--------|
-| 16 | oEmbed + Social Media Cards | P1 | ✅ **COMPLETE** |
-| 17 | Nested Albums + Custom Variants | P2 | ✅ **COMPLETE** |
-| 18 | Test Coverage Improvement | P1 | ✅ **COMPLETE** |
-| 19 | Trending Tags + Featured Picks | P2 | ✅ **COMPLETE** |
+| 16 | oEmbed + Social Media Cards | P1 | ✅ COMPLETE |
+| 17 | Nested Albums + Custom Variants | P2 | ✅ COMPLETE |
+| 18 | Test Coverage Improvement | P1 | ✅ COMPLETE |
+| 19 | Trending Tags + Featured Picks | P2 | ✅ COMPLETE |
+| 20 | Groups/Communities | P3 | 📋 Backlog |
+| 21 | Video Support | P3 | 📋 Backlog |
+| 22 | Account Tiers/Subscriptions | P3 | 📋 Backlog |
 
 **Sprint 16 Complete** ✅:
 - ✅ oEmbed 1.0 endpoint (`GET /api/v1/oembed`) - Handler implemented
@@ -602,11 +606,11 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - storage/orchestrator: 55.6% → **95.1%** ✅
   - identity/queries: 62.5% → **95.8%** ✅
 
-**Sprint 19 (IN PROGRESS)** 🚧:
+**Sprint 19 (COMPLETE)** ✅:
 - **Focus**: Trending Tags + Featured Picks
 - **Duration**: 1 week
 - **Priority**: P2
-- **Completed**:
+- **All Deliverables Complete**:
   - ✅ TagRepository interface (domain layer)
   - ✅ TagRepository implementation (PostgreSQL)
   - ✅ Popular Tags API (`GET /api/v1/tags/popular`)
@@ -628,4 +632,17 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
   - ✅ Router wiring for Featured Picks
   - ✅ E2E Tests for Featured Picks endpoints (6 Newman tests)
   - ✅ Contract tests for Featured Picks endpoints
-- **Status**: Sprint 19 COMPLETE ✅
+
+---
+
+## Next Steps: Sprint 20 (Backlog)
+
+Sprint 20 (Groups/Communities) is in the backlog with P3 priority. Key features planned:
+
+- Group entity (name, description, privacy, member count)
+- Group membership (join/leave, roles: owner, admin, member)
+- Group albums (shared albums within groups)
+- Group activity feed
+- Group discovery (search and browse public groups)
+
+See `claude/phase_3_sprint_plan.md` for full Sprint 20 planning
