@@ -7,11 +7,14 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 **Current Phase**: **Phase 3 - Advanced Features** | **Sprint 20 IN PROGRESS** 🚧
 
 **Sprint 20 (IN PROGRESS)**: Groups/Communities
-- 🚧 Domain layer complete (community bounded context)
-- 🚧 Database migration complete (00017_create_groups.sql)
-- ⏳ Infrastructure layer (PostgreSQL repositories)
-- ⏳ Application layer (commands/queries)
-- ⏳ HTTP handlers and OpenAPI spec
+- ✅ Domain layer complete (community bounded context, 97.5% test coverage)
+- ✅ Database migration complete (00017_create_groups.sql)
+- ✅ Infrastructure layer complete (PostgreSQL repositories)
+- ✅ Application layer complete (commands/queries)
+- ✅ HTTP handlers and OpenAPI spec complete
+- ✅ Security Gate S20: 9/10 controls passed
+- ⏳ Group Albums (P1) - in progress
+- ⏳ Contract tests and performance testing
 
 **Sprint 19 Complete** ✅: Trending Tags + Featured Picks
 - ✅ TagRepository interface and PostgreSQL implementation
@@ -331,7 +334,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.25    # Latest stable: 1.25.1 (Go 1.26 RC available)
+go >= 1.25    # Latest stable: 1.25.5 (Go 1.26 RC1 available)
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
@@ -625,7 +628,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
 | **18** | Test Coverage Improvement | 2 weeks | P1 | ✅ **COMPLETE** |
 | **19** | Trending Tags + Featured Picks | 1 week | P2 | ✅ **COMPLETE** |
-| **20** | Groups/Communities | 2 weeks | P3 | 🚧 **IN PROGRESS** |
+| **20** | Groups/Communities | 2 weeks | P3 | 🚧 **IN PROGRESS** (9/10 security controls) |
 | **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
@@ -678,8 +681,34 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ E2E Tests for Featured Picks (6 Newman tests)
 - ✅ Contract tests for Featured Picks endpoints
 
+#### Sprint 20: Groups/Communities 🚧 IN PROGRESS
+
+- ✅ Community bounded context (new domain layer)
+- ✅ Group, GroupMembership, GroupInvitation domain entities
+- ✅ Value objects: GroupID, GroupName, GroupSlug, GroupSettings, GroupRole, GroupType
+- ✅ 19 domain events for group lifecycle
+- ✅ Database migration (00017_create_groups.sql) with 7 tables
+- ✅ PostgreSQL repositories (Group, Membership, Image, Invitation, Activity)
+- ✅ Application layer (14 commands, 8 queries)
+- ✅ HTTP handlers: GroupHandler (14 endpoints), GroupImageHandler (5 endpoints)
+- ✅ OpenAPI spec for groups endpoints
+- ✅ E2E tests (27 Newman tests planned)
+- ✅ Security Gate S20: 9/10 controls passed
+  - ✅ Group privacy enforcement (S20-GROUP-001)
+  - ✅ RBAC for group actions (S20-GROUP-002)
+  - ✅ Authorization on all endpoints (S20-GROUP-003)
+  - ✅ Privilege escalation prevention (S20-GROUP-004)
+  - ✅ Moderation queue security (S20-GROUP-005)
+  - ✅ Invitation token security (S20-GROUP-006)
+  - ✅ Rate limiting (S20-GROUP-007)
+  - ✅ Audit logging (S20-GROUP-008)
+  - ✅ SQL injection prevention (S20-GROUP-009)
+  - ⚠️ XSS prevention (S20-GROUP-010) - partial (frontend responsibility)
+- ⏳ Group Albums implementation (P1)
+- ⏳ Contract tests validation
+- ⏳ Performance testing
+
 **Future Sprints** (Backlog):
-- **Groups** (Sprint 20) - Interest-based communities with shared albums
 - **Video Support** (Sprint 21) - Video uploads with HLS/DASH streaming
 - **Account Tiers** (Sprint 22) - Free, Pro, Business levels with different limits
 

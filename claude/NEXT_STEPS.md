@@ -1,13 +1,14 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-12
+> **Last Updated**: 2026-01-13
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
 > **Completed Sprints**: 16, 17, 18, 19 ✅
 > **Current Sprint**: Sprint 20 (Groups/Communities) 🚧 IN PROGRESS
-> **Status**: Domain layer and migration complete, infrastructure layer next
+> **Status**: Core Groups feature near completion, Group Albums remaining
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
-> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.1, Go 1.26 RC available)
+> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.5, Go 1.26 RC1 available)
+> **Security Gate S20**: 9/10 controls passed
 
 ---
 
@@ -637,18 +638,20 @@ Phase 3 implementation continues. See `claude/phase_3_sprint_plan.md` for full p
 
 ## Sprint 20: Groups/Communities (IN PROGRESS) 🚧
 
-Sprint 20 implementation has started. See `claude/sprint_20_plan.md` for detailed planning.
+Sprint 20 implementation is near completion. See `claude/sprint_20_plan.md` for detailed planning.
 
 ### Completed ✅
 
 - **Domain Layer** (internal/domain/community/):
   - Group aggregate root with business logic
   - GroupMembership entity with role transitions
+  - GroupInvitation entity with secure tokens
+  - GroupImage entity for moderation queue
   - Value objects: GroupID, GroupName, GroupSlug, GroupSettings
   - Enums: GroupType, GroupRole, MemberStatus
   - 19 domain events
   - Repository interfaces
-  - 97.5% test coverage (26 files, 3600+ lines)
+  - 97.5% test coverage (34 files)
 
 - **Database Migration** (migrations/00017_create_groups.sql):
   - 7 tables: groups, memberships, albums, images, invitations, activities
@@ -656,12 +659,41 @@ Sprint 20 implementation has started. See `claude/sprint_20_plan.md` for detaile
   - Performance indexes
   - pg_trgm fuzzy search
 
-### In Progress ⏳
+- **Infrastructure Layer** (PostgreSQL repositories):
+  - GroupRepository with CRUD and search
+  - GroupMembershipRepository
+  - GroupImageRepository
+  - GroupInvitationRepository
+  - GroupActivityRepository
 
-- **Infrastructure Layer**: PostgreSQL repository implementations
-- **Application Layer**: Commands and queries for CRUD operations
-- **HTTP Layer**: REST API handlers following OpenAPI spec
-- **E2E Tests**: 27 Newman/Postman test scenarios
+- **Application Layer**:
+  - 14 commands: CreateGroup, UpdateGroup, DeleteGroup, JoinGroup, LeaveGroup, UpdateMemberRole, RemoveMember, BanMember, ShareImageToGroup, ApproveGroupImage, RejectGroupImage, InviteToGroup, AcceptInvitation, DeclineInvitation
+  - 8 queries: GetGroup, GetGroupBySlug, ListPublicGroups, SearchGroups, ListGroupMembers, ListApprovedGroupImages, ListPendingGroupImages, ListUserGroups
+
+- **HTTP Layer**:
+  - GroupHandler (14 endpoints)
+  - GroupImageHandler (5 endpoints)
+  - Rate limiting: 5 groups/hr, 10 joins/hr per user
+  - OpenAPI spec complete
+
+- **Security Gate S20**: 9/10 controls passed
+  - ✅ S20-GROUP-001: Group privacy enforcement
+  - ✅ S20-GROUP-002: RBAC for group actions
+  - ✅ S20-GROUP-003: Authorization on all endpoints
+  - ✅ S20-GROUP-004: Privilege escalation prevention
+  - ✅ S20-GROUP-005: Moderation queue security
+  - ✅ S20-GROUP-006: Invitation token security (crypto/rand, 7-day expiry)
+  - ✅ S20-GROUP-007: Rate limiting
+  - ✅ S20-GROUP-008: Audit logging
+  - ✅ S20-GROUP-009: SQL injection prevention
+  - ⚠️ S20-GROUP-010: XSS prevention (partial - frontend responsibility)
+
+### Remaining Work ⏳
+
+- **Group Albums** (P1): CRUD operations for shared albums within groups
+- **Contract Tests**: Validate OpenAPI compliance
+- **Performance Testing**: Group list query < 200ms for 1000 groups
+- **E2E Tests**: Finalize 27 Newman/Postman test scenarios
 
 ### Key Features
 
@@ -671,5 +703,6 @@ Sprint 20 implementation has started. See `claude/sprint_20_plan.md` for detaile
 - Group albums (unique differentiator from Flickr)
 - Moderation queue for content approval
 - Group discovery and search
+- Secure invitation system with 7-day expiry
 
 See `claude/sprint_20_plan.md` for comprehensive Sprint 20 planning.
