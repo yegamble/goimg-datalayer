@@ -334,7 +334,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.25    # Latest stable: 1.25.5 (Go 1.26 RC1 available)
+go >= 1.25    # Latest stable: 1.25.1 (Go 1.26 expected Feb 2026)
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)

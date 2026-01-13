@@ -7,7 +7,7 @@
 > **Status**: Core Groups feature near completion, Group Albums remaining
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
-> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.5, Go 1.26 RC1 available)
+> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.1, Go 1.26 expected Feb 2026)
 > **Security Gate S20**: 9/10 controls passed
 
 ---
