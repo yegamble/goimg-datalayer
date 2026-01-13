@@ -1,7 +1,7 @@
 # Testing Guide
 
 > Practical guide for running, writing, and debugging tests in goimg-datalayer.
-> For comprehensive test strategy and patterns, see [`claude/test_strategy.md`](/home/user/goimg-datalayer/claude/test_strategy.md)
+> For comprehensive test strategy and patterns, see [`claude/test_strategy.md`](../claude/test_strategy.md)
 
 ## Quick Start
 
@@ -48,10 +48,8 @@ tests/
 │       └── fixtures.go       # Test data builders
 ├── e2e/                      # End-to-end API tests
 │   ├── postman/              # Postman collections
-│   │   ├── goimg-collection.json
-│   │   └── environment/
-│   │       ├── local.json
-│   │       └── ci.json
+│   │   ├── goimg-api.postman_collection.json
+│   │   └── ci.postman_environment.json
 │   └── newman/               # Newman test runner
 │       └── run_tests.sh
 ├── contract/                 # OpenAPI contract tests
@@ -173,8 +171,8 @@ make run &
 curl -f http://localhost:8080/health || sleep 5
 
 # 5. Run Newman tests
-newman run tests/e2e/postman/goimg-collection.json \
-  -e tests/e2e/postman/environment/local.json \
+newman run tests/e2e/postman/goimg-api.postman_collection.json \
+  -e tests/e2e/postman/ci.postman_environment.json \
   --reporters cli,json \
   --reporter-json-export newman-results.json
 ```
@@ -628,8 +626,8 @@ kill -9 $(lsof -t -i:5432)
 
 ## Resources
 
-- [Test Strategy Documentation](/home/user/goimg-datalayer/claude/test_strategy.md) - Comprehensive testing strategy
-- [Testing & CI Guide](/home/user/goimg-datalayer/claude/testing_ci.md) - CI/CD integration details
+- [Test Strategy Documentation](../claude/test_strategy.md) - Comprehensive testing strategy
+- [Testing & CI Guide](../claude/testing_ci.md) - CI/CD integration details
 - [testify Documentation](https://github.com/stretchr/testify) - Assertion library
 - [testcontainers-go Documentation](https://golang.testcontainers.org/) - Container testing
 - [Go Testing Best Practices](https://go.dev/doc/tutorial/add-a-test) - Official Go docs

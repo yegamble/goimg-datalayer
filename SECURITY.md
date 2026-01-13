@@ -35,9 +35,10 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 **DO NOT** open a public GitHub issue for security vulnerabilities. Instead:
 
-1. **Email**: Send details to **security@goimg-datalayer.example.com** (replace with actual contact)
-2. **Subject Line**: Use "SECURITY: [Brief Description]"
-3. **Encrypted Communication**: For sensitive disclosures, request our PGP key
+1. **GitHub Security Advisory** (Preferred): Use [GitHub's private vulnerability reporting](https://github.com/yegamble/goimg-datalayer/security/advisories/new)
+2. **Email**: For issues that cannot be reported via GitHub, contact the repository owner through their GitHub profile
+3. **Subject Line**: Use "SECURITY: [Brief Description]"
+4. **Encrypted Communication**: For sensitive disclosures, include your public PGP key and we will respond encrypted
 
 ### What to Include
 
@@ -100,7 +101,7 @@ We announce security updates through:
 
 - **GitHub Security Advisories**: Primary channel for CVE assignments
 - **Release Notes**: All releases include security fix details (after disclosure)
-- **Security Mailing List**: Subscribe at security-announce@goimg-datalayer.example.com
+- **GitHub Releases**: Watch the repository to receive notifications about security releases
 
 ### Update Process
 
@@ -221,8 +222,8 @@ All security scans must pass before code can be merged.
 
 For security-related inquiries:
 
-- **Email**: security@goimg-datalayer.example.com
-- **GitHub**: Open a security advisory on the [goimg-datalayer repository](https://github.com/yegamble/goimg-datalayer/security/advisories)
+- **GitHub Security Advisories**: [Report a vulnerability](https://github.com/yegamble/goimg-datalayer/security/advisories/new) (preferred method)
+- **GitHub Issues**: For non-sensitive security questions, use [GitHub Discussions](https://github.com/yegamble/goimg-datalayer/discussions)
 - **Response Time**: 48 hours for acknowledgment
 
 For general questions about security features, use the public GitHub Discussions.
