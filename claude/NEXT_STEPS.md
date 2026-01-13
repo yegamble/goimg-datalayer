@@ -3,8 +3,8 @@
 > **Last Updated**: 2026-01-13
 > **Phase**: Phase 3 - Advanced Features (IN PROGRESS)
 > **Completed Sprints**: 16, 17, 18, 19 ✅
-> **Current Sprint**: Sprint 20 (Groups/Communities) 🚧 IN PROGRESS
-> **Status**: Core Groups feature near completion, Group Albums remaining
+> **Current Sprint**: Sprint 20 (Groups/Communities) 🚧 NEAR COMPLETE
+> **Status**: Core Groups + Albums complete (~95%), testing & polish remaining
 > **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
 > **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
 > **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.1, Go 1.26 expected Feb 2026)
