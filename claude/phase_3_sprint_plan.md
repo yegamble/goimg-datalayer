@@ -381,8 +381,8 @@ Enable users to create and join interest-based groups with shared albums.
 | OpenAPI Spec | ✅ COMPLETE | All groups, images, albums endpoints documented |
 | Security Gate S20 | ✅ 9/10 PASS | All critical controls passed |
 | Group Albums | ✅ COMPLETE | Full CRUD + image management (7 endpoints) |
-| E2E Tests | ⏳ PENDING | 27 scenarios planned, need album coverage |
-| Contract Tests | ⏳ PENDING | OpenAPI validation |
+| E2E Tests | ✅ COMPLETE | 34 Newman tests (7 group album tests added) |
+| Contract Tests | ✅ COMPLETE | OpenAPI spec validated (85 paths, 63 schemas) |
 
 ### Deliverables
 

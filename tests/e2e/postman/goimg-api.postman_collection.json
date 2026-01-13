@@ -10737,7 +10737,7 @@
     },
     {
       "name": "Groups",
-      "description": "Sprint 20: Groups/Communities API endpoints - 27 comprehensive tests covering group management, membership, member management, search & discovery, and error handling",
+      "description": "Sprint 20: Groups/Communities API endpoints - 34 comprehensive tests covering group management, membership, member management, search & discovery, error handling, and group albums",
       "item": [
         {
           "name": "1. Group Management",
@@ -12499,6 +12499,423 @@
                   ],
                   "path": [
                     "groups"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Group Albums",
+          "description": "Tests for group album CRUD operations and image management",
+          "item": [
+            {
+              "name": "Create Group Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has album data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('group_id');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('created_by');",
+                      "    pm.collectionVariables.set('testGroupAlbumId', jsonData.id);",
+                      "});",
+                      "",
+                      "pm.test('Album title matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.eql('E2E Test Group Album');",
+                      "});",
+                      "",
+                      "pm.test('Album belongs to correct group', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.group_id).to.eql(pm.collectionVariables.get('testPublicGroupId'));",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"E2E Test Group Album\",\n  \"is_public\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Group Albums - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has albums array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('albums');",
+                      "    pm.expect(jsonData.albums).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Response has pagination metadata', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "    pm.expect(jsonData).to.have.property('page');",
+                      "    pm.expect(jsonData).to.have.property('per_page');",
+                      "});",
+                      "",
+                      "pm.test('Created album appears in list', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const album = jsonData.albums.find(a => a.id === pm.collectionVariables.get('testGroupAlbumId'));",
+                      "    pm.expect(album).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Group Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has album data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('group_id');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('image_count');",
+                      "    pm.expect(jsonData).to.have.property('created_at');",
+                      "});",
+                      "",
+                      "pm.test('Album ID matches request', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('testGroupAlbumId'));",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums/{{testGroupAlbumId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums",
+                    "{{testGroupAlbumId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Group Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has updated album data', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('description');",
+                      "});",
+                      "",
+                      "pm.test('Album title updated', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.eql('Updated Group Album Title');",
+                      "});",
+                      "",
+                      "pm.test('Album description updated', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.description).to.eql('Updated description for the group album');",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Group Album Title\",\n  \"description\": \"Updated description for the group album\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums/{{testGroupAlbumId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums",
+                    "{{testGroupAlbumId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Album - Not Member (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(403);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates forbidden', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Forbidden');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{nonMemberAccessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Unauthorized Album\",\n  \"is_public\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPrivateGroupId}}/albums",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPrivateGroupId}}",
+                    "albums"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Album - Not Found (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response is RFC 7807 problem detail', function () {",
+                      "    pm.response.to.have.header('Content-Type', 'application/problem+json; charset=utf-8');",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "",
+                      "pm.test('Error indicates not found', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.title).to.include('Not Found');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Group Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "pm.test('Response body is empty', function () {",
+                      "    pm.expect(pm.response.text()).to.be.empty;",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testPublicGroupId}}/albums/{{testGroupAlbumId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testPublicGroupId}}",
+                    "albums",
+                    "{{testGroupAlbumId}}"
                   ]
                 }
               }
