@@ -169,6 +169,19 @@ type GroupAlbumCreated struct {
 	Title        string
 }
 
+// GroupAlbumUpdated is emitted when a group album is updated.
+// Fields are optional - only the changed fields are populated.
+type GroupAlbumUpdated struct {
+	shared.BaseEvent
+	GroupAlbumID    GroupAlbumID
+	GroupID         GroupID
+	OldTitle        string           // Populated when title changes
+	NewTitle        string           // Populated when title changes
+	NewDescription  *string          // Populated when description changes
+	NewCoverImageID *gallery.ImageID // Populated when cover image changes
+	NewIsPublic     *bool            // Populated when visibility changes
+}
+
 // GroupAlbumDeleted is emitted when a group album is deleted.
 type GroupAlbumDeleted struct {
 	shared.BaseEvent

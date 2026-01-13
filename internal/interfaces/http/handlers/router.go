@@ -79,6 +79,7 @@ func NewRouter(
 	tagHandler *TagHandler,
 	featuredHandler *FeaturedHandler,
 	groupHandler *GroupHandler,
+	groupAlbumHandler *GroupAlbumHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -398,6 +399,12 @@ func NewRouter(
 					r.Put("/{groupID}/members/{userID}/role", groupHandler.UpdateMemberRole)
 					r.Delete("/{groupID}/members/{userID}", groupHandler.RemoveMember)
 					r.Post("/{groupID}/members/{userID}/ban", groupHandler.BanMember)
+
+					// Group albums routes (Sprint 20)
+					// Nested under /groups/{groupID}/albums
+					if groupAlbumHandler != nil {
+						r.Mount("/{groupID}/albums", groupAlbumHandler.Routes())
+					}
 				})
 			}
 

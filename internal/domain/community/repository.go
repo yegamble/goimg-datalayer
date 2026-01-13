@@ -199,3 +199,80 @@ type GroupImageRepository interface {
 	// ExistsByGroupAndImage checks if an image is already shared to the group.
 	ExistsByGroupAndImage(ctx context.Context, groupID GroupID, imageID gallery.ImageID) (bool, error)
 }
+
+// GroupAlbumRepository is the repository interface for GroupAlbum entities.
+// Manages album persistence and retrieval for group image organization.
+type GroupAlbumRepository interface {
+	// Save persists the group album to storage.
+	// This handles both creation and updates.
+	Save(ctx context.Context, album *GroupAlbum) error
+
+	// FindByID retrieves a group album by its ID.
+	// Returns ErrGroupAlbumNotFound if the album doesn't exist.
+	FindByID(ctx context.Context, id GroupAlbumID) (*GroupAlbum, error)
+
+	// FindByGroup retrieves albums for a specific group with pagination.
+	// Albums are returned in reverse chronological order (newest first).
+	// Returns the albums, total count, and error.
+	FindByGroup(ctx context.Context, groupID GroupID, pagination shared.Pagination) ([]*GroupAlbum, int, error)
+
+	// FindByGroupAndCreator retrieves albums created by a specific user within a group.
+	// Useful for filtering by album creator.
+	// Returns the albums, total count, and error.
+	FindByGroupAndCreator(
+		ctx context.Context,
+		groupID GroupID,
+		creatorID identity.UserID,
+		pagination shared.Pagination,
+	) ([]*GroupAlbum, int, error)
+
+	// Delete removes the group album from storage.
+	// This is typically a hard delete since albums are just organizational containers.
+	Delete(ctx context.Context, id GroupAlbumID) error
+}
+
+// GroupAlbumImageRepository defines the interface for managing the many-to-many
+// relationship between group albums and images. This is separate from the GroupAlbumRepository
+// because it represents a relationship, not an aggregate.
+type GroupAlbumImageRepository interface {
+	// AddImageToAlbum adds an image to a group album.
+	// The addedBy parameter tracks who added the image.
+	// Returns an error if the image is already in the album.
+	AddImageToAlbum(
+		ctx context.Context,
+		albumID GroupAlbumID,
+		imageID gallery.ImageID,
+		addedBy identity.UserID,
+	) error
+
+	// RemoveImageFromAlbum removes an image from a group album.
+	// Returns no error if the image wasn't in the album (idempotent).
+	RemoveImageFromAlbum(
+		ctx context.Context,
+		albumID GroupAlbumID,
+		imageID gallery.ImageID,
+	) error
+
+	// IsImageInAlbum checks if an image is in a group album.
+	IsImageInAlbum(
+		ctx context.Context,
+		albumID GroupAlbumID,
+		imageID gallery.ImageID,
+	) (bool, error)
+
+	// FindImagesInAlbum retrieves all images in a group album with pagination.
+	// Returns the images, total count, and any error.
+	FindImagesInAlbum(
+		ctx context.Context,
+		albumID GroupAlbumID,
+		pagination shared.Pagination,
+	) ([]*gallery.Image, int, error)
+
+	// GetImageAddedBy returns the user who added a specific image to an album.
+	// Returns ErrGroupImageNotFound if the association doesn't exist.
+	GetImageAddedBy(
+		ctx context.Context,
+		albumID GroupAlbumID,
+		imageID gallery.ImageID,
+	) (identity.UserID, error)
+}
