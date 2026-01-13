@@ -518,3 +518,52 @@ type PaginatedGroupImagesResponse struct {
 	PerPage    int                  `json:"per_page"`
 	TotalPages int64                `json:"total_pages"`
 }
+
+// ============================================================================
+// Group Albums DTOs (Sprint 20)
+// ============================================================================
+
+// CreateGroupAlbumRequest represents the HTTP request body for creating a group album.
+// POST /api/v1/groups/{groupID}/albums
+type CreateGroupAlbumRequest struct {
+	Title       string `json:"title" validate:"required,max=255"`
+	Description string `json:"description,omitempty" validate:"omitempty,max=2000"`
+	IsPublic    bool   `json:"is_public"`
+}
+
+// UpdateGroupAlbumRequest represents the HTTP request body for updating a group album.
+// PUT /api/v1/groups/{groupID}/albums/{albumID}
+type UpdateGroupAlbumRequest struct {
+	Title        *string `json:"title,omitempty" validate:"omitempty,max=255"`
+	Description  *string `json:"description,omitempty" validate:"omitempty,max=2000"`
+	CoverImageID *string `json:"cover_image_id,omitempty" validate:"omitempty,uuid"`
+}
+
+// AddImageToGroupAlbumRequest represents the HTTP request body for adding an image to a group album.
+// POST /api/v1/groups/{groupID}/albums/{albumID}/images
+type AddImageToGroupAlbumRequest struct {
+	ImageID string `json:"image_id" validate:"required,uuid"`
+}
+
+// GroupAlbumResponse represents a group album in HTTP responses.
+type GroupAlbumResponse struct {
+	ID           string    `json:"id"`
+	GroupID      string    `json:"group_id"`
+	CreatedBy    string    `json:"created_by"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
+	CoverImageID *string   `json:"cover_image_id,omitempty"`
+	ImageCount   int       `json:"image_count"`
+	IsPublic     bool      `json:"is_public"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// PaginatedGroupAlbumsResponse represents a paginated list of group albums.
+type PaginatedGroupAlbumsResponse struct {
+	Albums     []GroupAlbumResponse `json:"albums"`
+	TotalCount int64                `json:"total_count"`
+	Page       int                  `json:"page"`
+	PerPage    int                  `json:"per_page"`
+	TotalPages int64                `json:"total_pages"`
+}

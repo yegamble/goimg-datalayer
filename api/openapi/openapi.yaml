@@ -5124,6 +5124,277 @@ paths:
           $ref: '#/components/responses/NotFound'
       x-sprint: "20"
 
+  /groups/{groupID}/albums:
+    post:
+      tags: [groups]
+      summary: Create group album
+      description: |
+        Create a new album within a group (member+ only).
+        Albums organize images within groups into themed collections.
+      operationId: createGroupAlbum
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupAlbumRequest'
+      responses:
+        '201':
+          description: Album created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupAlbumResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+    get:
+      tags: [groups]
+      summary: List group albums
+      description: Get all albums in a group with pagination
+      operationId: listGroupAlbums
+      security: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [newest, oldest, name, most_images]
+            default: newest
+      responses:
+        '200':
+          description: List of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupAlbumListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/albums/{albumID}:
+    get:
+      tags: [groups]
+      summary: Get album details
+      description: Retrieve album details including image list
+      operationId: getGroupAlbum
+      security: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: albumID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Album details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupAlbumResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+    put:
+      tags: [groups]
+      summary: Update album
+      description: |
+        Update album details (album creator or group admin+ only).
+        Can update name, description, and cover image.
+      operationId: updateGroupAlbum
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: albumID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupAlbumRequest'
+      responses:
+        '200':
+          description: Album updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupAlbumResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+    delete:
+      tags: [groups]
+      summary: Delete album
+      description: |
+        Delete an album and all its associations (album creator or group admin+ only).
+        Does not delete the images themselves, only removes them from the album.
+      operationId: deleteGroupAlbum
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: albumID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Album deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
+  /groups/{groupID}/albums/{albumID}/images:
+    post:
+      tags: [groups]
+      summary: Add image to album
+      description: |
+        Add an image to a group album (album creator or group admin+ only).
+        The image must already be posted to the group.
+      operationId: addImageToGroupAlbum
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: albumID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddImageToGroupAlbumRequest'
+      responses:
+        '201':
+          description: Image added to album
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupAlbumResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      x-sprint: "20"
+
+  /groups/{groupID}/albums/{albumID}/images/{imageID}:
+    delete:
+      tags: [groups]
+      summary: Remove image from album
+      description: |
+        Remove an image from a group album (album creator or group admin+ only).
+        Does not delete the image from the group, only removes it from the album.
+      operationId: removeImageFromGroupAlbum
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: albumID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: imageID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Image removed from album
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-sprint: "20"
+
   /me/groups:
     get:
       tags: [groups]
@@ -7237,5 +7508,126 @@ components:
                 $ref: '#/components/schemas/GroupResponse'
               membership:
                 $ref: '#/components/schemas/GroupMembershipResponse'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    # ==================== Group Albums ====================
+    GroupAlbumResponse:
+      type: object
+      description: Group album details with images
+      required: [id, group_id, name, slug, creator_id, image_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        group_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        name:
+          type: string
+          example: "Best Sunsets 2026"
+        slug:
+          type: string
+          example: "best-sunsets-2026"
+        description:
+          type: string
+          example: "Collection of stunning sunset photographs"
+          nullable: true
+        creator_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        cover_image_id:
+          type: string
+          format: uuid
+          nullable: true
+        image_count:
+          type: integer
+          example: 24
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        images:
+          type: array
+          description: List of images in this album (included in detail view)
+          items:
+            type: object
+            properties:
+              image_id:
+                type: string
+                format: uuid
+              added_at:
+                type: string
+                format: date-time
+              position:
+                type: integer
+                description: Display order within album
+
+    CreateGroupAlbumRequest:
+      type: object
+      description: Request body for creating a group album
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "Best Sunsets 2026"
+        description:
+          type: string
+          maxLength: 1000
+          example: "Collection of stunning sunset photographs"
+        cover_image_id:
+          type: string
+          format: uuid
+          description: Optional cover image (must be in the group)
+
+    UpdateGroupAlbumRequest:
+      type: object
+      description: Request body for updating a group album
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "Best Sunsets 2026 - Updated"
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+        cover_image_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Cover image (must be in the album)
+
+    AddImageToGroupAlbumRequest:
+      type: object
+      description: Request body for adding an image to a group album
+      required: [image_id]
+      properties:
+        image_id:
+          type: string
+          format: uuid
+          description: Image ID (must be posted to the group)
+        position:
+          type: integer
+          description: Optional display position (defaults to end)
+          minimum: 0
+
+    GroupAlbumListResponse:
+      type: object
+      description: Paginated list of group albums
+      required: [albums, pagination]
+      properties:
+        albums:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupAlbumResponse'
         pagination:
           $ref: '#/components/schemas/Pagination'
