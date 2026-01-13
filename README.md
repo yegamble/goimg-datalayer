@@ -318,7 +318,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.24+ (CI uses 1.24.x, stable: 1.24.11, 1.25.5 also available) |
+| Language | Go 1.25+ **required** (CI uses 1.25.x, toolchain go1.25.5 pinned) |
 | Database | PostgreSQL 16+ |
 | Cache/Sessions | Redis 7+ |
 | Migrations | Goose |
@@ -334,7 +334,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.24    # Latest stable: 1.25.5 (Go 1.26 expected Feb 2026)
+go >= 1.25    # Required: go1.25.x (toolchain go1.25.5 pinned in go.mod)
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
