@@ -690,10 +690,10 @@ Sprint 20 implementation is near completion. See `claude/sprint_20_plan.md` for 
 
 ### Remaining Work ⏳
 
-- **Group Albums** (P1): CRUD operations for shared albums within groups
+- ✅ **Group Albums** (P1): COMPLETE - Full CRUD + image management (7 endpoints)
 - **Contract Tests**: Validate OpenAPI compliance
 - **Performance Testing**: Group list query < 200ms for 1000 groups
-- **E2E Tests**: Finalize 27 Newman/Postman test scenarios
+- **E2E Tests**: Expand group albums coverage in Newman/Postman test scenarios
 
 ### Key Features
 
