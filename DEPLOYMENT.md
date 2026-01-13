@@ -5,12 +5,18 @@
 ### Start Production Services
 
 ```bash
-# From project root
-cd /home/user/goimg-datalayer
+# From project root (wherever you cloned the repository)
 
-# Set environment variables (required for production)
-export DB_PASSWORD="your_secure_password_here"
-export GRAFANA_ADMIN_PASSWORD="your_grafana_password_here"
+# SECURITY: Use a secrets manager (HashiCorp Vault, AWS Secrets Manager, etc.)
+# instead of environment variables in production. The examples below are for
+# development/testing only.
+#
+# For production, configure your orchestration tool (Kubernetes, Docker Swarm)
+# to inject secrets from your secrets manager.
+
+# Set environment variables (DEVELOPMENT ONLY - use secrets manager in production)
+export DB_PASSWORD="$(vault kv get -field=password secret/goimg/database)"  # Example with Vault
+export GRAFANA_ADMIN_PASSWORD="$(vault kv get -field=password secret/goimg/grafana)"
 
 # Start all services
 docker-compose -f docker/docker-compose.prod.yml up -d
@@ -33,12 +39,15 @@ docker-compose -f docker/docker-compose.prod.yml down -v
 
 ## Service URLs
 
-| Service | URL | Default Credentials |
-|---------|-----|---------------------|
-| Grafana | http://localhost:3000 | admin / admin |
+| Service | URL | Authentication |
+|---------|-----|----------------|
+| Grafana | http://localhost:3000 | Credentials from secrets manager |
 | Prometheus | http://localhost:9091 | - |
 | API | http://localhost:8080 | - |
 | API Metrics | http://localhost:9090/metrics | - |
+
+> **SECURITY NOTE**: Never use default credentials in production. Configure all service
+> credentials through your secrets manager before deployment.
 
 ## Pre-requisites
 
@@ -48,10 +57,17 @@ docker-compose -f docker/docker-compose.prod.yml down -v
    docker build -t goimg-worker:latest -f Dockerfile.worker .
    ```
 
-2. **Environment Variables**: Set production secrets
+2. **Secrets Management**: Configure production secrets via your secrets manager
    ```bash
-   export DB_PASSWORD="secure_password"
-   export GRAFANA_ADMIN_PASSWORD="secure_password"
+   # Example using HashiCorp Vault (recommended for production)
+   vault kv put secret/goimg/database password="<generated-secure-password>"
+   vault kv put secret/goimg/grafana password="<generated-secure-password>"
+
+   # Or use your cloud provider's secrets manager:
+   # - AWS Secrets Manager
+   # - Azure Key Vault
+   # - Google Secret Manager
+   # - DigitalOcean Secrets (if using DO)
    ```
 
 3. **Network Ports**: Ensure these ports are available:
@@ -67,7 +83,7 @@ docker-compose -f docker/docker-compose.prod.yml down -v
 ### Access Grafana Dashboards
 
 1. Navigate to http://localhost:3000
-2. Login with credentials (default: admin/admin)
+2. Login with credentials from your secrets manager
 3. Go to **Dashboards** → **goimg** folder
 4. Available dashboards:
    - Application Overview
@@ -242,14 +258,16 @@ docker exec goimg-prometheus wget -O- http://api:9090/metrics
 
 ## Security Hardening
 
-1. **Change default passwords**
-   ```bash
-   export GRAFANA_ADMIN_PASSWORD="strong_random_password"
-   ```
+1. **Use secrets management** (REQUIRED for production)
+   - Store all secrets in an encrypted vault (HashiCorp Vault, AWS Secrets Manager)
+   - Never commit secrets to version control
+   - Never use default credentials
+   - Rotate secrets regularly (see `docs/security/secret_rotation.md`)
 
-2. **Use secrets management**
-   - Use Docker secrets instead of environment variables
-   - Store secrets in encrypted vault (HashiCorp Vault, AWS Secrets Manager)
+2. **Database security**
+   - Use TLS for all database connections (`sslmode=verify-full` recommended)
+   - Use strong, randomly generated passwords (32+ characters)
+   - Restrict database user permissions to minimum required
 
 3. **Enable TLS/HTTPS**
    - Use reverse proxy (Nginx, Traefik)
@@ -338,7 +356,7 @@ GitHub Actions example:
 
 For issues related to:
 - **Infrastructure**: Check this deployment guide
-- **Monitoring**: See `/home/user/goimg-datalayer/monitoring/README.md`
+- **Monitoring**: See `monitoring/README.md`
 - **Application**: See project CLAUDE.md and documentation
 
 ## Next Steps
