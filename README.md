@@ -4,9 +4,9 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 20 IN PROGRESS** 🚧
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 20 COMPLETE** ✅
 
-**Sprint 20 (IN PROGRESS)**: Groups/Communities
+**Sprint 20 (COMPLETE)**: Groups/Communities
 - ✅ Domain layer complete (community bounded context, 97.5% test coverage)
 - ✅ Database migration complete (00017_create_groups.sql)
 - ✅ Infrastructure layer complete (PostgreSQL repositories)
@@ -334,7 +334,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.25    # Latest stable: 1.25.5 (Go 1.26 RC1 available)
+go >= 1.25    # Latest stable: 1.25.1 (Go 1.26 expected Feb 2026)
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
@@ -628,7 +628,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 | **17** | Nested Albums + Custom Variants | 2 weeks | P2 | ✅ **COMPLETE** |
 | **18** | Test Coverage Improvement | 2 weeks | P1 | ✅ **COMPLETE** |
 | **19** | Trending Tags + Featured Picks | 1 week | P2 | ✅ **COMPLETE** |
-| **20** | Groups/Communities | 2 weeks | P3 | 🚧 **IN PROGRESS** (9/10 security controls) |
+| **20** | Groups/Communities | 2 weeks | P3 | ✅ **COMPLETE** (9/10 security controls) |
 | **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
 
@@ -681,7 +681,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
 - ✅ E2E Tests for Featured Picks (6 Newman tests)
 - ✅ Contract tests for Featured Picks endpoints
 
-#### Sprint 20: Groups/Communities 🚧 IN PROGRESS
+#### Sprint 20: Groups/Communities ✅ COMPLETE
 
 - ✅ Community bounded context (new domain layer)
 - ✅ Group, GroupMembership, GroupInvitation domain entities
@@ -704,9 +704,10 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability.
   - ✅ Audit logging (S20-GROUP-008)
   - ✅ SQL injection prevention (S20-GROUP-009)
   - ⚠️ XSS prevention (S20-GROUP-010) - partial (frontend responsibility)
-- ⏳ Group Albums implementation (P1)
-- ⏳ Contract tests validation
-- ⏳ Performance testing
+- ✅ Group Albums implementation (7 endpoints: CRUD + image management)
+- ✅ E2E tests (34 Newman tests, 7 for group albums)
+- ✅ Contract tests validation (OpenAPI: 85 paths, 63 schemas)
+- ✅ Performance testing (`make load-test-groups`, target < 200ms p95)
 
 **Future Sprints** (Backlog):
 - **Video Support** (Sprint 21) - Video uploads with HLS/DASH streaming

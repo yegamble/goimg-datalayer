@@ -1,4 +1,4 @@
-.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
+.PHONY: help build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
 
 # Default target
 help:
@@ -18,6 +18,7 @@ help:
 	@echo "  load-test-browse             - Run browsing flow load test"
 	@echo "  load-test-upload             - Run upload flow load test"
 	@echo "  load-test-social             - Run social interactions load test"
+	@echo "  load-test-groups             - Run Sprint 20 groups load test (< 200ms p95)"
 	@echo "  test-load-sprint10-login     - Run Sprint 10 login timing load test (S10-PERF-001)"
 	@echo "  test-load-sprint10-hibp      - Run Sprint 10 HIBP registration load test"
 	@echo "  test-load-sprint10-failopen  - Run Sprint 10 HIBP fail-open load test"
@@ -170,6 +171,24 @@ load-test-social:
 		exit 1; \
 	fi
 	@k6 run tests/load/social-flow.js
+
+load-test-groups:
+	@echo "=========================================="
+	@echo "Sprint 20 Load Test: Groups/Communities"
+	@echo "Performance Requirement: List groups < 200ms at p95"
+	@echo "=========================================="
+	@if ! command -v k6 &> /dev/null; then \
+		echo "k6 not installed. Install from: https://k6.io/docs/getting-started/installation/"; \
+		exit 1; \
+	fi
+	@echo "Starting groups flow load test..."
+	@k6 run tests/load/groups-flow.js
+	@echo ""
+	@echo "=========================================="
+	@echo "Sprint 20 Load Test Complete"
+	@echo "Check output above for p95 threshold results"
+	@echo "Target: list_groups p95 < 200ms"
+	@echo "=========================================="
 
 # Sprint 10 load tests (Security features)
 test-load-sprint10-login:
