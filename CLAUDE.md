@@ -7,6 +7,10 @@ This repository uses a foldered guide so Claude agents can stay within scope and
 ## Quick Start
 
 ```bash
+# Verify Go 1.25+ (REQUIRED)
+go version            # Must show go1.25.x or higher
+make check-go-version # Automated version check
+
 # Setup (REQUIRED - run once after cloning)
 make install-hooks    # Install pre-commit hooks (MANDATORY)
 docker-compose -f docker/docker-compose.yml up -d
@@ -25,7 +29,7 @@ make lint && make test && make validate-openapi
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.24+ (CI uses 1.24.x, toolchain 1.24.7 pinned in go.mod) |
+| Language | Go 1.25+ **required** (CI uses 1.25.x, toolchain go1.25.5 pinned) |
 | Database | PostgreSQL 16+, Redis 7+ |
 | Migrations | Goose |
 | Image Processing | bimg (libvips) |

@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.24.x"  # Use latest patch version of Go 1.24
+  GO_VERSION: "1.25.x"  # Use latest patch version of Go 1.25 (minimum required)
   GOLANGCI_LINT_VERSION: "v2.6.2"
 
 jobs:
