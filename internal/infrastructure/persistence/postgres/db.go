@@ -11,6 +11,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // PostgreSQL driver
+	"github.com/rs/zerolog/log"
 )
 
 // Default connection pool configuration constants.
@@ -40,15 +41,24 @@ type Config struct {
 // DefaultConfig returns a Config with secure defaults.
 // NOTE: User and Password are intentionally left empty to enforce explicit configuration.
 // In production, use environment variables or a secrets manager for credentials.
-// SSLMode defaults to "require" for security - only disable for local development.
+//
+// SSLMode options:
+//   - "require": Encrypts the connection but does not verify the server certificate (default).
+//     Use this when connecting to databases with self-signed certificates.
+//   - "verify-full": Encrypts the connection AND verifies the server certificate hostname.
+//     Recommended for production when connecting to trusted certificate authorities.
+//   - "disable": No encryption. Only use for local development with trusted networks.
+//
+// BREAKING CHANGE (v1.0.0): SSLMode default changed from "disable" to "require".
+// Existing deployments connecting to databases without SSL support must set DB_SSL_MODE=disable.
 func DefaultConfig() Config {
 	return Config{
 		Host:            "localhost",
 		Port:            defaultPort,
-		User:            "", // Must be explicitly set
-		Password:        "", // Must be explicitly set
+		User:            "", // Must be explicitly set (BREAKING: no default credentials since v1.0.0)
+		Password:        "", // Must be explicitly set (BREAKING: no default credentials since v1.0.0)
 		Database:        "goimg",
-		SSLMode:         "require", // Secure default; use "disable" only for local dev
+		SSLMode:         "require", // Secure default; use "disable" for local dev, "verify-full" for production
 		MaxOpenConns:    defaultMaxOpenConns,
 		MaxIdleConns:    defaultMaxIdleConns,
 		ConnMaxLifetime: defaultConnMaxLifetime,
@@ -60,14 +70,17 @@ func DefaultConfig() Config {
 // Environment variables:
 //   - DB_HOST (default: localhost)
 //   - DB_PORT (default: 5432)
-//   - DB_USER (required)
-//   - DB_PASSWORD (required)
+//   - DB_USER (required - connection will fail if empty)
+//   - DB_PASSWORD (required - connection will fail if empty)
 //   - DB_NAME (default: goimg)
-//   - DB_SSL_MODE (default: require)
+//   - DB_SSL_MODE (default: require; use "verify-full" for full certificate validation)
 //   - DB_MAX_OPEN_CONNS (default: 25)
 //   - DB_MAX_IDLE_CONNS (default: 5)
 //   - DB_CONN_MAX_LIFETIME_MINUTES (default: 30)
 //   - DB_CONN_MAX_IDLE_TIME_MINUTES (default: 10)
+//
+// Note: This function logs warnings if required fields (DB_USER, DB_PASSWORD) are not set.
+// Call ValidateConfig() to check for configuration errors before connecting.
 func ConfigFromEnv() Config {
 	cfg := DefaultConfig()
 	if v := getEnv("DB_HOST", ""); v != "" {
@@ -96,7 +109,38 @@ func ConfigFromEnv() Config {
 	if v := getEnvInt("DB_CONN_MAX_IDLE_TIME_MINUTES", 0); v != 0 {
 		cfg.ConnMaxIdleTime = time.Duration(v) * time.Minute
 	}
+
+	// Log warnings for missing required fields
+	if cfg.User == "" {
+		log.Warn().Msg("DB_USER environment variable not set - database connection will fail")
+	}
+	if cfg.Password == "" {
+		log.Warn().Msg("DB_PASSWORD environment variable not set - database connection will fail")
+	}
+
 	return cfg
+}
+
+// ValidateConfig checks that all required configuration fields are set.
+// Returns an error if any required fields are missing or invalid.
+// Required fields: User, Password, Host, Database.
+func ValidateConfig(cfg Config) error {
+	if cfg.User == "" {
+		return fmt.Errorf("database user is required: set DB_USER environment variable")
+	}
+	if cfg.Password == "" {
+		return fmt.Errorf("database password is required: set DB_PASSWORD environment variable")
+	}
+	if cfg.Host == "" {
+		return fmt.Errorf("database host is required: set DB_HOST environment variable")
+	}
+	if cfg.Database == "" {
+		return fmt.Errorf("database name is required: set DB_NAME environment variable")
+	}
+	if cfg.Port <= 0 || cfg.Port > 65535 {
+		return fmt.Errorf("invalid database port %d: must be between 1 and 65535", cfg.Port)
+	}
+	return nil
 }
 
 // NewDB creates a new PostgreSQL connection pool with the given configuration.
@@ -173,11 +217,19 @@ func getEnv(key, defaultValue string) string {
 }
 
 // getEnvInt returns the integer value of an environment variable or a default value.
+// Logs a warning if the environment variable contains an invalid integer value.
 func getEnvInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
-		if intVal, err := strconv.Atoi(value); err == nil {
-			return intVal
+		intVal, err := strconv.Atoi(value)
+		if err != nil {
+			log.Warn().
+				Str("key", key).
+				Str("value", value).
+				Int("default", defaultValue).
+				Msg("invalid integer value for environment variable, using default")
+			return defaultValue
 		}
+		return intVal
 	}
 	return defaultValue
 }
