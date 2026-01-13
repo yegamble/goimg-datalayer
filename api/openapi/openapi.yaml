@@ -13,8 +13,8 @@ info:
     - RESTful API with RFC 7807 error responses
 
     **Phase 2 Complete**: All Phase 2 features (Sprints 10-15) implemented.
-    **Phase 3 Progress**: Sprints 16-19 complete (oEmbed, nested albums, custom variants, test coverage, trending tags, featured picks).
-    Sprint 20 (Groups/Communities) is IN PROGRESS. Future features include: video support and account tiers.
+    **Phase 3 Progress**: Sprints 16-20 complete (oEmbed, nested albums, custom variants, test coverage, trending tags, featured picks, groups/communities).
+    Future features in backlog: video support (Sprint 21) and account tiers (Sprint 22).
 
   contact:
     name: goimg-datalayer API Team

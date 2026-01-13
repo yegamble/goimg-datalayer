@@ -50,7 +50,7 @@ const (
 		LIMIT $2 OFFSET $3
 	`
 
-	sqlCountImagesInAlbum = `
+	sqlCountGroupAlbumImages = `
 		SELECT COUNT(*)
 		FROM group_album_images gai
 		INNER JOIN images i ON gai.image_id = i.id
@@ -185,7 +185,7 @@ func (r *GroupAlbumImageRepository) FindImagesInAlbum(
 
 	// Execute count query
 	var total int
-	err = r.db.GetContext(ctx, &total, sqlCountImagesInAlbum, albumID.String())
+	err = r.db.GetContext(ctx, &total, sqlCountGroupAlbumImages, albumID.String())
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count images in album: %w", err)
 	}

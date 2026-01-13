@@ -285,7 +285,7 @@ Complete this checklist before deploying to production:
   #   S3_BUCKET=goimg-backups
   ```
 
-- [ ] **GPG keys for backup encryption** (see [docs/operations/backup_restore.md](../operations/backup_restore.md)):
+- [ ] **GPG keys for backup encryption** (see [docs/operations/database-backups.md](../operations/database-backups.md)):
   ```bash
   gpg --gen-key  # Follow prompts
   gpg --export-secret-keys backup@goimg.local > /root/backup-gpg-key.asc

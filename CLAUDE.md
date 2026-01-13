@@ -25,7 +25,7 @@ make lint && make test && make validate-openapi
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.25+ (CI uses 1.25.x, stable: 1.25.1) |
+| Language | Go 1.24+ (CI uses 1.24.x, stable: 1.24.11, 1.25.5 also available) |
 | Database | PostgreSQL 16+, Redis 7+ |
 | Migrations | Goose |
 | Image Processing | bimg (libvips) |

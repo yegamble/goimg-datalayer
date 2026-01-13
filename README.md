@@ -13,8 +13,8 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 - ✅ Application layer complete (commands/queries)
 - ✅ HTTP handlers and OpenAPI spec complete
 - ✅ Security Gate S20: 9/10 controls passed
-- ⏳ Group Albums (P1) - in progress
-- ⏳ Contract tests and performance testing
+- ✅ Group Albums (P1) - COMPLETE (7 endpoints)
+- ✅ Contract tests and performance testing COMPLETE
 
 **Sprint 19 Complete** ✅: Trending Tags + Featured Picks
 - ✅ TagRepository interface and PostgreSQL implementation
@@ -318,7 +318,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 
 | Component | Technology |
 |-----------|------------|
-| Language | Go 1.25+ (CI uses 1.25.x, stable: 1.25.1) |
+| Language | Go 1.24+ (CI uses 1.24.x, stable: 1.24.11, 1.25.5 also available) |
 | Database | PostgreSQL 16+ |
 | Cache/Sessions | Redis 7+ |
 | Migrations | Goose |
@@ -334,7 +334,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 ### Prerequisites
 
 ```bash
-go >= 1.25    # Latest stable: 1.25.1 (Go 1.26 expected Feb 2026)
+go >= 1.24    # Latest stable: 1.25.5 (Go 1.26 expected Feb 2026)
 docker >= 24.0
 docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
@@ -618,9 +618,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ NSFW scan management endpoints (4 endpoints)
 - ✅ Database migration for NSFW scan tables
 
-### Phase 3: Advanced Features (In Progress)
+### Phase 3: Advanced Features (5/7 Sprints Complete)
 
-Phase 3 focuses on discoverability, social sharing, and platform scalability.
+Phase 3 focuses on discoverability, social sharing, and platform scalability. Sprints 16-20 are complete; Sprints 21-22 remain in backlog.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
