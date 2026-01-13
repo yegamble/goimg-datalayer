@@ -103,8 +103,8 @@ const (
 	`
 )
 
-// tagRow represents a row from the tags table.
-type tagRow struct {
+// tagRepoRow represents a row from the tags table.
+type tagRepoRow struct {
 	ID         uuid.UUID `db:"id"`
 	Name       string    `db:"name"`
 	Slug       string    `db:"slug"`
@@ -114,7 +114,7 @@ type tagRow struct {
 
 // tagWithScoreRow represents a tag row with trending score.
 type tagWithScoreRow struct {
-	tagRow
+	tagRepoRow
 	TrendScore  float64 `db:"trend_score"`
 	PeriodCount int64   `db:"period_count"`
 }
@@ -131,7 +131,7 @@ func NewTagRepository(db *sqlx.DB) *TagRepository {
 
 // FindBySlug retrieves a tag by its URL-friendly slug.
 func (r *TagRepository) FindBySlug(ctx context.Context, slug string) (*gallery.Tag, error) {
-	var row tagRow
+	var row tagRepoRow
 	err := r.db.GetContext(ctx, &row, sqlFindTagBySlug, slug)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -150,7 +150,7 @@ func (r *TagRepository) FindBySlug(ctx context.Context, slug string) (*gallery.T
 
 // FindByName retrieves a tag by its display name.
 func (r *TagRepository) FindByName(ctx context.Context, name string) (*gallery.Tag, error) {
-	var row tagRow
+	var row tagRepoRow
 	err := r.db.GetContext(ctx, &row, sqlFindTagByName, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -176,7 +176,7 @@ func (r *TagRepository) FindPopular(ctx context.Context, limit int, period galle
 		limit = 100
 	}
 
-	var rows []tagRow
+	var rows []tagRepoRow
 	var err error
 
 	if period == gallery.TagPeriodAll {
@@ -227,7 +227,7 @@ func (r *TagRepository) SearchByPrefix(ctx context.Context, query string, limit 
 		limit = 50
 	}
 
-	var rows []tagRow
+	var rows []tagRepoRow
 	err := r.db.SelectContext(ctx, &rows, sqlSearchTagsByPrefix, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("search tags by prefix: %w", err)
@@ -338,7 +338,7 @@ func (r *TagRepository) periodToTime(period gallery.TagPeriod) time.Time {
 }
 
 // rowsToTagsWithUsage converts database rows to domain objects.
-func (r *TagRepository) rowsToTagsWithUsage(rows []tagRow) ([]gallery.TagWithUsage, error) {
+func (r *TagRepository) rowsToTagsWithUsage(rows []tagRepoRow) ([]gallery.TagWithUsage, error) {
 	result := make([]gallery.TagWithUsage, 0, len(rows))
 
 	for _, row := range rows {

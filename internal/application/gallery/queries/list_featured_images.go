@@ -25,14 +25,14 @@ type ListFeaturedImagesQuery struct {
 type FeaturedImageDTO struct {
 	PickID        string    `json:"pick_id"`
 	ImageID       string    `json:"image_id"`
-	Image         *ImageDTO `json:"image"`
+	Image         *FeaturedImageInfo `json:"image"`
 	DisplayOrder  int       `json:"display_order"`
 	FeaturedSince string    `json:"featured_since"` // ISO 8601
 	Reason        string    `json:"reason,omitempty"`
 }
 
-// ImageDTO represents a minimal image response for featured picks.
-type ImageDTO struct {
+// FeaturedImageInfo represents a minimal image response for featured picks.
+type FeaturedImageInfo struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description,omitempty"`
@@ -104,7 +104,7 @@ func (h *ListFeaturedImagesHandler) Handle(ctx context.Context, query ListFeatur
 		featuredImages = append(featuredImages, FeaturedImageDTO{
 			PickID:        pick.ID().String(),
 			ImageID:       pick.ImageID().String(),
-			Image:         mapImageToDTO(image),
+			Image:         mapImageToFeaturedInfo(image),
 			DisplayOrder:  pick.DisplayOrder(),
 			FeaturedSince: pick.FeaturedFrom().Format(time.RFC3339),
 			Reason:        pick.Reason(),
@@ -117,9 +117,9 @@ func (h *ListFeaturedImagesHandler) Handle(ctx context.Context, query ListFeatur
 	}, nil
 }
 
-// mapImageToDTO converts a domain Image to a minimal ImageDTO.
-func mapImageToDTO(img *gallery.Image) *ImageDTO {
-	return &ImageDTO{
+// mapImageToFeaturedInfo converts a domain Image to a minimal FeaturedImageInfo.
+func mapImageToFeaturedInfo(img *gallery.Image) *FeaturedImageInfo {
+	return &FeaturedImageInfo{
 		ID:          img.ID().String(),
 		Title:       img.Metadata().Title(),
 		Description: img.Metadata().Description(),

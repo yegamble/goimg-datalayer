@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -53,8 +52,8 @@ const (
 	`
 )
 
-// activityRow represents a group activity row in the database.
-type activityRow struct {
+// groupActivityRow represents a group activity row in the database.
+type groupActivityRow struct {
 	ID           string         `db:"id"`
 	GroupID      string         `db:"group_id"`
 	ActorID      string         `db:"actor_id"`
@@ -121,7 +120,7 @@ func (r *GroupActivityRepository) FindByGroup(
 	groupID community.GroupID,
 	pagination shared.Pagination,
 ) ([]*community.GroupActivity, int, error) {
-	var rows []activityRow
+	var rows []groupActivityRow
 	if err := r.db.SelectContext(ctx, &rows, sqlSelectActivitiesByGroup, groupID.String(), pagination.Limit, pagination.Offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to find activities by group: %w", err)
 	}
@@ -150,7 +149,7 @@ func (r *GroupActivityRepository) FindByGroupAndType(
 	activityType community.ActivityType,
 	pagination shared.Pagination,
 ) ([]*community.GroupActivity, int, error) {
-	var rows []activityRow
+	var rows []groupActivityRow
 	if err := r.db.SelectContext(
 		ctx,
 		&rows,
@@ -181,7 +180,7 @@ func (r *GroupActivityRepository) FindByGroupAndType(
 }
 
 // rowToGroupActivity converts a database row to a GroupActivity domain entity.
-func rowToGroupActivity(row activityRow) (*community.GroupActivity, error) {
+func rowToGroupActivity(row groupActivityRow) (*community.GroupActivity, error) {
 	activityID, err := community.ParseGroupActivityID(row.ID)
 	if err != nil {
 		return nil, fmt.Errorf("parse activity id: %w", err)
