@@ -50,6 +50,13 @@ const (
 		FROM albums
 		WHERE owner_id = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	sqlCountAlbumsByOwner = `
+		SELECT COUNT(*)
+		FROM albums
+		WHERE owner_id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectPublicAlbums = `
@@ -162,24 +169,41 @@ func (r *AlbumRepository) FindByID(ctx context.Context, id gallery.AlbumID) (*ga
 	return album, nil
 }
 
-// FindByOwner retrieves all albums owned by a user.
-func (r *AlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID) ([]*gallery.Album, error) {
+// FindByOwner retrieves all albums owned by a user with pagination.
+func (r *AlbumRepository) FindByOwner(
+	ctx context.Context,
+	ownerID identity.UserID,
+	pagination shared.Pagination,
+) ([]*gallery.Album, int64, error) {
 	var rows []albumRow
-	err := r.db.SelectContext(ctx, &rows, sqlSelectAlbumsByOwner, ownerID.String())
+	err := r.db.SelectContext(
+		ctx,
+		&rows,
+		sqlSelectAlbumsByOwner,
+		ownerID.String(),
+		pagination.Limit(),
+		pagination.Offset(),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find albums by owner: %w", err)
+		return nil, 0, fmt.Errorf("failed to find albums by owner: %w", err)
+	}
+
+	var total int64
+	err = r.db.GetContext(ctx, &total, sqlCountAlbumsByOwner, ownerID.String())
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count albums by owner: %w", err)
 	}
 
 	albums := make([]*gallery.Album, 0, len(rows))
 	for _, row := range rows {
 		album, err := rowToAlbum(row)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert row to album: %w", err)
+			return nil, 0, fmt.Errorf("failed to convert row to album: %w", err)
 		}
 		albums = append(albums, album)
 	}
 
-	return albums, nil
+	return albums, total, nil
 }
 
 // FindPublic retrieves all public albums with pagination.

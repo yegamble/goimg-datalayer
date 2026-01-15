@@ -111,9 +111,8 @@ type AlbumRepository interface {
 	// Returns ErrAlbumNotFound if the album doesn't exist.
 	FindByID(ctx context.Context, id AlbumID) (*Album, error)
 
-	// FindByOwner retrieves all albums owned by a user.
-	// Albums are typically not paginated as users don't usually have many.
-	FindByOwner(ctx context.Context, ownerID identity.UserID) ([]*Album, error)
+	// FindByOwner retrieves all albums owned by a user with pagination.
+	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*Album, int64, error)
 
 	// FindPublic retrieves all public albums with pagination.
 	// Only returns albums with VisibilityPublic.

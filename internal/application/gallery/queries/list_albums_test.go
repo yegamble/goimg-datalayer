@@ -65,8 +65,9 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 			testhelpers.ValidAlbum(t),
 		}
 
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID).
-			Return(albums, nil).Once()
+		pagination, _ := shared.NewPagination(1, 20)
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+			Return(albums, int64(1), nil).Once()
 
 		query := queries.ListAlbumsQuery{
 			OwnerUserID: testhelpers.ValidUserID,
@@ -164,8 +165,9 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 
 		albums := []*gallery.Album{publicAlbum, privateAlbum}
 
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID).
-			Return(albums, nil).Once()
+		pagination, _ := shared.NewPagination(1, 20)
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+			Return(albums, int64(2), nil).Once()
 
 		query := queries.ListAlbumsQuery{
 			OwnerUserID: testhelpers.ValidUserID,
@@ -219,7 +221,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		mockAlbumRepo.AssertExpectations(t)
 	})
 
-	t.Run("pagination - by owner with manual pagination", func(t *testing.T) {
+	t.Run("pagination - by owner", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -228,14 +230,15 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 
 		ownerID := testhelpers.ValidUserIDParsed()
 
-		// Create 25 albums
-		albums := make([]*gallery.Album, 25)
-		for i := 0; i < 25; i++ {
+		// Create 10 albums (representing the page)
+		albums := make([]*gallery.Album, 10)
+		for i := 0; i < 10; i++ {
 			albums[i] = testhelpers.ValidAlbum(t)
 		}
 
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID).
-			Return(albums, nil).Once()
+		pagination, _ := shared.NewPagination(2, 10)
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+			Return(albums, int64(25), nil).Once()
 
 		query := queries.ListAlbumsQuery{
 			OwnerUserID: testhelpers.ValidUserID,
@@ -249,7 +252,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Len(t, result.Albums, 10)              // Second page: items 10-19
+		assert.Len(t, result.Albums, 10)              // Second page
 		assert.Equal(t, int64(25), result.TotalCount) // Total count across all pages
 		mockAlbumRepo.AssertExpectations(t)
 	})
@@ -337,8 +340,9 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		handler := queries.NewListAlbumsHandler(mockAlbumRepo)
 
 		ownerID := testhelpers.ValidUserIDParsed()
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID).
-			Return(nil, fmt.Errorf("database error")).Once()
+		pagination, _ := shared.NewPagination(1, 20)
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+			Return(nil, int64(0), fmt.Errorf("database error")).Once()
 
 		query := queries.ListAlbumsQuery{
 			OwnerUserID: testhelpers.ValidUserID,

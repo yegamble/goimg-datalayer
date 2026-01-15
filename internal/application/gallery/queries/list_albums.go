@@ -69,14 +69,10 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 			return nil, fmt.Errorf("invalid owner user id: %w", err)
 		}
 
-		albums, err = h.albums.FindByOwner(ctx, ownerID)
+		albums, total, err = h.albums.FindByOwner(ctx, ownerID, pagination)
 		if err != nil {
 			return nil, fmt.Errorf("find albums by owner: %w", err)
 		}
-		total = int64(len(albums))
-
-		// Apply pagination manually for FindByOwner (doesn't have built-in pagination)
-		albums = paginateAlbums(albums, pagination)
 	} else {
 		// List public albums with pagination
 		albums, total, err = h.albums.FindPublic(ctx, pagination)
@@ -111,23 +107,6 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 		PerPage:    pagination.PerPage(),
 		TotalPages: pagination.TotalPages(),
 	}, nil
-}
-
-// paginateAlbums applies pagination to an in-memory album slice.
-func paginateAlbums(albums []*gallery.Album, pagination shared.Pagination) []*gallery.Album {
-	offset := pagination.Offset()
-	limit := pagination.Limit()
-
-	if offset >= len(albums) {
-		return []*gallery.Album{}
-	}
-
-	end := offset + limit
-	if end > len(albums) {
-		end = len(albums)
-	}
-
-	return albums[offset:end]
 }
 
 // filterAlbumsByVisibility filters albums by visibility.
