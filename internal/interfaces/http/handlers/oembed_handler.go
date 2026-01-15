@@ -145,6 +145,9 @@ func (h *OEmbedHandler) GetOEmbed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// uuidPattern matches UUID anywhere in path
+var uuidPattern = regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
+
 // extractImageID parses the image ID from various URL formats.
 // Supports:
 //   - /images/{id}
@@ -160,8 +163,6 @@ func (h *OEmbedHandler) extractImageID(rawURL string) (uuid.UUID, error) {
 	path := parsed.Path
 
 	// Try to extract UUID from path using regex
-	// Matches UUID anywhere in path
-	uuidPattern := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
 	match := uuidPattern.FindString(path)
 	if match == "" {
 		return uuid.Nil, fmt.Errorf("no image ID found in URL path")
