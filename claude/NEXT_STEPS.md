@@ -1,14 +1,58 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-13
+> **Last Updated**: 2026-01-15
 > **Phase**: Phase 3 - Advanced Features
 > **Completed Sprints**: 16, 17, 18, 19, 20 ✅
-> **Next Sprint**: Sprint 21 (Video Support) - Backlog
-> **Status**: Sprint 20 complete (100%), Phase 3 progress 5/7 sprints done
-> **Documentation**: See `claude/phase_3_sprint_plan.md` for full Phase 3 plan
-> **Test Coverage**: ~65% overall (up from 35.9%, target: 80%)
-> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.1, Go 1.26 expected Feb 2026)
+> **Current Sprint**: Sprint 23 (Test Coverage & Regression Prevention) 🚧
+> **Status**: Sprint 23 in progress, improving test coverage from ~65% to 80%+
+> **Documentation**: See `claude/sprint_23_test_coverage_plan.md` for Sprint 23 details
+> **Test Coverage**: ~65% overall (target: 80%)
+> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.5, Go 1.26 RC1 released Dec 2025)
 > **Security Gate S20**: 9/10 controls passed
+
+---
+
+## Sprint 23: Test Coverage & Regression Prevention 🚧 IN PROGRESS
+
+### Objectives
+
+1. **Increase test coverage to 80%+** (from ~65%)
+2. **Close critical gaps** in application layer and HTTP handlers
+3. **Establish regression prevention** practices
+4. **Update documentation** to reflect current state
+
+### Critical Coverage Gaps
+
+| Area | Files | Tests | Coverage | Priority |
+|------|-------|-------|----------|----------|
+| `application/moderation` | 16 | 0 | 0% | P0 |
+| `application/community` | 29 | 1 | ~5% | P1 |
+| `application/notification` | 4 | 0 | 0% | P1 |
+| `handlers/*` | 27 | 3 | ~11% | P1 |
+| `postgres/*_repository` | 30 | 6 | ~20% | P2 |
+
+### Regression Prevention Checklist
+
+```bash
+# ALWAYS run before every commit
+make pre-commit       # go fmt, go vet, golangci-lint
+make test             # Full test suite
+make validate-openapi # Validate API spec (if changed)
+```
+
+### Local Testing (Save CI Minutes)
+
+Test workflow branches locally before pushing:
+
+```bash
+make lint             # Lint job
+make test-unit        # Unit tests job
+make test-domain      # Domain tests job (90% threshold)
+make test-integration # Integration tests job
+make test-e2e         # E2E tests job
+```
+
+See `claude/sprint_23_test_coverage_plan.md` for full implementation plan.
 
 ---
 

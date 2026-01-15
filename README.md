@@ -4,7 +4,13 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 20 COMPLETE** ✅
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 23 IN PROGRESS** 🚧
+
+**Sprint 23 (IN PROGRESS)**: Test Coverage & Regression Prevention
+- 🚧 Improve overall test coverage from ~65% to 80%+
+- 🚧 Add tests for moderation, community, notification application layers
+- 🚧 Add HTTP handler tests (auth, user, album, moderation)
+- 🚧 Establish regression prevention practices
 
 **Sprint 20 (COMPLETE)**: Groups/Communities
 - ✅ Domain layer complete (community bounded context, 97.5% test coverage)
@@ -432,9 +438,16 @@ make test-integration  # Integration tests (requires DB)
 make test-e2e          # End-to-end tests (Newman/Postman)
 ```
 
-### Test Coverage (Last Updated: 2026-01-12)
+### Test Coverage (Last Updated: 2026-01-15)
 
-**Overall Coverage: ~65%** (improved from 35.9% in Sprint 18)
+**Overall Coverage: ~65%** (target: 80%, Sprint 23 in progress)
+
+**Coverage Gaps Being Addressed in Sprint 23:**
+| Area | Current | Target | Gap |
+|------|---------|--------|-----|
+| Application Layer | ~40% | 85% | Moderation (0%), Community (5%), Notification (0%) |
+| HTTP Handlers | ~11% | 75% | 24 of 27 handlers untested |
+| Infrastructure | ~30% | 70% | 24 of 30 repositories untested |
 
 | Layer | Package | Coverage | Sprint 18 Change |
 |-------|---------|----------|------------------|
@@ -618,9 +631,9 @@ See [claude/ipfs_storage.md](claude/ipfs_storage.md) for detailed IPFS integrati
 - ✅ NSFW scan management endpoints (4 endpoints)
 - ✅ Database migration for NSFW scan tables
 
-### Phase 3: Advanced Features (5/7 Sprints Complete)
+### Phase 3: Advanced Features (5/8 Sprints Complete)
 
-Phase 3 focuses on discoverability, social sharing, and platform scalability. Sprints 16-20 are complete; Sprints 21-22 remain in backlog.
+Phase 3 focuses on discoverability, social sharing, platform scalability, and quality. Sprints 16-20 complete; Sprint 23 in progress; Sprints 21-22 in backlog.
 
 | Sprint | Focus | Duration | Priority | Status |
 |--------|-------|----------|----------|--------|
@@ -631,6 +644,7 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability. Sp
 | **20** | Groups/Communities | 2 weeks | P3 | ✅ **COMPLETE** (9/10 security controls) |
 | **21** | Video Support | 3 weeks | P3 | 📋 Backlog |
 | **22** | Account Tiers/Subscriptions | 2 weeks | P3 | 📋 Backlog |
+| **23** | Test Coverage & Regression Prevention | 2 weeks | P0 | 🚧 **IN PROGRESS** |
 
 #### Sprint 16: oEmbed + Social Media Cards ✅ COMPLETE
 
@@ -708,6 +722,23 @@ Phase 3 focuses on discoverability, social sharing, and platform scalability. Sp
 - ✅ E2E tests (34 Newman tests, 7 for group albums)
 - ✅ Contract tests validation (OpenAPI: 85 paths, 63 schemas)
 - ✅ Performance testing (`make load-test-groups`, target < 200ms p95)
+
+#### Sprint 23: Test Coverage & Regression Prevention 🚧 IN PROGRESS
+
+- 🚧 **Target**: Improve overall coverage from ~65% to 80%+
+- 🚧 **Priority P0**: Moderation application layer (16 files, 0 tests)
+- 🚧 **Priority P1**: Community commands/queries (29 files, 1 test)
+- 🚧 **Priority P1**: HTTP handler tests (27 handlers, 3 tests)
+- 🚧 **Priority P2**: Infrastructure tests (repositories, email, ClamAV)
+- 🚧 **Regression Prevention**: Local testing practices, pre-commit hooks
+
+**Key Deliverables**:
+- 30+ new test files
+- 200+ new test cases
+- Updated documentation
+- Regression prevention guide
+
+See [claude/sprint_23_test_coverage_plan.md](claude/sprint_23_test_coverage_plan.md) for detailed Sprint 23 planning.
 
 **Future Sprints** (Backlog):
 - **Video Support** (Sprint 21) - Video uploads with HLS/DASH streaming
