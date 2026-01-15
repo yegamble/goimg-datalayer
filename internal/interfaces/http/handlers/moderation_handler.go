@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -153,10 +154,11 @@ func (h *ModerationHandler) CreateReport(w http.ResponseWriter, r *http.Request)
 		Str("image_id", req.ImageID).
 		Msg("report created successfully")
 
+	createdAt := result.CreatedAt.Format(time.RFC3339)
 	response := CreateReportResponse{
 		ID:        result.ReportID,
 		Status:    result.Status,
-		CreatedAt: nil, // TODO: Add CreatedAt to command result if needed
+		CreatedAt: &createdAt,
 	}
 
 	if err := EncodeJSON(w, http.StatusCreated, response); err != nil {
