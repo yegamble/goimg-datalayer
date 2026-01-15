@@ -4,10 +4,10 @@
 > **Phase**: Phase 3 - Advanced Features
 > **Completed Sprints**: 16, 17, 18, 19, 20 ✅
 > **Current Sprint**: Sprint 23 (Test Coverage & Regression Prevention) 🚧
-> **Status**: Sprint 23 in progress, improving test coverage from ~65% to 80%+
+> **Status**: Sprint 23 in progress - improving test coverage from ~65% to 80%+, updating documentation
 > **Documentation**: See `claude/sprint_23_test_coverage_plan.md` for Sprint 23 details
 > **Test Coverage**: ~65% overall (target: 80%)
-> **Go Version**: 1.25+ minimum, CI uses 1.25.x (latest stable: 1.25.5, Go 1.26 RC1 released Dec 2025)
+> **Go Version**: Go 1.25+ minimum (toolchain go1.25.5 pinned in go.mod)
 > **Security Gate S20**: 9/10 controls passed
 
 ---

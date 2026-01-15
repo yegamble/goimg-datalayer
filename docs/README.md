@@ -1,6 +1,6 @@
 # goimg-datalayer Documentation
 
-> **Status**: Phase 2 COMPLETE | **Version**: 2.0 | **Updated**: 2026-01-09
+> **Status**: Phase 3 IN PROGRESS | **Version**: 2.1 | **Updated**: 2026-01-15
 
 Welcome to the goimg-datalayer documentation. This is a Go backend for an image gallery application (Flickr/Chevereto-style) supporting uploads, moderation, and user management.
 
@@ -134,8 +134,8 @@ docs/
 | Category | Status | Details |
 |----------|--------|---------|
 | Core Features | Complete | 100% implemented |
-| API Endpoints | Complete | 33 MVP endpoints |
-| Test Coverage | Exceeds | 91-100% domain, 91-94% application |
+| API Endpoints | Complete | 85 paths (Phase 3 expansion) |
+| Test Coverage | ~65% | Sprint 23 targeting 80%+ |
 | Security | Excellent | A- penetration test rating |
 | Documentation | Complete | All guides written |
 | Deployment | Ready | Production configurations validated |
@@ -163,16 +163,18 @@ All security controls verified for production deployment.
 | 14 | Content Moderation + Guest Uploads | ✅ **Complete** |
 | 15 | AI NSFW Detection + Advanced Search | ✅ **Complete** |
 
-### Phase 3 Roadmap (Planning)
+### Phase 3 Roadmap (IN PROGRESS)
 
-| Sprint | Focus | Priority |
-|--------|-------|----------|
-| 16 | oEmbed + Social Media Cards | P1 |
-| 17 | Nested Albums + Custom Variants | P2 |
-| 18 | Trending Tags + Featured Picks | P2 |
-| 19 | Groups/Communities | P3 |
-| 20 | Video Support | P3 |
-| 21 | Account Tiers/Subscriptions | P3 |
+| Sprint | Focus | Status |
+|--------|-------|--------|
+| 16 | oEmbed + Social Media Cards | ✅ **Complete** |
+| 17 | Nested Albums + Custom Variants | ✅ **Complete** |
+| 18 | Test Coverage Improvement | ✅ **Complete** |
+| 19 | Trending Tags + Featured Picks | ✅ **Complete** |
+| 20 | Groups/Communities | ✅ **Complete** |
+| 21 | Video Support | 📋 Backlog |
+| 22 | Account Tiers/Subscriptions | 📋 Backlog |
+| 23 | Test Coverage & Regression Prevention | 🚧 **In Progress** |
 
 See [Phase 3 Sprint Plan](../claude/phase_3_sprint_plan.md) for detailed planning.
 
