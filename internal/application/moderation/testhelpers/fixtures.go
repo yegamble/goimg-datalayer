@@ -164,14 +164,14 @@ func ValidImage(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		gallery.ImageStatusReady,
 		gallery.VisibilityPublic,
-		nil,           // title
-		nil,           // description
-		nil,           // tags
-		nil,           // metadata
-		nil,           // ipfsMetadata
-		time.Now(),    // createdAt
-		time.Now(),    // updatedAt
-		nil,           // deletedAt
+		nil,        // title
+		nil,        // description
+		nil,        // tags
+		nil,        // metadata
+		nil,        // ipfsMetadata
+		time.Now(), // createdAt
+		time.Now(), // updatedAt
+		nil,        // deletedAt
 	)
 
 	return image
@@ -195,14 +195,14 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		gallery.ImageStatusReady,
 		gallery.VisibilityPublic,
-		nil,           // title
-		nil,           // description
-		nil,           // tags
-		nil,           // metadata
-		nil,           // ipfsMetadata
-		time.Now(),    // createdAt
-		time.Now(),    // updatedAt
-		nil,           // deletedAt
+		nil,        // title
+		nil,        // description
+		nil,        // tags
+		nil,        // metadata
+		nil,        // ipfsMetadata
+		time.Now(), // createdAt
+		time.Now(), // updatedAt
+		nil,        // deletedAt
 	)
 
 	return image
@@ -224,10 +224,10 @@ func ValidReportInReviewing(t *testing.T) *moderation.Report {
 		reason,
 		ValidReportDesc,
 		moderation.StatusReviewing,
-		nil,           // resolvedBy
-		nil,           // resolvedAt
-		"",            // resolution
-		time.Now(),    // createdAt
+		nil,        // resolvedBy
+		nil,        // resolvedAt
+		"",         // resolution
+		time.Now(), // createdAt
 	)
 }
 
@@ -272,9 +272,9 @@ func ValidDismissedReport(t *testing.T) *moderation.Report {
 		reason,
 		ValidReportDesc,
 		moderation.StatusDismissed,
-		&adminID,                       // resolvedBy
-		&now,                           // resolvedAt
-		"Report dismissed",             // resolution
-		time.Now().Add(-time.Hour),     // createdAt (1 hour ago)
+		&adminID,                   // resolvedBy
+		&now,                       // resolvedAt
+		"Report dismissed",         // resolution
+		time.Now().Add(-time.Hour), // createdAt (1 hour ago)
 	)
 }

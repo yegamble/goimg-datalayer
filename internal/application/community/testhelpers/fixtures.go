@@ -25,14 +25,14 @@ const (
 
 // TestSuite provides mock dependencies for community tests.
 type TestSuite struct {
-	GroupRepo        *MockGroupRepository
-	MembershipRepo   *MockGroupMembershipRepository
-	ImageRepo        *MockGroupImageRepository
-	InvitationRepo   *MockGroupInvitationRepository
-	AlbumRepo        *MockGroupAlbumRepository
-	AlbumImageRepo   *MockGroupAlbumImageRepository
-	EventPublisher   *MockEventPublisher
-	Logger           zerolog.Logger
+	GroupRepo      *MockGroupRepository
+	MembershipRepo *MockGroupMembershipRepository
+	ImageRepo      *MockGroupImageRepository
+	InvitationRepo *MockGroupInvitationRepository
+	AlbumRepo      *MockGroupAlbumRepository
+	AlbumImageRepo *MockGroupAlbumImageRepository
+	EventPublisher *MockEventPublisher
+	Logger         zerolog.Logger
 }
 
 // NewTestSuite creates a new test suite with mocked dependencies.
@@ -40,14 +40,14 @@ func NewTestSuite(t *testing.T) *TestSuite {
 	t.Helper()
 
 	return &TestSuite{
-		GroupRepo:        new(MockGroupRepository),
-		MembershipRepo:   new(MockGroupMembershipRepository),
-		ImageRepo:        new(MockGroupImageRepository),
-		InvitationRepo:   new(MockGroupInvitationRepository),
-		AlbumRepo:        new(MockGroupAlbumRepository),
-		AlbumImageRepo:   new(MockGroupAlbumImageRepository),
-		EventPublisher:   new(MockEventPublisher),
-		Logger:           zerolog.Nop(),
+		GroupRepo:      new(MockGroupRepository),
+		MembershipRepo: new(MockGroupMembershipRepository),
+		ImageRepo:      new(MockGroupImageRepository),
+		InvitationRepo: new(MockGroupInvitationRepository),
+		AlbumRepo:      new(MockGroupAlbumRepository),
+		AlbumImageRepo: new(MockGroupAlbumImageRepository),
+		EventPublisher: new(MockEventPublisher),
+		Logger:         zerolog.Nop(),
 	}
 }
 
