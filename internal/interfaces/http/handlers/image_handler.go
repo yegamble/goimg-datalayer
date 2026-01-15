@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
@@ -595,8 +596,13 @@ func (h *ImageHandler) Search(w http.ResponseWriter, r *http.Request) {
 	// Parse tags (comma-separated)
 	var tags []string
 	if tagsParam := queryParams.Get("tags"); tagsParam != "" {
-		tags = []string{tagsParam} // Single tag for now
-		// TODO: Parse comma-separated tags if needed
+		rawTags := strings.Split(tagsParam, ",")
+		for _, tag := range rawTags {
+			trimmedTag := strings.TrimSpace(tag)
+			if trimmedTag != "" {
+				tags = append(tags, trimmedTag)
+			}
+		}
 	}
 
 	page, err := parseIntParam(queryParams.Get("page"), 1)
