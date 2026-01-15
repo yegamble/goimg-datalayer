@@ -23,12 +23,12 @@ type ListFeaturedImagesQuery struct {
 
 // FeaturedImageDTO represents a featured image with metadata for API responses.
 type FeaturedImageDTO struct {
-	PickID        string    `json:"pick_id"`
-	ImageID       string    `json:"image_id"`
+	PickID        string             `json:"pick_id"`
+	ImageID       string             `json:"image_id"`
 	Image         *FeaturedImageInfo `json:"image"`
-	DisplayOrder  int       `json:"display_order"`
-	FeaturedSince string    `json:"featured_since"` // ISO 8601
-	Reason        string    `json:"reason,omitempty"`
+	DisplayOrder  int                `json:"display_order"`
+	FeaturedSince string             `json:"featured_since"` // ISO 8601
+	Reason        string             `json:"reason,omitempty"`
 }
 
 // FeaturedImageInfo represents a minimal image response for featured picks.

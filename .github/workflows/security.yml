@@ -83,7 +83,7 @@ jobs:
 
       # Try to upload to Security tab (will fail silently on private repos without GHAS)
       - name: Upload gosec SARIF (if available)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
         if: always() && hashFiles('gosec-results.sarif') != ''
         continue-on-error: true
         with:
@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -138,7 +138,7 @@ jobs:
         id: trivy-scan
 
       - name: Generate SARIF output
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -164,7 +164,7 @@ jobs:
 
       # Try to upload to Security tab (will fail silently on private repos without GHAS)
       - name: Upload Trivy SARIF (if available)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
         if: always() && hashFiles(format('trivy-{0}-results.sarif', matrix.scan-type)) != ''
         continue-on-error: true
         with:
