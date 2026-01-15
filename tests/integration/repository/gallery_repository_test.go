@@ -855,11 +855,60 @@ func TestAlbumRepository_FindByOwner_Success(t *testing.T) {
 	}
 
 	// Act
-	albums, err := repo.FindByOwner(ctx, ownerID)
+	pagination := shared.DefaultPagination()
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
 
 	// Assert
 	require.NoError(t, err)
+	assert.Equal(t, int64(3), total)
 	assert.Len(t, albums, 3)
+}
+
+func TestAlbumRepository_FindByOwner_Pagination(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	ctx := context.Background()
+	pgContainer, err := containers.NewPostgresContainer(ctx, t)
+	require.NoError(t, err)
+	defer func() {
+		_ = pgContainer.Terminate(ctx)
+	}()
+
+	repo := postgres.NewAlbumRepository(pgContainer.DB)
+	ownerID := createTestUser()
+
+	// Create 5 albums
+	for i := 1; i <= 5; i++ {
+		album := createTestAlbum(ownerID, "Album "+string(rune('0'+i)))
+		err := repo.Save(ctx, album)
+		require.NoError(t, err)
+	}
+
+	// Test first page (2 items)
+	pagination, _ := shared.NewPagination(1, 2)
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
+
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), total)
+	assert.Len(t, albums, 2)
+
+	// Test second page
+	pagination, _ = shared.NewPagination(2, 2)
+	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination)
+
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), total)
+	assert.Len(t, albums, 2)
+
+	// Test third page (only 1 item)
+	pagination, _ = shared.NewPagination(3, 2)
+	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination)
+
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), total)
+	assert.Len(t, albums, 1)
 }
 
 func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
@@ -878,10 +927,12 @@ func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
 	ownerID := createTestUser()
 
 	// Act
-	albums, err := repo.FindByOwner(ctx, ownerID)
+	pagination := shared.DefaultPagination()
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
 
 	// Assert
 	require.NoError(t, err)
+	assert.Equal(t, int64(0), total)
 	assert.Empty(t, albums)
 }
 
