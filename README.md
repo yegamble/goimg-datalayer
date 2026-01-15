@@ -75,7 +75,7 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 - **Sprint 1-2: Foundation & Domain Layer** (4 weeks) ✅
   - Project setup with DDD architecture
-  - OpenAPI 3.0 specification (5,460+ lines)
+  - OpenAPI 3.0 specification (7,600+ lines)
   - Complete domain layer (Identity, Gallery, Moderation, Shared contexts)
   - Domain layer test coverage: 91-100% (exceeds 90% requirement)
   - CI/CD pipeline (GitHub Actions with linting, testing, security scanning)
@@ -290,7 +290,7 @@ Based on [Flickr/Chevereto competitive analysis](claude/mvp_features.md):
 - ✅ Async background job processing (Asynq/Redis)
 
 **API & Security**
-- ✅ RESTful API with OpenAPI 3.0 spec (5,460+ lines)
+- ✅ RESTful API with OpenAPI 3.0 spec (7,600+ lines)
 - ✅ Rate limiting: 5 login/min, 100 global/min, 300 authenticated/min, 50 uploads/hour
 - ✅ RFC 7807 Problem Details error responses
 - ✅ Security headers middleware (CSP, HSTS, X-Frame-Options, etc.)
