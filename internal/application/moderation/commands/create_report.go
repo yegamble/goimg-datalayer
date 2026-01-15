@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -26,8 +27,9 @@ func (CreateReportCommand) isCommand() {}
 
 // CreateReportResult represents the result of a successful report creation.
 type CreateReportResult struct {
-	ReportID string
-	Status   string
+	ReportID  string
+	Status    string
+	CreatedAt time.Time
 }
 
 // CreateReportHandler processes report creation commands.
@@ -161,7 +163,8 @@ func (h *CreateReportHandler) Handle(ctx context.Context, cmd CreateReportComman
 		Msg("report created successfully")
 
 	return &CreateReportResult{
-		ReportID: report.ID().String(),
-		Status:   report.Status().String(),
+		ReportID:  report.ID().String(),
+		Status:    report.Status().String(),
+		CreatedAt: report.CreatedAt(),
 	}, nil
 }
