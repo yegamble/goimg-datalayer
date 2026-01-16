@@ -37,7 +37,7 @@ runs:
       run: |
         if [ -d "migrations" ] || [ -d "db/migrations" ]; then
           echo "Installing Goose migration tool..."
-          go install github.com/pressly/goose/v3/cmd/goose@latest
+          go install github.com/pressly/goose/v3/cmd/goose@v3.17.0
         else
           echo "No migrations directory found, skipping Goose installation"
         fi
