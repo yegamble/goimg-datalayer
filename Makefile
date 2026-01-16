@@ -1,4 +1,4 @@
-.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
+.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit act-lint act-test act-list act-ci act-security
 
 # Default target
 help:
@@ -39,6 +39,13 @@ help:
 	@echo "  clean             - Remove build artifacts"
 	@echo "  install-hooks     - Install git pre-commit hooks (REQUIRED for Claude agents)"
 	@echo "  pre-commit        - Run pre-commit checks manually"
+	@echo ""
+	@echo "Local CI Testing (act):"
+	@echo "  act-list          - List all GitHub Actions jobs"
+	@echo "  act-lint          - Run lint job locally with act"
+	@echo "  act-test          - Run unit test job locally with act"
+	@echo "  act-ci            - Run full CI workflow locally with act"
+	@echo "  act-security      - Run security workflow locally with act"
 
 # Go version check - enforces minimum Go 1.25
 GO_VERSION_MIN := 1.25
@@ -368,3 +375,35 @@ pre-commit: check-go-version
 	@go vet ./...
 	@golangci-lint run ./...
 	@echo "Pre-commit checks passed!"
+
+# ============================================================================
+# Local CI Testing with act (https://github.com/nektos/act)
+# Requires: Docker, act (install: curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash)
+# ============================================================================
+
+# List all available GitHub Actions jobs
+act-list:
+	@echo "Available GitHub Actions jobs:"
+	@act --list
+
+# Run lint job locally
+act-lint:
+	@echo "Running lint job with act..."
+	@echo "Note: First run will pull Docker images (may take a few minutes)"
+	@act push -j lint --secret GITHUB_TOKEN=$(GITHUB_TOKEN)
+
+# Run unit test job locally
+act-test:
+	@echo "Running unit test job with act..."
+	@act push -j test-unit --secret GITHUB_TOKEN=$(GITHUB_TOKEN)
+
+# Run the full CI workflow locally
+act-ci:
+	@echo "Running full CI workflow with act..."
+	@echo "Note: This may take 15-30 minutes and requires Docker"
+	@act push -W .github/workflows/ci.yml --secret GITHUB_TOKEN=$(GITHUB_TOKEN)
+
+# Run the security scanning workflow locally
+act-security:
+	@echo "Running security workflow with act..."
+	@act push -W .github/workflows/security.yml --secret GITHUB_TOKEN=$(GITHUB_TOKEN)
