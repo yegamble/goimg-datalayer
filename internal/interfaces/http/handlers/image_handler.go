@@ -164,7 +164,36 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	// 4. Get file metadata
 	fileSize := header.Size
 	filename := header.Filename
-	mimeType := header.Header.Get("Content-Type")
+
+	// Security: Detect MIME type from content instead of trusting header
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		h.logger.Error().Err(err).Msg("failed to read file header for mime detection")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to process image file",
+		)
+		return
+	}
+
+	// Reset file pointer
+	if _, err := file.Seek(0, 0); err != nil {
+		h.logger.Error().Err(err).Msg("failed to reset file pointer")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to process image file",
+		)
+		return
+	}
+
+	mimeType := http.DetectContentType(buffer[:n])
+	h.logger.Debug().
+		Str("detected_mime", mimeType).
+		Str("header_mime", header.Header.Get("Content-Type")).
+		Msg("mime type detection")
 
 	// 5. Extract form fields
 	title := r.FormValue("title")
