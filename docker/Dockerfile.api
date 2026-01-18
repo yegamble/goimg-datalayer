@@ -1,12 +1,11 @@
 # ============================================================================
 # Multi-stage Dockerfile for API Server
 # ============================================================================
-# Build stage uses full Go image, runtime uses minimal distroless image
+# Build stage uses full Go image, runtime uses minimal Alpine image
 # Security features:
 # - Non-root user (10001:10001)
-# - Minimal attack surface (distroless)
-# - No shell or package manager in final image
-# - Static binary compilation
+# - Minimal attack surface (Alpine)
+# - Static binary compilation (mostly)
 
 # ============================================================================
 # Stage 1: Build
@@ -38,6 +37,7 @@ COPY . .
 # - CGO_ENABLED=1: Required for vips
 # - -ldflags: Strip debug info, make static
 # - -trimpath: Remove local path information
+# Note: linking against musl for Alpine
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -trimpath \
@@ -50,25 +50,23 @@ RUN /build/api --version 2>&1 || echo "API server built successfully"
 # ============================================================================
 # Stage 2: Runtime
 # ============================================================================
-FROM gcr.io/distroless/base-debian12:nonroot
+FROM alpine:3.20
 
-# Copy timezone data
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-# Copy CA certificates
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-# Copy vips libraries
-COPY --from=builder /usr/lib/libvips* /usr/lib/
-COPY --from=builder /usr/lib/libglib* /usr/lib/
-COPY --from=builder /usr/lib/libgobject* /usr/lib/
-COPY --from=builder /usr/lib/libgio* /usr/lib/
-COPY --from=builder /usr/lib/libgmodule* /usr/lib/
+# Install runtime dependencies
+# - vips: Image processing library (matches builder)
+# - ca-certificates: HTTPS support
+# - tzdata: Timezone support
+RUN apk add --no-cache \
+    vips \
+    ca-certificates \
+    tzdata \
+    && addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot -u 10001
 
 # Copy application binary
 COPY --from=builder /build/api /app/api
 
-# Use non-root user (defined in docker-compose)
-# distroless/base-debian12:nonroot already runs as uid 65532
-# But we override with 10001 in docker-compose for consistency
+# Use non-root user
 USER 10001:10001
 
 # Expose API port
