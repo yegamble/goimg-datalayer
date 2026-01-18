@@ -102,7 +102,8 @@ func TestPutBytes_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify file exists.
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.fullPath(key)
+	require.NoError(t, err)
 	data, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)
@@ -165,7 +166,8 @@ func TestPut_CreatesNestedDirectories(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify nested directories exist
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.fullPath(key)
+	require.NoError(t, err)
 	assert.FileExists(t, fullPath)
 }
 
@@ -528,7 +530,8 @@ func TestCalculateETag(t *testing.T) {
 	err := storage.PutBytes(ctx, key, testData, PutOptions{})
 	require.NoError(t, err)
 
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.fullPath(key)
+	require.NoError(t, err)
 	etag, err := storage.calculateETag(fullPath)
 	require.NoError(t, err)
 
@@ -551,10 +554,11 @@ func TestAtomicWrite(t *testing.T) {
 	ctx := context.Background()
 
 	key := "atomic-test.jpg"
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.fullPath(key)
+	require.NoError(t, err)
 
 	// First write
-	err := storage.PutBytes(ctx, key, []byte("version 1"), PutOptions{})
+	err = storage.PutBytes(ctx, key, []byte("version 1"), PutOptions{})
 	require.NoError(t, err)
 
 	// Second write should replace atomically
@@ -579,6 +583,32 @@ func TestAtomicWrite(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 1, fileCount, "should have exactly one file, no temp files")
+}
+
+// TestFullPath_Security tests that fullPath prevents path traversal properly.
+func TestFullPath_Security(t *testing.T) {
+	t.Parallel()
+	storage := setupTestStorage(t)
+
+	// Case 1: Traversal that stays inside should succeed
+	// "subdir/../file.txt" -> "file.txt" inside base
+	// Note: We need a key that passes validateKey (no ".." allowed).
+	// But here we are calling fullPath directly with a raw string, bypassing validateKey.
+	// This simulates a scenario where validateKey might have a flaw or is bypassed.
+	path, err := storage.fullPath("subdir/../file.txt")
+	require.NoError(t, err)
+	assert.True(t, strings.HasPrefix(path, storage.basePath))
+
+	// Case 2: Traversal that goes outside should fail
+	_, err = storage.fullPath("../../etc/passwd")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "path escapes base directory")
+
+	// Case 3: Partial prefix match trick
+	// If base is /tmp/storage, ../storage_secret should not be allowed
+	_, err = storage.fullPath("../" + filepath.Base(storage.basePath) + "_secret")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "path escapes base directory")
 }
 
 // setupTestStorage creates a Storage instance for testing.
