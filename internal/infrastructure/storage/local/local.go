@@ -95,11 +95,11 @@ func New(cfg Config) (*Storage, error) {
 //
 //nolint:cyclop // Sequential steps: validation, directory creation, temp file, streaming, finalization.
 func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int64, _ PutOptions) error {
-	if err := validateKey(key); err != nil {
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
 		return err
 	}
 
-	fullPath := s.fullPath(key)
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
@@ -173,11 +173,11 @@ func (s *Storage) PutBytes(ctx context.Context, key string, data []byte, opts Pu
 
 // Get retrieves data from storage as a streaming reader.
 func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
-	if err := validateKey(key); err != nil {
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
 	//nolint:gosec // G304: File path constructed from validated key (validateKey checks for path traversal)
 	file, err := os.Open(fullPath)
 	if err != nil {
@@ -216,12 +216,12 @@ func (s *Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 
 // Delete removes an object from storage.
 func (s *Storage) Delete(_ context.Context, key string) error {
-	if err := validateKey(key); err != nil {
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
 		return err
 	}
 
-	fullPath := s.fullPath(key)
-	err := os.Remove(fullPath)
+	err = os.Remove(fullPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("local delete: %w", err)
 	}
@@ -231,12 +231,12 @@ func (s *Storage) Delete(_ context.Context, key string) error {
 
 // Exists checks if an object exists at the given key.
 func (s *Storage) Exists(_ context.Context, key string) (bool, error) {
-	if err := validateKey(key); err != nil {
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
 		return false, err
 	}
 
-	fullPath := s.fullPath(key)
-	_, err := os.Stat(fullPath)
+	_, err = os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
@@ -262,11 +262,11 @@ func (s *Storage) PresignedURL(_ context.Context, _ string, _ time.Duration) (st
 
 // Stat returns metadata about a stored object.
 func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
-	if err := validateKey(key); err != nil {
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
 	info, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -295,14 +295,37 @@ func (s *Storage) Provider() string {
 	return "local"
 }
 
-// fullPath returns the full filesystem path for a storage key.
-func (s *Storage) fullPath(key string) string {
-	return filepath.Join(s.basePath, key)
+// resolvePath validates the key and returns the full secure path.
+// It ensures the path is contained within the base directory to prevent Zip Slip vulnerabilities.
+func (s *Storage) resolvePath(key string) (string, error) {
+	if err := validateKey(key); err != nil {
+		return "", err
+	}
+
+	// Create full path
+	fullPath := filepath.Join(s.basePath, key)
+
+	// Clean the path to resolve any ".." or redundant separators
+	cleanPath := filepath.Clean(fullPath)
+
+	// SECURITY: Ensure the path is within the base directory
+	// We append a separator to the base path to ensure we don't match partial directory names.
+	// e.g. /tmp/data vs /tmp/database
+	baseWithSep := s.basePath
+	if !strings.HasSuffix(baseWithSep, string(os.PathSeparator)) {
+		baseWithSep += string(os.PathSeparator)
+	}
+
+	if !strings.HasPrefix(cleanPath, baseWithSep) && cleanPath != s.basePath {
+		return "", fmt.Errorf("%w: path escapes base directory", errPathTraversal)
+	}
+
+	return cleanPath, nil
 }
 
 // calculateETag computes the MD5 hash of a file for ETag.
 func (s *Storage) calculateETag(path string) (string, error) {
-	//nolint:gosec // G304: File path from internal method (fullPath), already validated
+	//nolint:gosec // G304: File path from internal method (resolvePath), already validated
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("local open for etag: %w", err)
