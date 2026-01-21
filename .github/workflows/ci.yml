@@ -397,7 +397,7 @@ jobs:
       - name: Merge coverage reports
         run: |
           # Install gocovmerge to combine coverage files
-          go install github.com/wadey/gocovmerge@latest
+          go install github.com/wadey/gocovmerge@b5bfa59ec0ad
           gocovmerge coverage-unit.out coverage-integration.out coverage-domain.out > coverage-merged.out
 
       - name: Calculate coverage percentage
@@ -558,7 +558,7 @@ jobs:
         id: gosec
         run: |
           # Install gosec
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
 
           # Run gosec with multiple output formats
           gosec -fmt sarif -out gosec-results.sarif -severity=medium ./... || GOSEC_EXIT=$?
@@ -575,7 +575,7 @@ jobs:
 
       # Try to upload to Security tab (will fail silently on private repos without GHAS)
       - name: Upload gosec SARIF (if available)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
         if: always() && hashFiles('gosec-results.sarif') != ''
         continue-on-error: true
         with:
