@@ -99,7 +99,10 @@ func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int6
 		return err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
+		return err
+	}
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
@@ -177,7 +180,10 @@ func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
+		return nil, err
+	}
 	//nolint:gosec // G304: File path constructed from validated key (validateKey checks for path traversal)
 	file, err := os.Open(fullPath)
 	if err != nil {
@@ -220,8 +226,11 @@ func (s *Storage) Delete(_ context.Context, key string) error {
 		return err
 	}
 
-	fullPath := s.fullPath(key)
-	err := os.Remove(fullPath)
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
+		return err
+	}
+	err = os.Remove(fullPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("local delete: %w", err)
 	}
@@ -235,8 +244,11 @@ func (s *Storage) Exists(_ context.Context, key string) (bool, error) {
 		return false, err
 	}
 
-	fullPath := s.fullPath(key)
-	_, err := os.Stat(fullPath)
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
+		return false, err
+	}
+	_, err = os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
@@ -266,7 +278,10 @@ func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.resolvePath(key)
+	if err != nil {
+		return nil, err
+	}
 	info, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -295,9 +310,28 @@ func (s *Storage) Provider() string {
 	return "local"
 }
 
-// fullPath returns the full filesystem path for a storage key.
-func (s *Storage) fullPath(key string) string {
-	return filepath.Join(s.basePath, key)
+// resolvePath resolves the key to an absolute filesystem path and verifies
+// that it stays within the configured base path.
+func (s *Storage) resolvePath(key string) (string, error) {
+	// Join base path and key
+	fullPath := filepath.Join(s.basePath, key)
+
+	// Clean the path (filepath.Join does this, but being explicit is fine)
+	fullPath = filepath.Clean(fullPath)
+
+	// Ensure the base path ends with a separator for prefix check
+	// s.basePath is already absolute and cleaned in New()
+	base := s.basePath
+	if !strings.HasSuffix(base, string(filepath.Separator)) {
+		base += string(filepath.Separator)
+	}
+
+	// Check prefix
+	if !strings.HasPrefix(fullPath, base) {
+		return "", fmt.Errorf("%w: path escapes base directory", errPathTraversal)
+	}
+
+	return fullPath, nil
 }
 
 // calculateETag computes the MD5 hash of a file for ETag.

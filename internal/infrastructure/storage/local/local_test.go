@@ -102,7 +102,8 @@ func TestPutBytes_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify file exists.
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.resolvePath(key)
+	require.NoError(t, err)
 	data, err := os.ReadFile(fullPath)
 	require.NoError(t, err)
 	assert.Equal(t, testData, data)
@@ -165,7 +166,8 @@ func TestPut_CreatesNestedDirectories(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify nested directories exist
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.resolvePath(key)
+	require.NoError(t, err)
 	assert.FileExists(t, fullPath)
 }
 
@@ -528,7 +530,8 @@ func TestCalculateETag(t *testing.T) {
 	err := storage.PutBytes(ctx, key, testData, PutOptions{})
 	require.NoError(t, err)
 
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.resolvePath(key)
+	require.NoError(t, err)
 	etag, err := storage.calculateETag(fullPath)
 	require.NoError(t, err)
 
@@ -551,10 +554,11 @@ func TestAtomicWrite(t *testing.T) {
 	ctx := context.Background()
 
 	key := "atomic-test.jpg"
-	fullPath := storage.fullPath(key)
+	fullPath, err := storage.resolvePath(key)
+	require.NoError(t, err)
 
 	// First write
-	err := storage.PutBytes(ctx, key, []byte("version 1"), PutOptions{})
+	err = storage.PutBytes(ctx, key, []byte("version 1"), PutOptions{})
 	require.NoError(t, err)
 
 	// Second write should replace atomically
