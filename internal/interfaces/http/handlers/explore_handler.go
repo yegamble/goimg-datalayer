@@ -10,11 +10,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-const (
-	defaultPerPage = 20
-	maxPerPage     = 100
-)
-
 // ExploreHandler handles explore/discovery HTTP endpoints.
 // These endpoints are public and allow anonymous users to discover content.
 type ExploreHandler struct {

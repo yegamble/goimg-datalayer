@@ -14,13 +14,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-const (
-	// defaultPerPage is the default number of items returned per page in list/search endpoints.
-	defaultPerPage = 20
-	// maxPerPage is the maximum number of items allowed per page.
-	maxPerPage = 100
-)
-
 // GroupHandler handles group-related HTTP endpoints.
 // It delegates to application layer command and query handlers for business logic.
 type GroupHandler struct {

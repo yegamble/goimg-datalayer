@@ -243,10 +243,11 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Build list query
+	pagination, _ := shared.NewPagination(page, perPage)
 	query := queries.ListGroupAlbumsQuery{
 		GroupID:    groupID,
 		ActorID:    actorID,
-		Pagination: shared.NewPagination(page, perPage),
+		Pagination: pagination,
 	}
 
 	// 5. Execute query
