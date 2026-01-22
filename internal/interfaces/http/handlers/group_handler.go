@@ -1515,12 +1515,12 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 			"Forbidden",
 			"Cannot ban the group owner",
 		)
-	// case err == community.ErrOwnerCannotLeave:
-	// 	middleware.WriteError(w, r,
-	// 		http.StatusForbidden,
-	// 		"Forbidden",
-	// 		"Owner cannot leave the group",
-	// 	)
+	case err == community.ErrOwnerCannotLeave:
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Owner cannot leave the group",
+		)
 	default:
 		middleware.WriteError(w, r,
 			http.StatusInternalServerError,

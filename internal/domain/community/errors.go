@@ -42,6 +42,7 @@ var (
 	ErrAlreadyGroupMember    = errors.New("user is already a member")
 	ErrInsufficientGroupRole = errors.New("insufficient permissions for this action")
 	ErrCannotLeaveAsOwner    = errors.New("group owner cannot leave (transfer ownership first)")
+	ErrOwnerCannotLeave      = errors.New("owner cannot leave the group")
 	ErrMemberBanned          = errors.New("user is banned from this group")
 	ErrMemberLimitReached    = errors.New("group has reached maximum member capacity")
 
