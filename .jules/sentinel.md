@@ -1,0 +1,4 @@
+## 2025-05-15 - Content-Type Spoofing in Image Upload
+**Vulnerability:** The `ImageHandler.Upload` method blindly trusted the `Content-Type` header provided by the client, allowing attackers to upload malicious files (e.g., PHP scripts) by disguising them as images (e.g., `Content-Type: image/jpeg`). Additionally, the handler failed to extract image dimensions, causing legitimate uploads to fail due to domain validation rules.
+**Learning:** Using `image.DecodeConfig` is an efficient way to validate image content and extract metadata (dimensions, format) simultaneously without loading the entire file into memory. This solves both the security vulnerability (content inspection) and the functional bug (missing dimensions).
+**Prevention:** Never trust client-provided metadata for file uploads. Always inspect the file content (magic bytes) to determine the actual MIME type and validate that the file structure matches the expected format.

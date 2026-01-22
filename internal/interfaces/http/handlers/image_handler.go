@@ -3,6 +3,10 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"net/http"
 	"strconv"
@@ -164,7 +168,44 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	// 4. Get file metadata
 	fileSize := header.Size
 	filename := header.Filename
-	mimeType := header.Header.Get("Content-Type")
+
+	// Validate content type and dimensions by decoding image config
+	// This also ensures the file is a valid image (security check)
+	config, format, err := image.DecodeConfig(file)
+	if err != nil {
+		h.logger.Debug().Err(err).Msg("failed to decode image config")
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid image file or unsupported format",
+		)
+		return
+	}
+
+	// Reset file pointer after reading config
+	if _, err := file.Seek(0, 0); err != nil {
+		h.logger.Error().Err(err).Msg("failed to seek file after decoding config")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to process image file",
+		)
+		return
+	}
+
+	// Determine MIME type from format
+	var mimeType string
+	switch format {
+	case "jpeg":
+		mimeType = "image/jpeg"
+	case "png":
+		mimeType = "image/png"
+	case "gif":
+		mimeType = "image/gif"
+	default:
+		// Fallback for other formats
+		mimeType = "image/" + format
+	}
 
 	// 5. Extract form fields
 	title := r.FormValue("title")
@@ -197,9 +238,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		Visibility:  visibility,
 		Tags:        tags,
 		MimeType:    mimeType,
-		// Width and Height will be extracted during processing
-		Width:  0,
-		Height: 0,
+		Width:       config.Width,
+		Height:      config.Height,
 	}
 
 	// 7. Execute upload command
