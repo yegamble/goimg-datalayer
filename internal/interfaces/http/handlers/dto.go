@@ -395,11 +395,10 @@ type GroupResponse struct {
 
 // GroupSettingsResponse represents group settings in HTTP responses.
 type GroupSettingsResponse struct {
-	MaxMembers          int    `json:"max_members"`
-	RequireApproval     bool   `json:"require_approval"`
-	AllowGuestUploads   bool   `json:"allow_guest_uploads"`
-	AllowComments       bool   `json:"allow_comments"`
-	DefaultImagePrivacy string `json:"default_image_privacy"`
+	MaxMembers         int  `json:"max_members"`
+	RequireApproval    bool `json:"require_approval"`
+	AllowMemberInvites bool `json:"allow_member_invites"`
+	AllowMemberAlbums  bool `json:"allow_member_albums"`
 }
 
 // MembershipResponse represents a group membership in HTTP responses.

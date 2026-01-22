@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -490,8 +489,7 @@ func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Execute delete command
-	_, err = h.deleteGroup.Handle(ctx, cmd)
-	if err != nil {
+	if err := h.deleteGroup.Handle(ctx, cmd); err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete group")
 		return
 	}
@@ -540,12 +538,22 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 		groupType = &parsed
 	}
 
+	// Manual parsing for sort_by since ParseGroupSortBy doesn't exist?
+	// Checking the repository definition, GroupSortBy is a string alias.
 	sortByStr := queryParams.Get("sort_by")
-	if sortByStr == "" {
-		sortByStr = "recent"
-	}
-	sortBy, err := community.ParseGroupSortBy(sortByStr)
-	if err != nil {
+	var sortBy community.GroupSortBy
+	switch sortByStr {
+	case "recent":
+		sortBy = community.GroupSortByRecent
+	case "popular":
+		sortBy = community.GroupSortByPopular
+	case "name":
+		sortBy = community.GroupSortByName
+	case "activity":
+		sortBy = community.GroupSortByActivity
+	case "":
+		sortBy = community.GroupSortByRecent
+	default:
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
 			"Bad Request",
@@ -840,8 +848,7 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Execute leave command
-	_, err = h.leaveGroup.Handle(ctx, cmd)
-	if err != nil {
+	if err := h.leaveGroup.Handle(ctx, cmd); err != nil {
 		h.mapErrorAndRespond(w, r, err, "leave group")
 		return
 	}
@@ -1217,8 +1224,7 @@ func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 6. Execute command
-	_, err = h.removeMember.Handle(ctx, cmd)
-	if err != nil {
+	if err := h.removeMember.Handle(ctx, cmd); err != nil {
 		h.mapErrorAndRespond(w, r, err, "remove member")
 		return
 	}
@@ -1344,24 +1350,19 @@ func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 7. Execute command
-	membership, err := h.banMember.Handle(ctx, cmd)
-	if err != nil {
+	if err := h.banMember.Handle(ctx, cmd); err != nil {
 		h.mapErrorAndRespond(w, r, err, "ban member")
 		return
 	}
 
-	// 8. Return updated membership
-	resp := mapMembershipToResponse(membership)
-
+	// 8. Return 204 No Content
 	h.logger.Info().
 		Str("group_id", groupIDStr).
 		Str("actor_id", userCtx.UserID.String()).
 		Str("target_id", targetIDStr).
 		Msg("member banned successfully")
 
-	if err := EncodeJSON(w, http.StatusOK, resp); err != nil {
-		h.logger.Error().Err(err).Msg("failed to encode ban member response")
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetUserGroups is a convenience method for mounting under /api/v1/me/groups.
@@ -1514,12 +1515,12 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 			"Forbidden",
 			"Cannot ban the group owner",
 		)
-	case err == community.ErrOwnerCannotLeave:
-		middleware.WriteError(w, r,
-			http.StatusForbidden,
-			"Forbidden",
-			"Owner cannot leave the group",
-		)
+	// case err == community.ErrOwnerCannotLeave:
+	// 	middleware.WriteError(w, r,
+	// 		http.StatusForbidden,
+	// 		"Forbidden",
+	// 		"Owner cannot leave the group",
+	// 	)
 	default:
 		middleware.WriteError(w, r,
 			http.StatusInternalServerError,
@@ -1584,11 +1585,10 @@ func mapMembershipsToResponse(memberships []*community.GroupMembership) []Member
 
 func mapSettingsToResponse(settings community.GroupSettings) GroupSettingsResponse {
 	return GroupSettingsResponse{
-		MaxMembers:          settings.MaxMembers(),
-		RequireApproval:     settings.RequireApproval(),
-		AllowGuestUploads:   settings.AllowGuestUploads(),
-		AllowComments:       settings.AllowComments(),
-		DefaultImagePrivacy: settings.DefaultImagePrivacy().String(),
+		MaxMembers:         settings.MaxMembers(),
+		RequireApproval:    settings.RequireApproval(),
+		AllowMemberInvites: settings.AllowMemberInvites(),
+		AllowMemberAlbums:  settings.AllowMemberAlbums(),
 	}
 }
 
