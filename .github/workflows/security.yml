@@ -56,7 +56,7 @@ jobs:
       - name: Run gosec security scanner
         run: |
           # Install gosec
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
 
           # Run gosec and generate multiple output formats
           gosec -fmt json -out gosec-results.json -exclude-dir=tests -severity=medium ./... || GOSEC_EXIT=$?
@@ -213,7 +213,7 @@ jobs:
           sudo apt-get install -y libvips-dev
 
       - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
 
       - name: Download dependencies
         run: go mod download
@@ -387,7 +387,7 @@ jobs:
 
       - name: Generate SBOM with cyclonedx-gomod
         run: |
-          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
+          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.9.0
           cyclonedx-gomod mod -json -output sbom.cdx.json
 
           echo "## SBOM Generated" >> $GITHUB_STEP_SUMMARY

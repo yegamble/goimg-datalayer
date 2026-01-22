@@ -397,7 +397,7 @@ jobs:
       - name: Merge coverage reports
         run: |
           # Install gocovmerge to combine coverage files
-          go install github.com/wadey/gocovmerge@latest
+          go install github.com/wadey/gocovmerge@v0.0.0-20160331181800-b5bfa59ec0ad
           gocovmerge coverage-unit.out coverage-integration.out coverage-domain.out > coverage-merged.out
 
       - name: Calculate coverage percentage
@@ -558,7 +558,7 @@ jobs:
         id: gosec
         run: |
           # Install gosec
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
 
           # Run gosec with multiple output formats
           gosec -fmt sarif -out gosec-results.sarif -severity=medium ./... || GOSEC_EXIT=$?
