@@ -17,6 +17,7 @@ type Image struct {
 	metadata     ImageMetadata
 	visibility   Visibility
 	status       ImageStatus
+	scanStatus   ScanStatus
 	variants     []ImageVariant
 	tags         []Tag
 	ipfsMetadata *IPFSMetadata // Optional IPFS storage info (nil if not pinned)
@@ -55,6 +56,7 @@ func NewImageWithID(id ImageID, ownerID identity.UserID, metadata ImageMetadata)
 		metadata:     metadata,
 		visibility:   VisibilityPrivate, // Start private until processing completes
 		status:       StatusProcessing,
+		scanStatus:   ScanStatusPending,
 		variants:     []ImageVariant{},
 		tags:         []Tag{},
 		viewCount:    0,
@@ -84,6 +86,7 @@ func ReconstructImage(
 	metadata ImageMetadata,
 	visibility Visibility,
 	status ImageStatus,
+	scanStatus ScanStatus,
 	variants []ImageVariant,
 	tags []Tag,
 	ipfsMetadata *IPFSMetadata,
@@ -96,6 +99,7 @@ func ReconstructImage(
 		metadata:     metadata,
 		visibility:   visibility,
 		status:       status,
+		scanStatus:   scanStatus,
 		variants:     variants,
 		tags:         tags,
 		ipfsMetadata: ipfsMetadata,
@@ -133,6 +137,11 @@ func (i *Image) Visibility() Visibility {
 // Status returns the current status.
 func (i *Image) Status() ImageStatus {
 	return i.status
+}
+
+// ScanStatus returns the current malware scan status.
+func (i *Image) ScanStatus() ScanStatus {
+	return i.scanStatus
 }
 
 // Variants returns a copy of the variants slice.
@@ -216,6 +225,25 @@ func (i *Image) AddVariant(variant ImageVariant) error {
 		VariantType: variant.VariantType(),
 	})
 
+	return nil
+}
+
+// SetScanStatus updates the malware scan status of the image.
+func (i *Image) SetScanStatus(status ScanStatus) error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	if !status.IsValid() {
+		return fmt.Errorf("%w: invalid scan status %s", shared.ErrInvalidInput, status)
+	}
+
+	if i.scanStatus == status {
+		return nil
+	}
+
+	i.scanStatus = status
+	i.updatedAt = time.Now().UTC()
 	return nil
 }
 

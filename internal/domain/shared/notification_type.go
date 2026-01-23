@@ -14,6 +14,7 @@ const (
 	NotificationTypeAccountSuspended  NotificationType = "account_suspended"
 	NotificationTypeAccountBanned     NotificationType = "account_banned"
 	NotificationTypeAccountReinstated NotificationType = "account_reinstated"
+	NotificationTypeMalwareDetected   NotificationType = "malware_detected"
 
 	// Admin/Moderator notifications
 	NotificationTypeAbuseReport       NotificationType = "abuse_report"
@@ -25,7 +26,7 @@ const (
 // regardless of user preferences (account status changes).
 func (t NotificationType) RequiresEmail() bool {
 	switch t {
-	case NotificationTypeAccountSuspended, NotificationTypeAccountBanned, NotificationTypeAccountReinstated:
+	case NotificationTypeAccountSuspended, NotificationTypeAccountBanned, NotificationTypeAccountReinstated, NotificationTypeMalwareDetected:
 		return true
 	default:
 		return false
@@ -47,7 +48,8 @@ func (t NotificationType) IsValid() bool {
 	switch t {
 	case NotificationTypeNewFollower, NotificationTypeNewPhotos,
 		NotificationTypeAccountSuspended, NotificationTypeAccountBanned, NotificationTypeAccountReinstated,
-		NotificationTypeAbuseReport, NotificationTypeReportEscalated, NotificationTypeModActionRequired:
+		NotificationTypeAbuseReport, NotificationTypeReportEscalated, NotificationTypeModActionRequired,
+		NotificationTypeMalwareDetected:
 		return true
 	default:
 		return false

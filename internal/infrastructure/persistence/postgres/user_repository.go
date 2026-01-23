@@ -17,8 +17,8 @@ import (
 // SQL queries for user operations.
 const (
 	sqlInsertUser = `
-		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
 
 	sqlUpdateUser = `
@@ -30,27 +30,28 @@ const (
 		    status = $6,
 		    display_name = $7,
 		    bio = $8,
-		    updated_at = $9,
-		    user_type = $10,
-		    ip_address = $11,
-		    expires_at = $12
+		    infected_file_count = $9,
+		    updated_at = $10,
+		    user_type = $11,
+		    ip_address = $12,
+		    expires_at = $13
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByID = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByEmail = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE email = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByUsername = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE username = $1 AND deleted_at IS NULL
 	`
@@ -64,7 +65,7 @@ const (
 	`
 
 	sqlFindExpiredGuests = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE user_type = 'guest'
 		  AND expires_at <= $1
@@ -84,6 +85,7 @@ type userRow struct {
 	Status       string         `db:"status"`
 	DisplayName  string         `db:"display_name"`
 	Bio          string         `db:"bio"`
+	InfectedFileCount int       `db:"infected_file_count"`
 	CreatedAt    time.Time      `db:"created_at"`
 	UpdatedAt    time.Time      `db:"updated_at"`
 	UserType     string         `db:"user_type"`
@@ -200,6 +202,7 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 		user.Status().String(),
 		user.DisplayName(),
 		user.Bio(),
+		user.InfectedFileCount(),
 		user.CreatedAt(),
 		user.UpdatedAt(),
 		user.UserType().String(),
@@ -247,6 +250,7 @@ func (r *UserRepository) update(ctx context.Context, user *identity.User) error 
 		user.Status().String(),
 		user.DisplayName(),
 		user.Bio(),
+		user.InfectedFileCount(),
 		user.UpdatedAt(),
 		user.UserType().String(),
 		ipAddress,
@@ -368,6 +372,7 @@ func rowToUser(row userRow) (*identity.User, error) {
 		status,
 		row.DisplayName,
 		row.Bio,
+		row.InfectedFileCount,
 		row.CreatedAt,
 		row.UpdatedAt,
 		userType,
@@ -389,7 +394,7 @@ func (r *UserRepository) FindExpiredGuests(
 ) ([]*identity.User, error) {
 	query := `
 		SELECT id, email, username, password_hash, role, status, display_name, bio,
-		       created_at, updated_at, user_type, ip_address, expires_at
+		       infected_file_count, created_at, updated_at, user_type, ip_address, expires_at
 		FROM users
 		WHERE user_type = 'guest'
 		  AND expires_at IS NOT NULL
@@ -417,6 +422,7 @@ func (r *UserRepository) FindExpiredGuests(
 			&row.Status,
 			&row.DisplayName,
 			&row.Bio,
+			&row.InfectedFileCount,
 			&row.CreatedAt,
 			&row.UpdatedAt,
 			&row.UserType,

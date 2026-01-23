@@ -10,4 +10,7 @@ type Storage interface {
 
 	// Put stores data with the given key.
 	Put(ctx context.Context, key string, data []byte) error
+
+	// Delete removes data with the given key.
+	Delete(ctx context.Context, key string) error
 }

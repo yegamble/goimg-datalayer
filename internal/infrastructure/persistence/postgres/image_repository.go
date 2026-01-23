@@ -700,7 +700,7 @@ func (r *ImageRepository) insertInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 		metadata.Height(),
 		image.Status().String(),
 		image.Visibility().String(),
-		"pending", // Default scan status
+		image.ScanStatus().String(),
 		image.ViewCount(),
 		image.CreatedAt(),
 		image.UpdatedAt(),
@@ -925,6 +925,16 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		return nil, fmt.Errorf("invalid visibility: %w", err)
 	}
 
+	scanStatus, err := gallery.ParseScanStatus(row.ScanStatus)
+	if err != nil {
+		// If scan_status is null in older records (shouldn't happen with migration default), default to pending
+		if row.ScanStatus == "" {
+			scanStatus = gallery.ScanStatusPending
+		} else {
+			return nil, fmt.Errorf("invalid scan status: %w", err)
+		}
+	}
+
 	// Create metadata
 	metadata, err := gallery.NewImageMetadata(
 		row.Title,
@@ -962,6 +972,7 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		metadata,
 		visibility,
 		status,
+		scanStatus,
 		variants,
 		tags,
 		ipfsMetadata,

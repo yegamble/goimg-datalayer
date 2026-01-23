@@ -14,6 +14,7 @@ const (
 	TypeAccountSuspended  = shared.NotificationTypeAccountSuspended
 	TypeAccountBanned     = shared.NotificationTypeAccountBanned
 	TypeAccountReinstated = shared.NotificationTypeAccountReinstated
+	TypeMalwareDetected   = shared.NotificationTypeMalwareDetected
 
 	TypeAbuseReport       = shared.NotificationTypeAbuseReport
 	TypeReportEscalated   = shared.NotificationTypeReportEscalated

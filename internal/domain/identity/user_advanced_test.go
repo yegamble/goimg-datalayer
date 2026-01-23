@@ -100,6 +100,7 @@ func TestUser_IsExpired(t *testing.T) {
 			StatusActive,
 			"guest",
 			"",
+			0,
 			time.Now(),
 			time.Now(),
 			UserTypeGuest,
@@ -185,6 +186,7 @@ func TestUser_TOTPSecret(t *testing.T) {
 		StatusActive,
 		"User",
 		"",
+		0,
 		time.Now(),
 		time.Now(),
 		&secret,
@@ -214,7 +216,7 @@ func TestUser_IsTOTPEnabled(t *testing.T) {
 		)
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
@@ -244,7 +246,7 @@ func TestUser_IsTOTPSetupPending(t *testing.T) {
 		secret, _ := NewTOTPSecret([]byte("secret"), "user@example.com")
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
@@ -337,7 +339,7 @@ func TestUser_DisableTOTP(t *testing.T) {
 	)
 	user := ReconstructUserWith2FA(
 		NewUserID(), Email{}, Username{}, PasswordHash{},
-		RoleUser, StatusActive, "User", "",
+		RoleUser, StatusActive, "User", "", 0,
 		time.Now(), time.Now(),
 		&secret, nil, nil,
 		UserTypeRegistered, nil, nil,
@@ -364,7 +366,7 @@ func TestUser_BackupCodes(t *testing.T) {
 	_, codes, _ := GenerateBackupCodes()
 	user := ReconstructUserWith2FA(
 		NewUserID(), Email{}, Username{}, PasswordHash{},
-		RoleUser, StatusActive, "User", "",
+		RoleUser, StatusActive, "User", "", 0,
 		time.Now(), time.Now(),
 		nil, codes, nil,
 		UserTypeRegistered, nil, nil,
@@ -385,7 +387,7 @@ func TestUser_RegenerateBackupCodes(t *testing.T) {
 		)
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
@@ -432,7 +434,7 @@ func TestUser_UseBackupCode(t *testing.T) {
 		plaintext, codes, _ := GenerateBackupCodes()
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, codes, nil,
 			UserTypeRegistered, nil, nil,
@@ -457,7 +459,7 @@ func TestUser_UseBackupCode(t *testing.T) {
 		_, codes, _ := GenerateBackupCodes()
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, codes, nil,
 			UserTypeRegistered, nil, nil,
@@ -477,7 +479,7 @@ func TestUser_UnusedBackupCodeCount(t *testing.T) {
 	plaintext, codes, _ := GenerateBackupCodes()
 	user := ReconstructUserWith2FA(
 		NewUserID(), Email{}, Username{}, PasswordHash{},
-		RoleUser, StatusActive, "User", "",
+		RoleUser, StatusActive, "User", "", 0,
 		time.Now(), time.Now(),
 		&secret, codes, nil,
 		UserTypeRegistered, nil, nil,
@@ -499,7 +501,7 @@ func TestUser_Devices(t *testing.T) {
 	device := NewDeviceFingerprint("192.168.1.1", "user-agent")
 	user := ReconstructUserWith2FA(
 		NewUserID(), Email{}, Username{}, PasswordHash{},
-		RoleUser, StatusActive, "User", "",
+		RoleUser, StatusActive, "User", "", 0,
 		time.Now(), time.Now(),
 		nil, nil, []DeviceFingerprint{device},
 		UserTypeRegistered, nil, nil,
@@ -668,7 +670,7 @@ func TestUser_Requires2FA(t *testing.T) {
 		)
 		user := ReconstructUserWith2FA(
 			NewUserID(), Email{}, Username{}, PasswordHash{},
-			RoleUser, StatusActive, "User", "",
+			RoleUser, StatusActive, "User", "", 0,
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,

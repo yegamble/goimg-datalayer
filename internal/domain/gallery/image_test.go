@@ -459,6 +459,7 @@ func TestReconstructImage(t *testing.T) {
 		metadata,
 		gallery.VisibilityPublic,
 		gallery.StatusActive,
+		gallery.ScanStatusClean,
 		[]gallery.ImageVariant{},
 		[]gallery.Tag{},
 		nil, // ipfsMetadata
