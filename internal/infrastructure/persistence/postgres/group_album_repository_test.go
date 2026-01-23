@@ -282,7 +282,7 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 	createTestGroupAlbum(t, db, album3ID, groupID, creator1ID, "Album 3", false)
 
 	t.Run("finds all albums for group", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
 		require.NoError(t, err)
@@ -296,7 +296,7 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 	})
 
 	t.Run("respects pagination limit", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 2)
+		pagination, _ := shared.NewPagination(0, 2)
 
 		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
 		require.NoError(t, err)
@@ -305,7 +305,7 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 	})
 
 	t.Run("respects pagination offset", func(t *testing.T) {
-		pagination := shared.NewPagination(1, 2)
+		pagination, _ := shared.NewPagination(1, 2)
 
 		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
 		require.NoError(t, err)
@@ -319,7 +319,7 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 		emptyGroupID := community.NewGroupID()
 		createTestGroup(t, db, emptyGroupID, ownerID, "empty-group")
 
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		albums, total, err := repo.FindByGroup(ctx, emptyGroupID, pagination)
 		require.NoError(t, err)
@@ -363,7 +363,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	createTestGroupAlbum(t, db, album4ID, groupID, creator1ID, "Creator1 Album 3", true)
 
 	t.Run("finds albums by specific creator", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator1ID, pagination)
 		require.NoError(t, err)
@@ -382,7 +382,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	})
 
 	t.Run("finds albums by other creator", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator2ID, pagination)
 		require.NoError(t, err)
@@ -396,7 +396,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 		noAlbumsCreatorID := identity.NewUserID()
 		createTestUser(t, db, noAlbumsCreatorID)
 
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, noAlbumsCreatorID, pagination)
 		require.NoError(t, err)
@@ -405,7 +405,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	})
 
 	t.Run("respects pagination", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 2)
+		pagination, _ := shared.NewPagination(0, 2)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator1ID, pagination)
 		require.NoError(t, err)

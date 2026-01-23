@@ -17,6 +17,7 @@ type Image struct {
 	metadata     ImageMetadata
 	visibility   Visibility
 	status       ImageStatus
+	scanStatus   ScanStatus
 	variants     []ImageVariant
 	tags         []Tag
 	ipfsMetadata *IPFSMetadata // Optional IPFS storage info (nil if not pinned)
@@ -55,6 +56,7 @@ func NewImageWithID(id ImageID, ownerID identity.UserID, metadata ImageMetadata)
 		metadata:     metadata,
 		visibility:   VisibilityPrivate, // Start private until processing completes
 		status:       StatusProcessing,
+		scanStatus:   ScanStatusPending,
 		variants:     []ImageVariant{},
 		tags:         []Tag{},
 		viewCount:    0,
@@ -84,6 +86,7 @@ func ReconstructImage(
 	metadata ImageMetadata,
 	visibility Visibility,
 	status ImageStatus,
+	scanStatus ScanStatus,
 	variants []ImageVariant,
 	tags []Tag,
 	ipfsMetadata *IPFSMetadata,
@@ -96,6 +99,7 @@ func ReconstructImage(
 		metadata:     metadata,
 		visibility:   visibility,
 		status:       status,
+		scanStatus:   scanStatus,
 		variants:     variants,
 		tags:         tags,
 		ipfsMetadata: ipfsMetadata,
@@ -133,6 +137,11 @@ func (i *Image) Visibility() Visibility {
 // Status returns the current status.
 func (i *Image) Status() ImageStatus {
 	return i.status
+}
+
+// ScanStatus returns the current scan status.
+func (i *Image) ScanStatus() ScanStatus {
+	return i.scanStatus
 }
 
 // Variants returns a copy of the variants slice.
@@ -347,6 +356,10 @@ func (i *Image) MarkAsActive() error {
 		return ErrCannotModifyDeleted
 	}
 
+	if i.scanStatus == ScanStatusInfected {
+		return fmt.Errorf("%w: cannot activate infected image", ErrMalwareDetected)
+	}
+
 	if i.status == StatusActive {
 		return nil // Already active
 	}
@@ -356,6 +369,35 @@ func (i *Image) MarkAsActive() error {
 
 	i.addEvent(&ImageProcessingCompleted{
 		BaseEvent: shared.NewBaseEvent("gallery.image.processing_completed", i.id.String()),
+		ImageID:   i.id,
+	})
+
+	return nil
+}
+
+// MarkAsClean marks the image as clean after malware scanning.
+func (i *Image) MarkAsClean() error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	i.scanStatus = ScanStatusClean
+	i.updatedAt = time.Now().UTC()
+
+	return nil
+}
+
+// MarkAsInfected marks the image as infected after malware scanning.
+func (i *Image) MarkAsInfected() error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	i.scanStatus = ScanStatusInfected
+	i.updatedAt = time.Now().UTC()
+
+	i.addEvent(&ImageInfected{
+		BaseEvent: shared.NewBaseEvent("gallery.image.infected", i.id.String()),
 		ImageID:   i.id,
 	})
 
@@ -520,6 +562,9 @@ func (i *Image) IsOwnedBy(userID identity.UserID) bool {
 
 // IsViewable returns true if the image can be viewed based on its status.
 func (i *Image) IsViewable() bool {
+	if i.scanStatus == ScanStatusInfected {
+		return false
+	}
 	return i.status.IsViewable()
 }
 

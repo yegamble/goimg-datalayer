@@ -37,11 +37,12 @@ const (
 		    description = $3,
 		    status = $4,
 		    visibility = $5,
-		    view_count = $6,
-		    ipfs_cid = $7,
-		    ipfs_pinned = $8,
-		    ipfs_pinned_at = $9,
-		    updated_at = $10
+		    scan_status = $6,
+		    view_count = $7,
+		    ipfs_cid = $8,
+		    ipfs_pinned = $9,
+		    ipfs_pinned_at = $10,
+		    updated_at = $11
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
@@ -700,7 +701,7 @@ func (r *ImageRepository) insertInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 		metadata.Height(),
 		image.Status().String(),
 		image.Visibility().String(),
-		"pending", // Default scan status
+		image.ScanStatus().String(),
 		image.ViewCount(),
 		image.CreatedAt(),
 		image.UpdatedAt(),
@@ -737,6 +738,7 @@ func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 		metadata.Description(),
 		image.Status().String(),
 		image.Visibility().String(),
+		image.ScanStatus().String(),
 		image.ViewCount(),
 		ipfsCID,
 		ipfsPinned,
@@ -925,6 +927,11 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		return nil, fmt.Errorf("invalid visibility: %w", err)
 	}
 
+	scanStatus, err := gallery.ParseScanStatus(row.ScanStatus)
+	if err != nil {
+		return nil, fmt.Errorf("invalid scan status: %w", err)
+	}
+
 	// Create metadata
 	metadata, err := gallery.NewImageMetadata(
 		row.Title,
@@ -962,6 +969,7 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 		metadata,
 		visibility,
 		status,
+		scanStatus,
 		variants,
 		tags,
 		ipfsMetadata,
