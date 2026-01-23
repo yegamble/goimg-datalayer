@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -12,13 +11,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/community"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
-)
-
-const (
-	// defaultPerPage is the default number of items returned per page in list/search endpoints.
-	defaultPerPage = 20
-	// maxPerPage is the maximum number of items allowed per page.
-	maxPerPage = 100
 )
 
 // GroupHandler handles group-related HTTP endpoints.
@@ -497,7 +489,7 @@ func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Execute delete command
-	_, err = h.deleteGroup.Handle(ctx, cmd)
+	err = h.deleteGroup.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete group")
 		return
@@ -551,8 +543,17 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 	if sortByStr == "" {
 		sortByStr = "recent"
 	}
-	sortBy, err := community.ParseGroupSortBy(sortByStr)
-	if err != nil {
+	var sortBy community.GroupSortBy
+	switch sortByStr {
+	case "recent":
+		sortBy = community.GroupSortByRecent
+	case "popular":
+		sortBy = community.GroupSortByPopular
+	case "name":
+		sortBy = community.GroupSortByName
+	case "activity":
+		sortBy = community.GroupSortByActivity
+	default:
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
 			"Bad Request",
@@ -566,12 +567,12 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
 	if err != nil || perPage < 1 {
-		perPage = defaultPerPage
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	// 2. Build list query
@@ -643,12 +644,12 @@ func (h *GroupHandler) SearchGroups(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
 	if err != nil || perPage < 1 {
-		perPage = defaultPerPage
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	// 2. Build search query
@@ -847,7 +848,7 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 5. Execute leave command
-	_, err = h.leaveGroup.Handle(ctx, cmd)
+	err = h.leaveGroup.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "leave group")
 		return
@@ -942,12 +943,12 @@ func (h *GroupHandler) ListMembers(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
 	if err != nil || perPage < 1 {
-		perPage = defaultPerPage
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	// 3. Build query
@@ -1224,7 +1225,7 @@ func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 6. Execute command
-	_, err = h.removeMember.Handle(ctx, cmd)
+	err = h.removeMember.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "remove member")
 		return
@@ -1351,24 +1352,20 @@ func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 7. Execute command
-	membership, err := h.banMember.Handle(ctx, cmd)
+	err = h.banMember.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "ban member")
 		return
 	}
 
-	// 8. Return updated membership
-	resp := mapMembershipToResponse(membership)
-
+	// 8. Return 204 No Content
 	h.logger.Info().
 		Str("group_id", groupIDStr).
 		Str("actor_id", userCtx.UserID.String()).
 		Str("target_id", targetIDStr).
 		Msg("member banned successfully")
 
-	if err := EncodeJSON(w, http.StatusOK, resp); err != nil {
-		h.logger.Error().Err(err).Msg("failed to encode ban member response")
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetUserGroups is a convenience method for mounting under /api/v1/me/groups.
@@ -1396,12 +1393,12 @@ func (h *GroupHandler) GetUserGroups(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
 	if err != nil || perPage < 1 {
-		perPage = defaultPerPage
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	// 3. Parse user ID
@@ -1521,7 +1518,7 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 			"Forbidden",
 			"Cannot ban the group owner",
 		)
-	case err == community.ErrOwnerCannotLeave:
+	case err == community.ErrCannotLeaveAsOwner:
 		middleware.WriteError(w, r,
 			http.StatusForbidden,
 			"Forbidden",
@@ -1591,11 +1588,10 @@ func mapMembershipsToResponse(memberships []*community.GroupMembership) []Member
 
 func mapSettingsToResponse(settings community.GroupSettings) GroupSettingsResponse {
 	return GroupSettingsResponse{
-		MaxMembers:          settings.MaxMembers(),
-		RequireApproval:     settings.RequireApproval(),
-		AllowGuestUploads:   settings.AllowGuestUploads(),
-		AllowComments:       settings.AllowComments(),
-		DefaultImagePrivacy: settings.DefaultImagePrivacy().String(),
+		MaxMembers:         settings.MaxMembers(),
+		RequireApproval:    settings.RequireApproval(),
+		AllowMemberInvites: settings.AllowMemberInvites(),
+		AllowMemberAlbums:  settings.AllowMemberAlbums(),
 	}
 }
 

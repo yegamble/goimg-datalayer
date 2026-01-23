@@ -637,6 +637,10 @@ func (m *mockIPFSClient) IPFSURI(cid string) string {
 	return m.uriResult + cid
 }
 
+func (m *mockIPFSClient) Unpin(_ context.Context, _ string) error {
+	return nil
+}
+
 // TestPutBytes_DualSync tests PutBytes in dual-sync mode with IPFS.
 func TestPutBytes_DualSync(t *testing.T) {
 	t.Parallel()

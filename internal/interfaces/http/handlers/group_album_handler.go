@@ -243,10 +243,21 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Build list query
+	pagination, err := shared.NewPagination(page, perPage)
+	if err != nil {
+		h.logger.Debug().Err(err).Msg("invalid pagination parameters")
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid pagination parameters",
+		)
+		return
+	}
+
 	query := queries.ListGroupAlbumsQuery{
 		GroupID:    groupID,
 		ActorID:    actorID,
-		Pagination: shared.NewPagination(page, perPage),
+		Pagination: pagination,
 	}
 
 	// 5. Execute query

@@ -180,10 +180,6 @@ func TestCreateAlbumHandler_Handle_Success(t *testing.T) {
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
 	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", 0, now, now, identity.UserTypeRegistered, nil, nil)
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", 0, now, now, identity.UserTypeRegistered, nil, nil)
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", 0, now, now, identity.UserTypeRegistered, nil, nil)
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", 0, now, now, identity.UserTypeRegistered, nil, nil)
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", 0, now, now, identity.UserTypeRegistered, nil, nil)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),

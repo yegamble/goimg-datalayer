@@ -94,8 +94,8 @@ func TestFollowHandler_FollowUser_Success(t *testing.T) {
 
 	// Add user context (simulating JWT middleware)
 	ctx := context.WithValue(req.Context(), middleware.UserIDKey, followerID)
-	ctx = context.WithValue(ctx, middleware.EmailKey, "test@example.com")
-	ctx = context.WithValue(ctx, middleware.RoleKey, "user")
+	ctx = context.WithValue(ctx, middleware.UserEmailKey, "test@example.com")
+	ctx = context.WithValue(ctx, middleware.UserRoleKey, "user")
 	ctx = context.WithValue(ctx, middleware.SessionIDKey, uuid.New())
 	req = req.WithContext(ctx)
 
@@ -152,8 +152,8 @@ func TestFollowHandler_FollowUser_AlreadyFollowing(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	ctx := context.WithValue(req.Context(), middleware.UserIDKey, followerID)
-	ctx = context.WithValue(ctx, middleware.EmailKey, "test@example.com")
-	ctx = context.WithValue(ctx, middleware.RoleKey, "user")
+	ctx = context.WithValue(ctx, middleware.UserEmailKey, "test@example.com")
+	ctx = context.WithValue(ctx, middleware.UserRoleKey, "user")
 	ctx = context.WithValue(ctx, middleware.SessionIDKey, uuid.New())
 	req = req.WithContext(ctx)
 
@@ -194,8 +194,8 @@ func TestFollowHandler_FollowUser_CannotFollowSelf(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	ctx := context.WithValue(req.Context(), middleware.UserIDKey, userID)
-	ctx = context.WithValue(ctx, middleware.EmailKey, "test@example.com")
-	ctx = context.WithValue(ctx, middleware.RoleKey, "user")
+	ctx = context.WithValue(ctx, middleware.UserEmailKey, "test@example.com")
+	ctx = context.WithValue(ctx, middleware.UserRoleKey, "user")
 	ctx = context.WithValue(ctx, middleware.SessionIDKey, uuid.New())
 	req = req.WithContext(ctx)
 
@@ -242,8 +242,8 @@ func TestFollowHandler_UnfollowUser_Success(t *testing.T) {
 
 	// Add user context (simulating JWT middleware)
 	ctx := context.WithValue(req.Context(), middleware.UserIDKey, followerID)
-	ctx = context.WithValue(ctx, middleware.EmailKey, "test@example.com")
-	ctx = context.WithValue(ctx, middleware.RoleKey, "user")
+	ctx = context.WithValue(ctx, middleware.UserEmailKey, "test@example.com")
+	ctx = context.WithValue(ctx, middleware.UserRoleKey, "user")
 	ctx = context.WithValue(ctx, middleware.SessionIDKey, uuid.New())
 	req = req.WithContext(ctx)
 
@@ -281,8 +281,8 @@ func TestFollowHandler_UnfollowUser_Idempotent(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	ctx := context.WithValue(req.Context(), middleware.UserIDKey, followerID)
-	ctx = context.WithValue(ctx, middleware.EmailKey, "test@example.com")
-	ctx = context.WithValue(ctx, middleware.RoleKey, "user")
+	ctx = context.WithValue(ctx, middleware.UserEmailKey, "test@example.com")
+	ctx = context.WithValue(ctx, middleware.UserRoleKey, "user")
 	ctx = context.WithValue(ctx, middleware.SessionIDKey, uuid.New())
 	req = req.WithContext(ctx)
 
