@@ -10,6 +10,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 
+	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
@@ -47,18 +48,22 @@ type ImageScanPayload struct {
 type ImageScanHandler struct {
 	scanner clamav.Scanner
 	storage Storage
+	repo    gallery.ImageRepository
 	logger  zerolog.Logger
 }
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
+	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
+	repo gallery.ImageRepository,
 	logger zerolog.Logger,
 ) *ImageScanHandler {
 	return &ImageScanHandler{
 		scanner: scanner,
 		storage: storage,
+		repo:    repo,
 		logger:  logger,
 	}
 }
@@ -124,6 +129,18 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 	duration := time.Since(startTime)
 
 	// Step 4: Handle scan results
+	imageID, err := gallery.ParseImageID(payload.ImageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("invalid image id")
+		return fmt.Errorf("invalid image id: %w", err)
+	}
+
+	image, err := h.repo.FindByID(ctx, imageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to find image")
+		return fmt.Errorf("find image: %w", err)
+	}
+
 	if scanResult.Infected {
 		// Malware detected - this is a terminal error
 		h.logger.Warn().
@@ -134,7 +151,17 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 			Dur("scan_duration_ms", duration).
 			Msg("malware detected in image")
 
-		// TODO: Update image status to "infected" in database
+		// Update image status to "infected" in database
+		if err := image.MarkAsInfected(); err != nil {
+			h.logger.Error().Err(err).Msg("failed to mark image as infected")
+			return fmt.Errorf("mark image infected: %w", err)
+		}
+
+		if err := h.repo.Save(ctx, image); err != nil {
+			h.logger.Error().Err(err).Msg("failed to save infected image")
+			return fmt.Errorf("save infected image: %w", err)
+		}
+
 		// TODO: Notify user via email/notification
 		// TODO: Delete infected file from storage
 		// TODO: Increment user's infected file counter
@@ -149,7 +176,16 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Dur("scan_duration_ms", duration).
 		Msg("image scan completed - no threats found")
 
-	// TODO: Update image status to "clean" in database
+	// Update image status to "clean" in database
+	if err := image.MarkAsClean(); err != nil {
+		h.logger.Error().Err(err).Msg("failed to mark image as clean")
+		return fmt.Errorf("mark image clean: %w", err)
+	}
+
+	if err := h.repo.Save(ctx, image); err != nil {
+		h.logger.Error().Err(err).Msg("failed to save clean image")
+		return fmt.Errorf("save clean image: %w", err)
+	}
 
 	return nil
 }

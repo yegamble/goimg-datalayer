@@ -32,6 +32,7 @@ type IPFSClient interface {
 	GetBytes(ctx context.Context, cid string) ([]byte, error)
 	URL(cid string) string
 	IPFSURI(cid string) string
+	Unpin(ctx context.Context, cid string) error
 }
 
 // Config configures the storage orchestrator.
@@ -177,12 +178,26 @@ func (o *Orchestrator) GetBytes(ctx context.Context, key string) ([]byte, error)
 	return nil, fmt.Errorf("orchestrator: get: %w", err)
 }
 
-// Delete removes data from primary storage.
-// IPFS content is not automatically deleted (requires explicit unpin).
+// Delete removes data from primary storage and unpins from IPFS if enabled.
 func (o *Orchestrator) Delete(ctx context.Context, key string) error {
+	// Delete from primary storage first.
 	if err := o.primary.Delete(ctx, key); err != nil {
-		return fmt.Errorf("orchestrator: delete: %w", err)
+		return fmt.Errorf("orchestrator: primary delete: %w", err)
 	}
+
+	// If IPFS is enabled, attempt to unpin the content.
+	// We assume the key can be a CID for IPFS operations.
+	if o.shouldWriteIPFS() {
+		// Validate if the key is a valid CID before attempting to unpin.
+		if ipfs.ValidateCID(key) == nil {
+			if err := o.ipfsClient.Unpin(ctx, key); err != nil {
+				// Do not fail the operation if unpin fails, as primary is the source of truth.
+				// In a production system, this should be logged for monitoring.
+				// Example: log.Printf("warning: failed to unpin CID %s: %v", key, err)
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -41,7 +41,7 @@ const (
 	sqlFindImagesInAlbum = `
 		SELECT i.id, i.owner_id, i.title, i.description, i.width, i.height,
 		       i.file_size, i.mime_type, i.storage_provider, i.storage_key,
-		       i.original_filename, i.status, i.visibility, i.view_count,
+		       i.original_filename, i.status, i.visibility, i.scan_status, i.view_count,
 		       i.created_at, i.updated_at
 		FROM group_album_images gai
 		INNER JOIN images i ON gai.image_id = i.id
@@ -78,6 +78,7 @@ type groupAlbumImageRow struct {
 	OriginalFilename string    `db:"original_filename"`
 	Status           string    `db:"status"`
 	Visibility       string    `db:"visibility"`
+	ScanStatus       string    `db:"scan_status"`
 	ViewCount        int64     `db:"view_count"`
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
@@ -259,6 +260,12 @@ func rowToImageFromAlbum(row groupAlbumImageRow) (*gallery.Image, error) {
 		return nil, fmt.Errorf("invalid status: %w", err)
 	}
 
+	// Parse scan status
+	scanStatus, err := gallery.ParseScanStatus(row.ScanStatus)
+	if err != nil {
+		return nil, fmt.Errorf("invalid scan status: %w", err)
+	}
+
 	// Create image metadata using constructor
 	metadata, err := gallery.NewImageMetadata(
 		row.Title,
@@ -284,6 +291,7 @@ func rowToImageFromAlbum(row groupAlbumImageRow) (*gallery.Image, error) {
 		metadata,
 		visibility,
 		status,
+		scanStatus,
 		[]gallery.ImageVariant{}, // Empty variants - not needed for album listing
 		[]gallery.Tag{},          // Empty tags - not needed for album listing
 		nil,                      // No IPFS metadata for album listing

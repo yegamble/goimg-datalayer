@@ -55,8 +55,8 @@ jobs:
 
       - name: Run gosec security scanner
         run: |
-          # Install gosec
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          # Install gosec (pinned)
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
 
           # Run gosec and generate multiple output formats
           gosec -fmt json -out gosec-results.json -exclude-dir=tests -severity=medium ./... || GOSEC_EXIT=$?
@@ -213,7 +213,7 @@ jobs:
           sudo apt-get install -y libvips-dev
 
       - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
 
       - name: Download dependencies
         run: go mod download
@@ -271,7 +271,7 @@ jobs:
 
       - name: Install Gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar xz
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz | tar xz
           sudo mv gitleaks /usr/local/bin/
 
       - name: Run Gitleaks secret scanner
@@ -387,7 +387,7 @@ jobs:
 
       - name: Generate SBOM with cyclonedx-gomod
         run: |
-          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
+          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.9.0
           cyclonedx-gomod mod -json -output sbom.cdx.json
 
           echo "## SBOM Generated" >> $GITHUB_STEP_SUMMARY
@@ -407,8 +407,8 @@ jobs:
 
       - name: Scan SBOM with Grype
         run: |
-          # Install Grype
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          # Install Grype (pinned)
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.105.0
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### SBOM Vulnerability Scan (Grype)" >> $GITHUB_STEP_SUMMARY

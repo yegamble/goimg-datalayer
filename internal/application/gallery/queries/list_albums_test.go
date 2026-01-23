@@ -12,6 +12,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/testhelpers"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
@@ -53,7 +54,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		mockAlbumRepo.AssertExpectations(t)
 	})
 
-	t.Run("successful list - by owner", func(t *testing.T) {
+	t.Run("successful list - by owner (stranger)", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -66,7 +67,9 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		}
 
 		pagination, _ := shared.NewPagination(1, 20)
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+		// Expect visibility to be Public for stranger
+		publicVis := gallery.VisibilityPublic
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &publicVis).
 			Return(albums, int64(1), nil).Once()
 
 		query := queries.ListAlbumsQuery{
@@ -125,11 +128,11 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		privateAlbum := testhelpers.ValidAlbum(t)
 		require.NoError(t, privateAlbum.UpdateVisibility(gallery.VisibilityPrivate))
 
-		albums := []*gallery.Album{publicAlbum, privateAlbum}
+		albums := []*gallery.Album{publicAlbum}
 
 		pagination, _ := shared.NewPagination(1, 20)
 		mockAlbumRepo.On("FindPublic", mock.Anything, pagination).
-			Return(albums, int64(2), nil).Once()
+			Return(albums, int64(1), nil).Once()
 
 		query := queries.ListAlbumsQuery{
 			Visibility: "public",
@@ -149,7 +152,7 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		mockAlbumRepo.AssertExpectations(t)
 	})
 
-	t.Run("filter by visibility - private", func(t *testing.T) {
+	t.Run("filter by visibility - private (owner)", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -159,21 +162,23 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		ownerID := testhelpers.ValidUserIDParsed()
 
 		// Create albums with different visibilities
-		publicAlbum := testhelpers.ValidAlbum(t)
 		privateAlbum := testhelpers.ValidAlbum(t)
 		require.NoError(t, privateAlbum.UpdateVisibility(gallery.VisibilityPrivate))
 
-		albums := []*gallery.Album{publicAlbum, privateAlbum}
+		// Mock assumes repository does the filtering, returning only private albums
+		albums := []*gallery.Album{privateAlbum}
 
 		pagination, _ := shared.NewPagination(1, 20)
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
-			Return(albums, int64(2), nil).Once()
+		privateVis := gallery.VisibilityPrivate
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &privateVis).
+			Return(albums, int64(1), nil).Once()
 
 		query := queries.ListAlbumsQuery{
-			OwnerUserID: testhelpers.ValidUserID,
-			Visibility:  "private",
-			Page:        1,
-			PerPage:     20,
+			RequestingUserID: testhelpers.ValidUserID, // Owner is requesting
+			OwnerUserID:      testhelpers.ValidUserID,
+			Visibility:       "private",
+			Page:             1,
+			PerPage:          20,
 		}
 
 		// Act
@@ -183,9 +188,36 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Len(t, result.Albums, 1)
-		assert.Equal(t, int64(1), result.TotalCount) // Only private albums
+		assert.Equal(t, int64(1), result.TotalCount)
 		assert.Equal(t, "private", result.Albums[0].Visibility)
 		mockAlbumRepo.AssertExpectations(t)
+	})
+
+	t.Run("filter by visibility - private (stranger)", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		mockAlbumRepo := new(testhelpers.MockAlbumRepository)
+		handler := queries.NewListAlbumsHandler(mockAlbumRepo)
+
+		query := queries.ListAlbumsQuery{
+			RequestingUserID: identity.NewUserID().String(), // Stranger requesting
+			OwnerUserID:      testhelpers.ValidUserID,
+			Visibility:       "private",
+			Page:             1,
+			PerPage:          20,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Empty(t, result.Albums)
+		assert.Equal(t, int64(0), result.TotalCount)
+		// FindByOwner should NOT be called
+		mockAlbumRepo.AssertNotCalled(t, "FindByOwner")
 	})
 
 	t.Run("pagination - multiple pages", func(t *testing.T) {
@@ -237,7 +269,8 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		}
 
 		pagination, _ := shared.NewPagination(2, 10)
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+		publicVis := gallery.VisibilityPublic
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &publicVis).
 			Return(albums, int64(25), nil).Once()
 
 		query := queries.ListAlbumsQuery{
@@ -285,10 +318,6 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		// Arrange
 		mockAlbumRepo := new(testhelpers.MockAlbumRepository)
 		handler := queries.NewListAlbumsHandler(mockAlbumRepo)
-
-		pagination, _ := shared.NewPagination(1, 20)
-		mockAlbumRepo.On("FindPublic", mock.Anything, pagination).
-			Return([]*gallery.Album{testhelpers.ValidAlbum(t)}, int64(1), nil).Once()
 
 		query := queries.ListAlbumsQuery{
 			Visibility: "invalid-visibility",
@@ -341,7 +370,8 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 
 		ownerID := testhelpers.ValidUserIDParsed()
 		pagination, _ := shared.NewPagination(1, 20)
-		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+		publicVis := gallery.VisibilityPublic
+		mockAlbumRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &publicVis).
 			Return(nil, int64(0), fmt.Errorf("database error")).Once()
 
 		query := queries.ListAlbumsQuery{
