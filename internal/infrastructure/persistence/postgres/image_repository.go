@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -151,14 +152,6 @@ const (
 		       i.created_at, i.updated_at,
 		       ts_rank(i.search_vector, plainto_tsquery('english', $1)) AS relevance_score
 		FROM images i
-	`
-
-	sqlInsertVariant = `
-		INSERT INTO image_variants (
-			id, image_id, variant_type, storage_key, width, height, file_size, format, created_at
-		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9
-		)
 	`
 
 	sqlSelectVariantsByImageID = `
@@ -768,10 +761,27 @@ func (r *ImageRepository) saveVariantsInTx(ctx context.Context, tx *sqlx.Tx, ima
 	}
 
 	// Insert new variants
-	for _, variant := range image.Variants() {
-		_, err := tx.ExecContext(
-			ctx,
-			sqlInsertVariant,
+	variants := image.Variants()
+	if len(variants) == 0 {
+		return nil
+	}
+
+	// Bulk insert
+	// Note: PostgreSQL supports up to 65535 parameters.
+	// With 9 parameters per variant, we can handle ~7280 variants in a single query.
+	// This is well above any reasonable number of variants per image.
+	query := "INSERT INTO image_variants (id, image_id, variant_type, storage_key, width, height, file_size, format, created_at) VALUES "
+	values := make([]interface{}, 0, len(variants)*9)
+	placeholders := make([]string, 0, len(variants))
+
+	now := time.Now().UTC()
+	for i, variant := range variants {
+		// Calculate parameter indices for this variant (1-based)
+		offset := i * 9
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
+			offset+1, offset+2, offset+3, offset+4, offset+5, offset+6, offset+7, offset+8, offset+9))
+
+		values = append(values,
 			uuid.New().String(),
 			image.ID().String(),
 			variant.VariantType().String(),
@@ -780,11 +790,15 @@ func (r *ImageRepository) saveVariantsInTx(ctx context.Context, tx *sqlx.Tx, ima
 			variant.Height(),
 			variant.FileSize(),
 			variant.Format(),
-			time.Now().UTC(),
+			now,
 		)
-		if err != nil {
-			return fmt.Errorf("failed to insert variant: %w", err)
-		}
+	}
+
+	query += strings.Join(placeholders, ",")
+
+	_, err = tx.ExecContext(ctx, query, values...)
+	if err != nil {
+		return fmt.Errorf("failed to insert variants: %w", err)
 	}
 
 	return nil
