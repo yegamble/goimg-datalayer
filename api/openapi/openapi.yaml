@@ -5125,6 +5125,177 @@ paths:
           $ref: '#/components/responses/NotFound'
       x-sprint: "20"
 
+  /groups/{groupID}/invitations:
+    post:
+      summary: Invite user to group
+      description: |
+        Creates an invitation to join a group. Requires admin or owner role,
+        or member role if group settings allow member invites.
+        Either email or user_id must be provided (mutually exclusive).
+      operationId: inviteToGroup
+      tags:
+        - groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteToGroupRequest'
+      responses:
+        '201':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      summary: List pending group invitations
+      description: |
+        Lists all pending (unused, non-expired) invitations for a group.
+        Requires admin or owner role.
+      operationId: listGroupInvitations
+      tags:
+        - groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of pending invitations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvitationsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/invitations/{token}/accept:
+    post:
+      summary: Accept group invitation
+      description: |
+        Accepts a group invitation using the secure token.
+        Creates an active membership for the authenticated user.
+      operationId: acceptInvitation
+      tags:
+        - groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+            pattern: '^[0-9a-f]{64}$'
+      responses:
+        '200':
+          description: Invitation accepted, membership created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          description: Invitation has expired
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/invitations/{token}/decline:
+    post:
+      summary: Decline group invitation
+      description: |
+        Declines a group invitation by deleting it.
+        The invitation cannot be used after declining.
+      operationId: declineInvitation
+      tags:
+        - groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+            pattern: '^[0-9a-f]{64}$'
+      responses:
+        '204':
+          description: Invitation declined successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Invitation already used
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /groups/{groupID}/albums:
     post:
       tags: [groups]
@@ -7632,3 +7803,93 @@ components:
             $ref: '#/components/schemas/GroupAlbumResponse'
         pagination:
           $ref: '#/components/schemas/Pagination'
+
+    # ==================== Group Invitations (Sprint 20) ====================
+    InviteToGroupRequest:
+      type: object
+      description: Request body for inviting a user to a group
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Email address for non-registered users
+          example: "user@example.com"
+        user_id:
+          type: string
+          format: uuid
+          description: User ID for existing registered users
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      oneOf:
+        - required: [email]
+        - required: [user_id]
+
+    InvitationResponse:
+      type: object
+      description: Group invitation details
+      required:
+        - id
+        - group_id
+        - invited_by
+        - token
+        - expires_at
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Invitation unique identifier
+        group_id:
+          type: string
+          format: uuid
+          description: Group ID
+        invited_by:
+          type: string
+          format: uuid
+          description: User who created the invitation
+        email:
+          type: string
+          format: email
+          description: Email address (if inviting non-registered user)
+          nullable: true
+        user_id:
+          type: string
+          format: uuid
+          description: User ID (if inviting existing user)
+          nullable: true
+        token:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: '^[0-9a-f]{64}$'
+          description: Secure invitation token (64 hex characters)
+          example: "a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd"
+        expires_at:
+          type: string
+          format: date-time
+          description: Invitation expiry timestamp (7 days from creation)
+        used_at:
+          type: string
+          format: date-time
+          description: Timestamp when invitation was accepted
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: Invitation creation timestamp
+
+    PaginatedInvitationsResponse:
+      type: object
+      description: Paginated list of group invitations
+      required:
+        - invitations
+        - total_count
+      properties:
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvitationResponse'
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of pending invitations
