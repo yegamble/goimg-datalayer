@@ -169,15 +169,14 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 
 		// 2. Update image status to "infected" (and mark as deleted)
 		// No need to re-parse imageID or re-fetch image
-		_ = image.SetScanStatus(gallery.ScanStatusInfected)
+		_ = image.MarkAsInfected()
 		_ = image.MarkAsDeleted() // Soft delete from view
 		if err := h.images.Save(ctx, image); err != nil {
 			h.logger.Error().Err(err).Msg("failed to update image status")
 		}
 
 		// 3. Increment user's infected file counter
-		userID, _ := identity.ParseUserID(payload.OwnerID)
-		user, err := h.users.FindByID(ctx, userID)
+		user, err := h.users.FindByID(ctx, image.OwnerID())
 		if err == nil {
 			user.IncrementInfectedFileCount()
 			if err := h.users.Save(ctx, user); err != nil {
@@ -186,7 +185,7 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		}
 
 		// 4. Notify user via email/notification
-		if err := h.notifications.NotifyMalwareDetected(ctx, userID, payload.OriginalFilename); err != nil {
+		if err := h.notifications.NotifyMalwareDetected(ctx, image.OwnerID(), payload.OriginalFilename); err != nil {
 			h.logger.Error().Err(err).Msg("failed to notify user of malware")
 		}
 
