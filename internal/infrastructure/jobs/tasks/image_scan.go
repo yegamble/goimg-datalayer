@@ -10,6 +10,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 
+	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
@@ -45,21 +46,24 @@ type ImageScanPayload struct {
 // ImageScanHandler handles malware scanning tasks using ClamAV.
 // It scans images for viruses, polyglot files, and other malicious content.
 type ImageScanHandler struct {
-	scanner clamav.Scanner
-	storage Storage
-	logger  zerolog.Logger
+	imageRepo gallery.ImageRepository
+	scanner   clamav.Scanner
+	storage   Storage
+	logger    zerolog.Logger
 }
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
+	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
 	logger zerolog.Logger,
 ) *ImageScanHandler {
 	return &ImageScanHandler{
-		scanner: scanner,
-		storage: storage,
-		logger:  logger,
+		imageRepo: imageRepo,
+		scanner:   scanner,
+		storage:   storage,
+		logger:    logger,
 	}
 }
 
@@ -149,7 +153,44 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Dur("scan_duration_ms", duration).
 		Msg("image scan completed - no threats found")
 
-	// TODO: Update image status to "clean" in database
+	// Step 5: Update image status to "active" in database
+	imageID, err := gallery.ParseImageID(payload.ImageID)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Msg("failed to parse image id")
+		return fmt.Errorf("parse image id %s: %w", payload.ImageID, err)
+	}
+
+	image, err := h.imageRepo.FindByID(ctx, imageID)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Msg("failed to retrieve image from repository")
+		return fmt.Errorf("find image %s: %w", payload.ImageID, err)
+	}
+
+	if err := image.MarkAsActive(); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Msg("failed to mark image as active")
+		return fmt.Errorf("mark image active %s: %w", payload.ImageID, err)
+	}
+
+	if err := h.imageRepo.Save(ctx, image); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Msg("failed to save image")
+		return fmt.Errorf("save image %s: %w", payload.ImageID, err)
+	}
+
+	h.logger.Info().
+		Str("image_id", payload.ImageID).
+		Msg("image marked as active")
 
 	return nil
 }
