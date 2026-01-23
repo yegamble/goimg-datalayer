@@ -16,7 +16,7 @@ type StubAlbumRepository struct {
 	mode string // "old" or "new"
 }
 
-func (r *StubAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Album, int64, error) {
+func (r *StubAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Album, int64, error) {
 	if r.mode == "old" {
 		// Simulate fetching ALL albums (e.g. 10,000)
 		count := 10000
@@ -129,7 +129,7 @@ func BenchmarkRepository_FindByOwner_Inefficient(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _, _ = repo.FindByOwner(ctx, id, p)
+		_, _, _ = repo.FindByOwner(ctx, id, p, nil)
 	}
 }
 
@@ -141,6 +141,6 @@ func BenchmarkRepository_FindByOwner_Efficient(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _, _ = repo.FindByOwner(ctx, id, p)
+		_, _, _ = repo.FindByOwner(ctx, id, p, nil)
 	}
 }
