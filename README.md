@@ -419,9 +419,7 @@ The OpenAPI specification is the **single source of truth** for the HTTP API:
 
 ```
 api/openapi/
-├── openapi.yaml      # Main spec
-├── schemas/          # Reusable schemas
-└── paths/            # Endpoint definitions
+└── openapi.yaml      # Main spec (Single file)
 ```
 
 Generate server code:
