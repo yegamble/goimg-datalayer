@@ -54,6 +54,7 @@ type ImageScanHandler struct {
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
+	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
 	repo gallery.ImageRepository,

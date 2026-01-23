@@ -3,11 +3,21 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	// regexUUID matches standard UUID format (8-4-4-4-12 hex digits)
+	regexUUID = regexp.MustCompile(`[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}`)
+
+	// regexID matches numeric IDs (using word boundaries to avoid matching versions like v1)
+	regexID = regexp.MustCompile(`\b\d+\b`)
 )
 
 // MetricsCollector holds all Prometheus metrics for the application.
@@ -349,14 +359,6 @@ func MetricsMiddleware(collector *MetricsCollector) func(http.Handler) http.Hand
 			collector.httpRequestsInFlight.Inc()
 			defer collector.httpRequestsInFlight.Dec()
 
-			// Record request size
-			if r.ContentLength > 0 {
-				collector.httpRequestSize.WithLabelValues(
-					r.Method,
-					normalizePathForMetrics(r.URL.Path),
-				).Observe(float64(r.ContentLength))
-			}
-
 			// Wrap response writer to capture status and size
 			wrapped := &metricsResponseWriter{
 				ResponseWriter: w,
@@ -373,9 +375,17 @@ func MetricsMiddleware(collector *MetricsCollector) func(http.Handler) http.Hand
 			duration := time.Since(start).Seconds()
 
 			// Normalize path for metrics (remove dynamic path parameters)
-			path := normalizePathForMetrics(r.URL.Path)
+			path := normalizePathForMetrics(r)
 			method := r.Method
 			status := strconv.Itoa(wrapped.statusCode)
+
+			// Record request size
+			if r.ContentLength > 0 {
+				collector.httpRequestSize.WithLabelValues(
+					method,
+					path,
+				).Observe(float64(r.ContentLength))
+			}
 
 			// Record metrics
 			collector.httpRequestsTotal.WithLabelValues(method, path, status).Inc()
@@ -426,23 +436,29 @@ func (mrw *metricsResponseWriter) Write(b []byte) (int, error) {
 //   - UUID patterns → :id
 //   - Numeric IDs → :id
 //   - Preserve static paths (health, metrics, etc.)
-func normalizePathForMetrics(path string) string {
+func normalizePathForMetrics(r *http.Request) string {
+	path := r.URL.Path
+
 	// Common static paths that should not be normalized
 	switch path {
 	case "/health", "/health/ready", "/metrics":
 		return path
 	}
 
-	// For now, return the full path
-	// TODO: Implement intelligent path parameter detection
-	// Options:
-	//   1. Use chi's route patterns if available from context
-	//   2. Regex-based UUID/number detection
-	//   3. Path template matching
-	//
-	// For MVP, we return the full path. In production, this should be
-	// normalized to prevent cardinality explosion.
-	return path
+	// Try to get chi route pattern from context
+	if rctx := chi.RouteContext(r.Context()); rctx != nil {
+		if pattern := rctx.RoutePattern(); pattern != "" {
+			return pattern
+		}
+	}
+
+	// Fallback: Regex-based normalization
+	// Replace UUIDs first
+	normalized := regexUUID.ReplaceAllString(path, ":id")
+	// Replace numeric IDs
+	normalized = regexID.ReplaceAllString(normalized, ":id")
+
+	return normalized
 }
 
 // RecordImageUpload records an image upload metric.
