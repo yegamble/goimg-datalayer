@@ -187,7 +187,7 @@ func main() {
     processHandler := tasks.NewImageProcessHandler(processor, storage, logger)
     server.RegisterHandlerFunc(tasks.TypeImageProcess, processHandler.ProcessTask)
 
-    scanHandler := tasks.NewImageScanHandler(clamavClient, storage, logger)
+    scanHandler := tasks.NewImageScanHandler(imageRepo, clamavClient, storage, logger)
     server.RegisterHandlerFunc(tasks.TypeImageScan, scanHandler.ProcessTask)
 
     // Start server (blocking)

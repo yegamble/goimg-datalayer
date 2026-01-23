@@ -434,7 +434,6 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		requestingUserID = userCtx.UserID.String()
 	}
-	_ = requestingUserID // TODO: Use for authorization filtering if needed
 
 	// 3. Convert offset/limit to page/perPage
 	page := (offset / limit) + 1
@@ -444,10 +443,11 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	// 4. Build list query
 	query := queries.ListAlbumsQuery{
-		OwnerUserID: ownerID,
-		Visibility:  visibility,
-		Page:        page,
-		PerPage:     limit,
+		RequestingUserID: requestingUserID,
+		OwnerUserID:      ownerID,
+		Visibility:       visibility,
+		Page:             page,
+		PerPage:          limit,
 	}
 
 	// 5. Execute query

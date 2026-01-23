@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -151,14 +152,6 @@ const (
 		       i.created_at, i.updated_at,
 		       ts_rank(i.search_vector, plainto_tsquery('english', $1)) AS relevance_score
 		FROM images i
-	`
-
-	sqlInsertVariant = `
-		INSERT INTO image_variants (
-			id, image_id, variant_type, storage_key, width, height, file_size, format, created_at
-		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9
-		)
 	`
 
 	sqlSelectVariantsByImageID = `
@@ -768,10 +761,27 @@ func (r *ImageRepository) saveVariantsInTx(ctx context.Context, tx *sqlx.Tx, ima
 	}
 
 	// Insert new variants
-	for _, variant := range image.Variants() {
-		_, err := tx.ExecContext(
-			ctx,
-			sqlInsertVariant,
+	variants := image.Variants()
+	if len(variants) == 0 {
+		return nil
+	}
+
+	// Bulk insert
+	// Note: PostgreSQL supports up to 65535 parameters.
+	// With 9 parameters per variant, we can handle ~7280 variants in a single query.
+	// This is well above any reasonable number of variants per image.
+	query := "INSERT INTO image_variants (id, image_id, variant_type, storage_key, width, height, file_size, format, created_at) VALUES "
+	values := make([]interface{}, 0, len(variants)*9)
+	placeholders := make([]string, 0, len(variants))
+
+	now := time.Now().UTC()
+	for i, variant := range variants {
+		// Calculate parameter indices for this variant (1-based)
+		offset := i * 9
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
+			offset+1, offset+2, offset+3, offset+4, offset+5, offset+6, offset+7, offset+8, offset+9))
+
+		values = append(values,
 			uuid.New().String(),
 			image.ID().String(),
 			variant.VariantType().String(),
@@ -780,11 +790,15 @@ func (r *ImageRepository) saveVariantsInTx(ctx context.Context, tx *sqlx.Tx, ima
 			variant.Height(),
 			variant.FileSize(),
 			variant.Format(),
-			time.Now().UTC(),
+			now,
 		)
-		if err != nil {
-			return fmt.Errorf("failed to insert variant: %w", err)
-		}
+	}
+
+	query += strings.Join(placeholders, ",")
+
+	_, err = tx.ExecContext(ctx, query, values...)
+	if err != nil {
+		return fmt.Errorf("failed to insert variants: %w", err)
 	}
 
 	return nil
@@ -798,39 +812,89 @@ func (r *ImageRepository) saveTagsInTx(ctx context.Context, tx *sqlx.Tx, image *
 		return fmt.Errorf("failed to delete existing image tags: %w", err)
 	}
 
-	// Insert tags and create associations
+	tags := image.Tags()
+	if len(tags) == 0 {
+		return nil
+	}
+
 	now := time.Now().UTC()
-	for _, tag := range image.Tags() {
-		// Insert tag if it doesn't exist (upsert)
-		_, err := tx.ExecContext(
-			ctx,
-			sqlInsertTag,
-			uuid.New().String(),
-			tag.Name(),
-			tag.Slug(),
-			now,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to insert tag: %w", err)
+
+	// 1. Batch insert tags (ON CONFLICT DO NOTHING)
+	// Deduplicate tags by slug
+	uniqueTags := make(map[string]gallery.Tag)
+	for _, tag := range tags {
+		uniqueTags[tag.Slug()] = tag
+	}
+
+	insertTagsQuery := "INSERT INTO tags (id, name, slug, usage_count, created_at) VALUES "
+	insertTagsArgs := make([]interface{}, 0, len(uniqueTags)*4)
+	slugs := make([]string, 0, len(uniqueTags))
+
+	i := 0
+	for _, tag := range uniqueTags {
+		if i > 0 {
+			insertTagsQuery += ","
+		}
+		// placeholders: $1, $2, $3, $4
+		insertTagsQuery += fmt.Sprintf("($%d, $%d, $%d, 0, $%d)", i*4+1, i*4+2, i*4+3, i*4+4)
+		insertTagsArgs = append(insertTagsArgs, uuid.New().String(), tag.Name(), tag.Slug(), now)
+		slugs = append(slugs, tag.Slug())
+		i++
+	}
+	insertTagsQuery += " ON CONFLICT (slug) DO NOTHING"
+
+	_, err = tx.ExecContext(ctx, insertTagsQuery, insertTagsArgs...)
+	if err != nil {
+		return fmt.Errorf("failed to batch insert tags: %w", err)
+	}
+
+	// 2. Get tag IDs
+	query, args, err := sqlx.In("SELECT id, slug FROM tags WHERE slug IN (?)", slugs)
+	if err != nil {
+		return fmt.Errorf("failed to prepare select tags query: %w", err)
+	}
+	query = tx.Rebind(query)
+
+	type tagIDRow struct {
+		ID   string `db:"id"`
+		Slug string `db:"slug"`
+	}
+	var tagIDRows []tagIDRow
+
+	err = tx.SelectContext(ctx, &tagIDRows, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to get tag ids: %w", err)
+	}
+
+	tagMap := make(map[string]string)
+	for _, row := range tagIDRows {
+		tagMap[row.Slug] = row.ID
+	}
+
+	// 3. Batch insert image_tags
+	insertITQuery := "INSERT INTO image_tags (image_id, tag_id, tagged_at) VALUES "
+	insertITArgs := make([]interface{}, 0, len(uniqueTags)*3)
+
+	count := 0
+	for _, tag := range uniqueTags {
+		tagID, ok := tagMap[tag.Slug()]
+		if !ok {
+			continue
 		}
 
-		// Get tag ID
-		var tagID string
-		err = tx.GetContext(ctx, &tagID, sqlGetTagIDBySlug, tag.Slug())
-		if err != nil {
-			return fmt.Errorf("failed to get tag id: %w", err)
+		if count > 0 {
+			insertITQuery += ","
 		}
+		insertITQuery += fmt.Sprintf("($%d, $%d, $%d)", count*3+1, count*3+2, count*3+3)
+		insertITArgs = append(insertITArgs, image.ID().String(), tagID, now)
+		count++
+	}
+	insertITQuery += " ON CONFLICT (image_id, tag_id) DO NOTHING"
 
-		// Create image-tag association
-		_, err = tx.ExecContext(
-			ctx,
-			sqlInsertImageTag,
-			image.ID().String(),
-			tagID,
-			now,
-		)
+	if count > 0 {
+		_, err = tx.ExecContext(ctx, insertITQuery, insertITArgs...)
 		if err != nil {
-			return fmt.Errorf("failed to insert image tag: %w", err)
+			return fmt.Errorf("failed to batch insert image tags: %w", err)
 		}
 	}
 

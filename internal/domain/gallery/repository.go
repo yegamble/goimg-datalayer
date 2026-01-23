@@ -112,7 +112,8 @@ type AlbumRepository interface {
 	FindByID(ctx context.Context, id AlbumID) (*Album, error)
 
 	// FindByOwner retrieves all albums owned by a user with pagination.
-	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*Album, int64, error)
+	// Optional visibility filter: nil = all, specific visibility = filter by that visibility.
+	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *Visibility) ([]*Album, int64, error)
 
 	// FindPublic retrieves all public albums with pagination.
 	// Only returns albums with VisibilityPublic.

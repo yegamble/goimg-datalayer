@@ -102,7 +102,7 @@ func NewModerationHandler(
 //   - 409: Cannot report your own content
 //   - 500: Internal server error
 //
-// Rate limit: 10/hour (TODO: implement in middleware)
+// Rate limit: 10/hour
 func (h *ModerationHandler) CreateReport(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

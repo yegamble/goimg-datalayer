@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -413,22 +415,71 @@ func TestMetricsCollector_RecordCacheHitMiss(t *testing.T) {
 
 func TestNormalizePathForMetrics(t *testing.T) {
 	testCases := []struct {
-		name     string
-		input    string
-		expected string
+		name         string
+		path         string
+		routePattern string // if empty, simulate no chi match
+		expected     string
 	}{
-		{"Health endpoint", "/health", "/health"},
-		{"Readiness endpoint", "/health/ready", "/health/ready"},
-		{"Metrics endpoint", "/metrics", "/metrics"},
-		// For now, these return full paths until we implement normalization
-		{"User by ID", "/api/v1/users/123", "/api/v1/users/123"},
-		{"Image by UUID", "/api/v1/images/abc-123-def", "/api/v1/images/abc-123-def"},
+		{
+			name:     "Health endpoint",
+			path:     "/health",
+			expected: "/health",
+		},
+		{
+			name:     "Readiness endpoint",
+			path:     "/health/ready",
+			expected: "/health/ready",
+		},
+		{
+			name:     "Metrics endpoint",
+			path:     "/metrics",
+			expected: "/metrics",
+		},
+		{
+			name:         "Chi pattern match",
+			path:         "/api/v1/users/123",
+			routePattern: "/api/v1/users/{id}",
+			expected:     "/api/v1/users/{id}",
+		},
+		{
+			name:     "Fallback regex: numeric ID",
+			path:     "/api/v1/users/123",
+			expected: "/api/v1/users/:id",
+		},
+		{
+			name:     "Fallback regex: UUID",
+			path:     "/api/v1/images/123e4567-e89b-12d3-a456-426614174000",
+			expected: "/api/v1/images/:id",
+		},
+		{
+			name:     "Fallback regex: UUID mixed",
+			path:     "/api/v1/images/123e4567-e89b-12d3-a456-426614174000/comments",
+			expected: "/api/v1/images/:id/comments",
+		},
+		{
+			name:     "Fallback regex: Multiple IDs",
+			path:     "/api/v1/groups/123/users/456",
+			expected: "/api/v1/groups/:id/users/:id",
+		},
+		{
+			name:     "Static path no match",
+			path:     "/api/v1/tags",
+			expected: "/api/v1/tags",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+
+			if tc.routePattern != "" {
+				rctx := chi.NewRouteContext()
+				rctx.RoutePatterns = []string{tc.routePattern}
+				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+			}
+
 			// Act
-			result := normalizePathForMetrics(tc.input)
+			result := normalizePathForMetrics(req)
 
 			// Assert
 			assert.Equal(t, tc.expected, result)
