@@ -95,7 +95,7 @@ func TestReconstructUser(t *testing.T) {
 	updatedAt := time.Now().UTC()
 
 	userType := identity.UserTypeRegistered
-	user := identity.ReconstructUser(id, email, username, passwordHash, role, status, displayName, bio, createdAt, updatedAt, userType, nil, nil)
+	user := identity.ReconstructUser(id, email, username, passwordHash, role, status, displayName, bio, createdAt, updatedAt, userType, nil, nil, 0)
 
 	assert.Equal(t, id, user.ID())
 	assert.Equal(t, email, user.Email())
@@ -258,7 +258,7 @@ func TestUser_Suspend(t *testing.T) {
 		user := identity.ReconstructUser(
 			identity.NewUserID(), email, username, passwordHash,
 			identity.RoleUser, identity.StatusDeleted, "Test", "", time.Now(), time.Now(),
-			identity.UserTypeRegistered, nil, nil,
+			identity.UserTypeRegistered, nil, nil, 0,
 		)
 
 		err := user.Suspend("Reason")
@@ -297,7 +297,7 @@ func TestUser_Activate(t *testing.T) {
 		user := identity.ReconstructUser(
 			identity.NewUserID(), email, username, passwordHash,
 			identity.RoleUser, identity.StatusActive, "Test", "", time.Now(), time.Now(),
-			identity.UserTypeRegistered, nil, nil,
+			identity.UserTypeRegistered, nil, nil, 0,
 		)
 		user.ClearEvents()
 
@@ -313,7 +313,7 @@ func TestUser_Activate(t *testing.T) {
 		user := identity.ReconstructUser(
 			identity.NewUserID(), email, username, passwordHash,
 			identity.RoleUser, identity.StatusDeleted, "Test", "", time.Now(), time.Now(),
-			identity.UserTypeRegistered, nil, nil,
+			identity.UserTypeRegistered, nil, nil, 0,
 		)
 
 		err := user.Activate()
@@ -436,7 +436,7 @@ func TestUser_CanLogin(t *testing.T) {
 			user := identity.ReconstructUser(
 				identity.NewUserID(), email, username, passwordHash,
 				identity.RoleUser, tt.status, "Test", "", time.Now(), time.Now(),
-				identity.UserTypeRegistered, nil, nil,
+				identity.UserTypeRegistered, nil, nil, 0,
 			)
 
 			assert.Equal(t, tt.want, user.CanLogin())

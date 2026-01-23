@@ -40,6 +40,8 @@ type User struct {
 	userType  UserType   // registered or guest
 	ipAddress *string    // IP address for guest users (nil for registered)
 	expiresAt *time.Time // Expiration time for guest users (nil for registered)
+
+	infectedFileCount int // Number of infected files uploaded by the user
 }
 
 // NewUser creates a new User with the given email, username, and password hash.
@@ -73,6 +75,7 @@ func NewUser(email Email, username Username, passwordHash PasswordHash) (*User, 
 		userType:                UserTypeRegistered,
 		ipAddress:               nil,
 		expiresAt:               nil,
+		infectedFileCount:       0,
 	}
 
 	user.addEvent(NewUserCreated(user.id, user.email, user.username))
@@ -131,6 +134,7 @@ func NewGuestUser(ipAddress string) (*User, error) {
 		userType:                UserTypeGuest,
 		ipAddress:               &ipAddress,
 		expiresAt:               &expiresAt,
+		infectedFileCount:       0,
 	}
 
 	user.addEvent(NewGuestUserCreated(user.id, ipAddress, expiresAt))
@@ -152,6 +156,7 @@ func ReconstructUser(
 	userType UserType,
 	ipAddress *string,
 	expiresAt *time.Time,
+	infectedFileCount int,
 ) *User {
 	return &User{
 		id:                      id,
@@ -172,6 +177,7 @@ func ReconstructUser(
 		userType:                userType,
 		ipAddress:               ipAddress,
 		expiresAt:               expiresAt,
+		infectedFileCount:       infectedFileCount,
 	}
 }
 
@@ -193,6 +199,7 @@ func ReconstructUserWith2FA(
 	userType UserType,
 	ipAddress *string,
 	expiresAt *time.Time,
+	infectedFileCount int,
 ) *User {
 	return &User{
 		id:                      id,
@@ -213,6 +220,7 @@ func ReconstructUserWith2FA(
 		userType:                userType,
 		ipAddress:               ipAddress,
 		expiresAt:               expiresAt,
+		infectedFileCount:       infectedFileCount,
 	}
 }
 
@@ -588,6 +596,17 @@ func (u *User) HasTrustedDevices() bool {
 // This is true if TOTP is enabled for this user.
 func (u *User) Requires2FA() bool {
 	return u.IsTOTPEnabled()
+}
+
+// InfectedFileCount returns the number of infected files uploaded by the user.
+func (u *User) InfectedFileCount() int {
+	return u.infectedFileCount
+}
+
+// IncrementInfectedFileCount increments the user's infected file counter.
+func (u *User) IncrementInfectedFileCount() {
+	u.infectedFileCount++
+	u.updatedAt = time.Now().UTC()
 }
 
 // Notification Preferences Methods

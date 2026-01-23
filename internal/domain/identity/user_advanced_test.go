@@ -105,6 +105,7 @@ func TestUser_IsExpired(t *testing.T) {
 			UserTypeGuest,
 			&ipAddress,
 			&pastExpiry,
+			0,
 		)
 
 		assert.True(t, user.IsExpired())
@@ -193,6 +194,7 @@ func TestUser_TOTPSecret(t *testing.T) {
 		UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 
 	assert.NotNil(t, user.TOTPSecret())
@@ -217,7 +219,7 @@ func TestUser_IsTOTPEnabled(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, nil, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 
 		assert.True(t, user.IsTOTPEnabled())
@@ -247,7 +249,7 @@ func TestUser_IsTOTPSetupPending(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, nil, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 
 		assert.True(t, user.IsTOTPSetupPending())
@@ -340,7 +342,7 @@ func TestUser_DisableTOTP(t *testing.T) {
 		RoleUser, StatusActive, "User", "",
 		time.Now(), time.Now(),
 		&secret, nil, nil,
-		UserTypeRegistered, nil, nil,
+		UserTypeRegistered, nil, nil, 0,
 	)
 
 	user.ClearEvents()
@@ -367,7 +369,7 @@ func TestUser_BackupCodes(t *testing.T) {
 		RoleUser, StatusActive, "User", "",
 		time.Now(), time.Now(),
 		nil, codes, nil,
-		UserTypeRegistered, nil, nil,
+		UserTypeRegistered, nil, nil, 0,
 	)
 
 	assert.Len(t, user.BackupCodes(), 10)
@@ -388,7 +390,7 @@ func TestUser_RegenerateBackupCodes(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, nil, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 		user.ClearEvents()
 
@@ -435,7 +437,7 @@ func TestUser_UseBackupCode(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, codes, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 		user.ClearEvents()
 
@@ -460,7 +462,7 @@ func TestUser_UseBackupCode(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, codes, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 
 		err := user.UseBackupCode("INVALID")
@@ -480,7 +482,7 @@ func TestUser_UnusedBackupCodeCount(t *testing.T) {
 		RoleUser, StatusActive, "User", "",
 		time.Now(), time.Now(),
 		&secret, codes, nil,
-		UserTypeRegistered, nil, nil,
+		UserTypeRegistered, nil, nil, 0,
 	)
 
 	// All unused initially
@@ -502,7 +504,7 @@ func TestUser_Devices(t *testing.T) {
 		RoleUser, StatusActive, "User", "",
 		time.Now(), time.Now(),
 		nil, nil, []DeviceFingerprint{device},
-		UserTypeRegistered, nil, nil,
+		UserTypeRegistered, nil, nil, 0,
 	)
 
 	assert.Len(t, user.Devices(), 1)
@@ -671,7 +673,7 @@ func TestUser_Requires2FA(t *testing.T) {
 			RoleUser, StatusActive, "User", "",
 			time.Now(), time.Now(),
 			&secret, nil, nil,
-			UserTypeRegistered, nil, nil,
+			UserTypeRegistered, nil, nil, 0,
 		)
 
 		assert.True(t, user.Requires2FA())

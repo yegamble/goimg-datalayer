@@ -226,6 +226,7 @@ func ValidUser(t *testing.T) *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 
 	return user
@@ -259,6 +260,7 @@ func ValidModeratorUser(t *testing.T) *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 
 	return user

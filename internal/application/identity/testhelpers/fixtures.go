@@ -61,6 +61,7 @@ func ValidUserWithID(userID identity.UserID) *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 	return user
 }
@@ -122,6 +123,7 @@ func ValidDeletedUser() *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 	return user
 }
@@ -146,6 +148,7 @@ func ValidActiveUserWithIDAndUsername(userID identity.UserID, emailStr, username
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		0,
 	)
 	return user
 }

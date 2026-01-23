@@ -179,7 +179,7 @@ func TestCreateAlbumHandler_Handle_Success(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil, 0)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -287,7 +287,7 @@ func TestCreateAlbumHandler_Handle_InvalidTitle(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil, 0)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -328,7 +328,7 @@ func TestCreateAlbumHandler_Handle_SaveError(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil, 0)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -371,7 +371,7 @@ func TestCreateAlbumHandler_Handle_WithDescription(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil, 0)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),
@@ -413,7 +413,7 @@ func TestCreateAlbumHandler_Handle_EventPublishingError(t *testing.T) {
 	username, _ := identity.NewUsername("testuser")
 	passwordHash, _ := identity.NewPasswordHash("password123")
 	now := time.Now()
-	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil)
+	user := identity.ReconstructUser(userID, email, username, passwordHash, identity.RoleUser, identity.StatusActive, "", "", now, now, identity.UserTypeRegistered, nil, nil, 0)
 
 	cmd := CreateAlbumCommand{
 		UserID:      userID.String(),

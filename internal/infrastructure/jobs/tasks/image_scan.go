@@ -10,6 +10,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
@@ -45,21 +46,24 @@ type ImageScanPayload struct {
 // ImageScanHandler handles malware scanning tasks using ClamAV.
 // It scans images for viruses, polyglot files, and other malicious content.
 type ImageScanHandler struct {
-	scanner clamav.Scanner
-	storage Storage
-	logger  zerolog.Logger
+	scanner  clamav.Scanner
+	storage  Storage
+	userRepo identity.UserRepository
+	logger   zerolog.Logger
 }
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
 	scanner clamav.Scanner,
 	storage Storage,
+	userRepo identity.UserRepository,
 	logger zerolog.Logger,
 ) *ImageScanHandler {
 	return &ImageScanHandler{
-		scanner: scanner,
-		storage: storage,
-		logger:  logger,
+		scanner:  scanner,
+		storage:  storage,
+		userRepo: userRepo,
+		logger:   logger,
 	}
 }
 
@@ -137,9 +141,26 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		// TODO: Update image status to "infected" in database
 		// TODO: Notify user via email/notification
 		// TODO: Delete infected file from storage
-		// TODO: Increment user's infected file counter
 
-		return fmt.Errorf("malware detected: %s", scanResult.Virus)
+		// Increment user's infected file counter
+		if userID, err := identity.ParseUserID(payload.OwnerID); err == nil {
+			if err := h.userRepo.IncrementInfectedFileCount(ctx, userID); err != nil {
+				h.logger.Error().
+					Err(err).
+					Str("owner_id", payload.OwnerID).
+					Msg("failed to increment infected file count")
+				// Don't fail the task just because metric update failed, but log it
+			}
+		} else {
+			h.logger.Error().
+				Err(err).
+				Str("owner_id", payload.OwnerID).
+				Msg("invalid owner id in payload")
+		}
+
+		// Return nil to prevent retries. Malware detection is a successful "process" result,
+		// even though the content is bad. Retrying would cause double-counting of metrics.
+		return nil
 	}
 
 	// Clean scan result

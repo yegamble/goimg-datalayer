@@ -82,6 +82,7 @@ func TestDeleteCommentHandler_Handle(t *testing.T) {
 					identity.UserTypeRegistered,
 					nil,
 					nil,
+					0,
 				)
 				comment := testhelpers.ValidComment(t)
 				image := testhelpers.ValidImage(t)
@@ -181,6 +182,7 @@ func TestDeleteCommentHandler_Handle(t *testing.T) {
 					identity.UserTypeRegistered,
 					nil,
 					nil,
+					0,
 				)
 				comment := testhelpers.ValidComment(t)
 

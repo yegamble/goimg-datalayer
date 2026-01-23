@@ -37,4 +37,8 @@ type UserRepository interface {
 	// The asOf parameter specifies the cutoff time (typically time.Now().UTC()).
 	// The limit parameter prevents loading too many records at once.
 	FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*User, error)
+
+	// IncrementInfectedFileCount increments the user's infected file counter.
+	// This is an atomic operation that updates the counter and the updated_at timestamp.
+	IncrementInfectedFileCount(ctx context.Context, id UserID) error
 }

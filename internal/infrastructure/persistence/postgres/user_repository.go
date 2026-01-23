@@ -17,8 +17,8 @@ import (
 // SQL queries for user operations.
 const (
 	sqlInsertUser = `
-		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at, infected_file_count)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
 
 	sqlUpdateUser = `
@@ -33,24 +33,25 @@ const (
 		    updated_at = $9,
 		    user_type = $10,
 		    ip_address = $11,
-		    expires_at = $12
+		    expires_at = $12,
+		    infected_file_count = $13
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByID = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at, infected_file_count
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByEmail = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at, infected_file_count
 		FROM users
 		WHERE email = $1 AND deleted_at IS NULL
 	`
 
 	sqlSelectUserByUsername = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at, infected_file_count
 		FROM users
 		WHERE username = $1 AND deleted_at IS NULL
 	`
@@ -64,7 +65,7 @@ const (
 	`
 
 	sqlFindExpiredGuests = `
-		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at
+		SELECT id, email, username, password_hash, role, status, display_name, bio, created_at, updated_at, user_type, ip_address, expires_at, infected_file_count
 		FROM users
 		WHERE user_type = 'guest'
 		  AND expires_at <= $1
@@ -72,23 +73,31 @@ const (
 		ORDER BY expires_at ASC
 		LIMIT $2
 	`
+
+	sqlIncrementInfectedFileCount = `
+		UPDATE users
+		SET infected_file_count = infected_file_count + 1,
+		    updated_at = NOW()
+		WHERE id = $1 AND deleted_at IS NULL
+	`
 )
 
 // userRow represents a user row in the database.
 type userRow struct {
-	ID           string         `db:"id"`
-	Email        string         `db:"email"`
-	Username     string         `db:"username"`
-	PasswordHash string         `db:"password_hash"`
-	Role         string         `db:"role"`
-	Status       string         `db:"status"`
-	DisplayName  string         `db:"display_name"`
-	Bio          string         `db:"bio"`
-	CreatedAt    time.Time      `db:"created_at"`
-	UpdatedAt    time.Time      `db:"updated_at"`
-	UserType     string         `db:"user_type"`
-	IPAddress    sql.NullString `db:"ip_address"`
-	ExpiresAt    sql.NullTime   `db:"expires_at"`
+	ID                string         `db:"id"`
+	Email             string         `db:"email"`
+	Username          string         `db:"username"`
+	PasswordHash      string         `db:"password_hash"`
+	Role              string         `db:"role"`
+	Status            string         `db:"status"`
+	DisplayName       string         `db:"display_name"`
+	Bio               string         `db:"bio"`
+	CreatedAt         time.Time      `db:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at"`
+	UserType          string         `db:"user_type"`
+	IPAddress         sql.NullString `db:"ip_address"`
+	ExpiresAt         sql.NullTime   `db:"expires_at"`
+	InfectedFileCount int            `db:"infected_file_count"`
 }
 
 // UserRepository implements the identity.UserRepository interface for PostgreSQL.
@@ -205,6 +214,7 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 		user.UserType().String(),
 		ipAddress,
 		expiresAt,
+		user.InfectedFileCount(),
 	)
 	if err != nil {
 		// Handle unique constraint violations
@@ -251,6 +261,7 @@ func (r *UserRepository) update(ctx context.Context, user *identity.User) error 
 		user.UserType().String(),
 		ipAddress,
 		expiresAt,
+		user.InfectedFileCount(),
 	)
 	if err != nil {
 		// Handle unique constraint violations
@@ -373,6 +384,7 @@ func rowToUser(row userRow) (*identity.User, error) {
 		userType,
 		ipAddress,
 		expiresAt,
+		row.InfectedFileCount,
 	)
 
 	return user, nil
@@ -389,7 +401,7 @@ func (r *UserRepository) FindExpiredGuests(
 ) ([]*identity.User, error) {
 	query := `
 		SELECT id, email, username, password_hash, role, status, display_name, bio,
-		       created_at, updated_at, user_type, ip_address, expires_at
+		       created_at, updated_at, user_type, ip_address, expires_at, infected_file_count
 		FROM users
 		WHERE user_type = 'guest'
 		  AND expires_at IS NOT NULL
@@ -422,6 +434,7 @@ func (r *UserRepository) FindExpiredGuests(
 			&row.UserType,
 			&row.IPAddress,
 			&row.ExpiresAt,
+			&row.InfectedFileCount,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan expired guest row: %w", err)
 		}
@@ -439,4 +452,23 @@ func (r *UserRepository) FindExpiredGuests(
 	}
 
 	return users, nil
+}
+
+// IncrementInfectedFileCount increments the user's infected file counter.
+func (r *UserRepository) IncrementInfectedFileCount(ctx context.Context, id identity.UserID) error {
+	result, err := r.db.ExecContext(ctx, sqlIncrementInfectedFileCount, id.String())
+	if err != nil {
+		return fmt.Errorf("failed to increment infected file count: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return identity.ErrUserNotFound
+	}
+
+	return nil
 }
