@@ -194,7 +194,7 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 	ownerID := ValidUserIDParsed() // Same as reporter
 	imageID := ValidImageIDParsed()
 
-	metadata, _ := gallery.NewImageMetadata(
+	metadata, err := gallery.NewImageMetadata(
 		"Test Image",
 		"Test description",
 		"test-image.jpg",
