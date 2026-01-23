@@ -20,6 +20,8 @@ Complete API reference for the goimg-datalayer image gallery backend. This self-
   - [Social Endpoints](#social-endpoints)
   - [Moderation Endpoints](#moderation-endpoints)
   - [Explore Endpoints](#explore-endpoints)
+  - [oEmbed Endpoints](#oembed-endpoints)
+  - [Group Endpoints](#group-endpoints)
   - [Health & Monitoring](#health--monitoring)
 - [Code Examples](#code-examples)
 
@@ -885,7 +887,8 @@ Create a new album to organize images.
   "title": "Summer Vacation 2024",
   "description": "Photos from our trip to the mountains",
   "visibility": "private",
-  "cover_image_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+  "cover_image_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "parent_id": "123e4567-e89b-12d3-a456-426614174003"
 }
 ```
 
@@ -894,6 +897,7 @@ Create a new album to organize images.
 - `description` (string, optional): Max 2000 chars
 - `visibility` (string, optional): `public`, `private`, or `unlisted` (default: `private`)
 - `cover_image_id` (UUID, optional): Album cover image (defaults to first image)
+- `parent_id` (UUID, optional): Parent album ID for nesting
 
 **Success Response (201 Created)**:
 ```json
@@ -1154,36 +1158,100 @@ Remove an image from an album.
 
 ---
 
+#### GET /albums/{id}/breadcrumb
+
+Get album breadcrumb path (for nested albums).
+
+**Authentication**: Optional
+
+**Success Response (200 OK)**:
+```json
+[
+  { "id": "root-uuid", "title": "Vacations" },
+  { "id": "year-uuid", "title": "2024" },
+  { "id": "current-uuid", "title": "Summer" }
+]
+```
+
+---
+
+#### GET /albums/{id}/children
+
+List child albums.
+
+**Authentication**: Optional
+
+**Success Response (200 OK)**:
+```json
+[
+  {
+    "id": "sub-album-uuid",
+    "title": "Day 1",
+    "image_count": 50
+  }
+]
+```
+
+---
+
 ### Tag Endpoints
 
-#### GET /tags
+#### GET /tags/popular
 
 Retrieve a list of popular tags with usage counts.
 
 **Authentication**: Optional
 
 **Query Parameters**:
-- `limit` (integer, optional): Number of tags to return (default: 50, max: 100)
+- `limit` (integer, optional): Number of tags to return (default: 20, max: 100)
+- `period` (string, optional): `day`, `week`, `month`, `all` (default: `all`)
 
 **Success Response (200 OK)**:
 ```json
-[
-  {
-    "name": "sunset",
-    "slug": "sunset",
-    "usage_count": 1234
-  },
-  {
-    "name": "mountains",
-    "slug": "mountains",
-    "usage_count": 987
-  },
-  {
-    "name": "nature",
-    "slug": "nature",
-    "usage_count": 856
-  }
-]
+{
+  "tags": [
+    {
+      "name": "sunset",
+      "slug": "sunset",
+      "usage_count": 1234
+    },
+    {
+      "name": "mountains",
+      "slug": "mountains",
+      "usage_count": 987
+    }
+  ],
+  "period": "all",
+  "limit": 20
+}
+```
+
+---
+
+#### GET /tags/trending
+
+Retrieve trending tags (high recent activity relative to total).
+
+**Authentication**: Optional
+
+**Query Parameters**:
+- `limit` (integer, optional): Number of tags to return (default: 20, max: 100)
+- `period` (string, optional): `day`, `week`, `month` (default: `week`)
+
+**Success Response (200 OK)**:
+```json
+{
+  "tags": [
+    {
+      "name": "eclipse",
+      "slug": "eclipse",
+      "usage_count": 500,
+      "trend_score": 85.5
+    }
+  ],
+  "period": "week",
+  "limit": 20
+}
 ```
 
 ---
@@ -1255,6 +1323,8 @@ Retrieve all public images with a specific tag.
   }
 }
 ```
+
+---
 
 ---
 
@@ -1798,6 +1868,203 @@ Retrieve popular images sorted by views or likes.
   }
 }
 ```
+
+---
+
+#### GET /explore/featured
+
+Retrieve admin-curated featured images.
+
+**Authentication**: Optional
+
+**Query Parameters**:
+- `limit` (integer, optional): Number of images (default: 10)
+
+**Success Response (200 OK)**:
+```json
+{
+  "featured_images": [
+    {
+      "pick_id": "123e4567-e89b-12d3-a456-426614174100",
+      "image_id": "123e4567-e89b-12d3-a456-426614174000",
+      "image": {
+        "title": "Amazing Shot",
+        "url": "https://cdn.goimg.com/images/123e4567/medium.jpg"
+      },
+      "display_order": 0
+    }
+  ],
+  "total_count": 5
+}
+```
+
+---
+
+### oEmbed Endpoints
+
+#### GET /oembed
+
+Returns an oEmbed 1.0 response for embedding images on external sites.
+
+**Authentication**: Optional (Only public images)
+
+**Query Parameters**:
+- `url` (string, required): URL of the image to embed
+- `format` (string, optional): `json` or `xml` (default: `json`)
+- `maxwidth` (integer, optional): Maximum width
+- `maxheight` (integer, optional): Maximum height
+
+**Success Response (200 OK)**:
+```json
+{
+  "type": "photo",
+  "version": "1.0",
+  "url": "https://example.com/api/v1/images/123/variants/large",
+  "width": 1600,
+  "height": 1200,
+  "title": "Beautiful sunset",
+  "author_name": "johndoe",
+  "provider_name": "goimg",
+  "thumbnail_url": "https://example.com/api/v1/images/123/variants/thumbnail",
+  "thumbnail_width": 150,
+  "thumbnail_height": 112
+}
+```
+
+---
+
+### Group Endpoints
+
+#### GET /groups
+
+List public groups with pagination.
+
+**Authentication**: Optional
+
+**Query Parameters**:
+- `page` (integer, optional): Page number (default: 1)
+- `limit` (integer, optional): Items per page (default: 20)
+- `type` (string, optional): `public` or `invite_only`
+- `sort` (string, optional): `recent`, `popular`, `name`
+
+**Success Response (200 OK)**:
+```json
+{
+  "groups": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Landscape Photography",
+      "slug": "landscape-photography",
+      "group_type": "public",
+      "member_count": 42,
+      "image_count": 256,
+      "created_at": "2026-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 100,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 5
+  }
+}
+```
+
+---
+
+#### POST /groups
+
+Create a new group.
+
+**Authentication**: Required (Bearer token)
+
+**Request Body**:
+```json
+{
+  "name": "Landscape Photography",
+  "description": "Share your best landscape shots",
+  "group_type": "public",
+  "settings": {
+    "require_approval": false,
+    "allow_member_invites": true,
+    "allow_member_albums": true
+  }
+}
+```
+
+**Success Response (201 Created)**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "Landscape Photography",
+  "slug": "landscape-photography",
+  "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+  "group_type": "public",
+  "created_at": "2026-01-15T10:30:00Z"
+}
+```
+
+**Error Responses**:
+- `400`: Validation error
+- `401`: Unauthorized
+- `409`: Group slug already exists
+
+---
+
+#### GET /groups/{id}
+
+Get group details.
+
+**Authentication**: Optional (required for private groups)
+
+**Path Parameters**:
+- `id` (UUID): Group ID
+
+**Success Response (200 OK)**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "Landscape Photography",
+  "description": "Share your best landscape shots",
+  "owner_id": "550e8400-e29b-41d4-a716-446655440000",
+  "member_count": 42,
+  "image_count": 256,
+  "album_count": 8,
+  "group_type": "public",
+  "created_at": "2026-01-15T10:30:00Z"
+}
+```
+
+**Error Responses**:
+- `404`: Group not found
+
+---
+
+#### POST /groups/{id}/join
+
+Join a group.
+
+**Authentication**: Required (Bearer token)
+
+**Path Parameters**:
+- `id` (UUID): Group ID
+
+**Success Response (201 Created)**:
+```json
+{
+  "id": "abc12345-e89b-12d3-a456-426614174999",
+  "group_id": "123e4567-e89b-12d3-a456-426614174000",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "role": "member",
+  "status": "active",
+  "joined_at": "2026-01-15T12:00:00Z"
+}
+```
+
+**Notes**:
+- **Public groups**: Instant join (status: `active`)
+- **Invite-only groups**: Request created (status: `requested`), requires admin approval
+- **Private groups**: Cannot join directly, must be invited
 
 ---
 
@@ -2690,5 +2957,5 @@ images = response.json()
 
 ---
 
-**Last Updated**: 2025-12-06 (Sprint 9 - Comprehensive API documentation with all endpoints)
-**API Version**: 1.0.0
+**Last Updated**: 2026-01-15 (Sprint 23 - Updated with Groups, oEmbed, and Phase 3 features)
+**API Version**: 2.0.0
