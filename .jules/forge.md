@@ -1,4 +1,4 @@
-## 2025-01-20 - Pinned GitHub Actions and Updated Dockerfiles
-**Issue:** GitHub Actions workflows were using unpinned versions (tags) for `trivy-action` and `codeql-action/upload-sarif`, which poses a supply chain security risk and could break if tags are updated with breaking changes. Also, Dockerfiles were using an outdated Go version (1.22) while the project requires 1.25.
-**Root Cause:** Initial setup likely used convenient tags and didn't update the Docker base image when the project upgraded Go versions.
-**Fix:** Pinned all actions to specific commit SHAs (found via release tags) and updated Dockerfiles to use `golang:1.25-alpine`.
+## 2026-01-20 - Pinned CI Tool Versions
+**Issue:** `ci.yml` and `security.yml` were installing critical tools (`gosec`, `govulncheck`, `gocovmerge`, `grype`, `cyclonedx-gomod`) using `@latest` or unversioned scripts, leading to non-reproducible builds and potential supply chain vulnerabilities.
+**Root Cause:** Tools were installed using `go install ...@latest` or `curl ... | sh` without version constraints.
+**Fix:** Pinned all tools to specific versions or commit hashes (e.g., `gosec@v2.22.11`, `gocovmerge@b5bfa59`) to ensure stability and security.
