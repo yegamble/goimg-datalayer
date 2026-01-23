@@ -38,7 +38,7 @@ services:
 
   # ClamAV Antivirus Scanner
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav:1.4.1
     container_name: goimg-clamav
     ports:
       - "3310:3310"
@@ -54,7 +54,7 @@ services:
   # IPFS Node (Kubo)
   # Provides decentralized, content-addressed storage
   ipfs:
-    image: ipfs/kubo:latest
+    image: ipfs/kubo:v0.31.0
     container_name: goimg-ipfs
     environment:
       # Server profile optimizes for running as a service
@@ -66,7 +66,7 @@ services:
       # API - HTTP API for programmatic access
       - "5001:5001"
       # Gateway - HTTP gateway for content retrieval
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       # Persistent IPFS data (blocks, config, keys)
       - ipfs_data:/data/ipfs
@@ -83,7 +83,7 @@ services:
 
   # MinIO - S3-compatible object storage (for local S3 development)
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
     container_name: goimg-minio
     environment:
       MINIO_ROOT_USER: minioadmin
