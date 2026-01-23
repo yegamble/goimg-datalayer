@@ -247,7 +247,7 @@ func TestCreateReportHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name: "empty description is allowed",
+			name: "empty description is not allowed",
 			cmd: commands.CreateReportCommand{
 				ReporterID:  testhelpers.ValidUserID,
 				ImageID:     testhelpers.ValidImageID,
@@ -259,13 +259,12 @@ func TestCreateReportHandler_Handle(t *testing.T) {
 				image := testhelpers.ValidImage(t)
 
 				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ReportRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
-				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 			},
-			wantErr: "",
+			wantErr: "create report",
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
+				require.Error(t, err)
+				assert.Nil(t, result)
+				assert.Contains(t, err.Error(), "description cannot be empty")
 				suite.AssertExpectations(t)
 			},
 		},
