@@ -14,6 +14,10 @@ const (
 var (
 	// slugRegex validates that slug contains only lowercase letters, numbers, and hyphens.
 	slugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
+	// invalidSlugCharsRegex matches any characters that are not lowercase letters, numbers, or hyphens.
+	invalidSlugCharsRegex = regexp.MustCompile(`[^a-z0-9-]+`)
+	// consecutiveHyphensRegex matches multiple consecutive hyphens.
+	consecutiveHyphensRegex = regexp.MustCompile(`-+`)
 )
 
 // GroupSlug is a value object representing a URL-safe group identifier.
@@ -60,10 +64,10 @@ func GenerateSlugFromName(name string) (GroupSlug, error) {
 	slug = strings.ReplaceAll(slug, " ", "-")
 
 	// Remove any characters that aren't a-z, 0-9, or hyphen
-	slug = regexp.MustCompile(`[^a-z0-9-]+`).ReplaceAllString(slug, "")
+	slug = invalidSlugCharsRegex.ReplaceAllString(slug, "")
 
 	// Remove multiple consecutive hyphens
-	slug = regexp.MustCompile(`-+`).ReplaceAllString(slug, "-")
+	slug = consecutiveHyphensRegex.ReplaceAllString(slug, "-")
 
 	// Trim hyphens from start and end
 	slug = strings.Trim(slug, "-")

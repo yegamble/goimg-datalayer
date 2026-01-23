@@ -153,9 +153,9 @@ func ValidImage(t *testing.T) *gallery.Image {
 	ownerID := ValidAdminIDParsed() // Different from reporter
 	imageID := ValidImageIDParsed()
 
-	metadata, _ := gallery.NewImageMetadata(
+	metadata, err := gallery.NewImageMetadata(
 		"Test Image",
-		"Test description",
+		"Description",
 		"test-image.jpg",
 		"image/jpeg",
 		1920,
@@ -164,6 +164,8 @@ func ValidImage(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		"local",
 	)
+
+  require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
 		imageID,
@@ -203,6 +205,8 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		"local",
 	)
+  
+	require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
 		imageID,

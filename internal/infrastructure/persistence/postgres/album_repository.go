@@ -48,7 +48,9 @@ const (
 		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
 		       image_count, created_at, updated_at
 		FROM albums
-		WHERE owner_id = $1 AND deleted_at IS NULL
+		WHERE owner_id = $1
+		  AND ($4 = '' OR visibility = $4)
+		  AND deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
@@ -56,7 +58,9 @@ const (
 	sqlCountAlbumsByOwner = `
 		SELECT COUNT(*)
 		FROM albums
-		WHERE owner_id = $1 AND deleted_at IS NULL
+		WHERE owner_id = $1
+		  AND ($2 = '' OR visibility = $2)
+		  AND deleted_at IS NULL
 	`
 
 	sqlSelectPublicAlbums = `
@@ -174,7 +178,13 @@ func (r *AlbumRepository) FindByOwner(
 	ctx context.Context,
 	ownerID identity.UserID,
 	pagination shared.Pagination,
+	visibility *gallery.Visibility,
 ) ([]*gallery.Album, int64, error) {
+	visStr := ""
+	if visibility != nil {
+		visStr = visibility.String()
+	}
+
 	var rows []albumRow
 	err := r.db.SelectContext(
 		ctx,
@@ -183,13 +193,14 @@ func (r *AlbumRepository) FindByOwner(
 		ownerID.String(),
 		pagination.Limit(),
 		pagination.Offset(),
+		visStr,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to find albums by owner: %w", err)
 	}
 
 	var total int64
-	err = r.db.GetContext(ctx, &total, sqlCountAlbumsByOwner, ownerID.String())
+	err = r.db.GetContext(ctx, &total, sqlCountAlbumsByOwner, ownerID.String(), visStr)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count albums by owner: %w", err)
 	}

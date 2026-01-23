@@ -56,6 +56,17 @@ func (e *ImageFlagged) EventType() string {
 	return "gallery.image.flagged"
 }
 
+// ImageInfected is emitted when malware is detected in an image.
+type ImageInfected struct {
+	shared.BaseEvent
+	ImageID ImageID
+}
+
+// EventType returns the event type identifier.
+func (e *ImageInfected) EventType() string {
+	return "gallery.image.infected"
+}
+
 // ImageVisibilityChanged is emitted when an image's visibility changes.
 type ImageVisibilityChanged struct {
 	shared.BaseEvent

@@ -391,6 +391,20 @@ func (u *User) ChangePassword(newHash PasswordHash) error {
 	return nil
 }
 
+// ChangeEmail changes the user's email address.
+func (u *User) ChangeEmail(newEmail Email) error {
+	if newEmail.IsEmpty() {
+		return fmt.Errorf("email cannot be empty")
+	}
+	if u.email == newEmail {
+		return nil
+	}
+
+	u.email = newEmail
+	u.updatedAt = time.Now().UTC()
+	return nil
+}
+
 // CanLogin returns true if the user can log in (status is active).
 func (u *User) CanLogin() bool {
 	return u.status.CanLogin()

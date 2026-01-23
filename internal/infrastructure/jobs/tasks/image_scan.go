@@ -58,6 +58,7 @@ type ImageScanHandler struct {
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
+	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
 	images gallery.ImageRepository,
@@ -136,6 +137,18 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 	duration := time.Since(startTime)
 
 	// Step 4: Handle scan results
+	imageID, err := gallery.ParseImageID(payload.ImageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("invalid image id")
+		return fmt.Errorf("invalid image id: %w", err)
+	}
+
+	image, err := h.repo.FindByID(ctx, imageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to find image")
+		return fmt.Errorf("find image: %w", err)
+	}
+
 	if scanResult.Infected {
 		// Malware detected - this is a terminal error
 		h.logger.Warn().

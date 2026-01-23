@@ -23,6 +23,23 @@ const (
 	ScanStatusError ScanStatus = "error"
 )
 
+	// ScanStatusInfected indicates the image was scanned and malware was detected.
+	ScanStatusInfected ScanStatus = "infected"
+
+	// ScanStatusError indicates the scan failed due to a technical error.
+	ScanStatusError ScanStatus = "error"
+)
+
+// AllScanStatuses returns all valid scan status values.
+func AllScanStatuses() []ScanStatus {
+	return []ScanStatus{
+		ScanStatusPending,
+		ScanStatusClean,
+		ScanStatusInfected,
+		ScanStatusError,
+	}
+}
+
 // ParseScanStatus parses a string into a ScanStatus.
 // Returns an error if the string is not a valid scan status value.
 func ParseScanStatus(s string) (ScanStatus, error) {
