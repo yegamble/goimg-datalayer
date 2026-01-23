@@ -6,14 +6,11 @@ package integration_test
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"testing"
 	"time"
 
@@ -73,8 +70,7 @@ func TestBackupRestore_FullCycle(t *testing.T) {
 
 	// Step 4: Destroy database (simulate disaster)
 	t.Log("Step 4: Simulating disaster (dropping database)...")
-	err = suite.Postgres.Cleanup(ctx, t)
-	require.NoError(t, err, "failed to cleanup database")
+	suite.Postgres.Cleanup(ctx, t)
 
 	// Verify database is empty
 	rowCountsAfterDestroy, err := getRowCounts(ctx, suite.DB.DB)
@@ -180,7 +176,7 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 	ctx := context.Background()
 
 	// Ensure database is empty
-	suite.CleanupBetweenTests()
+	suite.CleanupBetweenTests(ctx)
 
 	// Create backup of empty database
 	backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
@@ -193,7 +189,7 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 	assert.Greater(t, backupInfo.Size(), int64(0), "backup file should not be empty")
 
 	// Restore from backup
-	suite.CleanupBetweenTests()
+	suite.CleanupBetweenTests(ctx)
 	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err, "failed to restore empty database backup")
 
@@ -234,7 +230,7 @@ func TestBackupRestore_PartialData(t *testing.T) {
 	defer os.Remove(backupFile)
 
 	// Cleanup and restore
-	suite.CleanupBetweenTests()
+	suite.CleanupBetweenTests(ctx)
 	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err)
 
@@ -477,7 +473,7 @@ func TestBackupRestore_LargeDataset(t *testing.T) {
 	t.Logf("Backup completed in %v", backupDuration)
 
 	// Restore
-	suite.CleanupBetweenTests()
+	suite.CleanupBetweenTests(ctx)
 	t.Log("Restoring backup...")
 	restoreStart := time.Now()
 	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)

@@ -26,6 +26,7 @@ func TestTokenBlacklist_Add(t *testing.T) {
 	// Arrange
 	tokenJTI := uuid.New().String()
 	expiresAt := time.Now().Add(15 * time.Minute)
+	_ = expiresAt
 
 	// Act
 	// err := blacklist.Add(ctx, tokenJTI, expiresAt)
@@ -37,6 +38,7 @@ func TestTokenBlacklist_Add(t *testing.T) {
 	blacklistKey := "blacklist:token:" + tokenJTI
 	exists, err := suite.RedisClient.Exists(ctx, blacklistKey).Result()
 	require.NoError(t, err)
+	_ = exists
 	// assert.Equal(t, int64(1), exists)
 
 	t.Skip("Skipping until TokenBlacklist implementation is available")
@@ -53,6 +55,7 @@ func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
 	// Arrange - add token to blacklist
 	blacklistedJTI := uuid.New().String()
 	notBlacklistedJTI := uuid.New().String()
+	_ = notBlacklistedJTI
 
 	blacklistKey := "blacklist:token:" + blacklistedJTI
 	err := suite.RedisClient.Set(ctx, blacklistKey, "1", 15*time.Minute).Err()
@@ -115,6 +118,7 @@ func TestTokenBlacklist_MultipleTokens(t *testing.T) {
 	token3JTI := uuid.New().String()
 
 	expiresAt := time.Now().Add(15 * time.Minute)
+	_ = expiresAt
 
 	// Act - blacklist all tokens
 	key1 := "blacklist:token:" + token1JTI
@@ -184,6 +188,7 @@ func TestTokenBlacklist_RaceCondition(t *testing.T) {
 	// Arrange
 	tokenJTI := uuid.New().String()
 	expiresAt := time.Now().Add(15 * time.Minute)
+	_ = expiresAt
 
 	// Act - blacklist token concurrently from multiple goroutines
 	done := make(chan bool, 10)
