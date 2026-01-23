@@ -232,7 +232,7 @@ func TestGroupMembershipRepository_FindByGroup(t *testing.T) {
 
 	t.Run("finds all memberships for group", func(t *testing.T) {
 		filter := community.MemberFilter{}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		memberships, total, err := repo.FindByGroup(ctx, groupID, filter, pagination)
 		require.NoError(t, err)
@@ -243,7 +243,7 @@ func TestGroupMembershipRepository_FindByGroup(t *testing.T) {
 	t.Run("filters by role", func(t *testing.T) {
 		role := community.GroupRoleAdmin
 		filter := community.MemberFilter{Role: &role}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		memberships, total, err := repo.FindByGroup(ctx, groupID, filter, pagination)
 		require.NoError(t, err)
@@ -255,7 +255,7 @@ func TestGroupMembershipRepository_FindByGroup(t *testing.T) {
 	t.Run("filters by status", func(t *testing.T) {
 		status := community.MemberStatusActive
 		filter := community.MemberFilter{Status: &status}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		memberships, total, err := repo.FindByGroup(ctx, groupID, filter, pagination)
 		require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestGroupMembershipRepository_FindByGroup(t *testing.T) {
 
 	t.Run("respects pagination", func(t *testing.T) {
 		filter := community.MemberFilter{}
-		pagination := shared.NewPagination(0, 2)
+		pagination, _ := shared.NewPagination(0, 2)
 
 		memberships, total, err := repo.FindByGroup(ctx, groupID, filter, pagination)
 		require.NoError(t, err)
@@ -308,7 +308,7 @@ func TestGroupMembershipRepository_FindByUser(t *testing.T) {
 	createTestMembership(t, db, membership2ID, group2ID, userID, "admin", "active")
 
 	t.Run("finds all memberships for user", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		memberships, total, err := repo.FindByUser(ctx, userID, pagination)
 		require.NoError(t, err)
@@ -324,7 +324,7 @@ func TestGroupMembershipRepository_FindByUser(t *testing.T) {
 		noMembershipUserID := identity.NewUserID()
 		createTestUser(t, db, noMembershipUserID)
 
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		memberships, total, err := repo.FindByUser(ctx, noMembershipUserID, pagination)
 		require.NoError(t, err)
@@ -333,7 +333,7 @@ func TestGroupMembershipRepository_FindByUser(t *testing.T) {
 	})
 
 	t.Run("respects pagination", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 1)
+		pagination, _ := shared.NewPagination(0, 1)
 
 		memberships, total, err := repo.FindByUser(ctx, userID, pagination)
 		require.NoError(t, err)

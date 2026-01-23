@@ -245,7 +245,7 @@ func TestGroupRepository_FindPublicGroups(t *testing.T) {
 		filter := community.GroupFilter{
 			SortBy: community.GroupSortByRecent,
 		}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.FindPublicGroups(ctx, filter, pagination)
 		require.NoError(t, err)
@@ -264,7 +264,7 @@ func TestGroupRepository_FindPublicGroups(t *testing.T) {
 			GroupType: &groupType,
 			SortBy:    community.GroupSortByRecent,
 		}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.FindPublicGroups(ctx, filter, pagination)
 		require.NoError(t, err)
@@ -281,7 +281,7 @@ func TestGroupRepository_FindPublicGroups(t *testing.T) {
 			OwnerID: &ownerID,
 			SortBy:  community.GroupSortByRecent,
 		}
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.FindPublicGroups(ctx, filter, pagination)
 		require.NoError(t, err)
@@ -297,7 +297,7 @@ func TestGroupRepository_FindPublicGroups(t *testing.T) {
 		filter := community.GroupFilter{
 			SortBy: community.GroupSortByRecent,
 		}
-		pagination := shared.NewPagination(0, 1)
+		pagination, _ := shared.NewPagination(0, 1)
 
 		groups, total, err := repo.FindPublicGroups(ctx, filter, pagination)
 		require.NoError(t, err)
@@ -353,7 +353,7 @@ func TestGroupRepository_SearchGroups(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("searches by name substring", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.SearchGroups(ctx, "Photography", pagination)
 		require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestGroupRepository_SearchGroups(t *testing.T) {
 	})
 
 	t.Run("searches by description substring", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.SearchGroups(ctx, "nature", pagination)
 		require.NoError(t, err)
@@ -371,7 +371,7 @@ func TestGroupRepository_SearchGroups(t *testing.T) {
 	})
 
 	t.Run("returns empty results for non-matching query", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.SearchGroups(ctx, "NonExistentGroupNameXYZ", pagination)
 		require.NoError(t, err)
@@ -407,7 +407,7 @@ func TestGroupRepository_FindByOwner(t *testing.T) {
 	createTestGroup(t, db, group3, owner2ID, "owner2-group-1")
 
 	t.Run("finds all groups by owner", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.FindByOwner(ctx, owner1ID, pagination)
 		require.NoError(t, err)
@@ -423,7 +423,7 @@ func TestGroupRepository_FindByOwner(t *testing.T) {
 		noGroupsOwner := identity.NewUserID()
 		createTestUser(t, db, noGroupsOwner)
 
-		pagination := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(0, 10)
 
 		groups, total, err := repo.FindByOwner(ctx, noGroupsOwner, pagination)
 		require.NoError(t, err)
@@ -432,7 +432,7 @@ func TestGroupRepository_FindByOwner(t *testing.T) {
 	})
 
 	t.Run("respects pagination", func(t *testing.T) {
-		pagination := shared.NewPagination(0, 1)
+		pagination, _ := shared.NewPagination(0, 1)
 
 		groups, total, err := repo.FindByOwner(ctx, owner1ID, pagination)
 		require.NoError(t, err)

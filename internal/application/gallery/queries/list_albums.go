@@ -11,10 +11,11 @@ import (
 
 // ListAlbumsQuery represents a query to list albums with filters and pagination.
 type ListAlbumsQuery struct {
-	OwnerUserID string // Optional: filter by owner (empty = all public)
-	Visibility  string // Optional: filter by visibility (empty = all)
-	Page        int    // Page number (1-indexed)
-	PerPage     int    // Items per page
+	RequestingUserID string // Optional: ID of the user making the request
+	OwnerUserID      string // Optional: filter by owner (empty = all public)
+	Visibility       string // Optional: filter by visibility (empty = all)
+	Page             int    // Page number (1-indexed)
+	PerPage          int    // Items per page
 }
 
 // ListAlbumsResult represents the paginated album list result.
@@ -43,7 +44,7 @@ func NewListAlbumsHandler(albums gallery.AlbumRepository) *ListAlbumsHandler {
 //
 // Process flow:
 //  1. Validate pagination parameters
-//  2. If OwnerUserID is provided, list albums by owner
+//  2. If OwnerUserID is provided, list albums by owner with authorization logic
 //  3. Otherwise, list public albums
 //  4. Convert to DTOs and return with pagination metadata
 //
@@ -69,35 +70,88 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 			return nil, fmt.Errorf("invalid owner user id: %w", err)
 		}
 
-		albums, total, err = h.albums.FindByOwner(ctx, ownerID, pagination)
+		// Authorization logic:
+		// - If requesting user is the owner, they can see all visibilities (unless filtered).
+		// - If requesting user is NOT the owner, they can only see Public albums.
+		var visibilityFilter *gallery.Visibility
+
+		isOwner := false
+		if q.RequestingUserID != "" {
+			reqUserID, err := identity.ParseUserID(q.RequestingUserID)
+			if err == nil && reqUserID.Equals(ownerID) {
+				isOwner = true
+			}
+		}
+
+		if isOwner {
+			// Owner can see everything, filter only if requested
+			if q.Visibility != "" {
+				v, err := gallery.ParseVisibility(q.Visibility)
+				if err != nil {
+					return nil, fmt.Errorf("invalid visibility: %w", err)
+				}
+				visibilityFilter = &v
+			}
+		} else {
+			// Non-owners can strictly only see Public albums
+
+			// If they explicitly requested something other than Public, return empty
+			if q.Visibility != "" {
+				v, err := gallery.ParseVisibility(q.Visibility)
+				if err != nil {
+					return nil, fmt.Errorf("invalid visibility: %w", err)
+				}
+				if v != gallery.VisibilityPublic {
+					return &ListAlbumsResult{
+						Albums:     []AlbumDTO{},
+						TotalCount: 0,
+						Page:       pagination.Page(),
+						PerPage:    pagination.PerPage(),
+						TotalPages: 0,
+					}, nil
+				}
+			}
+
+			v := gallery.VisibilityPublic
+			visibilityFilter = &v
+		}
+
+		albums, total, err = h.albums.FindByOwner(ctx, ownerID, pagination, visibilityFilter)
 		if err != nil {
 			return nil, fmt.Errorf("find albums by owner: %w", err)
 		}
 	} else {
 		// List public albums with pagination
+		// If visibility filter is provided and is NOT public, return empty
+		if q.Visibility != "" {
+			v, err := gallery.ParseVisibility(q.Visibility)
+			if err != nil {
+				return nil, fmt.Errorf("invalid visibility: %w", err)
+			}
+			if v != gallery.VisibilityPublic {
+				return &ListAlbumsResult{
+					Albums:     []AlbumDTO{},
+					TotalCount: 0,
+					Page:       pagination.Page(),
+					PerPage:    pagination.PerPage(),
+					TotalPages: 0,
+				}, nil
+			}
+		}
+
 		albums, total, err = h.albums.FindPublic(ctx, pagination)
 		if err != nil {
 			return nil, fmt.Errorf("find public albums: %w", err)
 		}
 	}
 
-	// 3. Filter by visibility if specified
-	if q.Visibility != "" {
-		visibility, err := gallery.ParseVisibility(q.Visibility)
-		if err != nil {
-			return nil, fmt.Errorf("invalid visibility: %w", err)
-		}
-		albums = filterAlbumsByVisibility(albums, visibility)
-		total = int64(len(albums))
-	}
-
-	// 4. Convert to DTOs
+	// 3. Convert to DTOs
 	albumDTOs := make([]AlbumDTO, 0, len(albums))
 	for _, album := range albums {
 		albumDTOs = append(albumDTOs, albumToDTO(album))
 	}
 
-	// 5. Calculate pagination metadata
+	// 4. Calculate pagination metadata
 	pagination = pagination.WithTotal(total)
 
 	return &ListAlbumsResult{
@@ -107,15 +161,4 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 		PerPage:    pagination.PerPage(),
 		TotalPages: pagination.TotalPages(),
 	}, nil
-}
-
-// filterAlbumsByVisibility filters albums by visibility.
-func filterAlbumsByVisibility(albums []*gallery.Album, visibility gallery.Visibility) []*gallery.Album {
-	filtered := make([]*gallery.Album, 0, len(albums))
-	for _, album := range albums {
-		if album.Visibility() == visibility {
-			filtered = append(filtered, album)
-		}
-	}
-	return filtered
 }

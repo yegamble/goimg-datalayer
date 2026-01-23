@@ -35,8 +35,8 @@ func (m *MockAlbumRepository) FindByID(ctx context.Context, id gallery.AlbumID) 
 	return args.Get(0).(*gallery.Album), args.Error(1)
 }
 
-func (m *MockAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Album, int64, error) {
-	args := m.Called(ctx, ownerID, pagination)
+func (m *MockAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Album, int64, error) {
+	args := m.Called(ctx, ownerID, pagination, visibility)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2)
 	}
