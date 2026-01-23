@@ -798,39 +798,89 @@ func (r *ImageRepository) saveTagsInTx(ctx context.Context, tx *sqlx.Tx, image *
 		return fmt.Errorf("failed to delete existing image tags: %w", err)
 	}
 
-	// Insert tags and create associations
+	tags := image.Tags()
+	if len(tags) == 0 {
+		return nil
+	}
+
 	now := time.Now().UTC()
-	for _, tag := range image.Tags() {
-		// Insert tag if it doesn't exist (upsert)
-		_, err := tx.ExecContext(
-			ctx,
-			sqlInsertTag,
-			uuid.New().String(),
-			tag.Name(),
-			tag.Slug(),
-			now,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to insert tag: %w", err)
+
+	// 1. Batch insert tags (ON CONFLICT DO NOTHING)
+	// Deduplicate tags by slug
+	uniqueTags := make(map[string]gallery.Tag)
+	for _, tag := range tags {
+		uniqueTags[tag.Slug()] = tag
+	}
+
+	insertTagsQuery := "INSERT INTO tags (id, name, slug, usage_count, created_at) VALUES "
+	insertTagsArgs := make([]interface{}, 0, len(uniqueTags)*4)
+	slugs := make([]string, 0, len(uniqueTags))
+
+	i := 0
+	for _, tag := range uniqueTags {
+		if i > 0 {
+			insertTagsQuery += ","
+		}
+		// placeholders: $1, $2, $3, $4
+		insertTagsQuery += fmt.Sprintf("($%d, $%d, $%d, 0, $%d)", i*4+1, i*4+2, i*4+3, i*4+4)
+		insertTagsArgs = append(insertTagsArgs, uuid.New().String(), tag.Name(), tag.Slug(), now)
+		slugs = append(slugs, tag.Slug())
+		i++
+	}
+	insertTagsQuery += " ON CONFLICT (slug) DO NOTHING"
+
+	_, err = tx.ExecContext(ctx, insertTagsQuery, insertTagsArgs...)
+	if err != nil {
+		return fmt.Errorf("failed to batch insert tags: %w", err)
+	}
+
+	// 2. Get tag IDs
+	query, args, err := sqlx.In("SELECT id, slug FROM tags WHERE slug IN (?)", slugs)
+	if err != nil {
+		return fmt.Errorf("failed to prepare select tags query: %w", err)
+	}
+	query = tx.Rebind(query)
+
+	type tagIDRow struct {
+		ID   string `db:"id"`
+		Slug string `db:"slug"`
+	}
+	var tagIDRows []tagIDRow
+
+	err = tx.SelectContext(ctx, &tagIDRows, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to get tag ids: %w", err)
+	}
+
+	tagMap := make(map[string]string)
+	for _, row := range tagIDRows {
+		tagMap[row.Slug] = row.ID
+	}
+
+	// 3. Batch insert image_tags
+	insertITQuery := "INSERT INTO image_tags (image_id, tag_id, tagged_at) VALUES "
+	insertITArgs := make([]interface{}, 0, len(uniqueTags)*3)
+
+	count := 0
+	for _, tag := range uniqueTags {
+		tagID, ok := tagMap[tag.Slug()]
+		if !ok {
+			continue
 		}
 
-		// Get tag ID
-		var tagID string
-		err = tx.GetContext(ctx, &tagID, sqlGetTagIDBySlug, tag.Slug())
-		if err != nil {
-			return fmt.Errorf("failed to get tag id: %w", err)
+		if count > 0 {
+			insertITQuery += ","
 		}
+		insertITQuery += fmt.Sprintf("($%d, $%d, $%d)", count*3+1, count*3+2, count*3+3)
+		insertITArgs = append(insertITArgs, image.ID().String(), tagID, now)
+		count++
+	}
+	insertITQuery += " ON CONFLICT (image_id, tag_id) DO NOTHING"
 
-		// Create image-tag association
-		_, err = tx.ExecContext(
-			ctx,
-			sqlInsertImageTag,
-			image.ID().String(),
-			tagID,
-			now,
-		)
+	if count > 0 {
+		_, err = tx.ExecContext(ctx, insertITQuery, insertITArgs...)
 		if err != nil {
-			return fmt.Errorf("failed to insert image tag: %w", err)
+			return fmt.Errorf("failed to batch insert image tags: %w", err)
 		}
 	}
 

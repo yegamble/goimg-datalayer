@@ -27,7 +27,7 @@ type PostgresContainer struct {
 
 // NewPostgresContainer creates and starts a PostgreSQL 16 testcontainer.
 // It automatically runs migrations from the migrations directory.
-func NewPostgresContainer(ctx context.Context, t *testing.T) (*PostgresContainer, error) {
+func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer, error) {
 	t.Helper()
 
 	// Get project root (3 levels up from tests/integration/containers)
@@ -106,7 +106,7 @@ func runMigrations(db *sql.DB, migrationsDir string) error {
 
 // Cleanup truncates all tables and resets sequences.
 // This is faster than recreating the container for each test.
-func (pc *PostgresContainer) Cleanup(ctx context.Context, t *testing.T) {
+func (pc *PostgresContainer) Cleanup(ctx context.Context, t testing.TB) {
 	t.Helper()
 
 	// Truncate tables in reverse dependency order (respecting foreign keys)
@@ -140,7 +140,7 @@ func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 }
 
 // WaitForHealthy waits for the database to be ready.
-func (pc *PostgresContainer) WaitForHealthy(ctx context.Context, t *testing.T) {
+func (pc *PostgresContainer) WaitForHealthy(ctx context.Context, t testing.TB) {
 	t.Helper()
 
 	maxRetries := 30
