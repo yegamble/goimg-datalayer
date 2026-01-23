@@ -22,6 +22,7 @@ func TestUserRepository_Create(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange
@@ -41,6 +42,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange - create a user first
@@ -64,6 +66,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange
@@ -87,6 +90,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange
@@ -110,6 +114,7 @@ func TestUserRepository_Update(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange - create a user
@@ -140,6 +145,7 @@ func TestUserRepository_Delete(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange
@@ -164,6 +170,7 @@ func TestUserRepository_DuplicateEmail(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange - create first user
@@ -181,7 +188,7 @@ func TestUserRepository_DuplicateEmail(t *testing.T) {
 
 	// Assert - should fail due to unique constraint
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "duplicate") // or check for specific postgres error
+	assert.ErrorIs(t, err, identity.ErrEmailExists)
 }
 
 // TestUserRepository_DuplicateUsername tests that duplicate usernames are rejected.
@@ -189,6 +196,7 @@ func TestUserRepository_DuplicateUsername(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	// Arrange - create first user
@@ -206,7 +214,7 @@ func TestUserRepository_DuplicateUsername(t *testing.T) {
 
 	// Assert - should fail due to unique constraint
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "duplicate")
+	assert.ErrorIs(t, err, identity.ErrUsernameExists)
 }
 
 // TestUserRepository_NotFound tests that ErrUserNotFound is returned for non-existent users.
@@ -214,6 +222,8 @@ func TestUserRepository_NotFound(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+
+	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
 	t.Run("FindByID returns ErrUserNotFound", func(t *testing.T) {
