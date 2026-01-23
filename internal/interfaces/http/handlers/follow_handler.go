@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/yegamble/goimg-datalayer/internal/application/identity/commands"
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/dto"
 	"github.com/yegamble/goimg-datalayer/internal/application/identity/queries"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
@@ -16,20 +18,20 @@ import (
 // FollowHandler handles user follow/unfollow HTTP endpoints.
 // It delegates to application layer command/query handlers for business logic.
 type FollowHandler struct {
-	followUserHandler   *commands.FollowUserHandler
-	unfollowUserHandler *commands.UnfollowUserHandler
-	getFollowersHandler *queries.GetFollowersHandler
-	getFollowingHandler *queries.GetFollowingHandler
+	followUserHandler   FollowUserHandler
+	unfollowUserHandler UnfollowUserHandler
+	getFollowersHandler GetFollowersHandler
+	getFollowingHandler GetFollowingHandler
 	logger              zerolog.Logger
 }
 
 // NewFollowHandler creates a new FollowHandler with the given dependencies.
 // All dependencies are injected via constructor for testability.
 func NewFollowHandler(
-	followUserHandler *commands.FollowUserHandler,
-	unfollowUserHandler *commands.UnfollowUserHandler,
-	getFollowersHandler *queries.GetFollowersHandler,
-	getFollowingHandler *queries.GetFollowingHandler,
+	followUserHandler FollowUserHandler,
+	unfollowUserHandler UnfollowUserHandler,
+	getFollowersHandler GetFollowersHandler,
+	getFollowingHandler GetFollowingHandler,
 	logger zerolog.Logger,
 ) *FollowHandler {
 	return &FollowHandler{
@@ -362,4 +364,21 @@ func (h *FollowHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Reques
 			"An unexpected error occurred. Please try again later.",
 		)
 	}
+}
+
+// Command handler interfaces to allow mocking
+type FollowUserHandler interface {
+	Handle(ctx context.Context, cmd commands.FollowUserCommand) error
+}
+
+type UnfollowUserHandler interface {
+	Handle(ctx context.Context, cmd commands.UnfollowUserCommand) error
+}
+
+type GetFollowersHandler interface {
+	Handle(ctx context.Context, q queries.GetFollowersQuery) (*dto.FollowersListDTO, error)
+}
+
+type GetFollowingHandler interface {
+	Handle(ctx context.Context, q queries.GetFollowingQuery) (*dto.FollowingListDTO, error)
 }

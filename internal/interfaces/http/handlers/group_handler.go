@@ -317,7 +317,9 @@ func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 		OwnerID: ownerID,
 	}
 
-	if err := h.deleteGroup.Handle(ctx, cmd); err != nil {
+	// 5. Execute delete command
+	err = h.deleteGroup.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete group")
 		return
 	}
@@ -345,9 +347,22 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 	if sortByStr == "" {
 		sortByStr = "recent"
 	}
-	sortBy, err := parseGroupSortBy(sortByStr)
-	if err != nil {
-		middleware.WriteError(w, r, http.StatusBadRequest, "Bad Request", "Invalid sort_by parameter")
+	var sortBy community.GroupSortBy
+	switch sortByStr {
+	case "recent":
+		sortBy = community.GroupSortByRecent
+	case "popular":
+		sortBy = community.GroupSortByPopular
+	case "name":
+		sortBy = community.GroupSortByName
+	case "activity":
+		sortBy = community.GroupSortByActivity
+	default:
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid sort_by parameter",
+		)
 		return
 	}
 
@@ -355,12 +370,13 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 	if page < 1 {
 		page = 1
 	}
-	perPage, _ := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
-	if perPage < 1 {
-		perPage = defaultPerPage
+
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
+	if err != nil || perPage < 1 {
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	query := queries.ListPublicGroupsQuery{
@@ -405,12 +421,13 @@ func (h *GroupHandler) SearchGroups(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	perPage, _ := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
-	if perPage < 1 {
-		perPage = defaultPerPage
+
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
+	if err != nil || perPage < 1 {
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	query := queries.SearchGroupsQuery{
@@ -513,7 +530,9 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 		UserID:  userID,
 	}
 
-	if err := h.leaveGroup.Handle(ctx, cmd); err != nil {
+	// 5. Execute leave command
+	err = h.leaveGroup.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "leave group")
 		return
 	}
@@ -558,12 +577,13 @@ func (h *GroupHandler) ListMembers(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	perPage, _ := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
-	if perPage < 1 {
-		perPage = defaultPerPage
+
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
+	if err != nil || perPage < 1 {
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	query := queries.ListGroupMembersQuery{
@@ -700,7 +720,9 @@ func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		TargetID: targetID,
 	}
 
-	if err := h.removeMember.Handle(ctx, cmd); err != nil {
+	// 6. Execute command
+	err = h.removeMember.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "remove member")
 		return
 	}
@@ -757,13 +779,21 @@ func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 		Reason:   req.Reason,
 	}
 
-	if err := h.banMember.Handle(ctx, cmd); err != nil {
+	// 7. Execute command
+	err = h.banMember.Handle(ctx, cmd)
+	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "ban member")
 		return
 	}
 
-	h.logger.Info().Str("group_id", groupIDStr).Str("actor_id", userCtx.UserID.String()).Str("target_id", targetIDStr).Msg("member banned successfully")
-	w.WriteHeader(http.StatusOK)
+	// 8. Return 204 No Content
+	h.logger.Info().
+		Str("group_id", groupIDStr).
+		Str("actor_id", userCtx.UserID.String()).
+		Str("target_id", targetIDStr).
+		Msg("member banned successfully")
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetUserGroups is a convenience method for mounting under /api/v1/me/groups.
@@ -781,12 +811,13 @@ func (h *GroupHandler) GetUserGroups(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	perPage, _ := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
-	if perPage < 1 {
-		perPage = defaultPerPage
+
+	perPage, err := parseIntParam(queryParams.Get("per_page"), defaultLimit)
+	if err != nil || perPage < 1 {
+		perPage = defaultLimit
 	}
-	if perPage > maxPerPage {
-		perPage = maxPerPage
+	if perPage > maxLimit {
+		perPage = maxLimit
 	}
 
 	userID, err := identity.ParseUserID(userCtx.UserID.String())
@@ -1035,17 +1066,17 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	case err == community.ErrCannotRemoveOwner:
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Cannot remove the group owner")
 	case err == community.ErrCannotBanOwner:
-		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Cannot ban the group owner")
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Cannot ban the group owner",
+		)
 	case err == community.ErrCannotLeaveAsOwner:
-		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Owner cannot leave the group")
-	case err == community.ErrInvitationNotFound:
-		middleware.WriteError(w, r, http.StatusNotFound, "Not Found", "Invitation not found")
-	case err == community.ErrInvitationExpired:
-		middleware.WriteError(w, r, http.StatusGone, "Gone", "Invitation has expired")
-	case err == community.ErrInvitationAlreadyUsed:
-		middleware.WriteError(w, r, http.StatusConflict, "Conflict", "Invitation has already been used")
-	case err == community.ErrNotGroupMember:
-		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Must be a group member to invite")
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Owner cannot leave the group",
+		)
 	default:
 		middleware.WriteError(w, r, http.StatusInternalServerError, "Internal Server Error", "An unexpected error occurred")
 	}

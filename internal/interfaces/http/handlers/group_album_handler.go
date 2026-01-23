@@ -246,8 +246,12 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	pagination, err := shared.NewPagination(page, perPage)
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid pagination parameters")
-		// Use default pagination if invalid
-		pagination, _ = shared.NewPagination(1, defaultPerPage)
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid pagination parameters",
+		)
+		return
 	}
 
 	query := queries.ListGroupAlbumsQuery{

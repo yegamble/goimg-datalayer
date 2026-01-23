@@ -58,7 +58,6 @@ type ImageScanHandler struct {
 
 // NewImageScanHandler creates a new malware scanning task handler.
 func NewImageScanHandler(
-	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
 	images gallery.ImageRepository,
@@ -143,7 +142,7 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		return fmt.Errorf("invalid image id: %w", err)
 	}
 
-	image, err := h.repo.FindByID(ctx, imageID)
+	image, err := h.images.FindByID(ctx, imageID)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to find image")
 		return fmt.Errorf("find image: %w", err)
@@ -169,14 +168,11 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		}
 
 		// 2. Update image status to "infected" (and mark as deleted)
-		imageID, _ := gallery.ParseImageID(payload.ImageID)
-		image, err := h.images.FindByID(ctx, imageID)
-		if err == nil {
-			_ = image.SetScanStatus(gallery.ScanStatusInfected)
-			_ = image.MarkAsDeleted() // Soft delete from view
-			if err := h.images.Save(ctx, image); err != nil {
-				h.logger.Error().Err(err).Msg("failed to update image status")
-			}
+		// No need to re-parse imageID or re-fetch image
+		_ = image.SetScanStatus(gallery.ScanStatusInfected)
+		_ = image.MarkAsDeleted() // Soft delete from view
+		if err := h.images.Save(ctx, image); err != nil {
+			h.logger.Error().Err(err).Msg("failed to update image status")
 		}
 
 		// 3. Increment user's infected file counter
@@ -206,16 +202,12 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Msg("image scan completed - no threats found")
 
 	// Update image status to "clean"
-	imageID, _ := gallery.ParseImageID(payload.ImageID)
-	image, err := h.images.FindByID(ctx, imageID)
-	if err == nil {
-		_ = image.SetScanStatus(gallery.ScanStatusClean)
-		// If image was processing, we might want to mark it active here or let another job do it.
-		// Usually image processing pipeline handles activation.
-		// But updating scan status is important.
-		if err := h.images.Save(ctx, image); err != nil {
-			h.logger.Error().Err(err).Msg("failed to update image scan status")
-		}
+	_ = image.SetScanStatus(gallery.ScanStatusClean)
+	// If image was processing, we might want to mark it active here or let another job do it.
+	// Usually image processing pipeline handles activation.
+	// But updating scan status is important.
+	if err := h.images.Save(ctx, image); err != nil {
+		h.logger.Error().Err(err).Msg("failed to update image scan status")
 	}
 
 	return nil
