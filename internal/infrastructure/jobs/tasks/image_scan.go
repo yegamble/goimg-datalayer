@@ -46,10 +46,10 @@ type ImageScanPayload struct {
 // ImageScanHandler handles malware scanning tasks using ClamAV.
 // It scans images for viruses, polyglot files, and other malicious content.
 type ImageScanHandler struct {
-	imageRepo gallery.ImageRepository
-	scanner   clamav.Scanner
-	storage   Storage
-	logger    zerolog.Logger
+	scanner clamav.Scanner
+	storage Storage
+	repo    gallery.ImageRepository
+	logger  zerolog.Logger
 }
 
 // NewImageScanHandler creates a new malware scanning task handler.
@@ -57,13 +57,14 @@ func NewImageScanHandler(
 	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
+	repo gallery.ImageRepository,
 	logger zerolog.Logger,
 ) *ImageScanHandler {
 	return &ImageScanHandler{
-		imageRepo: imageRepo,
-		scanner:   scanner,
-		storage:   storage,
-		logger:    logger,
+		scanner: scanner,
+		storage: storage,
+		repo:    repo,
+		logger:  logger,
 	}
 }
 
@@ -128,6 +129,18 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 	duration := time.Since(startTime)
 
 	// Step 4: Handle scan results
+	imageID, err := gallery.ParseImageID(payload.ImageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("invalid image id")
+		return fmt.Errorf("invalid image id: %w", err)
+	}
+
+	image, err := h.repo.FindByID(ctx, imageID)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to find image")
+		return fmt.Errorf("find image: %w", err)
+	}
+
 	if scanResult.Infected {
 		// Malware detected - this is a terminal error
 		h.logger.Warn().
@@ -138,7 +151,17 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 			Dur("scan_duration_ms", duration).
 			Msg("malware detected in image")
 
-		// TODO: Update image status to "infected" in database
+		// Update image status to "infected" in database
+		if err := image.MarkAsInfected(); err != nil {
+			h.logger.Error().Err(err).Msg("failed to mark image as infected")
+			return fmt.Errorf("mark image infected: %w", err)
+		}
+
+		if err := h.repo.Save(ctx, image); err != nil {
+			h.logger.Error().Err(err).Msg("failed to save infected image")
+			return fmt.Errorf("save infected image: %w", err)
+		}
+
 		// TODO: Notify user via email/notification
 		// TODO: Delete infected file from storage
 		// TODO: Increment user's infected file counter
@@ -153,44 +176,16 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Dur("scan_duration_ms", duration).
 		Msg("image scan completed - no threats found")
 
-	// Step 5: Update image status to "active" in database
-	imageID, err := gallery.ParseImageID(payload.ImageID)
-	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("image_id", payload.ImageID).
-			Msg("failed to parse image id")
-		return fmt.Errorf("parse image id %s: %w", payload.ImageID, err)
+	// Update image status to "clean" in database
+	if err := image.MarkAsClean(); err != nil {
+		h.logger.Error().Err(err).Msg("failed to mark image as clean")
+		return fmt.Errorf("mark image clean: %w", err)
 	}
 
-	image, err := h.imageRepo.FindByID(ctx, imageID)
-	if err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("image_id", payload.ImageID).
-			Msg("failed to retrieve image from repository")
-		return fmt.Errorf("find image %s: %w", payload.ImageID, err)
+	if err := h.repo.Save(ctx, image); err != nil {
+		h.logger.Error().Err(err).Msg("failed to save clean image")
+		return fmt.Errorf("save clean image: %w", err)
 	}
-
-	if err := image.MarkAsActive(); err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("image_id", payload.ImageID).
-			Msg("failed to mark image as active")
-		return fmt.Errorf("mark image active %s: %w", payload.ImageID, err)
-	}
-
-	if err := h.imageRepo.Save(ctx, image); err != nil {
-		h.logger.Error().
-			Err(err).
-			Str("image_id", payload.ImageID).
-			Msg("failed to save image")
-		return fmt.Errorf("save image %s: %w", payload.ImageID, err)
-	}
-
-	h.logger.Info().
-		Str("image_id", payload.ImageID).
-		Msg("image marked as active")
 
 	return nil
 }

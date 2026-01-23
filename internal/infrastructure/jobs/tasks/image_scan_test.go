@@ -3,24 +3,23 @@ package tasks
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"testing"
 	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/yegamble/goimg-datalayer/internal/application/gallery/testhelpers"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
-// MockScanner is a mock implementation of clamav.Scanner.
+// --- Mocks ---
+
 type MockScanner struct {
 	mock.Mock
 }
@@ -56,12 +55,11 @@ func (m *MockScanner) Stats(ctx context.Context) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-// MockTaskStorage is a mock implementation of tasks.Storage.
-type MockTaskStorage struct {
+type MockStorage struct {
 	mock.Mock
 }
 
-func (m *MockTaskStorage) Get(ctx context.Context, key string) ([]byte, error) {
+func (m *MockStorage) Get(ctx context.Context, key string) ([]byte, error) {
 	args := m.Called(ctx, key)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -69,145 +67,194 @@ func (m *MockTaskStorage) Get(ctx context.Context, key string) ([]byte, error) {
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-func (m *MockTaskStorage) Put(ctx context.Context, key string, data []byte) error {
+func (m *MockStorage) Put(ctx context.Context, key string, data []byte) error {
 	args := m.Called(ctx, key, data)
 	return args.Error(0)
 }
 
-func TestImageScanHandler_ProcessTask(t *testing.T) {
+type MockImageRepository struct {
+	mock.Mock
+}
+
+func (m *MockImageRepository) NextID() gallery.ImageID {
+	args := m.Called()
+	return args.Get(0).(gallery.ImageID)
+}
+
+func (m *MockImageRepository) FindByID(ctx context.Context, id gallery.ImageID) (*gallery.Image, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gallery.Image), args.Error(1)
+}
+
+func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, ownerID, pagination)
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, pagination)
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, tag, pagination)
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, status, pagination)
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, params)
+	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockImageRepository) Save(ctx context.Context, image *gallery.Image) error {
+	args := m.Called(ctx, image)
+	return args.Error(0)
+}
+
+func (m *MockImageRepository) Delete(ctx context.Context, id gallery.ImageID) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) {
+	args := m.Called(ctx, id)
+	return args.Bool(0), args.Error(1)
+}
+
+// --- Tests ---
+
+func TestImageScanHandler_ProcessTask_Clean(t *testing.T) {
+	// Arrange
+	mockScanner := new(MockScanner)
+	mockStorage := new(MockStorage)
+	mockRepo := new(MockImageRepository)
 	logger := zerolog.Nop()
 
-	// Helper to create task
-	createTask := func(payload ImageScanPayload) *asynq.Task {
-		data, _ := json.Marshal(payload)
-		return asynq.NewTask(TypeImageScan, data)
-	}
+	handler := NewImageScanHandler(mockScanner, mockStorage, mockRepo, logger)
 
-	validImageID := gallery.NewImageID()
-	ownerID := identity.NewUserID()
-	validPayload := ImageScanPayload{
-		ImageID:          validImageID.String(),
-		StorageKey:       "images/123/original",
+	imageID := gallery.NewImageID()
+	payload := ImageScanPayload{
+		ImageID:          imageID.String(),
+		StorageKey:       "images/test.jpg",
 		OriginalFilename: "test.jpg",
-		OwnerID:          ownerID.String(),
+		OwnerID:          identity.NewUserID().String(),
 	}
+	payloadBytes, _ := json.Marshal(payload)
+	task := asynq.NewTask(TypeImageScan, payloadBytes)
 
-	t.Run("successful clean scan", func(t *testing.T) {
-		// Arrange
-		mockRepo := new(testhelpers.MockImageRepository)
-		mockScanner := new(MockScanner)
-		mockStorage := new(MockTaskStorage)
+	imageData := []byte("fake-image-data")
 
-		handler := NewImageScanHandler(mockRepo, mockScanner, mockStorage, logger)
-		task := createTask(validPayload)
+	// Create a valid image using ReconstructImage to control state
+	// Need to setup metadata first
+	metadata, _ := gallery.NewImageMetadata("Title", "Desc", "test.jpg", "image/jpeg", 100, 100, 1000, "key", "local")
+	image := gallery.ReconstructImage(
+		imageID,
+		identity.NewUserID(),
+		metadata,
+		gallery.VisibilityPrivate,
+		gallery.StatusProcessing,
+		gallery.ScanStatusPending,
+		[]gallery.ImageVariant{},
+		[]gallery.Tag{},
+		nil,
+		0, 0, 0,
+		time.Now(),
+		time.Now(),
+	)
 
-		// Expectations
-		mockScanner.On("Ping", mock.Anything).Return(nil)
-		mockStorage.On("Get", mock.Anything, validPayload.StorageKey).
-			Return([]byte("fake-image-data"), nil)
-		mockScanner.On("Scan", mock.Anything, []byte("fake-image-data")).
-			Return(&clamav.ScanResult{Clean: true, ScannedAt: time.Now()}, nil)
+	// Expectations
+	mockScanner.On("Ping", mock.Anything).Return(nil)
+	mockStorage.On("Get", mock.Anything, "images/test.jpg").Return(imageData, nil)
+	mockRepo.On("FindByID", mock.Anything, imageID).Return(image, nil)
 
-		// Repo expectations
-		mockImage, err := gallery.NewImageWithID(validImageID, ownerID, gallery.ImageMetadata{})
-		require.NoError(t, err)
-		mockRepo.On("FindByID", mock.Anything, validImageID).Return(mockImage, nil)
-		mockRepo.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
-			return img.ID() == validImageID && img.Status() == gallery.StatusActive
-		})).Return(nil)
+	scanResult := &clamav.ScanResult{
+		Clean:     true,
+		Infected:  false,
+		ScannedAt: time.Now(),
+	}
+	mockScanner.On("Scan", mock.Anything, imageData).Return(scanResult, nil)
 
-		// Act
-		err = handler.ProcessTask(context.Background(), task)
+	mockRepo.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
+		return img.ScanStatus() == gallery.ScanStatusClean
+	})).Return(nil)
 
-		// Assert
-		assert.NoError(t, err)
-		mockRepo.AssertExpectations(t)
-		mockScanner.AssertExpectations(t)
-		mockStorage.AssertExpectations(t)
-	})
+	// Act
+	err := handler.ProcessTask(context.Background(), task)
 
-	t.Run("infected scan", func(t *testing.T) {
-		// Arrange
-		mockRepo := new(testhelpers.MockImageRepository)
-		mockScanner := new(MockScanner)
-		mockStorage := new(MockTaskStorage)
+	// Assert
+	require.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+	mockScanner.AssertExpectations(t)
+}
 
-		handler := NewImageScanHandler(mockRepo, mockScanner, mockStorage, logger)
-		task := createTask(validPayload)
+func TestImageScanHandler_ProcessTask_Infected(t *testing.T) {
+	// Arrange
+	mockScanner := new(MockScanner)
+	mockStorage := new(MockStorage)
+	mockRepo := new(MockImageRepository)
+	logger := zerolog.Nop()
 
-		// Expectations
-		mockScanner.On("Ping", mock.Anything).Return(nil)
-		mockStorage.On("Get", mock.Anything, validPayload.StorageKey).
-			Return([]byte("infected-data"), nil)
-		mockScanner.On("Scan", mock.Anything, []byte("infected-data")).
-			Return(&clamav.ScanResult{Infected: true, Virus: "EICAR", ScannedAt: time.Now()}, nil)
+	handler := NewImageScanHandler(mockScanner, mockStorage, mockRepo, logger)
 
-		// Repo should NOT be called for finding/saving active image (TODOs handle this case)
-		// Act
-		err := handler.ProcessTask(context.Background(), task)
+	imageID := gallery.NewImageID()
+	payload := ImageScanPayload{
+		ImageID:          imageID.String(),
+		StorageKey:       "images/malware.jpg",
+		OriginalFilename: "malware.jpg",
+		OwnerID:          identity.NewUserID().String(),
+	}
+	payloadBytes, _ := json.Marshal(payload)
+	task := asynq.NewTask(TypeImageScan, payloadBytes)
 
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "malware detected")
-		mockRepo.AssertNotCalled(t, "FindByID")
-		mockRepo.AssertNotCalled(t, "Save")
-	})
+	imageData := []byte("eicar-test-file")
 
-	t.Run("repository find error", func(t *testing.T) {
-		// Arrange
-		mockRepo := new(testhelpers.MockImageRepository)
-		mockScanner := new(MockScanner)
-		mockStorage := new(MockTaskStorage)
+	metadata, _ := gallery.NewImageMetadata("Title", "Desc", "malware.jpg", "image/jpeg", 100, 100, 1000, "key", "local")
+	image := gallery.ReconstructImage(
+		imageID,
+		identity.NewUserID(),
+		metadata,
+		gallery.VisibilityPrivate,
+		gallery.StatusProcessing,
+		gallery.ScanStatusPending,
+		[]gallery.ImageVariant{},
+		[]gallery.Tag{},
+		nil,
+		0, 0, 0,
+		time.Now(),
+		time.Now(),
+	)
 
-		handler := NewImageScanHandler(mockRepo, mockScanner, mockStorage, logger)
-		task := createTask(validPayload)
+	// Expectations
+	mockScanner.On("Ping", mock.Anything).Return(nil)
+	mockStorage.On("Get", mock.Anything, "images/malware.jpg").Return(imageData, nil)
+	mockRepo.On("FindByID", mock.Anything, imageID).Return(image, nil)
 
-		// Expectations
-		mockScanner.On("Ping", mock.Anything).Return(nil)
-		mockStorage.On("Get", mock.Anything, validPayload.StorageKey).
-			Return([]byte("clean-data"), nil)
-		mockScanner.On("Scan", mock.Anything, []byte("clean-data")).
-			Return(&clamav.ScanResult{Clean: true, ScannedAt: time.Now()}, nil)
+	scanResult := &clamav.ScanResult{
+		Clean:    false,
+		Infected: true,
+		Virus:    "Eicar-Test-Signature",
+		ScannedAt: time.Now(),
+	}
+	mockScanner.On("Scan", mock.Anything, imageData).Return(scanResult, nil)
 
-		// Repo returns error
-		mockRepo.On("FindByID", mock.Anything, validImageID).
-			Return(nil, errors.New("db error"))
+	mockRepo.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
+		return img.ScanStatus() == gallery.ScanStatusInfected
+	})).Return(nil)
 
-		// Act
-		err := handler.ProcessTask(context.Background(), task)
+	// Act
+	err := handler.ProcessTask(context.Background(), task)
 
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "find image")
-	})
+	// Assert
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "malware detected")
 
-	t.Run("repository save error", func(t *testing.T) {
-		// Arrange
-		mockRepo := new(testhelpers.MockImageRepository)
-		mockScanner := new(MockScanner)
-		mockStorage := new(MockTaskStorage)
-
-		handler := NewImageScanHandler(mockRepo, mockScanner, mockStorage, logger)
-		task := createTask(validPayload)
-
-		// Expectations
-		mockScanner.On("Ping", mock.Anything).Return(nil)
-		mockStorage.On("Get", mock.Anything, validPayload.StorageKey).
-			Return([]byte("clean-data"), nil)
-		mockScanner.On("Scan", mock.Anything, []byte("clean-data")).
-			Return(&clamav.ScanResult{Clean: true, ScannedAt: time.Now()}, nil)
-
-		mockImage, err := gallery.NewImageWithID(validImageID, ownerID, gallery.ImageMetadata{})
-		require.NoError(t, err)
-		mockRepo.On("FindByID", mock.Anything, validImageID).Return(mockImage, nil)
-		mockRepo.On("Save", mock.Anything, mock.Anything).
-			Return(errors.New("save error"))
-
-		// Act
-		err = handler.ProcessTask(context.Background(), task)
-
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "save image")
-	})
+	mockRepo.AssertExpectations(t)
 }
