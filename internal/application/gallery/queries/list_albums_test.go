@@ -419,4 +419,76 @@ func TestListAlbumsHandler_Handle(t *testing.T) {
 		assert.Equal(t, defaultPagination.PerPage(), result.PerPage)
 		mockAlbumRepo.AssertExpectations(t)
 	})
+
+	t.Run("successful list - all accessible (logged in)", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		mockAlbumRepo := new(testhelpers.MockAlbumRepository)
+		handler := queries.NewListAlbumsHandler(mockAlbumRepo)
+
+		requestingUserID := testhelpers.ValidUserIDParsed()
+
+		albums := []*gallery.Album{
+			testhelpers.ValidAlbum(t),
+			testhelpers.ValidAlbum(t),
+		}
+
+		pagination, _ := shared.NewPagination(1, 20)
+		var visibilityFilter *gallery.Visibility // nil
+		mockAlbumRepo.On("FindAllAccessible", mock.Anything, requestingUserID, pagination, visibilityFilter).
+			Return(albums, int64(2), nil).Once()
+
+		query := queries.ListAlbumsQuery{
+			RequestingUserID: requestingUserID.String(),
+			Page:             1,
+			PerPage:          20,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Albums, 2)
+		assert.Equal(t, int64(2), result.TotalCount)
+		mockAlbumRepo.AssertExpectations(t)
+	})
+
+	t.Run("successful list - filter private global (logged in)", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		mockAlbumRepo := new(testhelpers.MockAlbumRepository)
+		handler := queries.NewListAlbumsHandler(mockAlbumRepo)
+
+		requestingUserID := testhelpers.ValidUserIDParsed()
+
+		// Mock assumes repository does the filtering (e.g. only my private albums)
+		privateAlbum := testhelpers.ValidAlbum(t)
+		require.NoError(t, privateAlbum.UpdateVisibility(gallery.VisibilityPrivate))
+		albums := []*gallery.Album{privateAlbum}
+
+		pagination, _ := shared.NewPagination(1, 20)
+		privateVis := gallery.VisibilityPrivate
+		mockAlbumRepo.On("FindAllAccessible", mock.Anything, requestingUserID, pagination, &privateVis).
+			Return(albums, int64(1), nil).Once()
+
+		query := queries.ListAlbumsQuery{
+			RequestingUserID: requestingUserID.String(),
+			Visibility:       "private",
+			Page:             1,
+			PerPage:          20,
+		}
+
+		// Act
+		result, err := handler.Handle(context.Background(), query)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Len(t, result.Albums, 1)
+		mockAlbumRepo.AssertExpectations(t)
+	})
 }

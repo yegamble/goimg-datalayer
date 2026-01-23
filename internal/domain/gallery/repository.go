@@ -119,6 +119,10 @@ type AlbumRepository interface {
 	// Only returns albums with VisibilityPublic.
 	FindPublic(ctx context.Context, pagination shared.Pagination) ([]*Album, int64, error)
 
+	// FindAllAccessible retrieves all public albums plus private/unlisted albums owned by the requesting user.
+	// Optional visibility filter: nil = all accessible, specific visibility = filter by that visibility (must be accessible).
+	FindAllAccessible(ctx context.Context, requestingUserID identity.UserID, pagination shared.Pagination, visibility *Visibility) ([]*Album, int64, error)
+
 	// FindChildren retrieves all direct child albums of a parent album.
 	// Used for hierarchical album navigation.
 	FindChildren(ctx context.Context, parentID AlbumID) ([]*Album, error)

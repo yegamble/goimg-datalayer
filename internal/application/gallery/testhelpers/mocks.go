@@ -210,6 +210,14 @@ func (m *MockAlbumRepository) FindPublic(ctx context.Context, pagination shared.
 	return args.Get(0).([]*gallery.Album), args.Get(1).(int64), args.Error(2)
 }
 
+func (m *MockAlbumRepository) FindAllAccessible(ctx context.Context, requestingUserID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Album, int64, error) {
+	args := m.Called(ctx, requestingUserID, pagination, visibility)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
+	}
+	return args.Get(0).([]*gallery.Album), args.Get(1).(int64), args.Error(2)
+}
+
 func (m *MockAlbumRepository) Save(ctx context.Context, album *gallery.Album) error {
 	args := m.Called(ctx, album)
 	return args.Error(0)

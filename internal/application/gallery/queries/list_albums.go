@@ -121,14 +121,30 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 			return nil, fmt.Errorf("find albums by owner: %w", err)
 		}
 	} else {
-		// List public albums with pagination
-		// If visibility filter is provided and is NOT public, return empty
+		// List albums globally (no specific owner filtered)
+		var visibilityFilter *gallery.Visibility
 		if q.Visibility != "" {
 			v, err := gallery.ParseVisibility(q.Visibility)
 			if err != nil {
 				return nil, fmt.Errorf("invalid visibility: %w", err)
 			}
-			if v != gallery.VisibilityPublic {
+			visibilityFilter = &v
+		}
+
+		if q.RequestingUserID != "" {
+			// If logged in, show all accessible albums (Public + My Private/Unlisted)
+			reqUserID, err := identity.ParseUserID(q.RequestingUserID)
+			if err != nil {
+				return nil, fmt.Errorf("invalid requesting user id: %w", err)
+			}
+
+			albums, total, err = h.albums.FindAllAccessible(ctx, reqUserID, pagination, visibilityFilter)
+			if err != nil {
+				return nil, fmt.Errorf("find accessible albums: %w", err)
+			}
+		} else {
+			// Anonymous user: strictly only Public albums
+			if visibilityFilter != nil && *visibilityFilter != gallery.VisibilityPublic {
 				return &ListAlbumsResult{
 					Albums:     []AlbumDTO{},
 					TotalCount: 0,
@@ -137,11 +153,11 @@ func (h *ListAlbumsHandler) Handle(ctx context.Context, q ListAlbumsQuery) (*Lis
 					TotalPages: 0,
 				}, nil
 			}
-		}
 
-		albums, total, err = h.albums.FindPublic(ctx, pagination)
-		if err != nil {
-			return nil, fmt.Errorf("find public albums: %w", err)
+			albums, total, err = h.albums.FindPublic(ctx, pagination)
+			if err != nil {
+				return nil, fmt.Errorf("find public albums: %w", err)
+			}
 		}
 	}
 
