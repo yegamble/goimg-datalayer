@@ -428,7 +428,7 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = maxLimit
 	}
 
-	// 2. Extract requesting user ID (for authorization - currently unused but may be needed for filtering)
+	// 2. Extract requesting user ID
 	var requestingUserID string
 	userCtx, err := GetUserFromContext(ctx)
 	if err == nil {
