@@ -993,7 +993,12 @@ func rowToImage(row imageRow, variants []gallery.ImageVariant, tags []gallery.Ta
 
 	scanStatus, err := gallery.ParseScanStatus(row.ScanStatus)
 	if err != nil {
-		return nil, fmt.Errorf("invalid scan status: %w", err)
+		// If scan_status is null in older records (shouldn't happen with migration default), default to pending
+		if row.ScanStatus == "" {
+			scanStatus = gallery.ScanStatusPending
+		} else {
+			return nil, fmt.Errorf("invalid scan status: %w", err)
+		}
 	}
 
 	// Create metadata

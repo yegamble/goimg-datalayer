@@ -24,6 +24,7 @@ type User struct {
 	status       UserStatus
 	displayName  string
 	bio          string
+	infectedFileCount int
 	createdAt    time.Time
 	updatedAt    time.Time
 	events       []shared.DomainEvent
@@ -66,6 +67,7 @@ func NewUser(email Email, username Username, passwordHash PasswordHash) (*User, 
 		status:                  StatusPending,
 		displayName:             username.String(), // Default display name is username
 		bio:                     "",
+		infectedFileCount:       0,
 		createdAt:               now,
 		updatedAt:               now,
 		events:                  []shared.DomainEvent{},
@@ -124,6 +126,7 @@ func NewGuestUser(ipAddress string) (*User, error) {
 		status:                  StatusActive,
 		displayName:             guestUsername,
 		bio:                     "",
+		infectedFileCount:       0,
 		createdAt:               now,
 		updatedAt:               now,
 		events:                  []shared.DomainEvent{},
@@ -148,6 +151,7 @@ func ReconstructUser(
 	status UserStatus,
 	displayName string,
 	bio string,
+	infectedFileCount int,
 	createdAt, updatedAt time.Time,
 	userType UserType,
 	ipAddress *string,
@@ -162,6 +166,7 @@ func ReconstructUser(
 		status:                  status,
 		displayName:             displayName,
 		bio:                     bio,
+		infectedFileCount:       infectedFileCount,
 		createdAt:               createdAt,
 		updatedAt:               updatedAt,
 		events:                  []shared.DomainEvent{},
@@ -186,6 +191,7 @@ func ReconstructUserWith2FA(
 	status UserStatus,
 	displayName string,
 	bio string,
+	infectedFileCount int,
 	createdAt, updatedAt time.Time,
 	totpSecret *TOTPSecret,
 	backupCodes []BackupCode,
@@ -203,6 +209,7 @@ func ReconstructUserWith2FA(
 		status:                  status,
 		displayName:             displayName,
 		bio:                     bio,
+		infectedFileCount:       infectedFileCount,
 		createdAt:               createdAt,
 		updatedAt:               updatedAt,
 		events:                  []shared.DomainEvent{},
@@ -255,6 +262,17 @@ func (u *User) DisplayName() string {
 // Bio returns the user's bio.
 func (u *User) Bio() string {
 	return u.bio
+}
+
+// InfectedFileCount returns the number of infected files uploaded by the user.
+func (u *User) InfectedFileCount() int {
+	return u.infectedFileCount
+}
+
+// IncrementInfectedFileCount increments the infected file counter.
+func (u *User) IncrementInfectedFileCount() {
+	u.infectedFileCount++
+	u.updatedAt = time.Now().UTC()
 }
 
 // CreatedAt returns when the user was created.

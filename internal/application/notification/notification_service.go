@@ -109,6 +109,55 @@ func (s *NotificationService) NotifyNewFollower(
 	return nil
 }
 
+// NotifyMalwareDetected notifies a user that their uploaded file contained malware.
+func (s *NotificationService) NotifyMalwareDetected(
+	ctx context.Context,
+	userID identity.UserID,
+	filename string,
+) error {
+	// 1. Load user
+	user, err := s.users.FindByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("find user: %w", err)
+	}
+
+	// 2. Create notification
+	title := "Malware Detected in Upload"
+	body := fmt.Sprintf(
+		"We detected malware in your file '%s'. The file has been removed for security.",
+		filename,
+	)
+
+	metadata := map[string]string{
+		"filename": filename,
+	}
+
+	notif, err := notification.NewNotification(
+		userID,
+		notification.TypeMalwareDetected,
+		title,
+		body,
+		metadata,
+	)
+	if err != nil {
+		return fmt.Errorf("create notification: %w", err)
+	}
+
+	if err := s.notifications.Save(ctx, notif); err != nil {
+		return fmt.Errorf("save notification: %w", err)
+	}
+
+	s.logger.Warn().
+		Str("user_id", userID.String()).
+		Str("filename", filename).
+		Msg("malware notification created")
+
+	// 3. Send email (check preferences)
+	s.sendMalwareEmailIfEnabled(ctx, user, filename)
+
+	return nil
+}
+
 // sendEmailIfEnabled sends an email notification if:
 // 1. SMTP is enabled in configuration
 // 2. User has email notifications enabled for this notification type
@@ -154,4 +203,35 @@ func (s *NotificationService) sendEmailIfEnabled(
 		Str("recipient_email", recipientEmail).
 		Str("follower_username", followerUsername).
 		Msg("new follower email sent successfully")
+}
+
+// sendMalwareEmailIfEnabled sends a malware detection email if allowed.
+func (s *NotificationService) sendMalwareEmailIfEnabled(
+	ctx context.Context,
+	recipient *identity.User,
+	filename string,
+) {
+	if !s.emailSender.IsEnabled() {
+		return
+	}
+
+	// Security notifications (malware detected) are mandatory and bypass user preferences.
+	// We send them even if the user has opted out of other email types,
+	// unless the account itself is invalid (e.g., no email).
+
+	recipientEmail := recipient.Email().String()
+	username := recipient.Username().String()
+
+	err := s.emailSender.SendMalwareDetectedEmail(ctx, recipientEmail, username, filename)
+	if err != nil {
+		s.logger.Warn().
+			Err(err).
+			Str("recipient_email", recipientEmail).
+			Msg("failed to send malware detected email")
+		return
+	}
+
+	s.logger.Info().
+		Str("recipient_email", recipientEmail).
+		Msg("malware detected email sent")
 }

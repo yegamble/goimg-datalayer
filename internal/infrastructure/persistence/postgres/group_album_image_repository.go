@@ -41,7 +41,8 @@ const (
 	sqlFindImagesInAlbum = `
 		SELECT i.id, i.owner_id, i.title, i.description, i.width, i.height,
 		       i.file_size, i.mime_type, i.storage_provider, i.storage_key,
-		       i.original_filename, i.status, i.visibility, i.scan_status, i.view_count,
+		       i.original_filename, i.status, i.visibility, i.view_count,
+		       i.scan_status,
 		       i.created_at, i.updated_at
 		FROM group_album_images gai
 		INNER JOIN images i ON gai.image_id = i.id
@@ -263,7 +264,11 @@ func rowToImageFromAlbum(row groupAlbumImageRow) (*gallery.Image, error) {
 	// Parse scan status
 	scanStatus, err := gallery.ParseScanStatus(row.ScanStatus)
 	if err != nil {
-		return nil, fmt.Errorf("invalid scan status: %w", err)
+		if row.ScanStatus == "" {
+			scanStatus = gallery.ScanStatusPending
+		} else {
+			return nil, fmt.Errorf("invalid scan status: %w", err)
+		}
 	}
 
 	// Create image metadata using constructor

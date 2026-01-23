@@ -56,6 +56,7 @@ func ValidUserWithID(userID identity.UserID) *identity.User {
 		identity.StatusActive,
 		ValidDisplayName,
 		ValidBio,
+		0,
 		time.Now().UTC(),
 		time.Now().UTC(),
 		identity.UserTypeRegistered,
@@ -117,6 +118,7 @@ func ValidDeletedUser() *identity.User {
 		identity.StatusDeleted, // Deleted status
 		ValidDisplayName,
 		ValidBio,
+		0,
 		time.Now().UTC(),
 		time.Now().UTC(),
 		identity.UserTypeRegistered,
@@ -141,6 +143,7 @@ func ValidActiveUserWithIDAndUsername(userID identity.UserID, emailStr, username
 		identity.StatusActive,
 		usernameStr, // Use username as display name
 		"",
+		0,
 		time.Now().UTC(),
 		time.Now().UTC(),
 		identity.UserTypeRegistered,

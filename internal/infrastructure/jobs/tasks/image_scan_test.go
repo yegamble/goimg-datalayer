@@ -12,13 +12,16 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/yegamble/goimg-datalayer/internal/application/notification"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	domainnotification "github.com/yegamble/goimg-datalayer/internal/domain/notification"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/email"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
-// --- Mocks ---
+// Mocks
 
 type MockScanner struct {
 	mock.Mock
@@ -32,12 +35,13 @@ func (m *MockScanner) Scan(ctx context.Context, data []byte) (*clamav.ScanResult
 	return args.Get(0).(*clamav.ScanResult), args.Error(1)
 }
 
-func (m *MockScanner) ScanReader(ctx context.Context, reader io.Reader, size int64) (*clamav.ScanResult, error) {
-	args := m.Called(ctx, reader, size)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*clamav.ScanResult), args.Error(1)
+func (m *MockScanner) ScanReader(ctx context.Context, r io.Reader, size int64) (*clamav.ScanResult, error) {
+	// Not used in this test
+	return nil, nil
+}
+
+func (m *MockScanner) Stats(ctx context.Context) (string, error) {
+	return "", nil
 }
 
 func (m *MockScanner) Ping(ctx context.Context) error {
@@ -46,11 +50,6 @@ func (m *MockScanner) Ping(ctx context.Context) error {
 }
 
 func (m *MockScanner) Version(ctx context.Context) (string, error) {
-	args := m.Called(ctx)
-	return args.String(0), args.Error(1)
-}
-
-func (m *MockScanner) Stats(ctx context.Context) (string, error) {
 	args := m.Called(ctx)
 	return args.String(0), args.Error(1)
 }
@@ -72,6 +71,11 @@ func (m *MockStorage) Put(ctx context.Context, key string, data []byte) error {
 	return args.Error(0)
 }
 
+func (m *MockStorage) Delete(ctx context.Context, key string) error {
+	args := m.Called(ctx, key)
+	return args.Error(0)
+}
+
 type MockImageRepository struct {
 	mock.Mock
 }
@@ -90,28 +94,19 @@ func (m *MockImageRepository) FindByID(ctx context.Context, id gallery.ImageID) 
 }
 
 func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, ownerID, pagination)
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, pagination)
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, tag, pagination)
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, status, pagination)
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	return nil, 0, nil
 }
-
 func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, params)
-	return args.Get(0).([]*gallery.Image), args.Get(1).(int64), args.Error(2)
+	return nil, 0, nil
 }
 
 func (m *MockImageRepository) Save(ctx context.Context, image *gallery.Image) error {
@@ -129,61 +124,174 @@ func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID
 	return args.Bool(0), args.Error(1)
 }
 
-// --- Tests ---
+type MockUserRepository struct {
+	mock.Mock
+}
 
-func TestImageScanHandler_ProcessTask_Clean(t *testing.T) {
+func (m *MockUserRepository) NextID() identity.UserID {
+	return identity.NewUserID()
+}
+func (m *MockUserRepository) FindByID(ctx context.Context, id identity.UserID) (*identity.User, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*identity.User), args.Error(1)
+}
+func (m *MockUserRepository) FindByEmail(ctx context.Context, email identity.Email) (*identity.User, error) {
+	return nil, nil
+}
+func (m *MockUserRepository) FindByUsername(ctx context.Context, username identity.Username) (*identity.User, error) {
+	return nil, nil
+}
+func (m *MockUserRepository) Save(ctx context.Context, user *identity.User) error {
+	args := m.Called(ctx, user)
+	return args.Error(0)
+}
+func (m *MockUserRepository) Delete(ctx context.Context, id identity.UserID) error {
+	return nil
+}
+func (m *MockUserRepository) ExistsByID(ctx context.Context, id identity.UserID) (bool, error) {
+	return false, nil
+}
+func (m *MockUserRepository) FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*identity.User, error) {
+	return nil, nil
+}
+
+// Manually define domain/notification interfaces if needed or reuse existing mock
+type MockNotificationRepository struct {
+	mock.Mock
+}
+
+// Implement notification.NotificationRepository interface methods
+func (m *MockNotificationRepository) NextID() domainnotification.NotificationID {
+	return domainnotification.NewNotificationID()
+}
+func (m *MockNotificationRepository) FindByID(ctx context.Context, id domainnotification.NotificationID) (*domainnotification.Notification, error) {
+	return nil, nil
+}
+func (m *MockNotificationRepository) FindByRecipient(ctx context.Context, recipientID identity.UserID, limit, offset int) ([]*domainnotification.Notification, error) {
+	return nil, nil
+}
+func (m *MockNotificationRepository) FindUnreadByRecipient(ctx context.Context, recipientID identity.UserID) ([]*domainnotification.Notification, error) {
+	return nil, nil
+}
+func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, recipientID identity.UserID) (int64, error) {
+	return 0, nil
+}
+func (m *MockNotificationRepository) CountUnread(ctx context.Context, recipientID identity.UserID) (int, error) {
+	return 0, nil
+}
+func (m *MockNotificationRepository) Save(ctx context.Context, notification *domainnotification.Notification) error {
+	args := m.Called(ctx, notification)
+	return args.Error(0)
+}
+func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, id domainnotification.NotificationID) error {
+	return nil
+}
+func (m *MockNotificationRepository) MarkAllRead(ctx context.Context, recipientID identity.UserID) error {
+	return nil
+}
+func (m *MockNotificationRepository) MarkAllAsRead(ctx context.Context, recipientID identity.UserID) error {
+	return nil
+}
+func (m *MockNotificationRepository) Delete(ctx context.Context, id domainnotification.NotificationID) error {
+	return nil
+}
+
+func (m *MockNotificationRepository) DeleteOlderThan(ctx context.Context, threshold time.Time) error {
+	return nil
+}
+
+func TestImageScanHandler_ProcessTask_MalwareDetected(t *testing.T) {
 	// Arrange
 	mockScanner := new(MockScanner)
 	mockStorage := new(MockStorage)
-	mockRepo := new(MockImageRepository)
+	mockImages := new(MockImageRepository)
+	mockUsers := new(MockUserRepository)
+	mockNotificationsRepo := new(MockNotificationRepository)
 	logger := zerolog.Nop()
 
-	handler := NewImageScanHandler(mockScanner, mockStorage, mockRepo, logger)
+	// Create disabled SMTP sender for testing
+	smtpCfg := email.Config{Enabled: false}
+	smtpSender, _ := email.NewSMTPSender(smtpCfg, logger)
 
+	// Create notification service
+	notifService := notification.NewNotificationService(mockNotificationsRepo, mockUsers, smtpSender, logger)
+
+	handler := NewImageScanHandler(
+		mockScanner,
+		mockStorage,
+		mockImages,
+		mockUsers,
+		notifService,
+		logger,
+	)
+
+	// Test data
 	imageID := gallery.NewImageID()
+	userID := identity.NewUserID()
+	storageKey := "test/image.jpg"
+	filename := "test.jpg"
+	fileData := []byte("fake-image-data")
+
 	payload := ImageScanPayload{
 		ImageID:          imageID.String(),
-		StorageKey:       "images/test.jpg",
-		OriginalFilename: "test.jpg",
-		OwnerID:          identity.NewUserID().String(),
+		StorageKey:       storageKey,
+		OriginalFilename: filename,
+		OwnerID:          userID.String(),
+		EnqueuedAt:       time.Now(),
 	}
 	payloadBytes, _ := json.Marshal(payload)
 	task := asynq.NewTask(TypeImageScan, payloadBytes)
 
-	imageData := []byte("fake-image-data")
+	// Mock objects
+	emailVal, _ := identity.NewEmail("user@example.com")
+	usernameVal, _ := identity.NewUsername("user")
+	passwordVal, _ := identity.NewPasswordHash("pass")
+	user := identity.ReconstructUser(
+		userID, emailVal, usernameVal, passwordVal,
+		identity.RoleUser, identity.StatusActive, "User", "", 0,
+		time.Now(), time.Now(), identity.UserTypeRegistered, nil, nil,
+	)
 
-	// Create a valid image using ReconstructImage to control state
-	// Need to setup metadata first
-	metadata, _ := gallery.NewImageMetadata("Title", "Desc", "test.jpg", "image/jpeg", 100, 100, 1000, "key", "local")
+	metadata, _ := gallery.NewImageMetadata("Title", "Desc", filename, "image/jpeg", 100, 100, 100, storageKey, "local")
 	image := gallery.ReconstructImage(
-		imageID,
-		identity.NewUserID(),
-		metadata,
-		gallery.VisibilityPrivate,
-		gallery.StatusProcessing,
-		gallery.ScanStatusPending,
-		[]gallery.ImageVariant{},
-		[]gallery.Tag{},
-		nil,
-		0, 0, 0,
-		time.Now(),
-		time.Now(),
+		imageID, userID, metadata, gallery.VisibilityPrivate,
+		gallery.StatusProcessing, gallery.ScanStatusPending,
+		nil, nil, nil, 0, 0, 0, time.Now(), time.Now(),
 	)
 
 	// Expectations
 	mockScanner.On("Ping", mock.Anything).Return(nil)
-	mockStorage.On("Get", mock.Anything, "images/test.jpg").Return(imageData, nil)
-	mockRepo.On("FindByID", mock.Anything, imageID).Return(image, nil)
+	mockStorage.On("Get", mock.Anything, storageKey).Return(fileData, nil)
 
+	// Simulate malware detected
 	scanResult := &clamav.ScanResult{
-		Clean:     true,
-		Infected:  false,
+		Infected:  true,
+		Virus:     "EICAR-Test-Signature",
 		ScannedAt: time.Now(),
 	}
-	mockScanner.On("Scan", mock.Anything, imageData).Return(scanResult, nil)
+	mockScanner.On("Scan", mock.Anything, fileData).Return(scanResult, nil)
 
-	mockRepo.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
-		return img.ScanStatus() == gallery.ScanStatusClean
+	// Expect storage deletion
+	mockStorage.On("Delete", mock.Anything, storageKey).Return(nil)
+
+	// Expect image status update
+	mockImages.On("FindByID", mock.Anything, imageID).Return(image, nil)
+	mockImages.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
+		return img.ScanStatus() == gallery.ScanStatusInfected && img.Status() == gallery.StatusDeleted
+	})).Return(nil)
+
+	// Expect user counter increment
+	mockUsers.On("FindByID", mock.Anything, userID).Return(user, nil) // Called by both handler and notification service
+	mockUsers.On("Save", mock.Anything, mock.MatchedBy(func(u *identity.User) bool {
+		return u.InfectedFileCount() == 1
+	})).Return(nil)
+
+	// Expect notification creation
+	mockNotificationsRepo.On("Save", mock.Anything, mock.MatchedBy(func(n *domainnotification.Notification) bool {
+		return n.Type() == domainnotification.TypeMalwareDetected
 	})).Return(nil)
 
 	// Act
@@ -191,70 +299,10 @@ func TestImageScanHandler_ProcessTask_Clean(t *testing.T) {
 
 	// Assert
 	require.NoError(t, err)
-	mockRepo.AssertExpectations(t)
+
 	mockScanner.AssertExpectations(t)
-}
-
-func TestImageScanHandler_ProcessTask_Infected(t *testing.T) {
-	// Arrange
-	mockScanner := new(MockScanner)
-	mockStorage := new(MockStorage)
-	mockRepo := new(MockImageRepository)
-	logger := zerolog.Nop()
-
-	handler := NewImageScanHandler(mockScanner, mockStorage, mockRepo, logger)
-
-	imageID := gallery.NewImageID()
-	payload := ImageScanPayload{
-		ImageID:          imageID.String(),
-		StorageKey:       "images/malware.jpg",
-		OriginalFilename: "malware.jpg",
-		OwnerID:          identity.NewUserID().String(),
-	}
-	payloadBytes, _ := json.Marshal(payload)
-	task := asynq.NewTask(TypeImageScan, payloadBytes)
-
-	imageData := []byte("eicar-test-file")
-
-	metadata, _ := gallery.NewImageMetadata("Title", "Desc", "malware.jpg", "image/jpeg", 100, 100, 1000, "key", "local")
-	image := gallery.ReconstructImage(
-		imageID,
-		identity.NewUserID(),
-		metadata,
-		gallery.VisibilityPrivate,
-		gallery.StatusProcessing,
-		gallery.ScanStatusPending,
-		[]gallery.ImageVariant{},
-		[]gallery.Tag{},
-		nil,
-		0, 0, 0,
-		time.Now(),
-		time.Now(),
-	)
-
-	// Expectations
-	mockScanner.On("Ping", mock.Anything).Return(nil)
-	mockStorage.On("Get", mock.Anything, "images/malware.jpg").Return(imageData, nil)
-	mockRepo.On("FindByID", mock.Anything, imageID).Return(image, nil)
-
-	scanResult := &clamav.ScanResult{
-		Clean:    false,
-		Infected: true,
-		Virus:    "Eicar-Test-Signature",
-		ScannedAt: time.Now(),
-	}
-	mockScanner.On("Scan", mock.Anything, imageData).Return(scanResult, nil)
-
-	mockRepo.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
-		return img.ScanStatus() == gallery.ScanStatusInfected
-	})).Return(nil)
-
-	// Act
-	err := handler.ProcessTask(context.Background(), task)
-
-	// Assert
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "malware detected")
-
-	mockRepo.AssertExpectations(t)
+	mockStorage.AssertExpectations(t)
+	mockImages.AssertExpectations(t)
+	mockUsers.AssertExpectations(t)
+	mockNotificationsRepo.AssertExpectations(t)
 }

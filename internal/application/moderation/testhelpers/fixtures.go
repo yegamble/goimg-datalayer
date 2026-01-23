@@ -164,7 +164,8 @@ func ValidImage(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		"local",
 	)
-	require.NoError(t, err)
+
+  require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
 		imageID,
@@ -175,10 +176,12 @@ func ValidImage(t *testing.T) *gallery.Image {
 		gallery.ScanStatusClean,
 		[]gallery.ImageVariant{},
 		[]gallery.Tag{},
-		nil,        // ipfsMetadata
-		0, 0, 0,    // counts
-		time.Now(), // createdAt
-		time.Now(), // updatedAt
+		nil,
+		0,
+		0,
+		0,
+		time.Now(),
+		time.Now(),
 	)
 
 	return image
@@ -191,9 +194,9 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 	ownerID := ValidUserIDParsed() // Same as reporter
 	imageID := ValidImageIDParsed()
 
-	metadata, err := gallery.NewImageMetadata(
+	metadata, _ := gallery.NewImageMetadata(
 		"Test Image",
-		"Description",
+		"Test description",
 		"test-image.jpg",
 		"image/jpeg",
 		1920,
@@ -202,6 +205,7 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		"local",
 	)
+  
 	require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
@@ -213,10 +217,12 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 		gallery.ScanStatusClean,
 		[]gallery.ImageVariant{},
 		[]gallery.Tag{},
-		nil,        // ipfsMetadata
-		0, 0, 0,    // counts
-		time.Now(), // createdAt
-		time.Now(), // updatedAt
+		nil,
+		0,
+		0,
+		0,
+		time.Now(),
+		time.Now(),
 	)
 
 	return image

@@ -139,7 +139,7 @@ func (i *Image) Status() ImageStatus {
 	return i.status
 }
 
-// ScanStatus returns the current scan status.
+// ScanStatus returns the current malware scan status.
 func (i *Image) ScanStatus() ScanStatus {
 	return i.scanStatus
 }
@@ -225,6 +225,25 @@ func (i *Image) AddVariant(variant ImageVariant) error {
 		VariantType: variant.VariantType(),
 	})
 
+	return nil
+}
+
+// SetScanStatus updates the malware scan status of the image.
+func (i *Image) SetScanStatus(status ScanStatus) error {
+	if i.status == StatusDeleted {
+		return ErrCannotModifyDeleted
+	}
+
+	if !status.IsValid() {
+		return fmt.Errorf("%w: invalid scan status %s", shared.ErrInvalidInput, status)
+	}
+
+	if i.scanStatus == status {
+		return nil
+	}
+
+	i.scanStatus = status
+	i.updatedAt = time.Now().UTC()
 	return nil
 }
 

@@ -10,7 +10,9 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 
+	"github.com/yegamble/goimg-datalayer/internal/application/notification"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 )
 
@@ -46,10 +48,12 @@ type ImageScanPayload struct {
 // ImageScanHandler handles malware scanning tasks using ClamAV.
 // It scans images for viruses, polyglot files, and other malicious content.
 type ImageScanHandler struct {
-	scanner clamav.Scanner
-	storage Storage
-	repo    gallery.ImageRepository
-	logger  zerolog.Logger
+	scanner       clamav.Scanner
+	storage       Storage
+	images        gallery.ImageRepository
+	users         identity.UserRepository
+	notifications *notification.NotificationService
+	logger        zerolog.Logger
 }
 
 // NewImageScanHandler creates a new malware scanning task handler.
@@ -57,14 +61,18 @@ func NewImageScanHandler(
 	imageRepo gallery.ImageRepository,
 	scanner clamav.Scanner,
 	storage Storage,
-	repo gallery.ImageRepository,
+	images gallery.ImageRepository,
+	users identity.UserRepository,
+	notifications *notification.NotificationService,
 	logger zerolog.Logger,
 ) *ImageScanHandler {
 	return &ImageScanHandler{
-		scanner: scanner,
-		storage: storage,
-		repo:    repo,
-		logger:  logger,
+		scanner:       scanner,
+		storage:       storage,
+		images:        images,
+		users:         users,
+		notifications: notifications,
+		logger:        logger,
 	}
 }
 
@@ -151,22 +159,43 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 			Dur("scan_duration_ms", duration).
 			Msg("malware detected in image")
 
-		// Update image status to "infected" in database
-		if err := image.MarkAsInfected(); err != nil {
-			h.logger.Error().Err(err).Msg("failed to mark image as infected")
-			return fmt.Errorf("mark image infected: %w", err)
+		// 1. Delete infected file from storage
+		if err := h.storage.Delete(ctx, payload.StorageKey); err != nil {
+			// Log error but continue with cleanup
+			h.logger.Error().
+				Err(err).
+				Str("storage_key", payload.StorageKey).
+				Msg("failed to delete infected file from storage")
 		}
 
-		if err := h.repo.Save(ctx, image); err != nil {
-			h.logger.Error().Err(err).Msg("failed to save infected image")
-			return fmt.Errorf("save infected image: %w", err)
+		// 2. Update image status to "infected" (and mark as deleted)
+		imageID, _ := gallery.ParseImageID(payload.ImageID)
+		image, err := h.images.FindByID(ctx, imageID)
+		if err == nil {
+			_ = image.SetScanStatus(gallery.ScanStatusInfected)
+			_ = image.MarkAsDeleted() // Soft delete from view
+			if err := h.images.Save(ctx, image); err != nil {
+				h.logger.Error().Err(err).Msg("failed to update image status")
+			}
 		}
 
-		// TODO: Notify user via email/notification
-		// TODO: Delete infected file from storage
-		// TODO: Increment user's infected file counter
+		// 3. Increment user's infected file counter
+		userID, _ := identity.ParseUserID(payload.OwnerID)
+		user, err := h.users.FindByID(ctx, userID)
+		if err == nil {
+			user.IncrementInfectedFileCount()
+			if err := h.users.Save(ctx, user); err != nil {
+				h.logger.Error().Err(err).Msg("failed to increment infected file count")
+			}
+		}
 
-		return fmt.Errorf("malware detected: %s", scanResult.Virus)
+		// 4. Notify user via email/notification
+		if err := h.notifications.NotifyMalwareDetected(ctx, userID, payload.OriginalFilename); err != nil {
+			h.logger.Error().Err(err).Msg("failed to notify user of malware")
+		}
+
+		// Malware detected and handled successfully. Return nil to stop retries.
+		return nil
 	}
 
 	// Clean scan result
@@ -176,15 +205,17 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Dur("scan_duration_ms", duration).
 		Msg("image scan completed - no threats found")
 
-	// Update image status to "clean" in database
-	if err := image.MarkAsClean(); err != nil {
-		h.logger.Error().Err(err).Msg("failed to mark image as clean")
-		return fmt.Errorf("mark image clean: %w", err)
-	}
-
-	if err := h.repo.Save(ctx, image); err != nil {
-		h.logger.Error().Err(err).Msg("failed to save clean image")
-		return fmt.Errorf("save clean image: %w", err)
+	// Update image status to "clean"
+	imageID, _ := gallery.ParseImageID(payload.ImageID)
+	image, err := h.images.FindByID(ctx, imageID)
+	if err == nil {
+		_ = image.SetScanStatus(gallery.ScanStatusClean)
+		// If image was processing, we might want to mark it active here or let another job do it.
+		// Usually image processing pipeline handles activation.
+		// But updating scan status is important.
+		if err := h.images.Save(ctx, image); err != nil {
+			h.logger.Error().Err(err).Msg("failed to update image scan status")
+		}
 	}
 
 	return nil

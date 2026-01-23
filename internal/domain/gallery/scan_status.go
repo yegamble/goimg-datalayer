@@ -1,6 +1,10 @@
 package gallery
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
+)
 
 // ScanStatus represents the malware scan status of an image.
 type ScanStatus string
@@ -11,6 +15,13 @@ const (
 
 	// ScanStatusClean indicates the image was scanned and no malware was found.
 	ScanStatusClean ScanStatus = "clean"
+
+	// ScanStatusInfected indicates the image was scanned and malware was found.
+	ScanStatusInfected ScanStatus = "infected"
+
+	// ScanStatusError indicates the scan failed due to a system error.
+	ScanStatusError ScanStatus = "error"
+)
 
 	// ScanStatusInfected indicates the image was scanned and malware was detected.
 	ScanStatusInfected ScanStatus = "infected"
@@ -37,7 +48,7 @@ func ParseScanStatus(s string) (ScanStatus, error) {
 	case ScanStatusPending, ScanStatusClean, ScanStatusInfected, ScanStatusError:
 		return status, nil
 	default:
-		return "", fmt.Errorf("%w: invalid scan status '%s'", ErrInvalidImageStatus, s)
+		return "", fmt.Errorf("%w: invalid scan status '%s'", shared.ErrInvalidInput, s)
 	}
 }
 

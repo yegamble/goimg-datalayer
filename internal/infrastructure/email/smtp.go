@@ -224,6 +224,55 @@ You can change your notification preferences in your account settings.
 	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
 }
 
+// SendMalwareDetectedEmail sends a notification when an uploaded file contains malware.
+func (s *SMTPSender) SendMalwareDetectedEmail(ctx context.Context, recipientEmail, username, filename string) error {
+	subject := "Security Alert: Malware Detected in Your Upload"
+
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Malware Detected</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #e53e3e;">Security Alert</h2>
+        <p>Hello <strong>%s</strong>,</p>
+        <p>We detected that an image you uploaded contains malware and has been removed.</p>
+        <div style="background-color: #fff5f5; border-left: 4px solid #e53e3e; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>File:</strong> %s</p>
+            <p style="margin: 0;"><strong>Status:</strong> Removed</p>
+        </div>
+        <p>Please ensure your files are safe before uploading. Repeated violations may result in account suspension.</p>
+        <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #718096;">
+            This is an automated security notification.
+        </p>
+    </div>
+</body>
+</html>
+`, username, filename)
+
+	textBody := fmt.Sprintf(`
+Security Alert: Malware Detected
+
+Hello %s,
+
+We detected that an image you uploaded contains malware and has been removed.
+
+File: %s
+Status: Removed
+
+Please ensure your files are safe before uploading. Repeated violations may result in account suspension.
+
+---
+This is an automated security notification.
+`, username, filename)
+
+	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
+}
+
 // IsEnabled returns true if SMTP sending is enabled.
 func (s *SMTPSender) IsEnabled() bool {
 	return s.config.Enabled
