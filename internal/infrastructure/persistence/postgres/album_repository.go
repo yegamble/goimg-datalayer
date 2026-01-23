@@ -78,6 +78,25 @@ const (
 		WHERE visibility = 'public' AND deleted_at IS NULL
 	`
 
+	sqlSelectAllAccessibleAlbums = `
+		SELECT id, owner_id, parent_id, title, description, visibility, cover_image_id,
+		       image_count, created_at, updated_at
+		FROM albums
+		WHERE (visibility = 'public' OR owner_id = $1)
+		  AND ($4 = '' OR visibility = $4)
+		  AND deleted_at IS NULL
+		ORDER BY created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	sqlCountAllAccessibleAlbums = `
+		SELECT COUNT(*)
+		FROM albums
+		WHERE (visibility = 'public' OR owner_id = $1)
+		  AND ($2 = '' OR visibility = $2)
+		  AND deleted_at IS NULL
+	`
+
 	sqlDeleteAlbum = `
 		DELETE FROM albums WHERE id = $1
 	`
@@ -205,6 +224,53 @@ func (r *AlbumRepository) FindByOwner(
 		return nil, 0, fmt.Errorf("failed to count albums by owner: %w", err)
 	}
 
+	albums := make([]*gallery.Album, 0, len(rows))
+	for _, row := range rows {
+		album, err := rowToAlbum(row)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to convert row to album: %w", err)
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, total, nil
+}
+
+// FindAllAccessible retrieves all public albums plus private/unlisted albums owned by the requesting user.
+func (r *AlbumRepository) FindAllAccessible(
+	ctx context.Context,
+	requestingUserID identity.UserID,
+	pagination shared.Pagination,
+	visibility *gallery.Visibility,
+) ([]*gallery.Album, int64, error) {
+	visStr := ""
+	if visibility != nil {
+		visStr = visibility.String()
+	}
+
+	// Get paginated albums
+	var rows []albumRow
+	err := r.db.SelectContext(
+		ctx,
+		&rows,
+		sqlSelectAllAccessibleAlbums,
+		requestingUserID.String(),
+		pagination.Limit(),
+		pagination.Offset(),
+		visStr,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to find accessible albums: %w", err)
+	}
+
+	// Get total count
+	var total int64
+	err = r.db.GetContext(ctx, &total, sqlCountAllAccessibleAlbums, requestingUserID.String(), visStr)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count accessible albums: %w", err)
+	}
+
+	// Convert rows to domain entities
 	albums := make([]*gallery.Album, 0, len(rows))
 	for _, row := range rows {
 		album, err := rowToAlbum(row)
