@@ -103,7 +103,11 @@ func (c *ModerateContentClient) Scan(ctx context.Context, imageURL string) (*Sca
 	for attempt := 0; attempt <= c.config.RetryAttempts; attempt++ {
 		if attempt > 0 {
 			c.logDebug(fmt.Sprintf("Retry attempt %d after %v", attempt, c.config.RetryDelay))
-			time.Sleep(c.config.RetryDelay)
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(c.config.RetryDelay):
+			}
 		}
 
 		result, err := c.executeRequest(ctx, apiURL)
