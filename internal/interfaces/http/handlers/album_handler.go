@@ -434,6 +434,7 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		requestingUserID = userCtx.UserID.String()
 	}
+	// Authorization: requestingUserID is used in the query to filter accessible albums
 
 	// 3. Convert offset/limit to page/perPage
 	page := (offset / limit) + 1
