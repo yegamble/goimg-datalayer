@@ -306,3 +306,83 @@ func TestImageScanHandler_ProcessTask_MalwareDetected(t *testing.T) {
 	mockUsers.AssertExpectations(t)
 	mockNotificationsRepo.AssertExpectations(t)
 }
+
+func TestImageScanHandler_ProcessTask_Clean(t *testing.T) {
+	// Arrange
+	mockScanner := new(MockScanner)
+	mockStorage := new(MockStorage)
+	mockImages := new(MockImageRepository)
+	mockUsers := new(MockUserRepository)
+	mockNotificationsRepo := new(MockNotificationRepository)
+	logger := zerolog.Nop()
+
+	// Create disabled SMTP sender for testing
+	smtpCfg := email.Config{Enabled: false}
+	smtpSender, _ := email.NewSMTPSender(smtpCfg, logger)
+
+	// Create notification service
+	notifService := notification.NewNotificationService(mockNotificationsRepo, mockUsers, smtpSender, logger)
+
+	handler := NewImageScanHandler(
+		mockScanner,
+		mockStorage,
+		mockImages,
+		mockUsers,
+		notifService,
+		logger,
+	)
+
+	// Test data
+	imageID := gallery.NewImageID()
+	userID := identity.NewUserID()
+	storageKey := "test/image.jpg"
+	filename := "test.jpg"
+	fileData := []byte("clean-image-data")
+
+	payload := ImageScanPayload{
+		ImageID:          imageID.String(),
+		StorageKey:       storageKey,
+		OriginalFilename: filename,
+		OwnerID:          userID.String(),
+		EnqueuedAt:       time.Now(),
+	}
+	payloadBytes, _ := json.Marshal(payload)
+	task := asynq.NewTask(TypeImageScan, payloadBytes)
+
+	// Mock objects
+	metadata, _ := gallery.NewImageMetadata("Title", "Desc", filename, "image/jpeg", 100, 100, 100, storageKey, "local")
+	image := gallery.ReconstructImage(
+		imageID, userID, metadata, gallery.VisibilityPrivate,
+		gallery.StatusProcessing, gallery.ScanStatusPending,
+		nil, nil, nil, 0, 0, 0, time.Now(), time.Now(),
+	)
+
+	// Expectations
+	mockScanner.On("Ping", mock.Anything).Return(nil)
+	mockStorage.On("Get", mock.Anything, storageKey).Return(fileData, nil)
+
+	// Simulate clean scan
+	scanResult := &clamav.ScanResult{
+		Clean:     true,
+		ScannedAt: time.Now(),
+	}
+	mockScanner.On("Scan", mock.Anything, fileData).Return(scanResult, nil)
+
+	// Expect image retrieval
+	mockImages.On("FindByID", mock.Anything, imageID).Return(image, nil)
+
+	// Expect image update with Clean status
+	mockImages.On("Save", mock.Anything, mock.MatchedBy(func(img *gallery.Image) bool {
+		return img.ScanStatus() == gallery.ScanStatusClean
+	})).Return(nil)
+
+	// Act
+	err := handler.ProcessTask(context.Background(), task)
+
+	// Assert
+	require.NoError(t, err)
+
+	mockScanner.AssertExpectations(t)
+	mockStorage.AssertExpectations(t)
+	mockImages.AssertExpectations(t)
+}
