@@ -341,13 +341,16 @@ validate-openapi:
 	@echo "OpenAPI spec validation passed"
 
 # Docker Compose
+# Detect docker compose v2 (docker compose) vs v1 (docker-compose)
+DOCKER_COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
+
 docker-up:
-	@echo "Starting Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml up -d
+	@echo "Starting Docker Compose services using $(DOCKER_COMPOSE)..."
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml up -d
 
 docker-down:
 	@echo "Stopping Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml down
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml down
 
 # Clean
 clean:
