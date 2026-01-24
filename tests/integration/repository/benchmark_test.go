@@ -17,7 +17,7 @@ func BenchmarkImageRepository_Save_WithTags(b *testing.B) {
 
 	ctx := context.Background()
 	// Use a shared container for the benchmark to avoid startup overhead per iteration
-    // Ideally we would reuse the container but for simplicity I will spin it up once per benchmark run.
+	// Ideally we would reuse the container but for simplicity I will spin it up once per benchmark run.
 	pgContainer, err := containers.NewPostgresContainer(ctx, b)
 	if err != nil {
 		b.Fatal(err)
@@ -29,18 +29,18 @@ func BenchmarkImageRepository_Save_WithTags(b *testing.B) {
 	repo := postgres.NewImageRepository(pgContainer.DB)
 	ownerID := createTestUser()
 
-    // Create an image with many tags to exacerbate the N+1 problem
-    numTags := 50
-    image := createTestImage(ownerID, "Benchmark Image")
-    for i := 0; i < numTags; i++ {
-        tag := gallery.MustNewTag(fmt.Sprintf("tag-%d", i))
-        _ = image.AddTag(tag)
-    }
+	// Create an image with many tags to exacerbate the N+1 problem
+	numTags := 50
+	image := createTestImage(ownerID, "Benchmark Image")
+	for i := 0; i < numTags; i++ {
+		tag := gallery.MustNewTag(fmt.Sprintf("tag-%d", i))
+		_ = image.AddTag(tag)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-        // We save the same image repeatedly.
-        // This exercises the update path + saveTagsInTx (which does delete + insert N tags).
+		// We save the same image repeatedly.
+		// This exercises the update path + saveTagsInTx (which does delete + insert N tags).
 		err = repo.Save(ctx, image)
 		if err != nil {
 			b.Fatal(err)

@@ -77,20 +77,20 @@ const (
 
 // userRow represents a user row in the database.
 type userRow struct {
-	ID           string         `db:"id"`
-	Email        string         `db:"email"`
-	Username     string         `db:"username"`
-	PasswordHash string         `db:"password_hash"`
-	Role         string         `db:"role"`
-	Status       string         `db:"status"`
-	DisplayName  string         `db:"display_name"`
-	Bio          string         `db:"bio"`
-	InfectedFileCount int       `db:"infected_file_count"`
-	CreatedAt    time.Time      `db:"created_at"`
-	UpdatedAt    time.Time      `db:"updated_at"`
-	UserType     string         `db:"user_type"`
-	IPAddress    sql.NullString `db:"ip_address"`
-	ExpiresAt    sql.NullTime   `db:"expires_at"`
+	ID                string         `db:"id"`
+	Email             string         `db:"email"`
+	Username          string         `db:"username"`
+	PasswordHash      string         `db:"password_hash"`
+	Role              string         `db:"role"`
+	Status            string         `db:"status"`
+	DisplayName       string         `db:"display_name"`
+	Bio               string         `db:"bio"`
+	InfectedFileCount int            `db:"infected_file_count"`
+	CreatedAt         time.Time      `db:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at"`
+	UserType          string         `db:"user_type"`
+	IPAddress         sql.NullString `db:"ip_address"`
+	ExpiresAt         sql.NullTime   `db:"expires_at"`
 }
 
 // UserRepository implements the identity.UserRepository interface for PostgreSQL.

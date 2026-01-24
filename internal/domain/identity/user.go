@@ -16,18 +16,18 @@ const (
 // User is the aggregate root for the Identity bounded context.
 // It represents a user account with authentication and authorization capabilities.
 type User struct {
-	id           UserID
-	email        Email
-	username     Username
-	passwordHash PasswordHash
-	role         Role
-	status       UserStatus
-	displayName  string
-	bio          string
+	id                UserID
+	email             Email
+	username          Username
+	passwordHash      PasswordHash
+	role              Role
+	status            UserStatus
+	displayName       string
+	bio               string
 	infectedFileCount int
-	createdAt    time.Time
-	updatedAt    time.Time
-	events       []shared.DomainEvent
+	createdAt         time.Time
+	updatedAt         time.Time
+	events            []shared.DomainEvent
 
 	// 2FA fields
 	totpSecret  *TOTPSecret         // nil if 2FA not set up

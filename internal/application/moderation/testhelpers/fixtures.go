@@ -165,7 +165,7 @@ func ValidImage(t *testing.T) *gallery.Image {
 		"local",
 	)
 
-  require.NoError(t, err)
+	require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
 		imageID,
@@ -205,7 +205,7 @@ func ValidImageOwnedByReporter(t *testing.T) *gallery.Image {
 		"/storage/test-image.jpg",
 		"local",
 	)
-  
+
 	require.NoError(t, err)
 
 	image := gallery.ReconstructImage(
