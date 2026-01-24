@@ -62,6 +62,7 @@ func BenchmarkSaveWithVariants(b *testing.B) {
 			metadata,
 			gallery.VisibilityPrivate,
 			gallery.StatusProcessing,
+			gallery.ScanStatusPending,
 			variants,
 			[]gallery.Tag{},
 			nil,

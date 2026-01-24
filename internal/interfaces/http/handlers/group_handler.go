@@ -119,10 +119,10 @@ func (h *GroupHandler) ProtectedRoutes() chi.Router {
 	r.Post("/{groupID}/members/{userID}/ban", h.BanMember)        // Ban member
 
 	// Invitation routes
-	r.Post("/{groupID}/invitations", h.CreateInvitation)              // Create invitation (admin/owner+)
-	r.Get("/{groupID}/invitations", h.ListInvitations)                // List pending invitations (admin/owner+)
-	r.Post("/invitations/{token}/accept", h.AcceptInvitation)         // Accept invitation (any auth user)
-	r.Post("/invitations/{token}/decline", h.DeclineInvitation)       // Decline invitation (any auth user)
+	r.Post("/{groupID}/invitations", h.CreateInvitation)        // Create invitation (admin/owner+)
+	r.Get("/{groupID}/invitations", h.ListInvitations)          // List pending invitations (admin/owner+)
+	r.Post("/invitations/{token}/accept", h.AcceptInvitation)   // Accept invitation (any auth user)
+	r.Post("/invitations/{token}/decline", h.DeclineInvitation) // Decline invitation (any auth user)
 
 	return r
 }
@@ -934,10 +934,16 @@ func (h *GroupHandler) ListInvitations(w http.ResponseWriter, r *http.Request) {
 
 	queryParams := r.URL.Query()
 	page, _ := parseIntParam(queryParams.Get("page"), 1)
-	if page < 1 { page = 1 }
+	if page < 1 {
+		page = 1
+	}
 	perPage, _ := parseIntParam(queryParams.Get("per_page"), defaultPerPage)
-	if perPage < 1 { perPage = defaultPerPage }
-	if perPage > maxPerPage { perPage = maxPerPage }
+	if perPage < 1 {
+		perPage = defaultPerPage
+	}
+	if perPage > maxPerPage {
+		perPage = maxPerPage
+	}
 
 	query := queries.ListGroupInvitationsQuery{
 		GroupID: groupID,
@@ -1148,37 +1154,37 @@ func mapSettingsToResponse(settings community.GroupSettings) GroupSettingsRespon
 }
 
 func mapInvitationToResponse(invitation *community.GroupInvitation) InvitationResponse {
-    resp := InvitationResponse{
-        ID:        invitation.ID().String(),
-        GroupID:   invitation.GroupID().String(),
-        InvitedBy: invitation.InvitedBy().String(),
-        Token:     invitation.Token().String(),
-        ExpiresAt: invitation.ExpiresAt(),
-        CreatedAt: invitation.CreatedAt(),
-    }
+	resp := InvitationResponse{
+		ID:        invitation.ID().String(),
+		GroupID:   invitation.GroupID().String(),
+		InvitedBy: invitation.InvitedBy().String(),
+		Token:     invitation.Token().String(),
+		ExpiresAt: invitation.ExpiresAt(),
+		CreatedAt: invitation.CreatedAt(),
+	}
 
-    if email := invitation.Email(); email != nil {
-        resp.Email = email
-    }
+	if email := invitation.Email(); email != nil {
+		resp.Email = email
+	}
 
-    if userID := invitation.UserID(); userID != nil {
-        uidStr := userID.String()
-        resp.UserID = &uidStr
-    }
+	if userID := invitation.UserID(); userID != nil {
+		uidStr := userID.String()
+		resp.UserID = &uidStr
+	}
 
-    if usedAt := invitation.UsedAt(); usedAt != nil {
-        resp.UsedAt = usedAt
-    }
+	if usedAt := invitation.UsedAt(); usedAt != nil {
+		resp.UsedAt = usedAt
+	}
 
-    return resp
+	return resp
 }
 
 func mapInvitationsToResponse(invitations []*community.GroupInvitation) []InvitationResponse {
-    resp := make([]InvitationResponse, len(invitations))
-    for i, invitation := range invitations {
-        resp[i] = mapInvitationToResponse(invitation)
-    }
-    return resp
+	resp := make([]InvitationResponse, len(invitations))
+	for i, invitation := range invitations {
+		resp[i] = mapInvitationToResponse(invitation)
+	}
+	return resp
 }
 
 func parseGroupSortBy(s string) (community.GroupSortBy, error) {
