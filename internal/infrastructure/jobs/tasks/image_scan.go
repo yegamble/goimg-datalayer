@@ -169,15 +169,21 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 
 		// 2. Update image status to "infected" (and mark as deleted)
 		// No need to re-parse imageID or re-fetch image
-		_ = image.MarkAsInfected()
-		_ = image.MarkAsDeleted() // Soft delete from view
+		if err := image.MarkAsInfected(); err != nil {
+			h.logger.Warn().Err(err).Str("image_id", payload.ImageID).Msg("failed to mark image as infected")
+		}
+		if err := image.MarkAsDeleted(); err != nil {
+			h.logger.Warn().Err(err).Str("image_id", payload.ImageID).Msg("failed to mark image as deleted")
+		}
 		if err := h.images.Save(ctx, image); err != nil {
 			h.logger.Error().Err(err).Msg("failed to update image status")
 		}
 
 		// 3. Increment user's infected file counter
 		user, err := h.users.FindByID(ctx, image.OwnerID())
-		if err == nil {
+		if err != nil {
+			h.logger.Error().Err(err).Str("owner_id", payload.OwnerID).Msg("failed to find user to increment infected count")
+		} else {
 			user.IncrementInfectedFileCount()
 			if err := h.users.Save(ctx, user); err != nil {
 				h.logger.Error().Err(err).Msg("failed to increment infected file count")
