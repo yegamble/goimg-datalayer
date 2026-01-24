@@ -5,7 +5,9 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -255,4 +257,78 @@ func TestUserRepository_NotFound(t *testing.T) {
 		// Assert
 		require.ErrorIs(t, err, identity.ErrUserNotFound)
 	})
+}
+
+// TestUserRepository_FindExpiredGuests tests retrieving expired guest users.
+func TestUserRepository_FindExpiredGuests(t *testing.T) {
+	suite := containers.NewIntegrationTestSuite(t)
+	ctx := context.Background()
+
+	// Create repository instance
+	repo := postgres.NewUserRepository(suite.DB)
+
+	// 1. Create an expired guest user
+	expiredID := identity.NewUserID()
+	expiredEmail, _ := identity.NewEmail(fmt.Sprintf("guest_%s@goimg.local", expiredID.String()))
+	expiredUsername, _ := identity.NewUsername(fmt.Sprintf("guest_%s", expiredID.String()[:8]))
+	expiredHash, _ := identity.NewPasswordHash("dummy")
+
+	now := time.Now().UTC()
+	expiredTime := now.Add(-24 * time.Hour)
+	ip := "127.0.0.1"
+
+	expiredGuest := identity.ReconstructUser(
+		expiredID,
+		expiredEmail,
+		expiredUsername,
+		expiredHash,
+		identity.RoleUser,
+		identity.StatusActive,
+		expiredUsername.String(),
+		"",
+		0,
+		now.Add(-48*time.Hour), // Created 2 days ago
+		now.Add(-48*time.Hour),
+		identity.UserTypeGuest,
+		&ip,
+		&expiredTime,
+	)
+
+	err := repo.Save(ctx, expiredGuest)
+	require.NoError(t, err)
+
+	// 2. Create an active guest user
+	activeGuest, err := identity.NewGuestUser("127.0.0.2")
+	require.NoError(t, err)
+	err = repo.Save(ctx, activeGuest)
+	require.NoError(t, err)
+
+	// 3. Create a registered user
+	registeredFixture := fixtures.ValidUser(t)
+	registeredUser := registeredFixture.ToEntity(t)
+	err = repo.Save(ctx, registeredUser)
+	require.NoError(t, err)
+
+	// Act
+	expiredGuests, err := repo.FindExpiredGuests(ctx, now, 10)
+
+	// Assert
+	require.NoError(t, err)
+	require.Len(t, expiredGuests, 1)
+	assert.Equal(t, expiredGuest.ID(), expiredGuests[0].ID())
+}
+
+// TestUserRepository_NextID tests generating a new UserID.
+func TestUserRepository_NextID(t *testing.T) {
+	suite := containers.NewIntegrationTestSuite(t)
+
+	// Create repository instance
+	repo := postgres.NewUserRepository(suite.DB)
+
+	// Act
+	id := repo.NextID()
+
+	// Assert
+	assert.NotEmpty(t, id.String())
+	assert.NotEqual(t, uuid.Nil, id.UUID())
 }
