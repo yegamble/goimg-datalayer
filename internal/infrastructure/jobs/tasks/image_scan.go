@@ -201,10 +201,14 @@ func (h *ImageScanHandler) ProcessTask(ctx context.Context, t *asynq.Task) error
 		Msg("image scan completed - no threats found")
 
 	// Update image status to "clean"
-	_ = image.SetScanStatus(gallery.ScanStatusClean)
-	// If image was processing, we might want to mark it active here or let another job do it.
-	// Usually image processing pipeline handles activation.
-	// But updating scan status is important.
+	if err := image.MarkAsClean(); err != nil {
+		h.logger.Warn().
+			Err(err).
+			Str("image_id", payload.ImageID).
+			Msg("failed to mark image as clean")
+		return nil
+	}
+
 	if err := h.images.Save(ctx, image); err != nil {
 		h.logger.Error().Err(err).Msg("failed to update image scan status")
 	}
