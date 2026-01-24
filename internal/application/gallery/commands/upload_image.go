@@ -177,7 +177,15 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	}
 	image.ClearEvents()
 
-	// 10. Enqueue background job for image processing
+	// 10. Enqueue background job for malware scanning and image processing
+	if err := h.jobEnqueuer.EnqueueImageScan(ctx, imageID.String()); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID.String()).
+			Msg("failed to enqueue image scan job")
+		// Don't fail the upload if job enqueueing fails
+	}
+
 	if err := h.jobEnqueuer.EnqueueImageProcessing(ctx, imageID.String()); err != nil {
 		h.logger.Error().
 			Err(err).

@@ -156,6 +156,11 @@ type MockJobEnqueuer struct {
 	mock.Mock
 }
 
+func (m *MockJobEnqueuer) EnqueueImageScan(ctx context.Context, imageID string) error {
+	args := m.Called(ctx, imageID)
+	return args.Error(0)
+}
+
 func (m *MockJobEnqueuer) EnqueueImageProcessing(ctx context.Context, imageID string) error {
 	args := m.Called(ctx, imageID)
 	return args.Error(0)

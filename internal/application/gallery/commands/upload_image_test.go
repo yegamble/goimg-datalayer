@@ -65,6 +65,8 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 
 				// Mock job enqueueing
+				suite.JobEnqueuer.On("EnqueueImageScan", mock.Anything, imageID.String()).
+					Return(nil).Once()
 				suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).
 					Return(nil).Once()
 			},
@@ -320,6 +322,8 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).
 					Return(fmt.Errorf("event bus unavailable")).Maybe()
 
+				suite.JobEnqueuer.On("EnqueueImageScan", mock.Anything, imageID.String()).
+					Return(nil).Once()
 				suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).
 					Return(nil).Once()
 			},
@@ -352,6 +356,8 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 
 				// Job enqueueing fails (non-critical)
+				suite.JobEnqueuer.On("EnqueueImageScan", mock.Anything, imageID.String()).
+					Return(nil).Once()
 				suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).
 					Return(fmt.Errorf("queue unavailable")).Once()
 			},
@@ -420,6 +426,7 @@ func BenchmarkUploadImageHandler_Handle(b *testing.B) {
 	suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil)
 	suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
+	suite.JobEnqueuer.On("EnqueueImageScan", mock.Anything, imageID.String()).Return(nil)
 	suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).Return(nil)
 
 	handler := commands.NewUploadImageHandler(

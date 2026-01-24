@@ -96,6 +96,14 @@ func (m *MockAlbumRepository) FindAncestors(ctx context.Context, albumID gallery
 	return args.Get(0).([]*gallery.Album), args.Error(1)
 }
 
+func (m *MockAlbumRepository) FindAllAccessible(ctx context.Context, requestingUserID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Album, int64, error) {
+	args := m.Called(ctx, requestingUserID, pagination, visibility)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
+	}
+	return args.Get(0).([]*gallery.Album), args.Get(1).(int64), args.Error(2)
+}
+
 // MockUserRepository is a mock implementation of identity.UserRepository.
 type MockUserRepository struct {
 	mock.Mock

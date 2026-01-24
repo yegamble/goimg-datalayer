@@ -68,6 +68,9 @@ type EventPublisher interface {
 // JobEnqueuer enqueues background jobs for image processing.
 // This is implemented in the infrastructure layer using asynq.
 type JobEnqueuer interface {
+	// EnqueueImageScan enqueues a job to scan an uploaded image for malware.
+	EnqueueImageScan(ctx context.Context, imageID string) error
+
 	// EnqueueImageProcessing enqueues a job to process an uploaded image.
 	// This generates thumbnails and other variants.
 	EnqueueImageProcessing(ctx context.Context, imageID string) error
