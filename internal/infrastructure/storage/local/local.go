@@ -331,6 +331,9 @@ func validateKey(key string) error {
 	if strings.Contains(key, "..") {
 		return fmt.Errorf("%w: contains '..'", errPathTraversal)
 	}
+	if filepath.IsAbs(key) {
+		return fmt.Errorf("%w: cannot be absolute path", errPathTraversal)
+	}
 	if strings.HasPrefix(key, "/") || strings.HasPrefix(key, "\\") {
 		return fmt.Errorf("%w: cannot be absolute path", errPathTraversal)
 	}
