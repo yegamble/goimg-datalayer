@@ -87,6 +87,8 @@ func TestSessionRepository_GetByID(t *testing.T) {
 	assert.Equal(t, sessionFixture.ID, found.ID)
 	assert.Equal(t, sessionFixture.UserID.String(), found.UserID.String())
 	assert.Equal(t, sessionFixture.RefreshTokenHash, found.RefreshTokenHash)
+	assert.Equal(t, sessionFixture.IPAddress, found.IPAddress)
+	assert.Equal(t, sessionFixture.UserAgent, found.UserAgent)
 }
 
 // TestSessionRepository_GetByUserID tests retrieving all sessions for a user.
