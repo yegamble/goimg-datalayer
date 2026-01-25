@@ -48,6 +48,18 @@ const (
 		DELETE FROM sessions
 		WHERE expires_at < $1 OR revoked_at < $2
 	`
+
+	sqlRevokeAllSessionsForUser = `
+		UPDATE sessions
+		SET revoked_at = $2
+		WHERE user_id = $1 AND revoked_at IS NULL
+	`
+
+	sqlSelectActiveSessionByHash = `
+		SELECT id, user_id, refresh_token_hash, ip_address, user_agent, expires_at, created_at, revoked_at
+		FROM sessions
+		WHERE refresh_token_hash = $1 AND revoked_at IS NULL AND expires_at > $2
+	`
 )
 
 // Session represents a user authentication session.
@@ -179,6 +191,41 @@ func (r *SessionRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	}
 
 	return rowsAffected, nil
+}
+
+// RevokeAllForUser revokes all active sessions for a user.
+func (r *SessionRepository) RevokeAllForUser(ctx context.Context, userID identity.UserID) (int64, error) {
+	now := time.Now().UTC()
+	result, err := r.db.ExecContext(ctx, sqlRevokeAllSessionsForUser, userID.String(), now)
+	if err != nil {
+		return 0, fmt.Errorf("failed to revoke all sessions for user: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	return rowsAffected, nil
+}
+
+// GetActiveByRefreshTokenHash retrieves an active session by its refresh token hash.
+func (r *SessionRepository) GetActiveByRefreshTokenHash(ctx context.Context, hash string) (*Session, error) {
+	now := time.Now().UTC()
+	var row sessionRow
+	if err := r.db.GetContext(ctx, &row, sqlSelectActiveSessionByHash, hash, now); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("session not found")
+		}
+		return nil, fmt.Errorf("failed to get session by hash: %w", err)
+	}
+
+	session, err := rowToSession(row)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert row to session: %w", err)
+	}
+
+	return session, nil
 }
 
 // rowToSession converts a database row to a Session struct.
