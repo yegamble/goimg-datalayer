@@ -132,7 +132,15 @@ func NewRouter(
 		// Most auth routes are public, but guest session creation is rate-limited
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", authHandler.Register)
-			r.Post("/login", authHandler.Login)
+
+			// Login rate limiting (5 attempts/min per IP)
+			if middlewareConfig.RateLimiterConfig != nil {
+				r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
+					Post("/login", authHandler.Login)
+			} else {
+				r.Post("/login", authHandler.Login)
+			}
+
 			r.Post("/refresh", authHandler.Refresh)
 			r.Post("/logout", authHandler.Logout)
 
