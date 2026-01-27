@@ -40,6 +40,9 @@ help:
 	@echo "  install-hooks     - Install git pre-commit hooks (REQUIRED for Claude agents)"
 	@echo "  pre-commit        - Run pre-commit checks manually"
 
+# Detect docker-compose v1 vs v2
+DOCKER_COMPOSE := $(shell command -v docker-compose 2> /dev/null || echo "docker compose")
+
 # Go version check - enforces minimum Go 1.25
 GO_VERSION_MIN := 1.25
 GO_VERSION_CURRENT := $(shell go version | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
@@ -343,11 +346,11 @@ validate-openapi:
 # Docker Compose
 docker-up:
 	@echo "Starting Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml up -d
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml up -d
 
 docker-down:
 	@echo "Stopping Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml down
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml down
 
 # Clean
 clean:

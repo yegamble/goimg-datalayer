@@ -99,7 +99,11 @@ check_prerequisites() {
     fi
 
     # Check Docker Compose
-    if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    elif docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    else
         die "Docker Compose is not installed. Please install Docker Compose first."
     fi
 
@@ -191,7 +195,7 @@ run_migrations() {
     cd "${PROJECT_ROOT}"
 
     # Ensure PostgreSQL is running
-    docker compose -f "${DOCKER_DIR}/docker-compose.prod.yml" up -d postgres
+    ${DOCKER_COMPOSE_CMD} -f "${DOCKER_DIR}/docker-compose.prod.yml" up -d postgres
 
     # Wait for PostgreSQL
     log_info "Waiting for PostgreSQL to be ready..."
@@ -230,11 +234,11 @@ deploy_services() {
 
     # Pull any external images
     log_info "Pulling external images..."
-    docker compose -f docker-compose.prod.yml pull postgres redis clamav nginx || true
+    ${DOCKER_COMPOSE_CMD} -f docker-compose.prod.yml pull postgres redis clamav nginx || true
 
     # Start services
     log_info "Starting services..."
-    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+    ${DOCKER_COMPOSE_CMD} -f docker-compose.prod.yml --env-file .env.prod up -d
 
     log_info "Services started successfully"
 }
@@ -248,7 +252,7 @@ verify_deployment() {
 
     # Check container status
     log_info "Container status:"
-    docker compose -f "${DOCKER_DIR}/docker-compose.prod.yml" ps
+    ${DOCKER_COMPOSE_CMD} -f "${DOCKER_DIR}/docker-compose.prod.yml" ps
 
     # Check health endpoints
     log_info "Checking health endpoints..."
@@ -293,7 +297,7 @@ Next Steps:
    ${BLUE}curl https://yourdomain.com/health${NC}
 
 2. Check logs:
-   ${BLUE}docker compose -f docker/docker-compose.prod.yml logs -f${NC}
+   ${BLUE}${DOCKER_COMPOSE_CMD:-docker compose} -f docker/docker-compose.prod.yml logs -f${NC}
 
 3. Set up automated backups (if not already done):
    ${BLUE}sudo crontab -e${NC}
