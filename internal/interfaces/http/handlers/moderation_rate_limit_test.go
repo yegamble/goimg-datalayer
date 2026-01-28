@@ -77,15 +77,26 @@ func (m *MockImageRepository) FindByID(ctx context.Context, id gallery.ImageID) 
 }
 
 func (m *MockImageRepository) NextID() gallery.ImageID { return gallery.ImageID{} }
-func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) { return nil, 0, nil }
-func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) { return nil, 0, nil }
-func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) { return nil, 0, nil }
-func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) { return nil, 0, nil }
-func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) { return nil, 0, nil }
+func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	return nil, 0, nil
+}
+func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	return nil, 0, nil
+}
+func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	return nil, 0, nil
+}
+func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+	return nil, 0, nil
+}
+func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
+	return nil, 0, nil
+}
 func (m *MockImageRepository) Save(ctx context.Context, image *gallery.Image) error { return nil }
 func (m *MockImageRepository) Delete(ctx context.Context, id gallery.ImageID) error { return nil }
-func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) { return false, nil }
-
+func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) {
+	return false, nil
+}
 
 type MockEventPublisher struct {
 	mock.Mock
