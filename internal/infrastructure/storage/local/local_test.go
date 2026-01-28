@@ -532,8 +532,9 @@ func TestCalculateETag(t *testing.T) {
 	etag, err := storage.calculateETag(fullPath)
 	require.NoError(t, err)
 
-	// ETag should be MD5 hash wrapped in quotes
+	// ETag should be SHA-256 hash wrapped in quotes (64 hex chars + 2 quotes = 66 chars)
 	assert.NotEmpty(t, etag)
+	assert.Len(t, etag, 66)
 	assert.True(t, strings.HasPrefix(etag, `"`))
 	assert.True(t, strings.HasSuffix(etag, `"`))
 
