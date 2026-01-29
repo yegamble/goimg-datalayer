@@ -856,7 +856,7 @@ func TestAlbumRepository_FindByOwner_Success(t *testing.T) {
 
 	// Act
 	pagination := shared.DefaultPagination()
-	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination, nil)
 
 	// Assert
 	require.NoError(t, err)
@@ -888,7 +888,7 @@ func TestAlbumRepository_FindByOwner_Pagination(t *testing.T) {
 
 	// Test first page (2 items)
 	pagination, _ := shared.NewPagination(1, 2)
-	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), total)
@@ -896,7 +896,7 @@ func TestAlbumRepository_FindByOwner_Pagination(t *testing.T) {
 
 	// Test second page
 	pagination, _ = shared.NewPagination(2, 2)
-	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination)
+	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), total)
@@ -904,7 +904,7 @@ func TestAlbumRepository_FindByOwner_Pagination(t *testing.T) {
 
 	// Test third page (only 1 item)
 	pagination, _ = shared.NewPagination(3, 2)
-	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination)
+	albums, total, err = repo.FindByOwner(ctx, ownerID, pagination, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(5), total)
@@ -928,7 +928,7 @@ func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
 
 	// Act
 	pagination := shared.DefaultPagination()
-	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination)
+	albums, total, err := repo.FindByOwner(ctx, ownerID, pagination, nil)
 
 	// Assert
 	require.NoError(t, err)
