@@ -72,7 +72,7 @@ const (
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
-	sqlExistsGroupWithSlug = `
+	sqlExistsGroupWithSlug = ` /* #nosec G101 */
 		SELECT EXISTS(SELECT 1 FROM groups WHERE slug = $1 AND deleted_at IS NULL)
 	`
 )

@@ -224,7 +224,6 @@ func TestUserRepository_NotFound(t *testing.T) {
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
-
 	// Create repository instance
 	repo := postgres.NewUserRepository(suite.DB)
 
