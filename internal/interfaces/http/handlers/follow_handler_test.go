@@ -1,7 +1,24 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/commands"
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/dto"
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/queries"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
 func TestFollowHandler_FollowUser_Success(t *testing.T) {
@@ -256,4 +273,48 @@ func TestParsePaginationParams_MinLimit(t *testing.T) {
 
 func TestParsePaginationParams_NegativeOffset(t *testing.T) {
 	t.Skip("Skipping test")
+}
+
+// Mock Types
+
+type MockFollowUserHandler struct {
+	mock.Mock
+}
+
+func (m *MockFollowUserHandler) Handle(ctx context.Context, cmd commands.FollowUserCommand) error {
+	args := m.Called(ctx, cmd)
+	return args.Error(0)
+}
+
+type MockUnfollowUserHandler struct {
+	mock.Mock
+}
+
+func (m *MockUnfollowUserHandler) Handle(ctx context.Context, cmd commands.UnfollowUserCommand) error {
+	args := m.Called(ctx, cmd)
+	return args.Error(0)
+}
+
+type MockGetFollowersHandler struct {
+	mock.Mock
+}
+
+func (m *MockGetFollowersHandler) Handle(ctx context.Context, q queries.GetFollowersQuery) (*dto.FollowersListDTO, error) {
+	args := m.Called(ctx, q)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*dto.FollowersListDTO), args.Error(1)
+}
+
+type MockGetFollowingHandler struct {
+	mock.Mock
+}
+
+func (m *MockGetFollowingHandler) Handle(ctx context.Context, q queries.GetFollowingQuery) (*dto.FollowingListDTO, error) {
+	args := m.Called(ctx, q)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*dto.FollowingListDTO), args.Error(1)
 }
