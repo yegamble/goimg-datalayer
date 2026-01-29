@@ -270,3 +270,97 @@ func TestTokenBlacklist_GetTTL(t *testing.T) {
 	assert.Greater(t, remainingTTL, 9*time.Minute, "TTL should be close to 10 minutes")
 	assert.LessOrEqual(t, remainingTTL, ttl, "TTL should not exceed original")
 }
+
+// TestTokenBlacklist_Remove tests manual removal of a token from the blacklist.
+func TestTokenBlacklist_Remove(t *testing.T) {
+	suite := containers.NewIntegrationTestSuite(t)
+	ctx := context.Background()
+
+	// Create token blacklist instance
+	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+
+	// Arrange - add token to blacklist
+	tokenJTI := uuid.New().String()
+	expiresAt := time.Now().Add(15 * time.Minute)
+	err := blacklist.Add(ctx, tokenJTI, expiresAt)
+	require.NoError(t, err)
+
+	// Verify it exists
+	isBlacklisted, err := blacklist.IsBlacklisted(ctx, tokenJTI)
+	require.NoError(t, err)
+	assert.True(t, isBlacklisted)
+
+	// Act - remove token
+	err = blacklist.Remove(ctx, tokenJTI)
+	require.NoError(t, err)
+
+	// Assert - token should no longer be blacklisted
+	isBlacklisted, err = blacklist.IsBlacklisted(ctx, tokenJTI)
+	require.NoError(t, err)
+	assert.False(t, isBlacklisted)
+
+	// Removing non-existent token should not fail
+	err = blacklist.Remove(ctx, tokenJTI)
+	assert.NoError(t, err)
+}
+
+// TestTokenBlacklist_Count tests counting blacklisted tokens.
+func TestTokenBlacklist_Count(t *testing.T) {
+	suite := containers.NewIntegrationTestSuite(t)
+	ctx := context.Background()
+
+	// Ensure clean state
+	suite.CleanupBetweenTests(ctx)
+
+	// Create token blacklist instance
+	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+
+	// Arrange - add multiple tokens
+	count := 5
+	for i := 0; i < count; i++ {
+		tokenJTI := uuid.New().String()
+		err := blacklist.Add(ctx, tokenJTI, time.Now().Add(15*time.Minute))
+		require.NoError(t, err)
+	}
+
+	// Act
+	actualCount, err := blacklist.Count(ctx)
+
+	// Assert
+	require.NoError(t, err)
+	assert.Equal(t, int64(count), actualCount)
+}
+
+// TestTokenBlacklist_Clear tests clearing all blacklisted tokens.
+func TestTokenBlacklist_Clear(t *testing.T) {
+	suite := containers.NewIntegrationTestSuite(t)
+	ctx := context.Background()
+
+	// Ensure clean state
+	suite.CleanupBetweenTests(ctx)
+
+	// Create token blacklist instance
+	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+
+	// Arrange - add multiple tokens
+	count := 5
+	for i := 0; i < count; i++ {
+		tokenJTI := uuid.New().String()
+		err := blacklist.Add(ctx, tokenJTI, time.Now().Add(15*time.Minute))
+		require.NoError(t, err)
+	}
+
+	// Verify count is correct before clear
+	actualCount, err := blacklist.Count(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, int64(count), actualCount)
+
+	// Act
+	err = blacklist.Clear(ctx)
+	require.NoError(t, err)
+
+	// Assert
+	finalCount, err := blacklist.Count(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), finalCount)
+}
