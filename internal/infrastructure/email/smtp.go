@@ -77,8 +77,10 @@ func (s *SMTPSender) Send(ctx context.Context, to, subject, htmlBody, textBody s
 func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) error {
 	// Create TLS connection with timeout
 	dialer := &net.Dialer{Timeout: s.config.Timeout}
+	//nolint:gosec // G402: TLS MinVersion is explicitly set to TLS 1.2
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{
 		ServerName: s.config.Host,
+		MinVersion: tls.VersionTLS12,
 	})
 	if err != nil {
 		return fmt.Errorf("tls dial: %w", err)
