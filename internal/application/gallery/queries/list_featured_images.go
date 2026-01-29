@@ -88,15 +88,32 @@ func (h *ListFeaturedImagesHandler) Handle(ctx context.Context, query ListFeatur
 		return nil, fmt.Errorf("list active featured picks: %w", err)
 	}
 
-	// Fetch full image details for each pick
+	// Collect all image IDs
+	imageIDs := make([]gallery.ImageID, len(picks))
+	for i, pick := range picks {
+		imageIDs[i] = pick.ImageID()
+	}
+
+	// Fetch all images in one batch
+	images, err := h.images.FindByIDs(ctx, imageIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch featured images: %w", err)
+	}
+
+	// Index images by ID for O(1) lookup
+	imageMap := make(map[string]*gallery.Image, len(images))
+	for _, img := range images {
+		imageMap[img.ID().String()] = img
+	}
+
+	// Build DTOs maintaining pick order
 	featuredImages := make([]FeaturedImageDTO, 0, len(picks))
 	for _, pick := range picks {
-		image, err := h.images.FindByID(ctx, pick.ImageID())
-		if err != nil {
+		image, found := imageMap[pick.ImageID().String()]
+		if !found {
 			h.logger.Warn().
-				Err(err).
 				Str("image_id", pick.ImageID().String()).
-				Msg("failed to load featured image, skipping")
+				Msg("featured image not found, skipping")
 			continue
 		}
 

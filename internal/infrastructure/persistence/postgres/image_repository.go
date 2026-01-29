@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
@@ -281,6 +282,36 @@ func (r *ImageRepository) FindByID(ctx context.Context, id gallery.ImageID) (*ga
 	}
 
 	return image, nil
+}
+
+// FindByIDs retrieves multiple images by their IDs.
+func (r *ImageRepository) FindByIDs(ctx context.Context, ids []gallery.ImageID) ([]*gallery.Image, error) {
+	if len(ids) == 0 {
+		return []*gallery.Image{}, nil
+	}
+
+	query := `
+		SELECT id, owner_id, title, description, storage_provider, storage_key,
+		       original_filename, mime_type, file_size, width, height,
+		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
+		       created_at, updated_at
+		FROM images
+		WHERE id = ANY($1) AND deleted_at IS NULL
+	`
+
+	// Convert IDs to string array for PostgreSQL
+	idStrings := make([]string, len(ids))
+	for i, id := range ids {
+		idStrings[i] = id.String()
+	}
+
+	var rows []imageRow
+	if err := r.db.SelectContext(ctx, &rows, query, pq.Array(idStrings)); err != nil {
+		return nil, fmt.Errorf("failed to find images by ids: %w", err)
+	}
+
+	return r.rowsToImages(ctx, rows)
 }
 
 // FindByOwner retrieves all images owned by a user with pagination.
