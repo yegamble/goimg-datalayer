@@ -5,7 +5,7 @@ package local
 import (
 	"bytes"
 	"context"
-	"crypto/md5" //nolint:gosec // G501: MD5 used for ETag generation, not cryptographic security
+	"crypto/md5" // #nosec G501 // MD5 used for ETag generation, not cryptographic security
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -178,7 +178,7 @@ func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
 	}
 
 	fullPath := s.fullPath(key)
-	//nolint:gosec // G304: File path constructed from validated key (validateKey checks for path traversal)
+	// #nosec G304 // File path constructed from validated key (validateKey checks for path traversal)
 	file, err := os.Open(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -302,7 +302,7 @@ func (s *Storage) fullPath(key string) string {
 
 // calculateETag computes the MD5 hash of a file for ETag.
 func (s *Storage) calculateETag(path string) (string, error) {
-	//nolint:gosec // G304: File path from internal method (fullPath), already validated
+	// #nosec G304 // File path from internal method (fullPath), already validated
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("local open for etag: %w", err)
@@ -314,7 +314,7 @@ func (s *Storage) calculateETag(path string) (string, error) {
 		}
 	}()
 
-	//nolint:gosec // G401: MD5 is acceptable for ETag generation (not cryptographic use)
+	// #nosec G401 // MD5 is acceptable for ETag generation (not cryptographic use)
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", fmt.Errorf("local hash: %w", err)

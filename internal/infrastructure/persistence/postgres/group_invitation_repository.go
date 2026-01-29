@@ -35,13 +35,15 @@ const (
 		WHERE id = $1
 	`
 
-	sqlSelectInvitationByToken = ` /* #nosec G101 */
+	// #nosec G101
+	sqlSelectInvitationByToken = `
 		SELECT id, group_id, invited_by, email, user_id, token, expires_at, used_at, created_at
 		FROM group_invitations
 		WHERE token = $1
 	`
 
-	sqlSelectPendingInvitationsByGroup = ` /* #nosec G101 */
+	// #nosec G101
+	sqlSelectPendingInvitationsByGroup = `
 		SELECT id, group_id, invited_by, email, user_id, token, expires_at, used_at, created_at
 		FROM group_invitations
 		WHERE group_id = $1
@@ -50,7 +52,8 @@ const (
 		ORDER BY created_at DESC
 	`
 
-	sqlSelectPendingInvitationsByUser = ` /* #nosec G101 */
+	// #nosec G101
+	sqlSelectPendingInvitationsByUser = `
 		SELECT id, group_id, invited_by, email, user_id, token, expires_at, used_at, created_at
 		FROM group_invitations
 		WHERE user_id = $1
