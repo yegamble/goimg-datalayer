@@ -69,6 +69,11 @@ type ImageRepository interface {
 	// Returns ErrImageNotFound if the image doesn't exist.
 	FindByID(ctx context.Context, id ImageID) (*Image, error)
 
+	// FindByIDs retrieves multiple images by their IDs.
+	// Returns any images found (partial results are allowed).
+	// If no images are found, returns an empty slice and no error.
+	FindByIDs(ctx context.Context, ids []ImageID) ([]*Image, error)
+
 	// FindByOwner retrieves all images owned by a user with pagination.
 	// Returns the images, total count, and any error.
 	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*Image, int64, error)
