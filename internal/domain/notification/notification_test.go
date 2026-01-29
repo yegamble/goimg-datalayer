@@ -22,12 +22,13 @@ func TestNewNotification(t *testing.T) {
 	metadata := map[string]string{"key": "value"}
 
 	t.Run("Success", func(t *testing.T) {
-		n, err := notification.NewNotification(recipientID, notification.NotificationType(notifType), title, body, metadata)
+		t.Parallel()
+		n, err := notification.NewNotification(recipientID, notifType, title, body, metadata)
 		require.NoError(t, err)
 		assert.NotNil(t, n)
 		assert.NotEmpty(t, n.ID())
 		assert.Equal(t, recipientID, n.RecipientID())
-		assert.Equal(t, notification.NotificationType(notifType), n.Type())
+		assert.Equal(t, notifType, n.Type())
 		assert.Equal(t, title, n.Title())
 		assert.Equal(t, body, n.Body())
 		assert.Equal(t, metadata, n.Metadata())
@@ -38,7 +39,8 @@ func TestNewNotification(t *testing.T) {
 	})
 
 	t.Run("Success_NilMetadata", func(t *testing.T) {
-		n, err := notification.NewNotification(recipientID, notification.NotificationType(notifType), title, body, nil)
+		t.Parallel()
+		n, err := notification.NewNotification(recipientID, notifType, title, body, nil)
 		require.NoError(t, err)
 		assert.NotNil(t, n)
 		assert.NotNil(t, n.Metadata()) // Should be initialized to empty map
@@ -46,16 +48,19 @@ func TestNewNotification(t *testing.T) {
 	})
 
 	t.Run("Error_MissingRecipient", func(t *testing.T) {
-		_, err := notification.NewNotification(identity.UserID{}, notification.NotificationType(notifType), title, body, metadata)
+		t.Parallel()
+		_, err := notification.NewNotification(identity.UserID{}, notifType, title, body, metadata)
 		assert.ErrorIs(t, err, notification.ErrRecipientRequired)
 	})
 
 	t.Run("Error_MissingTitle", func(t *testing.T) {
-		_, err := notification.NewNotification(recipientID, notification.NotificationType(notifType), "", body, metadata)
+		t.Parallel()
+		_, err := notification.NewNotification(recipientID, notifType, "", body, metadata)
 		assert.ErrorIs(t, err, notification.ErrTitleRequired)
 	})
 
 	t.Run("Error_InvalidType", func(t *testing.T) {
+		t.Parallel()
 		_, err := notification.NewNotification(recipientID, "invalid_type", title, body, metadata)
 		assert.ErrorIs(t, err, notification.ErrInvalidNotificationType)
 	})
@@ -66,7 +71,7 @@ func TestReconstructNotification(t *testing.T) {
 
 	id := notification.NewNotificationID()
 	recipientID := identity.NewUserID()
-	notifType := notification.NotificationType(shared.NotificationTypeAccountSuspended)
+	notifType := shared.NotificationTypeAccountSuspended
 	title := "Reconstructed"
 	body := "Body"
 	metadata := map[string]string{"foo": "bar"}
@@ -96,7 +101,7 @@ func TestNotification_MarkRead(t *testing.T) {
 	t.Parallel()
 
 	recipientID := identity.NewUserID()
-	n, err := notification.NewNotification(recipientID, notification.NotificationType(shared.NotificationTypeNewFollower), "Title", "Body", nil)
+	n, err := notification.NewNotification(recipientID, shared.NotificationTypeNewFollower, "Title", "Body", nil)
 	require.NoError(t, err)
 
 	// Mark as read
@@ -120,7 +125,7 @@ func TestNotification_GetMetadata(t *testing.T) {
 
 	recipientID := identity.NewUserID()
 	metadata := map[string]string{"key1": "value1"}
-	n, err := notification.NewNotification(recipientID, notification.NotificationType(shared.NotificationTypeNewFollower), "Title", "Body", metadata)
+	n, err := notification.NewNotification(recipientID, shared.NotificationTypeNewFollower, "Title", "Body", metadata)
 	require.NoError(t, err)
 
 	assert.Equal(t, "value1", n.GetMetadata("key1"))
@@ -128,7 +133,7 @@ func TestNotification_GetMetadata(t *testing.T) {
 
 	// Test with nil metadata (should not panic)
 	// Although NewNotification initializes it, we check resilience.
-	n2 := notification.ReconstructNotification(notification.NewNotificationID(), recipientID, notification.NotificationType(shared.NotificationTypeNewFollower), "T", "B", nil, nil, time.Now())
+	n2 := notification.ReconstructNotification(notification.NewNotificationID(), recipientID, shared.NotificationTypeNewFollower, "T", "B", nil, nil, time.Now())
 	assert.Equal(t, "", n2.GetMetadata("key"))
 }
 
@@ -136,7 +141,7 @@ func TestNotification_Validate(t *testing.T) {
 	t.Parallel()
 
 	recipientID := identity.NewUserID()
-	notifType := notification.NotificationType(shared.NotificationTypeNewFollower)
+	notifType := shared.NotificationTypeNewFollower
 
 	tests := []struct {
 		name      string
@@ -181,6 +186,7 @@ func TestNotification_Validate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := tt.n.Validate()
 			if tt.wantErr != nil {
 				assert.Error(t, err)
@@ -196,7 +202,7 @@ func TestNotification_Events(t *testing.T) {
 	t.Parallel()
 
 	recipientID := identity.NewUserID()
-	n, _ := notification.NewNotification(recipientID, notification.NotificationType(shared.NotificationTypeNewFollower), "Title", "Body", nil)
+	n, _ := notification.NewNotification(recipientID, shared.NotificationTypeNewFollower, "Title", "Body", nil)
 
 	assert.Empty(t, n.Events())
 

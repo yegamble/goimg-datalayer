@@ -19,7 +19,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-// Mocks
+// Mocks.
 type MockFollowUserHandler struct {
 	mock.Mock
 }
