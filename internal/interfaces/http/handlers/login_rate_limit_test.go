@@ -102,7 +102,7 @@ func TestLoginRateLimitIntegration(t *testing.T) {
 
 	// First 5 requests should be allowed (but fail with 500 due to nil handler)
 	for i := 0; i < 5; i++ {
-		req := httptest.NewRequest("POST", "/api/v1/auth/login", nil)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
 		req.RemoteAddr = remoteIP
 		w := httptest.NewRecorder()
 
@@ -113,7 +113,7 @@ func TestLoginRateLimitIntegration(t *testing.T) {
 	}
 
 	// 6th request should be BLOCKED with 429
-	req := httptest.NewRequest("POST", "/api/v1/auth/login", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
 	req.RemoteAddr = remoteIP
 	w := httptest.NewRecorder()
 

@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"crypto/sha1" //nolint:gosec // SHA-1 required by HIBP API specification
+	// #nosec G505
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -183,6 +184,7 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 	// Note: SHA-1 is used because HIBP API requires it. This is NOT a security vulnerability
 	// because the hash is used for lookup, not authentication. The k-anonymity model
 	// protects user privacy even if SHA-1 has collision vulnerabilities.
+	// #nosec G401
 	hasher := sha1.New() //nolint:gosec // Required by HIBP API
 	hasher.Write([]byte(password))
 	hashBytes := hasher.Sum(nil)

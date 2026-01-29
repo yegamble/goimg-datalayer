@@ -17,9 +17,11 @@ import (
 const (
 	// refreshTokenKeyPrefix is the Redis key prefix for refresh token metadata.
 	//nolint:gosec // G101: This is a Redis key prefix, not credentials
+	// #nosec G101
 	refreshTokenKeyPrefix = "goimg:refresh:"
 	// tokenFamilyKeyPrefix is the Redis key prefix for token family tracking.
 	//nolint:gosec // G101: This is a Redis key prefix, not credentials
+	// #nosec G101
 	tokenFamilyKeyPrefix = "goimg:token_family:"
 	// refreshTokenLength is the length of the cryptographically secure refresh token in bytes.
 	refreshTokenLength = 32
