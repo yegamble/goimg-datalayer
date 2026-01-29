@@ -39,7 +39,7 @@ const (
 		SELECT id, group_id, invited_by, email, user_id, token, expires_at, used_at, created_at
 		FROM group_invitations
 		WHERE token = $1
-	`
+	` // #nosec G101
 
 	sqlSelectPendingInvitationsByGroup = `
 		SELECT id, group_id, invited_by, email, user_id, token, expires_at, used_at, created_at

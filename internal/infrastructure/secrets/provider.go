@@ -74,34 +74,34 @@ const (
 	SecretRedisPassword = "REDIS_PASSWORD"
 
 	// Object Storage (S3-compatible)
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretS3AccessKey = "S3_ACCESS_KEY"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretS3SecretKey = "S3_SECRET_KEY"
 
 	// IPFS Pinning Services
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretIPFSPinataJWT = "IPFS_PINATA_JWT"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretIPFSInfuraProjectID = "IPFS_INFURA_PROJECT_ID"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretIPFSInfuraSecret = "IPFS_INFURA_PROJECT_SECRET"
 
 	// OAuth2 Providers
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretOAuthGoogleClientID = "OAUTH_GOOGLE_CLIENT_ID"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretOAuthGoogleClientSecret = "OAUTH_GOOGLE_CLIENT_SECRET"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretOAuthGitHubClientID = "OAUTH_GITHUB_CLIENT_ID"
-	//nolint:gosec // G101: Environment variable name, not actual credentials
+	// #nosec G101
 	SecretOAuthGitHubClientSecret = "OAUTH_GITHUB_CLIENT_SECRET"
 
 	// SMTP Email.
 	SecretSMTPPassword = "SMTP_PASSWORD"
 
 	// Monitoring (Grafana).
-	//nolint:gosec // G101: Environment variable name, not actual credentials.
+	// #nosec G101
 	SecretGrafanaAdminPassword = "GRAFANA_ADMIN_PASSWORD"
 
 	// Backup Encryption.

@@ -79,6 +79,7 @@ func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) e
 	dialer := &net.Dialer{Timeout: s.config.Timeout}
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{
 		ServerName: s.config.Host,
+		MinVersion: tls.VersionTLS12,
 	})
 	if err != nil {
 		return fmt.Errorf("tls dial: %w", err)

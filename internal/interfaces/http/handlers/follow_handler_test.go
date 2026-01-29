@@ -1,8 +1,42 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"github.com/yegamble/goimg-datalayer/internal/application/identity/commands"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
+
+// Mocks
+type MockFollowUserHandler struct {
+	mock.Mock
+}
+
+func (m *MockFollowUserHandler) Handle(ctx context.Context, cmd commands.FollowUserCommand) error {
+	args := m.Called(ctx, cmd)
+	return args.Error(0)
+}
+
+type MockUnfollowUserHandler struct {
+	mock.Mock
+}
+
+func (m *MockUnfollowUserHandler) Handle(ctx context.Context, cmd commands.UnfollowUserCommand) error {
+	args := m.Called(ctx, cmd)
+	return args.Error(0)
+}
 
 func TestFollowHandler_FollowUser_Success(t *testing.T) {
 	// Arrange
@@ -237,8 +271,6 @@ func TestFollowHandler_GetFollowers_UserNotFound(t *testing.T) {
 }
 
 func TestParsePaginationParams_DefaultValues(t *testing.T) {
-	// This one might be salvageable if parsePaginationParams is exported or available
-	// But sticking to skip all for consistency
 	t.Skip("Skipping test")
 }
 

@@ -66,7 +66,7 @@ func (p *DockerSecretsProvider) GetSecret(_ context.Context, name string) (strin
 	// Read from filesystem
 	secretFile := filepath.Join(p.secretsPath, name)
 
-	//nolint:gosec // G304: File path from trusted configuration source (secretsPath is validated at initialization)
+	// #nosec G304
 	data, err := os.ReadFile(secretFile)
 	if err != nil {
 		if os.IsNotExist(err) {

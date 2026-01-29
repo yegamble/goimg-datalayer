@@ -74,7 +74,7 @@ const (
 
 	sqlExistsGroupWithSlug = `
 		SELECT EXISTS(SELECT 1 FROM groups WHERE slug = $1 AND deleted_at IS NULL)
-	`
+	` // #nosec G101
 )
 
 // groupRow represents a group row in the database.

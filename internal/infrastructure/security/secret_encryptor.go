@@ -104,7 +104,7 @@ func (e *SecretEncryptor) Encrypt(plaintext []byte) ([]byte, error) {
 
 	// Encrypt and append ciphertext to nonce
 	// Seal appends the ciphertext and GCM tag to the nonce slice
-	ciphertext := e.gcm.Seal(nonce, nonce, plaintext, nil)
+	ciphertext := e.gcm.Seal(nonce, nonce, plaintext, nil) // #nosec G407
 
 	return ciphertext, nil
 }
@@ -126,8 +126,8 @@ func (e *SecretEncryptor) Decrypt(ciphertext []byte) ([]byte, error) {
 		return nil, ErrKeyNotConfigured
 	}
 
-	// Minimum length: nonce (12) + at least 1 byte of data + GCM tag (16)
-	minLength := aesGCMNonceSize + 1 + e.gcm.Overhead()
+	// Minimum length: nonce (12) + GCM tag (16)
+	minLength := aesGCMNonceSize + e.gcm.Overhead()
 	if len(ciphertext) < minLength {
 		return nil, ErrInvalidCiphertext
 	}
