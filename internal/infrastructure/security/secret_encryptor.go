@@ -104,7 +104,7 @@ func (e *SecretEncryptor) Encrypt(plaintext []byte) ([]byte, error) {
 
 	// Encrypt and append ciphertext to nonce
 	// Seal appends the ciphertext and GCM tag to the nonce slice
-	//nolint:gosec // G407: The nonce is randomly generated above using crypto/rand
+	// #nosec G407 // The nonce is randomly generated above using crypto/rand
 	ciphertext := e.gcm.Seal(nonce, nonce, plaintext, nil)
 
 	return ciphertext, nil

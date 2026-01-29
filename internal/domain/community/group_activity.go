@@ -271,7 +271,8 @@ func NewMemberRoleChangedActivity(
 
 	// Determine if this is a promotion or demotion
 	activityType := ActivityTypeMemberPromoted
-	if newRole.String() < oldRole.String() {
+	// Roles are integers where higher value = higher permission
+	if newRole < oldRole {
 		activityType = ActivityTypeMemberDemoted
 	}
 
