@@ -39,10 +39,11 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 			Return(imageIDs, nil).Once()
 		mockLikeRepo.On("CountLikedImagesByUser", mock.Anything, userID).
 			Return(int64(2), nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, image1.ID()).
-			Return(image1, nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, image2.ID()).
-			Return(image2, nil).Once()
+
+		// Use mock.MatchedBy to match slice of IDs irrespective of how it was constructed
+		mockImageRepo.On("FindByIDs", mock.Anything, mock.MatchedBy(func(ids []gallery.ImageID) bool {
+			return len(ids) == 2 && ids[0].Equals(image1.ID()) && ids[1].Equals(image2.ID())
+		})).Return([]*gallery.Image{image1, image2}, nil).Once()
 
 		query := queries.GetUserLikedImagesQuery{
 			UserID:  testhelpers.ValidUserID,
@@ -94,7 +95,7 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		assert.Empty(t, result.Images)
 		assert.Equal(t, int64(0), result.Total)
 		mockLikeRepo.AssertExpectations(t)
-		mockImageRepo.AssertNotCalled(t, "FindByID")
+		mockImageRepo.AssertNotCalled(t, "FindByIDs")
 	})
 
 	t.Run("pagination - multiple pages", func(t *testing.T) {
@@ -122,10 +123,9 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		mockLikeRepo.On("CountLikedImagesByUser", mock.Anything, userID).
 			Return(int64(35), nil).Once()
 
-		for i := 0; i < 10; i++ {
-			mockImageRepo.On("FindByID", mock.Anything, images[i].ID()).
-				Return(images[i], nil).Once()
-		}
+		mockImageRepo.On("FindByIDs", mock.Anything, mock.MatchedBy(func(ids []gallery.ImageID) bool {
+			return len(ids) == 10
+		})).Return(images, nil).Once()
 
 		query := queries.GetUserLikedImagesQuery{
 			UserID:  testhelpers.ValidUserID,
@@ -168,12 +168,10 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 			Return(imageIDs, nil).Once()
 		mockLikeRepo.On("CountLikedImagesByUser", mock.Anything, userID).
 			Return(int64(3), nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, image1.ID()).
-			Return(image1, nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, deletedImageID).
-			Return(nil, gallery.ErrImageNotFound).Once() // Deleted image
-		mockImageRepo.On("FindByID", mock.Anything, image3.ID()).
-			Return(image3, nil).Once()
+
+		// FindByIDs returns only existing images (image1 and image3)
+		mockImageRepo.On("FindByIDs", mock.Anything, mock.Anything).
+			Return([]*gallery.Image{image1, image3}, nil).Once()
 
 		query := queries.GetUserLikedImagesQuery{
 			UserID:  testhelpers.ValidUserID,
@@ -297,8 +295,10 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 			Return(imageIDs, nil).Once()
 		mockLikeRepo.On("CountLikedImagesByUser", mock.Anything, userID).
 			Return(int64(1), nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, image.ID()).
-			Return(image, nil).Once()
+
+		mockImageRepo.On("FindByIDs", mock.Anything, mock.MatchedBy(func(ids []gallery.ImageID) bool {
+			return len(ids) == 1 && ids[0].Equals(image.ID())
+		})).Return([]*gallery.Image{image}, nil).Once()
 
 		query := queries.GetUserLikedImagesQuery{
 			UserID:  testhelpers.ValidUserID,
@@ -318,7 +318,7 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		mockImageRepo.AssertExpectations(t)
 	})
 
-	t.Run("handles image repository error gracefully", func(t *testing.T) {
+	t.Run("returns error when image repository fails", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -328,24 +328,17 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 
 		userID := testhelpers.ValidUserIDParsed()
 		image1 := testhelpers.ValidImage(t)
-		failedImageID := testhelpers.ValidImageIDParsed()
-		image3 := testhelpers.ValidImage(t)
 		imageID1, _ := uuid.Parse(image1.ID().String())
-		failedID, _ := uuid.Parse(failedImageID.String())
-		imageID3, _ := uuid.Parse(image3.ID().String())
-		imageIDs := []uuid.UUID{imageID1, failedID, imageID3}
+		imageIDs := []uuid.UUID{imageID1}
 
 		pagination, _ := shared.NewPagination(1, 20)
 		mockLikeRepo.On("GetLikedImageIDs", mock.Anything, userID, pagination).
 			Return(imageIDs, nil).Once()
 		mockLikeRepo.On("CountLikedImagesByUser", mock.Anything, userID).
-			Return(int64(3), nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, image1.ID()).
-			Return(image1, nil).Once()
-		mockImageRepo.On("FindByID", mock.Anything, failedImageID).
+			Return(int64(1), nil).Once()
+
+		mockImageRepo.On("FindByIDs", mock.Anything, mock.Anything).
 			Return(nil, fmt.Errorf("database error")).Once() // Repository error
-		mockImageRepo.On("FindByID", mock.Anything, image3.ID()).
-			Return(image3, nil).Once()
 
 		query := queries.GetUserLikedImagesQuery{
 			UserID:  testhelpers.ValidUserID,
@@ -357,9 +350,9 @@ func TestGetUserLikedImagesHandler_Handle(t *testing.T) {
 		result, err := handler.Handle(context.Background(), query)
 
 		// Assert
-		require.NoError(t, err)
-		require.NotNil(t, result)
-		assert.Len(t, result.Images, 2) // Only 2 images (failed one skipped)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "find images by ids")
+		assert.Nil(t, result)
 		mockLikeRepo.AssertExpectations(t)
 		mockImageRepo.AssertExpectations(t)
 	})

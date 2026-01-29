@@ -82,21 +82,43 @@ func (h *GetUserLikedImagesHandler) Handle(
 	}
 
 	// 5. Load full image entities
-	images := make([]*gallery.Image, 0, len(imageIDs))
+	// Optimized: Use FindByIDs for batch fetching to avoid N+1 query problem
+	idsToFetch := make([]gallery.ImageID, 0, len(imageIDs))
 	for _, id := range imageIDs {
 		imageID, err := gallery.ParseImageID(id.String())
 		if err != nil {
 			// Skip invalid IDs (shouldn't happen in practice)
 			continue
 		}
+		idsToFetch = append(idsToFetch, imageID)
+	}
 
-		image, err := h.images.FindByID(ctx, imageID)
+	var foundImages []*gallery.Image
+	if len(idsToFetch) > 0 {
+		var err error
+		foundImages, err = h.images.FindByIDs(ctx, idsToFetch)
 		if err != nil {
-			// Skip if image not found (may have been deleted)
+			return nil, fmt.Errorf("find images by ids: %w", err)
+		}
+	}
+
+	// Index images by ID for O(1) lookup
+	imageMap := make(map[gallery.ImageID]*gallery.Image, len(foundImages))
+	for _, img := range foundImages {
+		imageMap[img.ID()] = img
+	}
+
+	// Reconstruct ordered list
+	images := make([]*gallery.Image, 0, len(idsToFetch))
+	for _, id := range imageIDs {
+		imageID, err := gallery.ParseImageID(id.String())
+		if err != nil {
 			continue
 		}
 
-		images = append(images, image)
+		if image, ok := imageMap[imageID]; ok {
+			images = append(images, image)
+		}
 	}
 
 	// 6. Add total count to pagination
