@@ -5,8 +5,8 @@ package local
 import (
 	"bytes"
 	"context"
-	"crypto/md5" //nolint:gosec // G501: MD5 used for ETag generation, not cryptographic security
 	// #nosec G501
+	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -317,7 +317,6 @@ func (s *Storage) calculateETag(path string) (string, error) {
 		}
 	}()
 
-	//nolint:gosec // G401: MD5 is acceptable for ETag generation (not cryptographic use)
 	// #nosec G401
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
