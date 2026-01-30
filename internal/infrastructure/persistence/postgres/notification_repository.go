@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/notification"
@@ -52,6 +53,12 @@ const (
 		UPDATE notifications
 		SET read_at = $1
 		WHERE id = $2 AND read_at IS NULL
+	`
+
+	sqlMarkManyNotificationsAsRead = `
+		UPDATE notifications
+		SET read_at = $1
+		WHERE recipient_id = $2 AND id = ANY($3) AND read_at IS NULL
 	`
 
 	sqlMarkAllNotificationsRead = `
@@ -284,6 +291,26 @@ func (r *NotificationRepository) MarkAsRead(ctx context.Context, id notification
 	_, err := r.db.ExecContext(ctx, sqlMarkNotificationAsRead, now, id.String())
 	if err != nil {
 		return fmt.Errorf("mark notification as read: %w", err)
+	}
+
+	return nil
+}
+
+// MarkManyAsRead marks multiple notifications as read for a specific user.
+func (r *NotificationRepository) MarkManyAsRead(ctx context.Context, ids []notification.NotificationID, recipientID identity.UserID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	idStrings := make([]string, len(ids))
+	for i, id := range ids {
+		idStrings[i] = id.String()
+	}
+
+	now := time.Now().UTC()
+	_, err := r.db.ExecContext(ctx, sqlMarkManyNotificationsAsRead, now, recipientID.String(), pq.Array(idStrings))
+	if err != nil {
+		return fmt.Errorf("mark many notifications as read: %w", err)
 	}
 
 	return nil

@@ -77,26 +77,17 @@ func (h *MarkNotificationsReadHandler) Handle(
 		return fmt.Errorf("no notification IDs provided")
 	}
 
+	ids := make([]notification.NotificationID, 0, len(cmd.NotificationIDs))
 	for _, idStr := range cmd.NotificationIDs {
 		notifID, err := notification.ParseNotificationID(idStr)
 		if err != nil {
 			return fmt.Errorf("invalid notification id %s: %w", idStr, err)
 		}
+		ids = append(ids, notifID)
+	}
 
-		// Verify notification belongs to user before marking as read
-		notif, err := h.notifications.FindByID(ctx, notifID)
-		if err != nil {
-			return fmt.Errorf("find notification %s: %w", idStr, err)
-		}
-
-		if !notif.RecipientID().Equals(userID) {
-			return fmt.Errorf("notification %s does not belong to user %s", idStr, userID.String())
-		}
-
-		// Mark as read
-		if err := h.notifications.MarkAsRead(ctx, notifID); err != nil {
-			return fmt.Errorf("mark notification %s as read: %w", idStr, err)
-		}
+	if err := h.notifications.MarkManyAsRead(ctx, ids, userID); err != nil {
+		return fmt.Errorf("mark notifications as read: %w", err)
 	}
 
 	h.logger.Info().
