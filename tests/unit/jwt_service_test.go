@@ -317,7 +317,6 @@ func TestJWTService_WrongIssuer(t *testing.T) {
 
 	privateKeyPath, publicKeyPath := generateTestKeys(t, 4096)
 
-	// TODO: Create JWT services with different issuers
 	cfg1 := jwt.Config{
 		PrivateKeyPath: privateKeyPath,
 		PublicKeyPath:  publicKeyPath,
