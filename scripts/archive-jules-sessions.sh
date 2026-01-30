@@ -1,6 +1,18 @@
 #!/bin/bash
 set -e
 
+# Function to display usage
+usage() {
+    echo "Usage: $0"
+    echo "Archives (deletes) local git branches starting with 'jules-' that have been merged into main."
+    echo "Also suggests commands to delete corresponding remote branches."
+    exit 1
+}
+
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    usage
+fi
+
 # Configuration
 BASE_BRANCH="origin/main"
 PATTERN="jules-*"
