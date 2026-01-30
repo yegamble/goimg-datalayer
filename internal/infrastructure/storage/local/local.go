@@ -5,7 +5,7 @@ package local
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
+	"crypto/md5" // #nosec G501 // MD5 used for ETag generation, not cryptographic security
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -300,7 +300,7 @@ func (s *Storage) fullPath(key string) string {
 	return filepath.Join(s.basePath, key)
 }
 
-// calculateETag computes the SHA-256 hash of a file for ETag.
+// calculateETag computes the MD5 hash of a file for ETag.
 func (s *Storage) calculateETag(path string) (string, error) {
 	// #nosec G304 // File path from internal method (fullPath), already validated
 	file, err := os.Open(path)
@@ -314,7 +314,8 @@ func (s *Storage) calculateETag(path string) (string, error) {
 		}
 	}()
 
-	hash := sha256.New()
+	// #nosec G401 // MD5 is acceptable for ETag generation (not cryptographic use)
+	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", fmt.Errorf("local hash: %w", err)
 	}
