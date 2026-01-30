@@ -14,6 +14,7 @@ echo "Checking for local branches matching '$PATTERN' merged into $BASE_BRANCH..
 
 # Get list of local branches merged into the base branch
 # We use grep to filter for the pattern because 'git branch --list' matching is sometimes limited with --merged
+# Regex explanation: ^$PATTERN matches branches starting with 'jules-'
 MERGED_LOCAL=$(git branch --merged "$BASE_BRANCH" --format "%(refname:short)" | grep "^$PATTERN" || true)
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
