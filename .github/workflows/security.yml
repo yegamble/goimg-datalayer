@@ -270,9 +270,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Gitleaks
-        run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz | tar xz
-          sudo mv gitleaks /usr/local/bin/
+        run: go install github.com/zricethezav/gitleaks/v8@v8.30.0
 
       - name: Run Gitleaks secret scanner
         id: gitleaks
@@ -408,7 +406,7 @@ jobs:
       - name: Scan SBOM with Grype
         run: |
           # Install Grype (pinned)
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.105.0
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/v0.105.0/install.sh | sh -s -- -b /usr/local/bin v0.105.0
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### SBOM Vulnerability Scan (Grype)" >> $GITHUB_STEP_SUMMARY
