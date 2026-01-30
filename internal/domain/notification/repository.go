@@ -31,6 +31,10 @@ type NotificationRepository interface {
 	// MarkAsRead marks a specific notification as read.
 	MarkAsRead(ctx context.Context, id NotificationID) error
 
+	// MarkManyAsRead marks multiple notifications as read for a specific user.
+	// Only notifications belonging to the recipient will be updated.
+	MarkManyAsRead(ctx context.Context, ids []NotificationID, recipientID identity.UserID) error
+
 	// MarkAllRead marks all notifications for a user as read.
 	MarkAllRead(ctx context.Context, recipientID identity.UserID) error
 

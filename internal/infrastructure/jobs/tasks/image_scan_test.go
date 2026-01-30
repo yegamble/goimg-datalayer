@@ -197,6 +197,9 @@ func (m *MockNotificationRepository) Save(ctx context.Context, notification *dom
 func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, id domainnotification.NotificationID) error {
 	return nil
 }
+func (m *MockNotificationRepository) MarkManyAsRead(ctx context.Context, ids []domainnotification.NotificationID, recipientID identity.UserID) error {
+	return nil
+}
 func (m *MockNotificationRepository) MarkAllRead(ctx context.Context, recipientID identity.UserID) error {
 	return nil
 }
