@@ -38,10 +38,18 @@ func (r *StubLikeRepository) CountLikedImagesByUser(ctx context.Context, userID 
 }
 
 // Other methods are no-ops
-func (r *StubLikeRepository) Like(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) error { return nil }
-func (r *StubLikeRepository) Unlike(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) error { return nil }
-func (r *StubLikeRepository) HasLiked(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) (bool, error) { return false, nil }
-func (r *StubLikeRepository) GetLikeCount(ctx context.Context, imageID gallery.ImageID) (int64, error) { return 0, nil }
+func (r *StubLikeRepository) Like(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) error {
+	return nil
+}
+func (r *StubLikeRepository) Unlike(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) error {
+	return nil
+}
+func (r *StubLikeRepository) HasLiked(ctx context.Context, userID identity.UserID, imageID gallery.ImageID) (bool, error) {
+	return false, nil
+}
+func (r *StubLikeRepository) GetLikeCount(ctx context.Context, imageID gallery.ImageID) (int64, error) {
+	return 0, nil
+}
 
 func BenchmarkGetUserLikedImagesHandler(b *testing.B) {
 	// Simulate 20 liked images per page

@@ -70,7 +70,9 @@ func (r *StubImageRepository) Search(ctx context.Context, params gallery.SearchP
 }
 func (r *StubImageRepository) Save(ctx context.Context, image *gallery.Image) error { return nil }
 func (r *StubImageRepository) Delete(ctx context.Context, id gallery.ImageID) error { return nil }
-func (r *StubImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) { return true, nil }
+func (r *StubImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) {
+	return true, nil
+}
 
 // StubFeaturedPickRepository for benchmarking.
 type StubFeaturedPickRepository struct {
@@ -101,9 +103,15 @@ func (r *StubFeaturedPickRepository) FindByImageID(ctx context.Context, imageID 
 func (r *StubFeaturedPickRepository) ListAll(ctx context.Context, includeExpired bool, offset, limit int) ([]*gallery.FeaturedPick, int, error) {
 	return nil, 0, nil
 }
-func (r *StubFeaturedPickRepository) Save(ctx context.Context, pick *gallery.FeaturedPick) error { return nil }
-func (r *StubFeaturedPickRepository) Delete(ctx context.Context, id gallery.FeaturedPickID) error { return nil }
-func (r *StubFeaturedPickRepository) ExistsByImageID(ctx context.Context, imageID gallery.ImageID) (bool, error) { return true, nil }
+func (r *StubFeaturedPickRepository) Save(ctx context.Context, pick *gallery.FeaturedPick) error {
+	return nil
+}
+func (r *StubFeaturedPickRepository) Delete(ctx context.Context, id gallery.FeaturedPickID) error {
+	return nil
+}
+func (r *StubFeaturedPickRepository) ExistsByImageID(ctx context.Context, imageID gallery.ImageID) (bool, error) {
+	return true, nil
+}
 
 func createMetadata() gallery.ImageMetadata {
 	m, _ := gallery.NewImageMetadata("Title", "Desc", "orig.jpg", "image/jpeg", 100, 100, 1024, "key", "local")
