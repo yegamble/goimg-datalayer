@@ -18,11 +18,17 @@ import (
 
 // TestTokenBlacklist_Add tests adding a token to the blacklist.
 func TestTokenBlacklist_Add(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange
 	tokenJTI := uuid.New().String()
@@ -30,25 +36,31 @@ func TestTokenBlacklist_Add(t *testing.T) {
 	_ = expiresAt
 
 	// Act
-	err := blacklist.Add(ctx, tokenJTI, expiresAt)
+	err = blacklist.Add(ctx, tokenJTI, expiresAt)
 
 	// Assert
 	require.NoError(t, err)
 
 	// Verify token was added to Redis
 	blacklistKey := "goimg:blacklist:" + tokenJTI
-	exists, err := suite.RedisClient.Exists(ctx, blacklistKey).Result()
+	exists, err := redisC.Client.Exists(ctx, blacklistKey).Result()
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), exists)
 }
 
 // TestTokenBlacklist_IsBlacklisted tests checking if a token is blacklisted.
 func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange - add token to blacklist
 	blacklistedJTI := uuid.New().String()
@@ -56,7 +68,7 @@ func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
 	_ = notBlacklistedJTI
 
 	blacklistKey := "goimg:blacklist:" + blacklistedJTI
-	err := suite.RedisClient.Set(ctx, blacklistKey, "1", 15*time.Minute).Err()
+	err = redisC.Client.Set(ctx, blacklistKey, "1", 15*time.Minute).Err()
 	require.NoError(t, err)
 
 	// Act & Assert - check blacklisted token
@@ -72,22 +84,28 @@ func TestTokenBlacklist_IsBlacklisted(t *testing.T) {
 
 // TestTokenBlacklist_Expiry tests that blacklisted tokens expire correctly.
 func TestTokenBlacklist_Expiry(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange - add token with short TTL
 	tokenJTI := uuid.New().String()
 	blacklistKey := "goimg:blacklist:" + tokenJTI
 
 	// Add with 1 second TTL
-	err := blacklist.Add(ctx, tokenJTI, time.Now().Add(1*time.Second))
+	err = blacklist.Add(ctx, tokenJTI, time.Now().Add(1*time.Second))
 	require.NoError(t, err)
 
 	// Verify it exists initially
-	exists, err := suite.RedisClient.Exists(ctx, blacklistKey).Result()
+	exists, err := redisC.Client.Exists(ctx, blacklistKey).Result()
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), exists)
 
@@ -95,18 +113,24 @@ func TestTokenBlacklist_Expiry(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Assert - token should be expired (no longer blacklisted)
-	exists, err = suite.RedisClient.Exists(ctx, blacklistKey).Result()
+	exists, err = redisC.Client.Exists(ctx, blacklistKey).Result()
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), exists, "blacklisted token should have expired")
 }
 
 // TestTokenBlacklist_MultipleTokens tests blacklisting multiple tokens.
 func TestTokenBlacklist_MultipleTokens(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange - create multiple tokens
 	token1JTI := uuid.New().String()
@@ -117,7 +141,7 @@ func TestTokenBlacklist_MultipleTokens(t *testing.T) {
 	_ = expiresAt
 
 	// Act - blacklist all tokens
-	err := blacklist.Add(ctx, token1JTI, expiresAt)
+	err = blacklist.Add(ctx, token1JTI, expiresAt)
 	require.NoError(t, err)
 	err = blacklist.Add(ctx, token2JTI, expiresAt)
 	require.NoError(t, err)
@@ -130,7 +154,7 @@ func TestTokenBlacklist_MultipleTokens(t *testing.T) {
 	key3 := "goimg:blacklist:" + token3JTI
 
 	for _, key := range []string{key1, key2, key3} {
-		exists, err := suite.RedisClient.Exists(ctx, key).Result()
+		exists, err := redisC.Client.Exists(ctx, key).Result()
 		require.NoError(t, err)
 		assert.Equal(t, int64(1), exists)
 	}
@@ -139,8 +163,14 @@ func TestTokenBlacklist_MultipleTokens(t *testing.T) {
 // TestTokenBlacklist_RemoveExpiredTokens tests cleanup of expired blacklist entries.
 // This would be used by a background job to clean up expired entries.
 func TestTokenBlacklist_RemoveExpiredTokens(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
+
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
 
 	// Arrange - add tokens with different TTLs
 	expiredTokenJTI := uuid.New().String()
@@ -150,36 +180,42 @@ func TestTokenBlacklist_RemoveExpiredTokens(t *testing.T) {
 	validKey := "goimg:blacklist:" + validTokenJTI
 
 	// Add expired token (1 second TTL)
-	err := suite.RedisClient.Set(ctx, expiredKey, "1", 1*time.Second).Err()
+	err = redisC.Client.Set(ctx, expiredKey, "1", 1*time.Second).Err()
 	require.NoError(t, err)
 
 	// Add valid token (10 minute TTL)
-	err = suite.RedisClient.Set(ctx, validKey, "1", 10*time.Minute).Err()
+	err = redisC.Client.Set(ctx, validKey, "1", 10*time.Minute).Err()
 	require.NoError(t, err)
 
 	// Wait for expired token to expire
 	time.Sleep(2 * time.Second)
 
 	// Act - check expired token is gone
-	expiredExists, err := suite.RedisClient.Exists(ctx, expiredKey).Result()
+	expiredExists, err := redisC.Client.Exists(ctx, expiredKey).Result()
 	require.NoError(t, err)
 
 	// Assert - expired token should be auto-removed by Redis
 	assert.Equal(t, int64(0), expiredExists)
 
 	// Valid token should still exist
-	validExists, err := suite.RedisClient.Exists(ctx, validKey).Result()
+	validExists, err := redisC.Client.Exists(ctx, validKey).Result()
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), validExists)
 }
 
 // TestTokenBlacklist_RaceCondition tests concurrent blacklist operations.
 func TestTokenBlacklist_RaceCondition(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange
 	tokenJTI := uuid.New().String()
@@ -205,18 +241,24 @@ func TestTokenBlacklist_RaceCondition(t *testing.T) {
 
 	// Assert - token should be blacklisted (only once)
 	blacklistKey := "goimg:blacklist:" + tokenJTI
-	exists, err := suite.RedisClient.Exists(ctx, blacklistKey).Result()
+	exists, err := redisC.Client.Exists(ctx, blacklistKey).Result()
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), exists)
 }
 
 // TestTokenBlacklist_InvalidJTI tests handling invalid JTI format.
 func TestTokenBlacklist_InvalidJTI(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	tests := []struct {
 		name      string
@@ -241,7 +283,7 @@ func TestTokenBlacklist_InvalidJTI(t *testing.T) {
 
 				// Verify in Redis
 				key := "goimg:blacklist:" + tt.jti
-				exists, err := suite.RedisClient.Exists(ctx, key).Result()
+				exists, err := redisC.Client.Exists(ctx, key).Result()
 				require.NoError(t, err)
 				assert.Equal(t, int64(1), exists)
 			}
@@ -251,19 +293,25 @@ func TestTokenBlacklist_InvalidJTI(t *testing.T) {
 
 // TestTokenBlacklist_GetTTL tests retrieving TTL for a blacklisted token.
 func TestTokenBlacklist_GetTTL(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
+
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
 
 	// Arrange
 	tokenJTI := uuid.New().String()
 	blacklistKey := "goimg:blacklist:" + tokenJTI
 	ttl := 10 * time.Minute
 
-	err := suite.RedisClient.Set(ctx, blacklistKey, "1", ttl).Err()
+	err = redisC.Client.Set(ctx, blacklistKey, "1", ttl).Err()
 	require.NoError(t, err)
 
 	// Act
-	remainingTTL, err := suite.RedisClient.TTL(ctx, blacklistKey).Result()
+	remainingTTL, err := redisC.Client.TTL(ctx, blacklistKey).Result()
 
 	// Assert
 	require.NoError(t, err)
@@ -273,18 +321,24 @@ func TestTokenBlacklist_GetTTL(t *testing.T) {
 
 // TestTokenBlacklist_Remove tests explicitly removing a token from the blacklist.
 func TestTokenBlacklist_Remove(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange
 	tokenJTI := uuid.New().String()
 	expiresAt := time.Now().Add(15 * time.Minute)
 
 	// Add token to blacklist
-	err := blacklist.Add(ctx, tokenJTI, expiresAt)
+	err = blacklist.Add(ctx, tokenJTI, expiresAt)
 	require.NoError(t, err)
 
 	// Verify it exists
@@ -304,14 +358,20 @@ func TestTokenBlacklist_Remove(t *testing.T) {
 
 // TestTokenBlacklist_Count tests counting blacklisted tokens.
 func TestTokenBlacklist_Count(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange - Ensure blacklist is clean
-	err := blacklist.Clear(ctx)
+	err = blacklist.Clear(ctx)
 	require.NoError(t, err)
 
 	// Add a known number of tokens
@@ -332,11 +392,17 @@ func TestTokenBlacklist_Count(t *testing.T) {
 
 // TestTokenBlacklist_Clear tests clearing the entire blacklist.
 func TestTokenBlacklist_Clear(t *testing.T) {
-	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
 
+	// Start Redis container directly
+	redisC, err := containers.NewRedisContainer(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = redisC.Terminate(ctx)
+	})
+
 	// Create token blacklist instance
-	blacklist := jwt.NewTokenBlacklist(suite.RedisClient)
+	blacklist := jwt.NewTokenBlacklist(redisC.Client)
 
 	// Arrange - Add some tokens
 	for i := 0; i < 3; i++ {
