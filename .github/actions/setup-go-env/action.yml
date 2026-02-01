@@ -1,0 +1,35 @@
+name: 'Setup Go Environment'
+description: 'Setup Go and install dependencies like libvips'
+inputs:
+  go-version:
+    description: 'Go version to install'
+    required: true
+  cache:
+    description: 'Enable Go caching'
+    required: false
+    default: 'true'
+  install-libvips:
+    description: 'Install libvips dependency'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: ${{ inputs.cache }}
+
+    - name: Install libvips (Linux)
+      if: runner.os == 'Linux' && inputs.install-libvips == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvips-dev
+
+    - name: Install libvips (macOS)
+      if: runner.os == 'macOS' && inputs.install-libvips == 'true'
+      shell: bash
+      run: brew install vips
