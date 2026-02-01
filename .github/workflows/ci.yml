@@ -398,7 +398,7 @@ jobs:
         run: |
           # Install gocovmerge to combine coverage files (pinned to specific commit)
           go install github.com/wadey/gocovmerge@b5bfa59ec0adc420475f97f89b58045c721d761c
-          gocovmerge coverage-unit.out coverage-integration.out coverage-domain.out > coverage-merged.out
+          gocovmerge coverage-unit.out coverage-integration.out domain-coverage.out > coverage-merged.out
 
       - name: Calculate coverage percentage
         id: coverage
@@ -569,10 +569,11 @@ jobs:
           # Build flags for size optimization and reproducible builds
           LDFLAGS="-s -w -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}"
 
+          mkdir -p bin
           for dir in cmd/*; do
             if [ -d "$dir" ]; then
               echo "Building $dir..."
-              go build -v -trimpath -ldflags="${LDFLAGS}" "./$dir"
+              go build -v -trimpath -ldflags="${LDFLAGS}" -o "bin/$(basename "$dir")" "./$dir"
             fi
           done
 
@@ -580,17 +581,17 @@ jobs:
           echo "Building goose..."
           GOOSE_VER=$(go list -m -f '{{.Version}}' github.com/pressly/goose/v3)
           go install github.com/pressly/goose/v3/cmd/goose@$GOOSE_VER
-          cp $(go env GOPATH)/bin/goose .
+          cp $(go env GOPATH)/bin/goose bin/goose
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: binaries-${{ matrix.os }}
           path: |
-            api
-            worker
-            migrate
-            goose
+            bin/api
+            bin/worker
+            bin/migrate
+            bin/goose
           retention-days: 1
 
       - name: Verify no uncommitted changes
@@ -703,8 +704,8 @@ jobs:
       - name: Setup binaries
         if: steps.check_e2e.outputs.exists == 'true'
         run: |
-          chmod +x api worker migrate goose
-          echo "$PWD" >> $GITHUB_PATH
+          chmod +x bin/api bin/worker bin/migrate bin/goose
+          echo "$PWD/bin" >> $GITHUB_PATH
 
       - name: Setup database and run migrations
         if: steps.check_e2e.outputs.exists == 'true'
@@ -715,8 +716,8 @@ jobs:
       - name: Start API server
         if: steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
         run: |
-          if [ -f "api" ]; then
-            ./api &
+          if [ -f "bin/api" ]; then
+            ./bin/api &
             echo "API_PID=$!" >> $GITHUB_ENV
             # Wait for server to be ready
             for i in {1..30}; do
