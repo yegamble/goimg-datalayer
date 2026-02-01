@@ -370,6 +370,9 @@ jobs:
     needs: [test-unit, test-integration, domain-tests]
     timeout-minutes: 10
 
+    permissions:
+      pull-requests: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
