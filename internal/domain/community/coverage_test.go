@@ -72,8 +72,8 @@ func TestGroupAlbumReconstruction(t *testing.T) {
 		creatorID,
 		title,
 		"Description",
-		nil, // cover image
-		5, // image count
+		nil,  // cover image
+		5,    // image count
 		true, // is public
 		now,
 		now,
@@ -108,7 +108,7 @@ func TestGroupImageReconstruction(t *testing.T) {
 		sharerID,
 		community.GroupImageStatusApproved,
 		&reviewerID,
-		now, // shared at
+		now,  // shared at
 		&now, // reviewed at
 	)
 
