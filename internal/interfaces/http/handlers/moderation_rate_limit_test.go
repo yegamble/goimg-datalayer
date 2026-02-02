@@ -215,7 +215,7 @@ func TestModerationRateLimitIntegration(t *testing.T) {
 	router := handlers.NewRouter(
 		nil, nil, imageHandler, albumHandler, nil, nil, healthHandler, nil, nil, nil, nil, nil, nil,
 		moderationHandler,
-		nil, nil, nil, nil, nil, nil, nil, nil, // other handlers
+		nil, nil, nil, nil, nil, nil, nil, nil, nil, // other handlers
 		metrics,
 		mwConfig,
 		false, // isProd

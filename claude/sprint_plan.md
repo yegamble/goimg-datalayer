@@ -117,7 +117,7 @@ This sprint plan is informed by:
   - Gallery Context: Image (with variants), Album, Tag, Comment, Like (93-100% coverage)
   - Moderation Context: Report, Review, Ban
   - Shared Kernel: Pagination, Timestamps, Events, Errors
-- OpenAPI 3.1 specification (2,341 lines) covering all MVP endpoints
+- OpenAPI 3.0.3 specification (2,341 lines) covering all MVP endpoints
 - CI/CD pipeline with GitHub Actions (Sprint 8 fixes applied):
   - Linting (golangci-lint v2.6.2)
   - Unit and integration tests
