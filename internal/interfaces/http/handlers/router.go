@@ -109,11 +109,13 @@ func NewRouter(
 	r.Use(chimiddleware.Timeout(contextTimeout * time.Second))
 
 	// Health check endpoints (no authentication required)
-	// Liveness probe - checks if server is running
-	r.Get("/health", healthHandler.Liveness)
+	if healthHandler != nil {
+		// Liveness probe - checks if server is running
+		r.Get("/health", healthHandler.Liveness)
 
-	// Readiness probe - checks if all dependencies (DB, Redis) are healthy
-	r.Get("/health/ready", healthHandler.Readiness)
+		// Readiness probe - checks if all dependencies (DB, Redis) are healthy
+		r.Get("/health/ready", healthHandler.Readiness)
+	}
 
 	// Prometheus metrics endpoint (no authentication required)
 	// In production, consider adding basic auth or IP restriction
@@ -130,21 +132,23 @@ func NewRouter(
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public auth routes (no authentication required)
 		// Most auth routes are public, but guest session creation is rate-limited
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", authHandler.Register)
-			r.Post("/login", authHandler.Login)
-			r.Post("/refresh", authHandler.Refresh)
-			r.Post("/logout", authHandler.Logout)
+		if authHandler != nil {
+			r.Route("/auth", func(r chi.Router) {
+				r.Post("/register", authHandler.Register)
+				r.Post("/login", authHandler.Login)
+				r.Post("/refresh", authHandler.Refresh)
+				r.Post("/logout", authHandler.Logout)
 
-			// Guest session creation with IP-based rate limiting (10/hour per IP)
-			// Prevents abuse of anonymous upload feature
-			if middlewareConfig.RateLimiterConfig != nil {
-				r.With(middleware.GuestSessionRateLimiter(*middlewareConfig.RateLimiterConfig)).
-					Post("/guest", authHandler.CreateGuestSession)
-			} else {
-				r.Post("/guest", authHandler.CreateGuestSession)
-			}
-		})
+				// Guest session creation with IP-based rate limiting (10/hour per IP)
+				// Prevents abuse of anonymous upload feature
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.GuestSessionRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/guest", authHandler.CreateGuestSession)
+				} else {
+					r.Post("/guest", authHandler.CreateGuestSession)
+				}
+			})
+		}
 
 		// OAuth routes (mixed public and protected)
 		// Public: GET /{provider}, GET /{provider}/callback
@@ -162,7 +166,9 @@ func NewRouter(
 
 		// Public explore routes (no authentication required)
 		// Allows anonymous users to discover public content
-		r.Mount("/explore", exploreHandler.Routes())
+		if exploreHandler != nil {
+			r.Mount("/explore", exploreHandler.Routes())
+		}
 
 		// oEmbed endpoint (Sprint 16 - no authentication required)
 		// Enables external sites to embed images using oEmbed protocol
@@ -184,19 +190,21 @@ func NewRouter(
 
 		// Image variant endpoint with optional authentication
 		// Supports both authenticated and anonymous access (respects image visibility)
-		r.Group(func(r chi.Router) {
-			// Optional JWT authentication - extracts user context if token present
-			optionalAuthCfg := middleware.AuthConfig{
-				JWTService:     middlewareConfig.JWTService,
-				TokenBlacklist: middlewareConfig.TokenBlacklist,
-				Logger:         middlewareConfig.Logger,
-				Optional:       true, // Authentication optional
-			}
-			r.Use(middleware.JWTAuth(optionalAuthCfg))
+		if imageHandler != nil {
+			r.Group(func(r chi.Router) {
+				// Optional JWT authentication - extracts user context if token present
+				optionalAuthCfg := middleware.AuthConfig{
+					JWTService:     middlewareConfig.JWTService,
+					TokenBlacklist: middlewareConfig.TokenBlacklist,
+					Logger:         middlewareConfig.Logger,
+					Optional:       true, // Authentication optional
+				}
+				r.Use(middleware.JWTAuth(optionalAuthCfg))
 
-			// Variant endpoint returns binary image data
-			r.Get("/images/{imageID}/variants/{size}", imageHandler.GetImageVariant)
-		})
+				// Variant endpoint returns binary image data
+				r.Get("/images/{imageID}/variants/{size}", imageHandler.GetImageVariant)
+			})
+		}
 
 		// Protected routes (JWT authentication required)
 		r.Group(func(r chi.Router) {
@@ -210,32 +218,40 @@ func NewRouter(
 			r.Use(middleware.JWTAuth(authCfg))
 
 			// Mount user routes
-			r.Mount("/users", userHandler.Routes())
+			if userHandler != nil {
+				r.Mount("/users", userHandler.Routes())
+			}
 
 			// Mount 2FA routes (requires authentication)
 			// These are under /auth/2fa but protected unlike public auth routes
 			// Rate limiting is applied to verification endpoints to prevent brute-force
-			r.Route("/auth/2fa", func(r chi.Router) {
-				// Apply 2FA rate limiting if configured (5 attempts/min)
-				if middlewareConfig.RateLimiterConfig != nil {
-					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/verify", twoFAHandler.Verify)
-					r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/disable", twoFAHandler.Disable)
-				} else {
-					r.Post("/verify", twoFAHandler.Verify)
-					r.Post("/disable", twoFAHandler.Disable)
-				}
-				// Non-rate-limited endpoints
-				r.Post("/setup", twoFAHandler.Setup)
-				r.Get("/status", twoFAHandler.Status)
-				r.Post("/backup-codes/regenerate", twoFAHandler.RegenerateBackupCodes)
-			})
+			if twoFAHandler != nil {
+				r.Route("/auth/2fa", func(r chi.Router) {
+					// Apply 2FA rate limiting if configured (5 attempts/min)
+					if middlewareConfig.RateLimiterConfig != nil {
+						r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/verify", twoFAHandler.Verify)
+						r.With(middleware.TwoFARateLimiter(*middlewareConfig.RateLimiterConfig)).Post("/disable", twoFAHandler.Disable)
+					} else {
+						r.Post("/verify", twoFAHandler.Verify)
+						r.Post("/disable", twoFAHandler.Disable)
+					}
+					// Non-rate-limited endpoints
+					r.Post("/setup", twoFAHandler.Setup)
+					r.Get("/status", twoFAHandler.Status)
+					r.Post("/backup-codes/regenerate", twoFAHandler.RegenerateBackupCodes)
+				})
+			}
 
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level
-			r.Mount("/images", imageHandler.Routes())
+			if imageHandler != nil {
+				r.Mount("/images", imageHandler.Routes())
+			}
 
 			// Mount album routes
-			r.Mount("/albums", albumHandler.Routes())
+			if albumHandler != nil {
+				r.Mount("/albums", albumHandler.Routes())
+			}
 
 			// Mount variant config routes (Sprint 17)
 			// Custom variant configurations for image processing
@@ -245,30 +261,32 @@ func NewRouter(
 
 			// Social interaction routes (likes and comments)
 			// These are mounted under images and users paths
-			r.Route("/images/{imageID}", func(r chi.Router) {
-				// Like/unlike use singular /like path (action endpoints)
-				r.Post("/like", socialHandler.LikeImage)
-				r.Delete("/like", socialHandler.UnlikeImage)
-				// Comments use plural /comments path (collection endpoints)
-				r.Post("/comments", socialHandler.AddComment)
-				r.Get("/comments", socialHandler.ListImageComments)
+			if socialHandler != nil {
+				r.Route("/images/{imageID}", func(r chi.Router) {
+					// Like/unlike use singular /like path (action endpoints)
+					r.Post("/like", socialHandler.LikeImage)
+					r.Delete("/like", socialHandler.UnlikeImage)
+					// Comments use plural /comments path (collection endpoints)
+					r.Post("/comments", socialHandler.AddComment)
+					r.Get("/comments", socialHandler.ListImageComments)
 
-				// IPFS endpoints (Sprint 13)
-				// POST /ipfs - Pin image to IPFS (owner only)
-				// DELETE /ipfs - Unpin image from IPFS (owner only)
-				// GET /ipfs - Get IPFS status (authenticated, owner or public images)
-				if ipfsHandler != nil {
-					r.Post("/ipfs", ipfsHandler.Pin)
-					r.Delete("/ipfs", ipfsHandler.Unpin)
-					r.Get("/ipfs", ipfsHandler.GetStatus)
-				}
-			})
+					// IPFS endpoints (Sprint 13)
+					// POST /ipfs - Pin image to IPFS (owner only)
+					// DELETE /ipfs - Unpin image from IPFS (owner only)
+					// GET /ipfs - Get IPFS status (authenticated, owner or public images)
+					if ipfsHandler != nil {
+						r.Post("/ipfs", ipfsHandler.Pin)
+						r.Delete("/ipfs", ipfsHandler.Unpin)
+						r.Get("/ipfs", ipfsHandler.GetStatus)
+					}
+				})
 
-			// Comment deletion endpoint (not under images path)
-			r.Delete("/comments/{commentID}", socialHandler.DeleteComment)
+				// Comment deletion endpoint (not under images path)
+				r.Delete("/comments/{commentID}", socialHandler.DeleteComment)
 
-			// User liked images endpoint
-			r.Get("/users/{userID}/likes", socialHandler.GetUserLikedImages)
+				// User liked images endpoint
+				r.Get("/users/{userID}/likes", socialHandler.GetUserLikedImages)
+			}
 
 			// Follow endpoints (authenticated routes)
 			// POST /users/{id}/follow - Follow a user
@@ -306,11 +324,9 @@ func NewRouter(
 				} else {
 					r.Post("/reports", moderationHandler.CreateReport)
 				}
-			}
 
-			// Admin/moderator endpoints for report management
-			// These require moderator or admin role
-			if moderationHandler != nil {
+				// Admin/moderator endpoints for report management
+				// These require moderator or admin role
 				r.Group(func(r chi.Router) {
 					// Require moderator or admin role
 					r.Use(middleware.RequireAnyRole(
