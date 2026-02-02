@@ -324,6 +324,17 @@ func (h *HealthHandler) checkStorage(ctx context.Context) (CheckDetails, float64
 	defer cancel()
 
 	start := time.Now()
+
+	// Handle nil storage
+	if h.storage == nil {
+		latency := time.Since(start).Seconds() * millisecondConversion
+		return CheckDetails{
+			Status:    statusDown,
+			LatencyMs: latency,
+			Error:     "storage not configured",
+		}, latency
+	}
+
 	// Use a known health check key that should not exist
 	// We just check if the storage is accessible by testing Exists operation
 	healthCheckKey := "health-check-probe"
@@ -358,6 +369,17 @@ func (h *HealthHandler) checkClamAV(ctx context.Context) (CheckDetails, float64)
 	defer cancel()
 
 	start := time.Now()
+
+	// Handle nil clamav
+	if h.clamav == nil {
+		latency := time.Since(start).Seconds() * millisecondConversion
+		return CheckDetails{
+			Status:    statusDown,
+			LatencyMs: latency,
+			Error:     "clamav not configured",
+		}, latency
+	}
+
 	err := h.clamav.Ping(checkCtx)
 	latency := time.Since(start).Seconds() * millisecondConversion // Convert to milliseconds
 
