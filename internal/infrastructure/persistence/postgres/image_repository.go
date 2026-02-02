@@ -22,30 +22,28 @@ const (
 	// Query ordering constants.
 	orderByCreatedDesc = " ORDER BY i.created_at DESC"
 
-	sqlInsertImage = `
+	sqlUpsertImage = `
 		INSERT INTO images (
 			id, owner_id, title, description, storage_provider, storage_key,
 			original_filename, mime_type, file_size, width, height,
 			status, visibility, scan_status, view_count,
+			ipfs_cid, ipfs_pinned, ipfs_pinned_at,
 			created_at, updated_at
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
 		)
-	`
-
-	sqlUpdateImage = `
-		UPDATE images
-		SET title = $2,
-		    description = $3,
-		    status = $4,
-		    visibility = $5,
-		    scan_status = $6,
-		    view_count = $7,
-		    ipfs_cid = $8,
-		    ipfs_pinned = $9,
-		    ipfs_pinned_at = $10,
-		    updated_at = $11
-		WHERE id = $1 AND deleted_at IS NULL
+		ON CONFLICT (id) DO UPDATE SET
+			title = EXCLUDED.title,
+			description = EXCLUDED.description,
+			status = EXCLUDED.status,
+			visibility = EXCLUDED.visibility,
+			scan_status = EXCLUDED.scan_status,
+			view_count = EXCLUDED.view_count,
+			ipfs_cid = EXCLUDED.ipfs_cid,
+			ipfs_pinned = EXCLUDED.ipfs_pinned,
+			ipfs_pinned_at = EXCLUDED.ipfs_pinned_at,
+			updated_at = EXCLUDED.updated_at
+		WHERE images.deleted_at IS NULL
 	`
 
 	sqlSelectImageByID = `
@@ -460,13 +458,6 @@ func (r *ImageRepository) FindByStatus(
 // If the image already exists, it is updated; otherwise, it is created.
 // This operation includes saving variants and tags in a transaction.
 func (r *ImageRepository) Save(ctx context.Context, image *gallery.Image) error {
-	// Check if image exists
-	var exists bool
-	err := r.db.GetContext(ctx, &exists, sqlExistsImage, image.ID().String())
-	if err != nil {
-		return fmt.Errorf("failed to check image existence: %w", err)
-	}
-
 	// Begin transaction
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -478,12 +469,8 @@ func (r *ImageRepository) Save(ctx context.Context, image *gallery.Image) error 
 		}
 	}()
 
-	if exists {
-		err = r.updateInTx(ctx, tx, image)
-	} else {
-		err = r.insertInTx(ctx, tx, image)
-	}
-	if err != nil {
+	// Perform UPSERT
+	if err := r.upsertInTx(ctx, tx, image); err != nil {
 		return err
 	}
 
@@ -706,39 +693,8 @@ func joinConditions(conditions []string) string {
 	return result
 }
 
-// insertInTx creates a new image in the database within a transaction.
-func (r *ImageRepository) insertInTx(ctx context.Context, tx *sqlx.Tx, image *gallery.Image) error {
-	metadata := image.Metadata()
-	_, err := tx.ExecContext(
-		ctx,
-		sqlInsertImage,
-		image.ID().String(),
-		image.OwnerID().String(),
-		metadata.Title(),
-		metadata.Description(),
-		metadata.StorageProvider(),
-		metadata.StorageKey(),
-		metadata.OriginalFilename(),
-		metadata.MimeType(),
-		metadata.FileSize(),
-		metadata.Width(),
-		metadata.Height(),
-		image.Status().String(),
-		image.Visibility().String(),
-		image.ScanStatus().String(),
-		image.ViewCount(),
-		image.CreatedAt(),
-		image.UpdatedAt(),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to insert image: %w", err)
-	}
-
-	return nil
-}
-
-// updateInTx updates an existing image in the database within a transaction.
-func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *gallery.Image) error {
+// upsertInTx creates or updates an image in the database within a transaction.
+func (r *ImageRepository) upsertInTx(ctx context.Context, tx *sqlx.Tx, image *gallery.Image) error {
 	metadata := image.Metadata()
 
 	// Extract IPFS fields
@@ -756,10 +712,18 @@ func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 
 	result, err := tx.ExecContext(
 		ctx,
-		sqlUpdateImage,
+		sqlUpsertImage,
 		image.ID().String(),
+		image.OwnerID().String(),
 		metadata.Title(),
 		metadata.Description(),
+		metadata.StorageProvider(),
+		metadata.StorageKey(),
+		metadata.OriginalFilename(),
+		metadata.MimeType(),
+		metadata.FileSize(),
+		metadata.Width(),
+		metadata.Height(),
 		image.Status().String(),
 		image.Visibility().String(),
 		image.ScanStatus().String(),
@@ -767,12 +731,14 @@ func (r *ImageRepository) updateInTx(ctx context.Context, tx *sqlx.Tx, image *ga
 		ipfsCID,
 		ipfsPinned,
 		ipfsPinnedAt,
+		image.CreatedAt(),
 		image.UpdatedAt(),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update image: %w", err)
+		return fmt.Errorf("failed to upsert image: %w", err)
 	}
 
+	// Check rows affected to ensure we didn't fail to update a soft-deleted image
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
