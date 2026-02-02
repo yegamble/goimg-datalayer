@@ -17,6 +17,12 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+const (
+	defaultPort             = "8080"
+	serverReadHeaderTimeout = 5 * time.Second
+	shutdownTimeout         = 5 * time.Second
+)
+
 func main() {
 	// 1. Setup Logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -35,7 +41,11 @@ func main() {
 		log.Error().Err(err).Msg("Failed to connect to database (continuing in degraded mode)")
 	} else {
 		log.Info().Msg("Connected to database")
-		defer postgres.Close(db)
+		defer func() {
+			if err := postgres.Close(db); err != nil {
+				log.Error().Err(err).Msg("Failed to close database connection")
+			}
+		}()
 	}
 
 	// Redis
@@ -44,7 +54,11 @@ func main() {
 		log.Error().Err(err).Msg("Failed to connect to Redis (continuing in degraded mode)")
 	} else {
 		log.Info().Msg("Connected to Redis")
-		defer redisClient.Close()
+		defer func() {
+			if err := redisClient.Close(); err != nil {
+				log.Error().Err(err).Msg("Failed to close Redis client")
+			}
+		}()
 	}
 
 	// 4. Initialize Handlers
@@ -96,12 +110,13 @@ func main() {
 	// 6. Start Server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = defaultPort
 	}
 
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
+		Addr:              ":" + port,
+		Handler:           router,
+		ReadHeaderTimeout: serverReadHeaderTimeout, // Prevent Slowloris attacks (G112)
 	}
 
 	// Graceful Shutdown
@@ -119,11 +134,11 @@ func main() {
 	<-quit
 	log.Info().Msg("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Err(err).Msg("Server forced to shutdown")
+		log.Error().Err(err).Msg("Server forced to shutdown")
 	}
 
 	log.Info().Msg("Server exited properly")
