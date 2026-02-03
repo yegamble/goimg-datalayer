@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -23,6 +24,7 @@ type Notification struct {
 	title       string
 	body        string
 	metadata    map[string]string // Flexible payload (user IDs, image IDs, etc.)
+	metadataRaw []byte            // Raw JSON metadata for lazy parsing
 	readAt      *time.Time
 	createdAt   time.Time
 	events      []shared.DomainEvent
@@ -61,6 +63,7 @@ func NewNotification(
 		title:       title,
 		body:        body,
 		metadata:    metadata,
+		metadataRaw: nil, // Will be generated on demand if needed
 		readAt:      nil,
 		createdAt:   now,
 		events:      []shared.DomainEvent{},
@@ -74,21 +77,18 @@ func ReconstructNotification(
 	recipientID identity.UserID,
 	notifType NotificationType,
 	title, body string,
-	metadata map[string]string,
+	metadataRaw []byte,
 	readAt *time.Time,
 	createdAt time.Time,
 ) *Notification {
-	if metadata == nil {
-		metadata = make(map[string]string)
-	}
-
 	return &Notification{
 		id:          id,
 		recipientID: recipientID,
 		notifType:   notifType,
 		title:       title,
 		body:        body,
-		metadata:    metadata,
+		metadata:    nil, // Will be parsed on demand
+		metadataRaw: metadataRaw,
 		readAt:      readAt,
 		createdAt:   createdAt,
 		events:      []shared.DomainEvent{},
@@ -121,8 +121,36 @@ func (n *Notification) Body() string {
 }
 
 // Metadata returns the notification metadata (flexible key-value pairs).
+// It lazily parses the metadata from raw JSON if not already parsed.
 func (n *Notification) Metadata() map[string]string {
+	if n.metadata != nil {
+		return n.metadata
+	}
+
+	// Lazy parse
+	n.metadata = make(map[string]string)
+	if len(n.metadataRaw) > 0 {
+		_ = json.Unmarshal(n.metadataRaw, &n.metadata)
+	}
 	return n.metadata
+}
+
+// MetadataRaw returns the raw JSON metadata.
+// It lazily generates the JSON if only the map is available.
+func (n *Notification) MetadataRaw() []byte {
+	// If metadata map is populated, it takes precedence as source of truth
+	// (in case it was modified after loading)
+	if n.metadata != nil {
+		bytes, _ := json.Marshal(n.metadata)
+		n.metadataRaw = bytes
+		return n.metadataRaw
+	}
+
+	if n.metadataRaw != nil {
+		return n.metadataRaw
+	}
+
+	return []byte("{}")
 }
 
 // ReadAt returns when the notification was read (nil if unread).
@@ -165,10 +193,11 @@ func (n *Notification) MarkRead() error {
 // GetMetadata retrieves a metadata value by key.
 // Returns empty string if key doesn't exist.
 func (n *Notification) GetMetadata(key string) string {
-	if n.metadata == nil {
+	meta := n.Metadata()
+	if meta == nil {
 		return ""
 	}
-	return n.metadata[key]
+	return meta[key]
 }
 
 // addEvent adds a domain event to the entity's event list.

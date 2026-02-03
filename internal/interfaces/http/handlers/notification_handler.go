@@ -42,14 +42,14 @@ func NewNotificationHandler(
 
 // NotificationDTO represents a notification in HTTP responses.
 type NotificationDTO struct {
-	ID        string            `json:"id"`
-	Type      string            `json:"type"`
-	Title     string            `json:"title"`
-	Body      string            `json:"body"`
-	Metadata  map[string]string `json:"metadata"`
-	IsRead    bool              `json:"isRead"`
-	CreatedAt time.Time         `json:"createdAt"`
-	ReadAt    *time.Time        `json:"readAt,omitempty"`
+	ID        string          `json:"id"`
+	Type      string          `json:"type"`
+	Title     string          `json:"title"`
+	Body      string          `json:"body"`
+	Metadata  json.RawMessage `json:"metadata"`
+	IsRead    bool            `json:"isRead"`
+	CreatedAt time.Time       `json:"createdAt"`
+	ReadAt    *time.Time      `json:"readAt,omitempty"`
 }
 
 // NotificationsListDTO represents a list of notifications with metadata.
@@ -125,7 +125,7 @@ func (h *NotificationHandler) GetNotifications(w http.ResponseWriter, r *http.Re
 			Type:      n.Type().String(),
 			Title:     n.Title(),
 			Body:      n.Body(),
-			Metadata:  n.Metadata(),
+			Metadata:  n.MetadataRaw(),
 			IsRead:    n.IsRead(),
 			CreatedAt: n.CreatedAt(),
 			ReadAt:    n.ReadAt(),
