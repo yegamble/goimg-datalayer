@@ -40,8 +40,8 @@ func (m *MockImageRepository) FindByIDs(ctx context.Context, ids []gallery.Image
 	return args.Get(0).([]*gallery.Image), args.Error(1)
 }
 
-func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
-	args := m.Called(ctx, ownerID, pagination)
+func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Image, int64, error) {
+	args := m.Called(ctx, ownerID, pagination, visibility)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2)
 	}

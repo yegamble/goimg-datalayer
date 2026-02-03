@@ -76,7 +76,7 @@ type ImageRepository interface {
 
 	// FindByOwner retrieves all images owned by a user with pagination.
 	// Returns the images, total count, and any error.
-	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*Image, int64, error)
+	FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *Visibility) ([]*Image, int64, error)
 
 	// FindPublic retrieves all public images with pagination.
 	// Only returns images with VisibilityPublic and StatusActive.
