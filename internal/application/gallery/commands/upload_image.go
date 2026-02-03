@@ -10,7 +10,6 @@ import (
 	appgallery "github.com/yegamble/goimg-datalayer/internal/application/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 )
 
 // UploadImageCommand represents the intent to upload a new image.
@@ -41,7 +40,7 @@ type UploadImageResult struct {
 // It orchestrates validation, storage, entity creation, and job enqueueing.
 type UploadImageHandler struct {
 	images         gallery.ImageRepository
-	storage        storage.Storage
+	storage        appgallery.StorageProvider
 	jobEnqueuer    appgallery.JobEnqueuer
 	eventPublisher appgallery.EventPublisher
 	logger         *zerolog.Logger
@@ -50,7 +49,7 @@ type UploadImageHandler struct {
 // NewUploadImageHandler creates a new UploadImageHandler with the given dependencies.
 func NewUploadImageHandler(
 	images gallery.ImageRepository,
-	storage storage.Storage,
+	storage appgallery.StorageProvider,
 	jobEnqueuer appgallery.JobEnqueuer,
 	eventPublisher appgallery.EventPublisher,
 	logger *zerolog.Logger,
@@ -105,7 +104,9 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	storageKey := fmt.Sprintf("images/%s/%s/original", ownerID.String(), imageID.String())
 
 	// Upload to storage provider
-	opts := storage.DefaultPutOptions(cmd.MimeType)
+	opts := appgallery.PutOptions{
+		ContentType: cmd.MimeType,
+	}
 	if err := h.storage.Put(ctx, storageKey, cmd.FileContent, cmd.FileSize, opts); err != nil {
 		h.logger.Error().
 			Err(err).

@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	appgallery "github.com/yegamble/goimg-datalayer/internal/application/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
@@ -29,6 +30,41 @@ type MockStorage struct {
 	mock.Mock
 }
 
+// Put implements appgallery.StorageProvider.
+// Put implements appgallery.StorageProvider AND storage.Storage.
+// Note: This only works because we pass a struct to NewImageHandler that matches both interfaces where necessary
+// OR we use the interface{} trick for Put in storage.Storage too if we modify it.
+// Actually, NewImageHandler expects `storage.Storage`. `NewUploadImageHandler` expects `appgallery.StorageProvider`.
+// `storage.Storage.Put` takes `storage.PutOptions`. `appgallery.StorageProvider.Put` takes `appgallery.PutOptions`.
+// This mock CANNOT implement both with the same method name `Put` if the signatures differ.
+//
+// In this test, `mockStorage` is passed to BOTH.
+// `uploadHandler := commands.NewUploadImageHandler(..., mockStorage, ...)` -> needs `Put(..., appgallery.PutOptions)`
+// `imageHandler := NewImageHandler(..., mockStorage, ...)` -> needs `storage.Storage` which has `Put(..., storage.PutOptions)`
+//
+// WE MUST USE DIFFERENT MOCKS or make the interface compatible.
+// Since I cannot change `storage.Storage` easily (it's infrastructure), I will create two mocks.
+
+// MockAppStorage implements appgallery.StorageProvider
+type MockAppStorage struct {
+	mock.Mock
+}
+
+func (m *MockAppStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts appgallery.PutOptions) error {
+	args := m.Called(ctx, key, data, size, opts)
+	return args.Error(0)
+}
+
+func (m *MockAppStorage) GetBytes(ctx context.Context, key string) ([]byte, error) {
+	args := m.Called(ctx, key)
+	return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockAppStorage) Provider() string {
+	return "mock"
+}
+
+// MockStorage implements storage.Storage
 func (m *MockStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts storage.PutOptions) error {
 	args := m.Called(ctx, key, data, size, opts)
 	return args.Error(0)
@@ -109,13 +145,14 @@ func (m *MockEventPublisher) Publish(ctx context.Context, event shared.DomainEve
 func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 	// Setup mocks
 	mockStorage := new(MockStorage)
+	mockAppStorage := new(MockAppStorage)
 	mockRepo := new(MockImageRepository)
 	mockJobEnqueuer := new(MockJobEnqueuer)
 	mockEventPublisher := new(MockEventPublisher)
 	logger := zerolog.Nop()
 
 	// Setup Handler
-	uploadHandler := commands.NewUploadImageHandler(mockRepo, mockStorage, mockJobEnqueuer, mockEventPublisher, &logger)
+	uploadHandler := commands.NewUploadImageHandler(mockRepo, mockAppStorage, mockJobEnqueuer, mockEventPublisher, &logger)
 	imageHandler := NewImageHandler(
 		uploadHandler, nil, nil, nil, nil, nil, nil, mockStorage, logger,
 	)
@@ -156,7 +193,8 @@ func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 	// We mocking behavior for "success" path to see if it takes it.
 	// If logic is fixed, it won't take this path.
 	mockRepo.On("NextID").Return(gallery.NewImageID())
-	mockStorage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	// Note: UploadHandler calls mockAppStorage.Put, not mockStorage.Put
+	mockAppStorage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	mockRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Maybe()
 	mockJobEnqueuer.On("EnqueueImageProcessing", mock.Anything, mock.Anything).Return(nil).Maybe()
 
@@ -174,5 +212,5 @@ func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 
 	// Verify Put was NOT called (VULNERABILITY FIXED)
 	// Because "text/plain" was detected and rejected by validation.
-	mockStorage.AssertNotCalled(t, "Put")
+	mockAppStorage.AssertNotCalled(t, "Put")
 }

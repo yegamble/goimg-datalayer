@@ -69,6 +69,7 @@ var (
 	ErrImageNotPending         = errors.New("image is not in pending status")
 	ErrInvalidGroupImageStatus = errors.New("invalid group image status")
 	ErrImageAlreadyInAlbum     = errors.New("image is already in this album")
+	ErrImageNotInAlbum         = errors.New("image is not in this album")
 
 	// Business rule violations.
 	ErrUnauthorizedGroupAccess = errors.New("unauthorized to access this group")

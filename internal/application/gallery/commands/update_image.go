@@ -170,6 +170,9 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 				Str("image_id", imageID.String()).
 				Str("event_type", event.EventType()).
 				Msg("failed to publish domain event after image update")
+			// We log but don't return error here to avoid rolling back the transaction
+			// or confusing the client, as the update was successful.
+			// Ideally, we should have an outbox pattern or reliable messaging.
 		}
 	}
 	image.ClearEvents()

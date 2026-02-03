@@ -47,8 +47,8 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		JobEnqueuer:     new(MockJobEnqueuer),
 		EventPublisher:  new(MockEventPublisher),
 		IPFSService:     new(MockIPFSService),
-		StorageProvider: new(MockStorageProvider),
-		Logger:          zerolog.Nop(), // No-op logger for tests
+		StorageProvider: new(MockStorageProvider), // Use the specific mock type
+		Logger:          zerolog.Nop(),            // No-op logger for tests
 	}
 }
 

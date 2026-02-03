@@ -47,10 +47,11 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
 
 				// Mock storage provider
-				suite.Storage.On("Provider").Return("local").Maybe()
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
 
 				// Mock storage Put
-				suite.Storage.On("Put", mock.Anything, mock.MatchedBy(func(key string) bool {
+				// Use StorageProvider instead of Storage
+				suite.StorageProvider.On("Put", mock.Anything, mock.MatchedBy(func(key string) bool {
 					return key != ""
 				}), mock.Anything, testhelpers.ValidFileSize, mock.Anything).Return(nil).Once()
 
@@ -196,10 +197,10 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
 
-				// Storage Put fails
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				// Storage Put fails - mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(fmt.Errorf("storage error")).Once()
 			},
 			wantErr: nil,
@@ -225,8 +226,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
+				// Mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 			},
 			wantErr: gallery.ErrTagTooShort,
@@ -256,8 +258,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
+				// Mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 			},
 			wantErr: gallery.ErrTooManyTags,
@@ -281,8 +284,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
+				// Mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 
 				// Repository Save fails
@@ -311,8 +315,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
+				// Mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 				suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
 
@@ -345,8 +350,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
-				suite.Storage.On("Provider").Return("local").Maybe()
-				suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				suite.StorageProvider.On("Provider").Return("local").Maybe()
+				// Mock on StorageProvider
+				suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(nil).Once()
 				suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
 				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
@@ -378,7 +384,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 
 			handler := commands.NewUploadImageHandler(
 				suite.ImageRepo,
-				suite.Storage,
+				suite.StorageProvider, // Use StorageProvider which is compatible with the interface
 				suite.JobEnqueuer,
 				suite.EventPublisher,
 				&suite.Logger,
@@ -406,25 +412,27 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 
 // BenchmarkUploadImageHandler_Handle benchmarks the upload handler.
 func BenchmarkUploadImageHandler_Handle(b *testing.B) {
+	storageProvider := new(testhelpers.MockStorageProvider)
 	suite := &testhelpers.TestSuite{
-		ImageRepo:      new(testhelpers.MockImageRepository),
-		Storage:        new(testhelpers.MockStorage),
-		JobEnqueuer:    new(testhelpers.MockJobEnqueuer),
-		EventPublisher: new(testhelpers.MockEventPublisher),
-		Logger:         zerolog.Nop(),
+		ImageRepo:       new(testhelpers.MockImageRepository),
+		Storage:         new(testhelpers.MockStorage),
+		StorageProvider: storageProvider,
+		JobEnqueuer:     new(testhelpers.MockJobEnqueuer),
+		EventPublisher:  new(testhelpers.MockEventPublisher),
+		Logger:          zerolog.Nop(),
 	}
 
 	imageID := testhelpers.ValidImageIDParsed()
 	suite.ImageRepo.On("NextID").Return(imageID)
-	suite.Storage.On("Provider").Return("local").Maybe()
-	suite.Storage.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	suite.StorageProvider.On("Provider").Return("local").Maybe()
+	suite.StorageProvider.On("Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil)
 	suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 	suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).Return(nil)
 
 	handler := commands.NewUploadImageHandler(
 		suite.ImageRepo,
-		suite.Storage,
+		suite.StorageProvider,
 		suite.JobEnqueuer,
 		suite.EventPublisher,
 		&suite.Logger,

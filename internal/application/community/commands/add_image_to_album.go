@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog"
@@ -140,7 +139,7 @@ func (h *AddImageToGroupAlbumHandler) Handle(ctx context.Context, cmd AddImageTo
 			Str("album_id", cmd.AlbumID.String()).
 			Str("image_id", cmd.ImageID.String()).
 			Msg("image already in album")
-		return errors.New("image already in album")
+		return fmt.Errorf("image already in album: %w", community.ErrImageAlreadyInAlbum)
 	}
 
 	// 5. Add image to album
