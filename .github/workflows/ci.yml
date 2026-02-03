@@ -138,7 +138,7 @@ jobs:
           fi
 
       - name: Upload unit test coverage
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: coverage-unit
@@ -222,7 +222,7 @@ jobs:
           fi
 
       - name: Upload domain test coverage
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: coverage-domain
@@ -326,7 +326,7 @@ jobs:
           fi
 
       - name: Upload integration test coverage
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: coverage-integration
@@ -437,7 +437,7 @@ jobs:
         run: go tool cover -html=coverage-merged.out -o coverage.html
 
       - name: Upload merged coverage report
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: coverage-report
           path: |
@@ -565,7 +565,7 @@ jobs:
           cp $(go env GOPATH)/bin/goose bin/
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: binaries-${{ matrix.os }}
           path: bin/
@@ -736,7 +736,7 @@ jobs:
           fi
 
       - name: Upload E2E coverage
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always() && steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
         with:
           name: coverage-e2e
@@ -761,7 +761,7 @@ jobs:
           fi
 
       - name: Upload Newman report
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always() && steps.check_e2e.outputs.exists == 'true'
         with:
           name: newman-e2e-report
