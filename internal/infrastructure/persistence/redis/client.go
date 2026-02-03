@@ -3,6 +3,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -31,6 +32,7 @@ type Config struct {
 	MinIdle  int           // Minimum number of idle connections
 	MaxRetry int           // Maximum number of retries before giving up
 	Timeout  time.Duration // Connection timeout
+	UseTLS   bool          // Use TLS for connection
 }
 
 // DefaultConfig returns a Config with sensible defaults for development.
@@ -44,6 +46,7 @@ func DefaultConfig() Config {
 		MinIdle:  defaultMinIdle,
 		MaxRetry: defaultMaxRetry,
 		Timeout:  defaultTimeoutSec * time.Second,
+		UseTLS:   false,
 	}
 }
 
@@ -65,7 +68,7 @@ func NewClient(cfg Config) (*Client, error) {
 
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 
-	rdb := redis.NewClient(&redis.Options{
+	opts := &redis.Options{
 		Addr:         addr,
 		Password:     cfg.Password,
 		DB:           cfg.DB,
@@ -80,7 +83,15 @@ func NewClient(cfg Config) (*Client, error) {
 		PoolTimeout:     cfg.Timeout * poolTimeoutMultiplier,
 		ConnMaxIdleTime: connMaxIdleTimeMin * time.Minute,
 		ConnMaxLifetime: connMaxLifetimeMin * time.Minute,
-	})
+	}
+
+	if cfg.UseTLS {
+		opts.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	rdb := redis.NewClient(opts)
 
 	client := &Client{rdb: rdb}
 

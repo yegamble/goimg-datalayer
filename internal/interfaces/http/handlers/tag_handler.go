@@ -10,12 +10,19 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+const (
+	defaultPageSize = 20
+	maxPageSize     = 100
+	defaultPage     = 1
+)
+
 // TagHandler handles tag-related HTTP endpoints.
 // These endpoints are public and allow anonymous access.
 type TagHandler struct {
 	listPopular  *queries.ListPopularTagsHandler
 	listTrending *queries.ListTrendingTagsHandler
 	searchTags   *queries.SearchTagsHandler
+	listImages   *queries.ListImagesHandler
 	logger       zerolog.Logger
 }
 
@@ -24,12 +31,14 @@ func NewTagHandler(
 	listPopular *queries.ListPopularTagsHandler,
 	listTrending *queries.ListTrendingTagsHandler,
 	searchTags *queries.SearchTagsHandler,
+	listImages *queries.ListImagesHandler,
 	logger zerolog.Logger,
 ) *TagHandler {
 	return &TagHandler{
 		listPopular:  listPopular,
 		listTrending: listTrending,
 		searchTags:   searchTags,
+		listImages:   listImages,
 		logger:       logger,
 	}
 }
@@ -44,6 +53,7 @@ func (h *TagHandler) Routes() chi.Router {
 	r.Get("/popular", h.ListPopular)
 	r.Get("/trending", h.ListTrending)
 	r.Get("/search", h.Search)
+	r.Get("/{tag}/images", h.ListImagesByTag)
 
 	return r
 }
@@ -62,12 +72,12 @@ func (h *TagHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse limit parameter
-	limit, err := parseIntParam(r.URL.Query().Get("limit"), 20)
+	limit, err := parseIntParam(r.URL.Query().Get("limit"), defaultPageSize)
 	if err != nil || limit < 1 {
-		limit = 20
+		limit = defaultPageSize
 	}
-	if limit > 100 {
-		limit = 100
+	if limit > maxPageSize {
+		limit = maxPageSize
 	}
 
 	// Parse period parameter
@@ -140,12 +150,12 @@ func (h *TagHandler) ListTrending(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse limit parameter
-	limit, err := parseIntParam(r.URL.Query().Get("limit"), 20)
+	limit, err := parseIntParam(r.URL.Query().Get("limit"), defaultPageSize)
 	if err != nil || limit < 1 {
-		limit = 20
+		limit = defaultPageSize
 	}
-	if limit > 100 {
-		limit = 100
+	if limit > maxPageSize {
+		limit = maxPageSize
 	}
 
 	// Parse period parameter - trending makes most sense for recent time windows
@@ -274,4 +284,97 @@ func (h *TagHandler) Search(w http.ResponseWriter, r *http.Request) {
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode tag search response")
 	}
+}
+
+// ListImagesByTag handles GET /api/v1/tags/{tag}/images
+// Retrieves public images tagged with the specified tag.
+//
+// URL Parameters:
+//   - tag (string, required): The tag name or slug
+//
+// Query parameters:
+//   - page (int): Page number, default 1
+//   - per_page (int): Items per page, default 20
+//
+// Response: Paginated list of images
+// Errors:
+//   - 400: Invalid query parameters
+func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tag := chi.URLParam(r, "tag")
+
+	if tag == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Tag parameter is required",
+		)
+		return
+	}
+
+	page, perPage := h.parsePaginationParams(r)
+	offset := (page - 1) * perPage
+
+	// Build and execute query
+	query := queries.ListImagesQuery{
+		Tag:    tag,
+		Offset: offset,
+		Limit:  perPage,
+	}
+
+	result, err := h.listImages.Handle(ctx, query)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("tag", tag).
+			Int("page", page).
+			Msg("failed to list images by tag")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to retrieve images",
+		)
+		return
+	}
+
+	// Calculate pagination metadata
+	totalPages := (int(result.TotalCount) + perPage - 1) / perPage
+
+	// Build response
+	response := map[string]interface{}{
+		"items": result.Images,
+		"pagination": map[string]interface{}{
+			"total":       result.TotalCount,
+			"page":        page,
+			"per_page":    perPage,
+			"total_pages": totalPages,
+		},
+	}
+
+	h.logger.Debug().
+		Str("tag", tag).
+		Int("results", len(result.Images)).
+		Msg("images by tag retrieved")
+
+	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode images by tag response")
+	}
+}
+
+// parsePaginationParams extracts and validates page and per_page parameters from the request
+func (h *TagHandler) parsePaginationParams(r *http.Request) (int, int) {
+	page, err := parseIntParam(r.URL.Query().Get("page"), defaultPage)
+	if err != nil || page < 1 {
+		page = defaultPage
+	}
+
+	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), defaultPageSize)
+	if err != nil || perPage < 1 {
+		perPage = defaultPageSize
+	}
+	if perPage > maxPageSize {
+		perPage = maxPageSize
+	}
+
+	return page, perPage
 }
