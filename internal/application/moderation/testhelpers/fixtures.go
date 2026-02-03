@@ -131,6 +131,7 @@ func ValidTemporaryBan(t *testing.T, duration time.Duration) *moderation.Ban {
 }
 
 // ValidReport creates a valid Report aggregate for testing.
+// Uses ReconstructReport to ensure the ID matches ValidReportID.
 func ValidReport(t *testing.T) *moderation.Report {
 	t.Helper()
 
@@ -138,11 +139,18 @@ func ValidReport(t *testing.T) *moderation.Report {
 	imageID := ValidImageIDParsed()
 	reason, _ := moderation.ParseReportReason(ValidReportReason)
 
-	report, err := moderation.NewReport(reporterID, imageID, reason, ValidReportDesc)
-	require.NoError(t, err)
-	report.ClearEvents() // Clear events for testing
-
-	return report
+	return moderation.ReconstructReport(
+		ValidReportIDParsed(),
+		reporterID,
+		imageID,
+		reason,
+		ValidReportDesc,
+		moderation.StatusPending,
+		nil,        // resolvedBy
+		nil,        // resolvedAt
+		"",         // resolution
+		time.Now(), // createdAt
+	)
 }
 
 // ValidImage creates a valid Image aggregate for testing.
