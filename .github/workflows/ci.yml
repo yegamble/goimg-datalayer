@@ -681,10 +681,36 @@ jobs:
         with:
           database-url: ${{ env.DATABASE_URL }}
 
+      - name: Generate test keys
+        if: steps.check_e2e.outputs.exists == 'true'
+        run: |
+          mkdir -p certs
+          openssl genrsa -out certs/private.pem 2048
+          openssl rsa -in certs/private.pem -pubout -out certs/public.pem
+          # Generate random encryption key for 2FA
+          echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
+
       - name: Start API server
         if: steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
         env:
           GOCOVERDIR: coverage-e2e
+          # Database Config
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: goimg_test
+          DB_PASSWORD: test_password
+          DB_NAME: goimg_test
+          DB_SSL_MODE: disable
+          # Storage Config
+          STORAGE_BASE_PATH: ./uploads
+          STORAGE_BASE_URL: http://localhost:8080/uploads
+          # Redis Config
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          # JWT Config
+          JWT_PRIVATE_KEY_PATH: certs/private.pem
+          JWT_PUBLIC_KEY_PATH: certs/public.pem
+          SMTP_ENABLED: "false"
         run: |
           if [ -f "bin/api" ]; then
             ./bin/api &
