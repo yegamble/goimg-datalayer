@@ -330,7 +330,6 @@ func (r *GroupMembershipRepository) ExistsActiveByGroupAndUser(
 	return exists, nil
 }
 
-
 // buildFindByGroupQuery constructs a dynamic SQL query for finding memberships by group.
 func (r *GroupMembershipRepository) buildFindByGroupQuery(
 	groupID community.GroupID,

@@ -95,6 +95,16 @@ make lint && make test && make validate-openapi
 5. **Test coverage**: Minimum 80% overall; 90% for domain layer
 6. **E2E tests required**: Every new API feature MUST have Newman/Postman E2E tests for regression testing
 
+
+## Agent Enforcement Policy
+
+> **MANDATORY**: All agents (Claude/Jules) must adhere to these policies to ensure code quality and stability.
+
+1.  **Auto-Merge Goal**: All submitted code must be of sufficient quality to pass all checks and be merged to `main` without manual intervention.
+2.  **CI/CD Verification**: Passing all GitHub Actions CI/CD checks (Lint, Unit Tests, Integration Tests, E2E) is **mandatory** before merging.
+3.  **Regression Checks**: Agents must explicitly check for testing and product regressions. Do not remove critical functions.
+4.  **Robustness**: If a fix works due to a missing component or is flaky, the agent **must** continue working until the solution is robust and tests pass reliably.
+
 ## Mandatory Lint Before Push (Claude Agents)
 
 > **CRITICAL**: All Claude agents MUST run linting before pushing any commits.

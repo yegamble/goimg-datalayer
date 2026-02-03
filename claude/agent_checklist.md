@@ -268,6 +268,10 @@ Before submitting PR:
 - [ ] Database migrations included (if schema changed)
 - [ ] No breaking changes (or version bumped)
 - [ ] Commit messages follow convention
+- [ ] **Regression Check**: Verified no critical functions were removed or broken
+- [ ] **Robustness**: Solution does not rely on missing components/hacks
+- [ ] **Auto-Merge Ready**: Code quality is sufficient for auto-merge
+
 
 ---
 

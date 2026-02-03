@@ -1,0 +1,26 @@
+name: Auto-merge
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    runs-on: ubuntu-latest
+    # Attempt to target agent PRs based on actor or branch naming convention
+    if: >
+      github.actor == 'jules' ||
+      github.actor == 'claude' ||
+      startsWith(github.head_ref, 'jules/') ||
+      startsWith(github.head_ref, 'claude/') ||
+      startsWith(github.head_ref, 'agent/')
+    steps:
+      - name: Enable Auto-merge
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
