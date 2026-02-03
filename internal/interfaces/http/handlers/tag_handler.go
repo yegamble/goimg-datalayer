@@ -10,6 +10,12 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+const (
+	defaultPageSize = 20
+	maxPageSize     = 100
+	defaultPage     = 1
+)
+
 // TagHandler handles tag-related HTTP endpoints.
 // These endpoints are public and allow anonymous access.
 type TagHandler struct {
@@ -66,12 +72,12 @@ func (h *TagHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse limit parameter
-	limit, err := parseIntParam(r.URL.Query().Get("limit"), 20)
+	limit, err := parseIntParam(r.URL.Query().Get("limit"), defaultPageSize)
 	if err != nil || limit < 1 {
-		limit = 20
+		limit = defaultPageSize
 	}
-	if limit > 100 {
-		limit = 100
+	if limit > maxPageSize {
+		limit = maxPageSize
 	}
 
 	// Parse period parameter
@@ -144,12 +150,12 @@ func (h *TagHandler) ListTrending(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse limit parameter
-	limit, err := parseIntParam(r.URL.Query().Get("limit"), 20)
+	limit, err := parseIntParam(r.URL.Query().Get("limit"), defaultPageSize)
 	if err != nil || limit < 1 {
-		limit = 20
+		limit = defaultPageSize
 	}
-	if limit > 100 {
-		limit = 100
+	if limit > maxPageSize {
+		limit = maxPageSize
 	}
 
 	// Parse period parameter - trending makes most sense for recent time windows
@@ -306,20 +312,7 @@ func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse pagination
-	page, err := parseIntParam(r.URL.Query().Get("page"), 1)
-	if err != nil || page < 1 {
-		page = 1
-	}
-
-	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), 20)
-	if err != nil || perPage < 1 {
-		perPage = 20
-	}
-	if perPage > 100 {
-		perPage = 100
-	}
-
+	page, perPage := h.parsePaginationParams(r)
 	offset := (page - 1) * perPage
 
 	// Build and execute query
@@ -366,4 +359,22 @@ func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode images by tag response")
 	}
+}
+
+// parsePaginationParams extracts and validates page and per_page parameters from the request
+func (h *TagHandler) parsePaginationParams(r *http.Request) (int, int) {
+	page, err := parseIntParam(r.URL.Query().Get("page"), defaultPage)
+	if err != nil || page < 1 {
+		page = defaultPage
+	}
+
+	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), defaultPageSize)
+	if err != nil || perPage < 1 {
+		perPage = defaultPageSize
+	}
+	if perPage > maxPageSize {
+		perPage = maxPageSize
+	}
+
+	return page, perPage
 }

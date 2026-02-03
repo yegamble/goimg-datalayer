@@ -57,6 +57,9 @@ const (
 	defaultSMTPTimeout   = 30 * time.Second
 	defaultAccessTTL     = 15 * time.Minute
 	defaultRefreshTTL    = 7 * 24 * time.Hour
+
+	// Constants
+	strTrue = "true"
 )
 
 func main() {
@@ -72,7 +75,7 @@ func main() {
 	if pwd := os.Getenv("REDIS_PASSWORD"); pwd != "" {
 		redisConfig.Password = pwd
 	}
-	if useTLS := os.Getenv("REDIS_USE_TLS"); useTLS == "true" {
+	if useTLS := os.Getenv("REDIS_USE_TLS"); useTLS == strTrue {
 		redisConfig.UseTLS = true
 	}
 
@@ -96,9 +99,9 @@ func main() {
 		Password:    getEnv("SMTP_PASSWORD", ""),
 		FromAddress: getEnv("SMTP_FROM_ADDRESS", "noreply@goimg.local"),
 		FromName:    getEnv("SMTP_FROM_NAME", "goimg Gallery"),
-		UseTLS:      getEnv("SMTP_USE_TLS", "true") == "true",
+		UseTLS:      getEnv("SMTP_USE_TLS", strTrue) == strTrue,
 		RateLimit:   getEnvInt("SMTP_RATE_LIMIT", defaultSMTPRateLimit),
-		Enabled:     getEnv("SMTP_ENABLED", "false") == "true",
+		Enabled:     getEnv("SMTP_ENABLED", "false") == strTrue,
 	}
 	// Add timeout if needed, using default from Config struct if zero
 	if emailConfig.Timeout == 0 {
