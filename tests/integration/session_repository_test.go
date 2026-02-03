@@ -217,8 +217,10 @@ func TestSessionRepository_CascadeDelete(t *testing.T) {
 	err = sessionRepo.Create(ctx, toPostgresSession(t, session2))
 	require.NoError(t, err)
 
-	// Act - delete the user
-	err = userRepo.Delete(ctx, user.ID())
+	// Act - delete the user (Hard Delete to trigger DB CASCADE)
+	// Note: userRepo.Delete() performs a soft delete which doesn't trigger foreign key cascades.
+	// For this test, we want to verify the database constraint configuration.
+	_, err = suite.DB.ExecContext(ctx, "DELETE FROM users WHERE id = $1", user.ID().String())
 	require.NoError(t, err)
 
 	// Assert - sessions should be cascade deleted

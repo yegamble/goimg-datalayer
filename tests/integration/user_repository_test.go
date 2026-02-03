@@ -273,7 +273,8 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 	expiredHash, _ := identity.NewPasswordHash("dummy")
 
 	now := time.Now().UTC()
-	expiredTime := now.Add(-24 * time.Hour)
+	// Ensure expired time is definitely in the past relative to the query time (25 hours ago)
+	expiredTime := now.Add(-25 * time.Hour)
 	ip := "127.0.0.1"
 
 	expiredGuest := identity.ReconstructUser(
@@ -295,6 +296,14 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 
 	err := repo.Save(ctx, expiredGuest)
 	require.NoError(t, err)
+
+	// Verify persistence immediately to ensure data is correct before querying
+	saved, err := repo.FindByID(ctx, expiredID)
+	require.NoError(t, err)
+	assert.Equal(t, identity.UserTypeGuest, saved.UserType())
+	require.NotNil(t, saved.ExpiresAt())
+	// Allow for small time difference due to round trip and DB precision
+	assert.WithinDuration(t, expiredTime, *saved.ExpiresAt(), time.Second)
 
 	// 2. Create an active guest user
 	activeGuest, err := identity.NewGuestUser("127.0.0.2")
