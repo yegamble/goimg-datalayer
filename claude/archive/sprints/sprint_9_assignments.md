@@ -77,7 +77,7 @@ These tasks must begin by Day 3 to stay on track:
 **Commit**: `976563d`
 
 ### Context
-The OpenAPI 3.1 specification (2,341 lines) exists but lacks usage examples, authentication flows, and integration guides for external developers. This is a launch blocker.
+The OpenAPI 3.0 specification (2,341 lines) exists but lacks usage examples, authentication flows, and integration guides for external developers. This is a launch blocker.
 
 ### Task Description
 1. Generate comprehensive API documentation from OpenAPI spec

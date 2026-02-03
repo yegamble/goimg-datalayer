@@ -38,7 +38,18 @@ runs:
         if [ -d "migrations" ] || [ -d "db/migrations" ]; then
           if ! command -v goose &> /dev/null; then
             echo "Installing Goose migration tool..."
-            go install github.com/pressly/goose/v3/cmd/goose@latest
+            # Try to get version from go.mod
+            if [ -f "go.mod" ]; then
+              GOOSE_VERSION=$(go list -m -f '{{.Version}}' github.com/pressly/goose/v3 2>/dev/null || echo "")
+            fi
+
+            if [ -n "$GOOSE_VERSION" ]; then
+              echo "Installing Goose version $GOOSE_VERSION from go.mod"
+              go install github.com/pressly/goose/v3/cmd/goose@$GOOSE_VERSION
+            else
+              echo "Goose version not found in go.mod, falling back to latest"
+              go install github.com/pressly/goose/v3/cmd/goose@latest
+            fi
           else
             echo "Goose migration tool already installed."
           fi

@@ -78,7 +78,7 @@ Sprint 9 represents the final phase before MVP launch. With Sprint 8 achieving g
 **Commit**: `976563d`
 
 **Context:**
-The OpenAPI 3.1 specification (2,341 lines) exists but lacks usage examples, authentication flows, and integration guides for external developers.
+The OpenAPI 3.0 specification (2,341 lines) exists but lacks usage examples, authentication flows, and integration guides for external developers.
 
 **Task Description:**
 1. Generate comprehensive API documentation from OpenAPI spec
