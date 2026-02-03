@@ -112,7 +112,7 @@ func NewRouter(
 	// Health check endpoints (no authentication required)
 	if healthHandler != nil {
 		// Liveness probe - checks if server is running
-		r.Get("/health", healthHandler.Liveness)
+		r.Get("/health/live", healthHandler.Liveness)
 
 		// Readiness probe - checks if all dependencies (DB, Redis) are healthy
 		r.Get("/health/ready", healthHandler.Readiness)
@@ -131,6 +131,12 @@ func NewRouter(
 
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
+		// Health check endpoints (alias for E2E tests)
+		if healthHandler != nil {
+			r.Get("/health/live", healthHandler.Liveness)
+			r.Get("/health/ready", healthHandler.Readiness)
+		}
+
 		// Public auth routes (no authentication required)
 		// Most auth routes are public, but guest session creation is rate-limited
 		if authHandler != nil {

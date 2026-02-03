@@ -686,7 +686,7 @@ jobs:
         if: steps.check_e2e.outputs.exists == 'true'
         run: |
           mkdir -p certs
-          openssl genrsa -out certs/private.pem 2048
+          openssl genrsa -out certs/private.pem 4096
           openssl rsa -in certs/private.pem -pubout -out certs/public.pem
           # Generate random encryption key for 2FA
           echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
