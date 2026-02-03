@@ -72,7 +72,7 @@ type LivenessResponse struct {
 type ReadinessResponse struct {
 	Status    string                  `json:"status"`
 	Timestamp string                  `json:"timestamp"`
-	Checks    map[string]CheckDetails `json:"checks"`
+	Checks    map[string]CheckDetails `json:"services"`
 }
 
 // CheckDetails provides detailed information about a specific health check.
@@ -129,7 +129,7 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, _ *http.Request) {
 //	{
 //	  "status": "ok",
 //	  "timestamp": "2024-12-05T12:00:00Z",
-//	  "checks": {
+//	  "services": {
 //	    "database": {"status": "up", "latency_ms": 5.2},
 //	    "redis": {"status": "up", "latency_ms": 1.8},
 //	    "storage": {"status": "up", "latency_ms": 3.1},
@@ -142,7 +142,7 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, _ *http.Request) {
 //	{
 //	  "status": "degraded",
 //	  "timestamp": "2024-12-05T12:00:00Z",
-//	  "checks": {
+//	  "services": {
 //	    "database": {"status": "up", "latency_ms": 5.2},
 //	    "redis": {"status": "down", "error": "connection refused"},
 //	    "storage": {"status": "up", "latency_ms": 3.1},
@@ -155,7 +155,7 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, _ *http.Request) {
 //	{
 //	  "status": "down",
 //	  "timestamp": "2024-12-05T12:00:00Z",
-//	  "checks": {
+//	  "services": {
 //	    "database": {"status": "down", "error": "connection refused"},
 //	    "redis": {"status": "up", "latency_ms": 1.8},
 //	    "storage": {"status": "up", "latency_ms": 3.1},
