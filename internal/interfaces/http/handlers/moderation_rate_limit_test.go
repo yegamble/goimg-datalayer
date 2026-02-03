@@ -85,7 +85,7 @@ func (m *MockImageRepository) FindByIDs(ctx context.Context, ids []gallery.Image
 }
 
 func (m *MockImageRepository) NextID() gallery.ImageID { return gallery.ImageID{} }
-func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
 func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {

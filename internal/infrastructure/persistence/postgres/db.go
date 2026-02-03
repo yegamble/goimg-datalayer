@@ -18,7 +18,7 @@ import (
 const (
 	defaultPort            = 5432
 	defaultMaxOpenConns    = 25
-	defaultMaxIdleConns    = 5
+	defaultMaxIdleConns    = 25
 	defaultConnMaxLifetime = 30 * time.Minute
 	defaultConnMaxIdleTime = 10 * time.Minute
 	defaultPingTimeout     = 5 * time.Second

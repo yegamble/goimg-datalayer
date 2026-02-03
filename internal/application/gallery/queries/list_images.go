@@ -264,7 +264,20 @@ func (h *ListImagesHandler) loadImagesByTag(ctx context.Context, params *queryPa
 func (h *ListImagesHandler) loadImagesByOwner(
 	ctx context.Context, params *queryParams,
 ) ([]*gallery.Image, int64, error) {
-	images, totalCount, err := h.images.FindByOwner(ctx, params.ownerID, params.pagination)
+	var visibility *gallery.Visibility
+
+	// Filter by visibility if requester is not the owner (force public)
+	isOwner := !params.requestingUserID.IsZero() && params.ownerID.Equals(params.requestingUserID)
+
+	if !isOwner {
+		v := gallery.VisibilityPublic
+		visibility = &v
+	} else {
+		// Otherwise use requested filter (if any)
+		visibility = params.visibilityFilter
+	}
+
+	images, totalCount, err := h.images.FindByOwner(ctx, params.ownerID, params.pagination, visibility)
 	if err != nil {
 		h.logger.Error().
 			Err(err).
@@ -273,8 +286,6 @@ func (h *ListImagesHandler) loadImagesByOwner(
 		return nil, 0, fmt.Errorf("list images by owner: %w", err)
 	}
 
-	// Apply visibility filtering
-	images = h.applyVisibilityFilter(images, params)
 	return images, totalCount, nil
 }
 
@@ -314,18 +325,6 @@ func (h *ListImagesHandler) loadPublicImages(
 	return images, totalCount, nil
 }
 
-// applyVisibilityFilter applies visibility filtering based on requester.
-func (h *ListImagesHandler) applyVisibilityFilter(images []*gallery.Image, params *queryParams) []*gallery.Image {
-	// Filter by visibility if requester is not the owner
-	if !params.requestingUserID.IsZero() && !params.ownerID.Equals(params.requestingUserID) {
-		return filterByVisibility(images, gallery.VisibilityPublic)
-	}
-	if params.visibilityFilter != nil {
-		return filterByVisibility(images, *params.visibilityFilter)
-	}
-	return images
-}
-
 // buildImageDTOs converts images to DTOs, filtering out non-viewable images.
 func (h *ListImagesHandler) buildImageDTOs(images []*gallery.Image) []ImageDTO {
 	imageDTOs := make([]ImageDTO, 0, len(images))
@@ -339,14 +338,3 @@ func (h *ListImagesHandler) buildImageDTOs(images []*gallery.Image) []ImageDTO {
 	return imageDTOs
 }
 
-// filterByVisibility filters images by visibility setting.
-// This is used for in-memory filtering when needed.
-func filterByVisibility(images []*gallery.Image, visibility gallery.Visibility) []*gallery.Image {
-	filtered := make([]*gallery.Image, 0, len(images))
-	for _, image := range images {
-		if image.Visibility() == visibility {
-			filtered = append(filtered, image)
-		}
-	}
-	return filtered
-}

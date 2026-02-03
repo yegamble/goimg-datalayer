@@ -54,7 +54,7 @@ func (r *StubImageRepository) FindByIDs(ctx context.Context, ids []gallery.Image
 // Other methods are no-ops
 func (r *StubImageRepository) NextID() gallery.ImageID { return gallery.NewImageID() }
 
-func (r *StubImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
+func (r *StubImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
 

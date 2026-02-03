@@ -56,24 +56,6 @@ const (
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 
-	sqlSelectImagesByOwner = `
-		SELECT id, owner_id, title, description, storage_provider, storage_key,
-		       original_filename, mime_type, file_size, width, height,
-		       status, visibility, scan_status, view_count,
-		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
-		       created_at, updated_at
-		FROM images
-		WHERE owner_id = $1 AND deleted_at IS NULL
-		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3
-	`
-
-	sqlCountImagesByOwner = `
-		SELECT COUNT(*)
-		FROM images
-		WHERE owner_id = $1 AND deleted_at IS NULL
-	`
-
 	sqlSelectPublicImages = `
 		SELECT id, owner_id, title, description, storage_provider, storage_key,
 		       original_filename, mime_type, file_size, width, height,
@@ -317,24 +299,56 @@ func (r *ImageRepository) FindByOwner(
 	ctx context.Context,
 	ownerID identity.UserID,
 	pagination shared.Pagination,
+	visibility *gallery.Visibility,
 ) ([]*gallery.Image, int64, error) {
+	// Base queries
+	baseSelect := `
+		SELECT id, owner_id, title, description, storage_provider, storage_key,
+		       original_filename, mime_type, file_size, width, height,
+		       status, visibility, scan_status, view_count,
+		       ipfs_cid, ipfs_pinned, ipfs_pinned_at,
+		       created_at, updated_at
+		FROM images
+		WHERE owner_id = $1 AND deleted_at IS NULL
+	`
+	baseCount := `
+		SELECT COUNT(*)
+		FROM images
+		WHERE owner_id = $1 AND deleted_at IS NULL
+	`
+
+	args := []interface{}{ownerID.String()}
+	argCount := 1
+
+	if visibility != nil {
+		argCount++
+		baseSelect += fmt.Sprintf(" AND visibility = $%d", argCount)
+		baseCount += fmt.Sprintf(" AND visibility = $%d", argCount)
+		args = append(args, visibility.String())
+	}
+
+	// Add ordering
+	baseSelect += " ORDER BY created_at DESC"
+
+	// Add pagination
+	argCount++
+	baseSelect += fmt.Sprintf(" LIMIT $%d", argCount)
+	argsSelect := append(args, pagination.Limit())
+
+	argCount++
+	baseSelect += fmt.Sprintf(" OFFSET $%d", argCount)
+	argsSelect = append(argsSelect, pagination.Offset())
+
 	// Get paginated images
 	var rows []imageRow
-	err := r.db.SelectContext(
-		ctx,
-		&rows,
-		sqlSelectImagesByOwner,
-		ownerID.String(),
-		pagination.Limit(),
-		pagination.Offset(),
-	)
+	err := r.db.SelectContext(ctx, &rows, baseSelect, argsSelect...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to find images by owner: %w", err)
 	}
 
 	// Get total count
 	var total int64
-	err = r.db.GetContext(ctx, &total, sqlCountImagesByOwner, ownerID.String())
+	err = r.db.GetContext(ctx, &total, baseCount, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count images by owner: %w", err)
 	}
