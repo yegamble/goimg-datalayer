@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -107,14 +106,6 @@ func (r *notificationRow) toDomain() (*notification.Notification, error) {
 		return nil, fmt.Errorf("invalid notification type: %s", r.NotificationType)
 	}
 
-	// Parse metadata JSON
-	metadata := make(map[string]string)
-	if len(r.Metadata) > 0 {
-		if err := json.Unmarshal(r.Metadata, &metadata); err != nil {
-			return nil, fmt.Errorf("unmarshal metadata: %w", err)
-		}
-	}
-
 	var readAt *time.Time
 	if r.ReadAt.Valid {
 		readAt = &r.ReadAt.Time
@@ -126,7 +117,7 @@ func (r *notificationRow) toDomain() (*notification.Notification, error) {
 		notifType,
 		r.Title,
 		r.Body,
-		metadata,
+		r.Metadata,
 		readAt,
 		r.CreatedAt,
 	), nil
@@ -134,11 +125,8 @@ func (r *notificationRow) toDomain() (*notification.Notification, error) {
 
 // fromDomain converts a domain Notification entity to a database row.
 func notificationFromDomain(n *notification.Notification) (*notificationRow, error) {
-	// Marshal metadata to JSON
-	metadataJSON, err := json.Marshal(n.Metadata())
-	if err != nil {
-		return nil, fmt.Errorf("marshal metadata: %w", err)
-	}
+	// Use raw metadata (avoids unmarshal/marshal cycle if not modified)
+	metadataJSON := n.MetadataRaw()
 
 	row := &notificationRow{
 		ID:               n.ID().String(),

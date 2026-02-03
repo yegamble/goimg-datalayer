@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -70,10 +71,11 @@ func TestReconstructNotification(t *testing.T) {
 	title := "Reconstructed"
 	body := "Body"
 	metadata := map[string]string{"foo": "bar"}
+	metadataBytes, _ := json.Marshal(metadata)
 	now := time.Now().UTC()
 	readAt := &now
 
-	n := ReconstructNotification(id, recipientID, notifType, title, body, metadata, readAt, now)
+	n := ReconstructNotification(id, recipientID, notifType, title, body, metadataBytes, readAt, now)
 
 	assert.Equal(t, id, n.ID())
 	assert.Equal(t, recipientID, n.RecipientID())
