@@ -2,6 +2,21 @@
 
 > **CRITICAL**: Complete this checklist before submitting any code changes.
 
+## Known Critical Issues (2026-02-03 Audit)
+
+Before working on these areas, be aware of documented critical issues:
+
+| File | Issue | Action |
+|------|-------|--------|
+| `internal/infrastructure/security/password_cache.go:110-141` | Race condition in InMemoryPasswordCache | Add mutex or mark test-only |
+| `cmd/api/main.go:869-900` | Stub NSFW repository | Implement real repository |
+| `internal/application/gallery/commands/upload_image.go:170-177` | Swallowed event errors | Add retry/outbox pattern |
+| `internal/infrastructure/persistence/postgres/activity_repository.go:38-51` | Unbounded LATERAL JOIN | Cap inner limit |
+
+See `claude/audit_report_2026-02-03.md` for full details and fix recommendations.
+
+---
+
 ## Mandatory Lint Before Push
 
 > **ALL CLAUDE AGENTS MUST RUN LINT BEFORE PUSHING ANY COMMITS**

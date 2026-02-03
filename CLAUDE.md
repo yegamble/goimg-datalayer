@@ -46,6 +46,7 @@ make lint && make test && make validate-openapi
 | Topic | File | When to Load |
 | --- | --- | --- |
 | **Project Status** | `claude/NEXT_STEPS.md` | Current status, remaining work, next actions |
+| **Audit Report** | `claude/audit_report_2026-02-03.md` | Critical issues, code quality findings, action items |
 | **Documentation Index** | `docs/README.md` | Finding documentation, quick links |
 
 ### Planning & Roadmap

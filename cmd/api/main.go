@@ -870,6 +870,13 @@ func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
 
 // Stub for missing NSFW repository.
 // Implementing moderation.NSFWScanRepository interface.
+//
+// TODO(audit-2026-02-03): CRITICAL - This is a stub repository that returns
+// nil/empty for all operations. NSFW scanning functionality is completely
+// non-functional in production. Either:
+// 1. Implement real PostgreSQL repository in internal/infrastructure/persistence/postgres/
+// 2. Disable NSFW feature via feature flag until implementation complete
+// See: claude/audit_report_2026-02-03.md for full details.
 type noOpNSFWScanRepository struct{}
 
 //nolint:nilnil // Stub implementation

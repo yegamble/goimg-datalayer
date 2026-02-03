@@ -108,6 +108,14 @@ func (c *RedisPasswordCache) buildKey(hashPrefix, hashSuffix string) string {
 
 // InMemoryPasswordCache is a simple in-memory cache for testing purposes.
 // DO NOT use in production - no TTL support, unbounded memory growth.
+//
+// TODO(audit-2026-02-03): CRITICAL - This implementation has a race condition.
+// The data map is accessed without mutex protection, causing data races in
+// concurrent access scenarios. Additionally, the map grows unboundedly with
+// no eviction policy. Either:
+// 1. Add sync.RWMutex protection and LRU eviction
+// 2. Mark this as explicitly test-only with build tags
+// See: claude/audit_report_2026-02-03.md for full details.
 type InMemoryPasswordCache struct {
 	data map[string]bool
 }
