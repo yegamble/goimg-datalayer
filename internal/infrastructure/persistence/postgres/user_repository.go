@@ -16,26 +16,23 @@ import (
 
 // SQL queries for user operations.
 const (
-	sqlInsertUser = `
+	sqlUpsertUser = `
 		INSERT INTO users (id, email, username, password_hash, role, status, display_name, bio, infected_file_count, created_at, updated_at, user_type, ip_address, expires_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-	`
-
-	sqlUpdateUser = `
-		UPDATE users
-		SET email = $2,
-		    username = $3,
-		    password_hash = $4,
-		    role = $5,
-		    status = $6,
-		    display_name = $7,
-		    bio = $8,
-		    infected_file_count = $9,
-		    updated_at = $10,
-		    user_type = $11,
-		    ip_address = $12,
-		    expires_at = $13
-		WHERE id = $1 AND deleted_at IS NULL
+		ON CONFLICT (id) DO UPDATE
+		SET email = EXCLUDED.email,
+		    username = EXCLUDED.username,
+		    password_hash = EXCLUDED.password_hash,
+		    role = EXCLUDED.role,
+		    status = EXCLUDED.status,
+		    display_name = EXCLUDED.display_name,
+		    bio = EXCLUDED.bio,
+		    infected_file_count = EXCLUDED.infected_file_count,
+		    updated_at = EXCLUDED.updated_at,
+		    user_type = EXCLUDED.user_type,
+		    ip_address = EXCLUDED.ip_address,
+		    expires_at = EXCLUDED.expires_at
+		WHERE users.deleted_at IS NULL
 	`
 
 	sqlSelectUserByID = `
@@ -164,22 +161,8 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username identity.U
 
 // Save persists a user to the repository.
 // If the user already exists, it is updated; otherwise, it is created.
+// Uses UPSERT (INSERT ... ON CONFLICT) for efficiency and concurrency safety.
 func (r *UserRepository) Save(ctx context.Context, user *identity.User) error {
-	// Check if user exists
-	var exists bool
-	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID().String())
-	if err != nil {
-		return fmt.Errorf("failed to check user existence: %w", err)
-	}
-
-	if exists {
-		return r.update(ctx, user)
-	}
-	return r.insert(ctx, user)
-}
-
-// insert creates a new user in the database.
-func (r *UserRepository) insert(ctx context.Context, user *identity.User) error {
 	// Convert nullable fields to sql.Null types
 	var ipAddress sql.NullString
 	if user.IPAddress() != nil {
@@ -191,9 +174,9 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 		expiresAt = sql.NullTime{Time: *user.ExpiresAt(), Valid: true}
 	}
 
-	_, err := r.db.ExecContext(
+	result, err := r.db.ExecContext(
 		ctx,
-		sqlInsertUser,
+		sqlUpsertUser,
 		user.ID().String(),
 		user.Email().String(),
 		user.Username().String(),
@@ -220,56 +203,11 @@ func (r *UserRepository) insert(ctx context.Context, user *identity.User) error 
 				return identity.ErrUsernameExists
 			}
 		}
-		return fmt.Errorf("failed to insert user: %w", err)
+		return fmt.Errorf("failed to save user: %w", err)
 	}
 
-	return nil
-}
-
-// update updates an existing user in the database.
-func (r *UserRepository) update(ctx context.Context, user *identity.User) error {
-	// Convert nullable fields to sql.Null types
-	var ipAddress sql.NullString
-	if user.IPAddress() != nil {
-		ipAddress = sql.NullString{String: *user.IPAddress(), Valid: true}
-	}
-
-	var expiresAt sql.NullTime
-	if user.ExpiresAt() != nil {
-		expiresAt = sql.NullTime{Time: *user.ExpiresAt(), Valid: true}
-	}
-
-	result, err := r.db.ExecContext(
-		ctx,
-		sqlUpdateUser,
-		user.ID().String(),
-		user.Email().String(),
-		user.Username().String(),
-		user.PasswordHash().String(),
-		user.Role().String(),
-		user.Status().String(),
-		user.DisplayName(),
-		user.Bio(),
-		user.InfectedFileCount(),
-		user.UpdatedAt(),
-		user.UserType().String(),
-		ipAddress,
-		expiresAt,
-	)
-	if err != nil {
-		// Handle unique constraint violations
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
-			switch pqErr.Constraint {
-			case "users_email_key":
-				return identity.ErrEmailExists
-			case "users_username_key":
-				return identity.ErrUsernameExists
-			}
-		}
-		return fmt.Errorf("failed to update user: %w", err)
-	}
-
+	// If no rows were affected, it means the user exists but is soft-deleted
+	// (because of WHERE users.deleted_at IS NULL in the ON CONFLICT clause)
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)

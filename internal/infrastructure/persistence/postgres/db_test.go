@@ -25,15 +25,15 @@ func TestConfigFromEnv(t *testing.T) {
 	// Save original env vars
 	originalHost := os.Getenv("DB_HOST")
 	defer os.Setenv("DB_HOST", originalHost)
-    originalMaxIdle := os.Getenv("DB_MAX_IDLE_CONNS")
-    defer os.Setenv("DB_MAX_IDLE_CONNS", originalMaxIdle)
+	originalMaxIdle := os.Getenv("DB_MAX_IDLE_CONNS")
+	defer os.Setenv("DB_MAX_IDLE_CONNS", originalMaxIdle)
 
 	// Set test env vars
 	os.Setenv("DB_HOST", "test-host")
-    os.Setenv("DB_MAX_IDLE_CONNS", "50")
+	os.Setenv("DB_MAX_IDLE_CONNS", "50")
 
 	cfg := ConfigFromEnv()
 
 	assert.Equal(t, "test-host", cfg.Host)
-    assert.Equal(t, 50, cfg.MaxIdleConns)
+	assert.Equal(t, 50, cfg.MaxIdleConns)
 }

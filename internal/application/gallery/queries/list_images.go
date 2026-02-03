@@ -337,4 +337,3 @@ func (h *ListImagesHandler) buildImageDTOs(images []*gallery.Image) []ImageDTO {
 	}
 	return imageDTOs
 }
-
