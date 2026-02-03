@@ -316,15 +316,13 @@ func TestProcessor_Process_Integration(t *testing.T) {
 		t.Skip("skipping integration test in short mode")
 	}
 
-	// Load a test image from testdata directory
-	testImagePath := filepath.Join("testdata", "test.jpg")
-	if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
-		t.Skip("test image not found, skipping integration test")
-		return
+	// List of test images to verify
+	testImages := []string{
+		"test.jpg",
+		"test.png",
+		"test.gif",
+		"test.webp",
 	}
-
-	testImage, err := os.ReadFile(testImagePath)
-	require.NoError(t, err, "failed to read test image")
 
 	cfg := processor.DefaultConfig()
 	p, err := processor.New(cfg)
@@ -332,40 +330,55 @@ func TestProcessor_Process_Integration(t *testing.T) {
 	defer p.Shutdown()
 
 	ctx := context.Background()
-	result, err := p.Process(ctx, testImage, "test.jpg")
-	require.NoError(t, err)
 
-	// Verify all variants were generated
-	assert.NotEmpty(t, result.Thumbnail.Data)
-	assert.NotEmpty(t, result.Small.Data)
-	assert.NotEmpty(t, result.Medium.Data)
-	assert.NotEmpty(t, result.Large.Data)
-	assert.NotEmpty(t, result.Original.Data)
+	for _, filename := range testImages {
+		t.Run(filename, func(t *testing.T) {
+			// Load a test image from testdata directory
+			testImagePath := filepath.Join("testdata", filename)
+			if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
+				t.Skipf("test image %s not found, skipping integration test", filename)
+				return
+			}
 
-	// Verify dimensions are correct
-	assert.LessOrEqual(t, result.Thumbnail.Width, 160)
-	assert.LessOrEqual(t, result.Small.Width, 320)
-	assert.LessOrEqual(t, result.Medium.Width, 800)
-	assert.LessOrEqual(t, result.Large.Width, 1600)
+			testImage, err := os.ReadFile(testImagePath)
+			require.NoError(t, err, "failed to read test image")
 
-	// Verify formats
-	assert.Equal(t, "webp", result.Thumbnail.Format)
-	assert.Equal(t, "webp", result.Small.Format)
-	assert.Equal(t, "webp", result.Medium.Format)
-	assert.Equal(t, "webp", result.Large.Format)
+			result, err := p.Process(ctx, testImage, filename)
+			require.NoError(t, err)
 
-	// Verify file sizes
-	assert.Positive(t, result.Thumbnail.FileSize)
-	assert.Positive(t, result.Small.FileSize)
-	assert.Positive(t, result.Medium.FileSize)
-	assert.Positive(t, result.Large.FileSize)
-	assert.Positive(t, result.Original.FileSize)
+			// Verify all variants were generated
+			assert.NotEmpty(t, result.Thumbnail.Data)
+			assert.NotEmpty(t, result.Small.Data)
+			assert.NotEmpty(t, result.Medium.Data)
+			assert.NotEmpty(t, result.Large.Data)
+			assert.NotEmpty(t, result.Original.Data)
 
-	// Verify content types
-	assert.Equal(t, "image/webp", result.Thumbnail.ContentType)
-	assert.Equal(t, "image/webp", result.Small.ContentType)
-	assert.Equal(t, "image/webp", result.Medium.ContentType)
-	assert.Equal(t, "image/webp", result.Large.ContentType)
+			// Verify dimensions are correct
+			assert.LessOrEqual(t, result.Thumbnail.Width, 160)
+			assert.LessOrEqual(t, result.Small.Width, 320)
+			assert.LessOrEqual(t, result.Medium.Width, 800)
+			assert.LessOrEqual(t, result.Large.Width, 1600)
+
+			// Verify formats
+			assert.Equal(t, "webp", result.Thumbnail.Format)
+			assert.Equal(t, "webp", result.Small.Format)
+			assert.Equal(t, "webp", result.Medium.Format)
+			assert.Equal(t, "webp", result.Large.Format)
+
+			// Verify file sizes
+			assert.Positive(t, result.Thumbnail.FileSize)
+			assert.Positive(t, result.Small.FileSize)
+			assert.Positive(t, result.Medium.FileSize)
+			assert.Positive(t, result.Large.FileSize)
+			assert.Positive(t, result.Original.FileSize)
+
+			// Verify content types
+			assert.Equal(t, "image/webp", result.Thumbnail.ContentType)
+			assert.Equal(t, "image/webp", result.Small.ContentType)
+			assert.Equal(t, "image/webp", result.Medium.ContentType)
+			assert.Equal(t, "image/webp", result.Large.ContentType)
+		})
+	}
 }
 
 func TestProcessor_GenerateVariant_InvalidInput(t *testing.T) {
