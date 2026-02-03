@@ -183,7 +183,7 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to enqueue image processing job")
-		// Don't fail the upload if job enqueueing fails
+		return nil, fmt.Errorf("enqueue processing job: %w", err)
 	}
 
 	h.logger.Info().
