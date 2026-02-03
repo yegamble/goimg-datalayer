@@ -339,9 +339,8 @@ variant, err := gallery.NewImageVariant(
 ## Next Steps
 
 1. **Install libvips** in CI/CD pipeline
-2. **Add test images** to testdata/
-3. **Run integration tests** to verify processing
-4. **Integrate with upload handler** in application layer
+2. **Run integration tests** to verify processing
+3. **Integrate with upload handler** in application layer
 5. **Add metrics** for monitoring
 6. **Performance testing** with various image sizes
 7. **Documentation** in main project docs
