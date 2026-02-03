@@ -13,7 +13,7 @@ The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project i
 
 **Completeness Score:** ~85% (Estimate based on feature count; unchanged from prior report — recent work is quality/stability)
 
-**Recent Fixes (2026-01-20):**
+**Recent Fixes (2026-02-03):**
 - Resolved critical stubs in `NSFWScanRepository` (blocking moderation).
 - Fixed error swallowing in Image Upload workflow.
 - Verified and documented `libvips` dependencies.
