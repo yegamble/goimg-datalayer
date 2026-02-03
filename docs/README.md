@@ -1,6 +1,6 @@
 # goimg-datalayer Documentation
 
-> **Status**: Phase 3 IN PROGRESS | **Version**: 2.1 | **Updated**: 2026-01-15
+> **Status**: Phase 3 IN PROGRESS | **Version**: 2.2 | **Updated**: 2026-02-03
 
 Welcome to the goimg-datalayer documentation. This is a Go backend for an image gallery application (Flickr/Chevereto-style) supporting uploads, moderation, and user management.
 
@@ -10,6 +10,7 @@ Welcome to the goimg-datalayer documentation. This is a Go backend for an image 
 
 | I want to... | Go to |
 |--------------|-------|
+| See critical issues | [Audit Report (2026-02-03)](../claude/audit_report_2026-02-03.md) |
 | Deploy to production | [Deployment Guide](deployment/README.md) |
 | Integrate with the API | [API Reference](api/README.md) |
 | Report a security issue | [Security Policy](../SECURITY.md) |

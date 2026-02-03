@@ -6,11 +6,14 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 **Current Phase**: **Phase 3 - Advanced Features** | **Sprint 23 IN PROGRESS** 🚧
 
+**Latest Audit**: 2026-02-03 - See [claude/audit_report_2026-02-03.md](claude/audit_report_2026-02-03.md) for critical issues and action items.
+
 **Sprint 23 (IN PROGRESS)**: Test Coverage & Regression Prevention
 - 🚧 Improve overall test coverage from ~65% to 80%+
 - 🚧 Add tests for moderation, community, notification application layers
 - 🚧 Add HTTP handler tests (auth, user, album, moderation)
 - 🚧 Establish regression prevention practices
+- 🚧 Address critical issues from 2026-02-03 audit
 
 **Sprint 20 (COMPLETE)**: Groups/Communities
 - ✅ Domain layer complete (community bounded context, 97.5% test coverage)
@@ -759,6 +762,7 @@ This repository includes structured guides for AI coding assistants in the `clau
 | Guide | Purpose |
 |-------|---------|
 | [CLAUDE.md](CLAUDE.md) | Entry point and navigation |
+| [audit_report_2026-02-03.md](claude/audit_report_2026-02-03.md) | **Latest codebase audit - critical issues and action items** |
 | [sprint_plan.md](claude/sprint_plan.md) | **Development roadmap (8-9 sprints)** |
 | [mvp_features.md](claude/mvp_features.md) | **Feature specifications and API design** |
 | [agent_workflow.md](claude/agent_workflow.md) | **Multi-agent coordination and task assignments** |

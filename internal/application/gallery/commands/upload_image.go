@@ -166,6 +166,13 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	}
 
 	// 9. Publish domain events AFTER successful save
+	// TODO(audit-2026-02-03): CRITICAL - Event publishing errors are logged but
+	// not handled. This can lead to lost business events and eventual consistency
+	// violations. Consider implementing:
+	// 1. Retry with exponential backoff
+	// 2. Transactional outbox pattern
+	// 3. At minimum, return error to caller
+	// See: claude/audit_report_2026-02-03.md for full details.
 	for _, event := range image.Events() {
 		if err := h.eventPublisher.Publish(ctx, event); err != nil {
 			h.logger.Error().

@@ -1,6 +1,6 @@
 # goimg-datalayer - Project Status
 
-> **Last Updated**: 2026-01-15
+> **Last Updated**: 2026-02-03
 > **Phase**: Phase 3 - Advanced Features
 > **Completed Sprints**: 16, 17, 18, 19, 20 ✅
 > **Current Sprint**: Sprint 23 (Test Coverage & Regression Prevention) 🚧
@@ -9,6 +9,35 @@
 > **Test Coverage**: ~65% overall (target: 80%)
 > **Go Version**: Go 1.25+ minimum (toolchain go1.25.5 pinned in go.mod)
 > **Security Gate S20**: 9/10 controls passed
+> **Latest Audit**: 2026-02-03 - See `claude/audit_report_2026-02-03.md`
+
+---
+
+## 🚨 CRITICAL ISSUES (From 2026-02-03 Audit)
+
+**Must fix before next production deployment. See `claude/audit_report_2026-02-03.md` for full details.**
+
+| # | Issue | File | Severity |
+|---|-------|------|----------|
+| 1 | **InMemoryPasswordCache race condition** - No mutex, unbounded memory | `internal/infrastructure/security/password_cache.go:110-141` | CRITICAL |
+| 2 | **Stub NSFW repository in production** - Returns nil, nil for all ops | `cmd/api/main.go:873-890` | CRITICAL |
+| 3 | **Silently ignored event publishing errors** - Events logged but not retried | `internal/application/gallery/commands/upload_image.go:170-177` | CRITICAL |
+| 4 | **Cache stampede vulnerability** - No request coalescing on HIBP cache miss | `internal/infrastructure/security/password_cache.go:36-107` | CRITICAL |
+| 5 | **Activity feed unbounded LATERAL JOIN** - Inner limit = limit + offset | `internal/infrastructure/persistence/postgres/activity_repository.go:38-51` | CRITICAL |
+
+### Quick Fixes
+
+```bash
+# Priority 1: Fix password cache race condition
+# File: internal/infrastructure/security/password_cache.go
+# Add sync.RWMutex and LRU eviction
+
+# Priority 2: Implement NSFW repository or disable feature
+# File: cmd/api/main.go - remove noOpNSFWScanRepository
+
+# Priority 3: Add singleflight for cache stampede protection
+# File: internal/infrastructure/security/password_cache.go
+```
 
 ---
 
