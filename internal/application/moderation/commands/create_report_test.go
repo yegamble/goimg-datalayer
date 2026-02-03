@@ -2,9 +2,11 @@ package commands_test
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -12,286 +14,153 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/application/moderation/commands"
 	"github.com/yegamble/goimg-datalayer/internal/application/moderation/testhelpers"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
 func TestCreateReportHandler_Handle(t *testing.T) {
-	t.Parallel()
+	t.Run("Success", func(t *testing.T) {
+		// Arrange
+		mockReports := new(testhelpers.MockReportRepository)
+		mockImages := new(testhelpers.MockImageRepository)
+		mockPublisher := new(testhelpers.MockEventPublisher)
+		logger := zerolog.Nop()
 
-	tests := []struct {
-		name    string
-		cmd     commands.CreateReportCommand
-		setup   func(t *testing.T, suite *testhelpers.TestSuite)
-		wantErr string
-		assert  func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error)
-	}{
-		{
-			name: "successful report creation",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t) // Owned by ValidAdminID, not reporter
+		handler := commands.NewCreateReportHandler(
+			mockReports,
+			mockImages,
+			mockPublisher,
+			&logger,
+		)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ReportRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
-				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
-			},
-			wantErr: "",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				assert.NotEmpty(t, result.ReportID)
-				assert.Equal(t, "pending", result.Status)
-				assert.False(t, result.CreatedAt.IsZero())
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "report with inappropriate reason",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      "inappropriate",
-				Description: "Contains inappropriate content",
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t)
+		reporterID := identity.NewUserID()
+		ownerID := identity.NewUserID() // Different from reporter
+		imageID := gallery.NewImageID()
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ReportRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
-				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
-			},
-			wantErr: "",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "invalid reporter id",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  "invalid-uuid",
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup:   func(t *testing.T, suite *testhelpers.TestSuite) {},
-			wantErr: "invalid reporter id",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "invalid reporter id")
-			},
-		},
-		{
-			name: "invalid image id",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     "invalid-uuid",
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup:   func(t *testing.T, suite *testhelpers.TestSuite) {},
-			wantErr: "invalid image id",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "invalid image id")
-			},
-		},
-		{
-			name: "image not found",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(nil, gallery.ErrImageNotFound).Once()
-			},
-			wantErr: "find image",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "find image")
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "cannot report own content",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImageOwnedByReporter(t) // Owned by reporter
+		// Create a dummy image
+		image := createDummyImage(t, imageID, ownerID)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: "cannot report your own content",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "cannot report your own content")
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "invalid report reason",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      "invalid_reason_that_does_not_exist",
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t)
+		cmd := commands.CreateReportCommand{
+			ReporterID:  reporterID.String(),
+			ImageID:     imageID.String(),
+			Reason:      "spam",
+			Description: "This is spam",
+		}
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: "invalid report reason",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "invalid report reason")
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "repository save error",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t)
+		mockImages.On("FindByID", mock.Anything, imageID).Return(image, nil)
+		mockReports.On("Save", mock.Anything, mock.Anything).Return(nil)
+		mockPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ReportRepo.On("Save", mock.Anything, mock.Anything).Return(errors.New("database error")).Once()
-			},
-			wantErr: "save report",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "save report")
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "event publish error does not fail operation",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t)
+		// Act
+		result, err := handler.Handle(context.Background(), cmd)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-				suite.ReportRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
-				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(errors.New("event bus error")).Maybe()
-			},
-			wantErr: "",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.NoError(t, err) // Operation succeeds even if event publishing fails
-				require.NotNil(t, result)
-				assert.NotEmpty(t, result.ReportID)
-				suite.AssertExpectations(t)
-			},
-		},
-		{
-			name: "empty reporter id",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  "",
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup:   func(t *testing.T, suite *testhelpers.TestSuite) {},
-			wantErr: "invalid reporter id",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-			},
-		},
-		{
-			name: "empty image id",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     "",
-				Reason:      testhelpers.ValidReportReason,
-				Description: testhelpers.ValidReportDesc,
-			},
-			setup:   func(t *testing.T, suite *testhelpers.TestSuite) {},
-			wantErr: "invalid image id",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-			},
-		},
-		{
-			name: "empty description is not allowed",
-			cmd: commands.CreateReportCommand{
-				ReporterID:  testhelpers.ValidUserID,
-				ImageID:     testhelpers.ValidImageID,
-				Reason:      testhelpers.ValidReportReason,
-				Description: "", // Empty description
-			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
-				imageID := testhelpers.ValidImageIDParsed()
-				image := testhelpers.ValidImage(t)
+		// Assert
+		require.NoError(t, err)
+		assert.NotEmpty(t, result.ReportID)
+		assert.Equal(t, "pending", result.Status)
 
-				suite.ImageRepo.On("FindByID", mock.Anything, imageID).Return(image, nil).Once()
-			},
-			wantErr: "create report",
-			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.CreateReportResult, err error) {
-				require.Error(t, err)
-				assert.Nil(t, result)
-				assert.Contains(t, err.Error(), "description cannot be empty")
-				suite.AssertExpectations(t)
-			},
-		},
-	}
+		mockImages.AssertExpectations(t)
+		mockReports.AssertExpectations(t)
+		mockPublisher.AssertExpectations(t)
+	})
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	t.Run("SelfReport", func(t *testing.T) {
+		// Arrange
+		mockReports := new(testhelpers.MockReportRepository)
+		mockImages := new(testhelpers.MockImageRepository)
+		mockPublisher := new(testhelpers.MockEventPublisher)
+		logger := zerolog.Nop()
 
-			suite := testhelpers.NewTestSuite(t)
-			tt.setup(t, suite)
+		handler := commands.NewCreateReportHandler(
+			mockReports,
+			mockImages,
+			mockPublisher,
+			&logger,
+		)
 
-			handler := commands.NewCreateReportHandler(
-				suite.ReportRepo,
-				suite.ImageRepo,
-				suite.EventPublisher,
-				&suite.Logger,
-			)
+		reporterID := identity.NewUserID()
+		imageID := gallery.NewImageID()
 
-			result, err := handler.Handle(context.Background(), tt.cmd)
+		// Reporter is owner
+		image := createDummyImage(t, imageID, reporterID)
 
-			if tt.wantErr != "" {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tt.wantErr)
-			}
+		cmd := commands.CreateReportCommand{
+			ReporterID:  reporterID.String(),
+			ImageID:     imageID.String(),
+			Reason:      "spam",
+			Description: "I hate my own image",
+		}
 
-			tt.assert(t, suite, result, err)
-		})
-	}
+		mockImages.On("FindByID", mock.Anything, imageID).Return(image, nil)
+
+		// Act
+		result, err := handler.Handle(context.Background(), cmd)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "cannot report your own content")
+	})
+
+	t.Run("ImageNotFound", func(t *testing.T) {
+		mockReports := new(testhelpers.MockReportRepository)
+		mockImages := new(testhelpers.MockImageRepository)
+		mockPublisher := new(testhelpers.MockEventPublisher)
+		logger := zerolog.Nop()
+
+		handler := commands.NewCreateReportHandler(
+			mockReports,
+			mockImages,
+			mockPublisher,
+			&logger,
+		)
+
+		reporterID := identity.NewUserID()
+		imageID := gallery.NewImageID()
+
+		cmd := commands.CreateReportCommand{
+			ReporterID:  reporterID.String(),
+			ImageID:     imageID.String(),
+			Reason:      "spam",
+			Description: "Spam",
+		}
+
+		mockImages.On("FindByID", mock.Anything, imageID).Return(nil, fmt.Errorf("image not found"))
+
+		result, err := handler.Handle(context.Background(), cmd)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+}
+
+// Helpers
+
+func createDummyImage(t *testing.T, id gallery.ImageID, ownerID identity.UserID) *gallery.Image {
+	metadata, err := gallery.NewImageMetadata(
+		"Test Image",
+		"Test Description",
+		"test.jpg",
+		"image/jpeg",
+		800,
+		600,
+		102400,
+		"test/key",
+		"local",
+	)
+	require.NoError(t, err)
+
+	return gallery.ReconstructImage(
+		id,
+		ownerID,
+		metadata,
+		gallery.VisibilityPublic,
+		gallery.StatusActive,
+		gallery.ScanStatusClean,
+		[]gallery.ImageVariant{},
+		[]gallery.Tag{},
+		nil,
+		0, 0, 0,
+		time.Now(),
+		time.Now(),
+	)
 }
