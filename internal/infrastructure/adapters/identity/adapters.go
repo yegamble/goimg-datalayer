@@ -182,7 +182,9 @@ func (a *RefreshTokenServiceAdapter) GenerateToken(
 }
 
 // ValidateToken validates the refresh token against stored metadata.
-func (a *RefreshTokenServiceAdapter) ValidateToken(ctx context.Context, token string) (*appservices.RefreshTokenMetadata, error) {
+func (a *RefreshTokenServiceAdapter) ValidateToken(
+	ctx context.Context, token string,
+) (*appservices.RefreshTokenMetadata, error) {
 	meta, err := a.Service.ValidateToken(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate refresh token: %w", err)
@@ -226,7 +228,9 @@ func (a *RefreshTokenServiceAdapter) RevokeFamily(ctx context.Context, familyID 
 }
 
 // DetectAnomalies checks for suspicious activity based on token usage.
-func (a *RefreshTokenServiceAdapter) DetectAnomalies(metadata *appservices.RefreshTokenMetadata, currentIP, currentUserAgent string) bool {
+func (a *RefreshTokenServiceAdapter) DetectAnomalies(
+	metadata *appservices.RefreshTokenMetadata, currentIP, currentUserAgent string,
+) bool {
 	infraMeta := &jwt.RefreshTokenMetadata{
 		TokenHash:  metadata.TokenHash,
 		UserID:     metadata.UserID,
@@ -377,7 +381,9 @@ func (a *SessionStoreAdapterIdentity) Get(ctx context.Context, sessionID uuid.UU
 }
 
 // GetUserSessions retrieves all active sessions for a user.
-func (a *SessionStoreAdapterIdentity) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]*appidentity.Session, error) {
+func (a *SessionStoreAdapterIdentity) GetUserSessions(
+	ctx context.Context, userID uuid.UUID,
+) ([]*appidentity.Session, error) {
 	domUserID, _ := domidentity.ParseUserID(userID.String())
 	sessList, err := a.Repo.GetByUserID(ctx, domUserID)
 	if err != nil {
