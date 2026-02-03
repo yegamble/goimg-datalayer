@@ -5,14 +5,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres"
 )
+
+// createTestImageForNSFW creates a test user and image for NSFW scan tests.
+func createTestImageForNSFW(t *testing.T, db *sqlx.DB, imageID gallery.ImageID) {
+	t.Helper()
+	userID := identity.NewUserID()
+	createTestUser(t, db, userID)
+	createTestImage(t, db, imageID, userID)
+}
 
 func TestNSFWScanRepository_Save(t *testing.T) {
 	if testing.Short() {
@@ -24,6 +34,9 @@ func TestNSFWScanRepository_Save(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 	scanID := moderation.NewNSFWScanID()
 
 	// Create a new NSFW scan
@@ -52,6 +65,9 @@ func TestNSFWScanRepository_SaveWithResults(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 	scanID := moderation.NewNSFWScanID()
 
 	// Create and complete a scan
@@ -85,6 +101,9 @@ func TestNSFWScanRepository_SaveWithError(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 	scanID := moderation.NewNSFWScanID()
 
 	// Create and fail a scan
@@ -127,6 +146,9 @@ func TestNSFWScanRepository_FindByImageID(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 
 	// Create and save two scans for the same image
 	scan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID, moderation.ProviderSightEngine)
@@ -171,6 +193,9 @@ func TestNSFWScanRepository_FindByImageIDAll(t *testing.T) {
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
 
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
+
 	// Create and save three scans for the same image
 	scan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID, moderation.ProviderSightEngine)
 	err := repo.Save(ctx, scan1)
@@ -201,15 +226,27 @@ func TestNSFWScanRepository_FindPending(t *testing.T) {
 	ctx := context.Background()
 
 	// Create pending and completed scans
-	pendingScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID1 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID1)
+	pendingScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID1, moderation.ProviderSightEngine)
 	err := repo.Save(ctx, pendingScan1)
 	require.NoError(t, err)
 
-	pendingScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID2 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID2)
+	pendingScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID2, moderation.ProviderSightEngine)
 	err = repo.Save(ctx, pendingScan2)
 	require.NoError(t, err)
 
-	completedScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID3 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID3)
+	completedScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID3, moderation.ProviderSightEngine)
 	details := moderation.NewNSFWDetails(0.1, 0.1, 0.1, 0.1, 0.1)
 	err = completedScan.Complete(moderation.CategorySafe, 0.1, details)
 	require.NoError(t, err)
@@ -217,7 +254,7 @@ func TestNSFWScanRepository_FindPending(t *testing.T) {
 	require.NoError(t, err)
 
 	// Find pending scans
-	pagination, _ := shared.NewPagination(10, 0)
+	pagination, _ := shared.NewPagination(1, 10)
 	scans, count, err := repo.FindPending(ctx, pagination)
 	require.NoError(t, err)
 	assert.Len(t, scans, 2)
@@ -235,26 +272,38 @@ func TestNSFWScanRepository_FindByStatus(t *testing.T) {
 	ctx := context.Background()
 
 	// Create scans with different statuses
-	completedScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID1 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID1)
+	completedScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID1, moderation.ProviderSightEngine)
 	details := moderation.NewNSFWDetails(0.2, 0.1, 0.1, 0.1, 0.1)
 	err := completedScan1.Complete(moderation.CategorySafe, 0.2, details)
 	require.NoError(t, err)
 	err = repo.Save(ctx, completedScan1)
 	require.NoError(t, err)
 
-	completedScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID2 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID2)
+	completedScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID2, moderation.ProviderSightEngine)
 	err = completedScan2.Complete(moderation.CategorySafe, 0.15, details)
 	require.NoError(t, err)
 	err = repo.Save(ctx, completedScan2)
 	require.NoError(t, err)
 
-	failedScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID3 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID3)
+	failedScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID3, moderation.ProviderSightEngine)
 	failedScan.Fail("Network error")
 	err = repo.Save(ctx, failedScan)
 	require.NoError(t, err)
 
 	// Find completed scans
-	pagination, _ := shared.NewPagination(10, 0)
+	pagination, _ := shared.NewPagination(1, 10)
 	scans, count, err := repo.FindByStatus(ctx, moderation.ScanStatusCompleted, pagination)
 	require.NoError(t, err)
 	assert.Len(t, scans, 2)
@@ -278,21 +327,33 @@ func TestNSFWScanRepository_FindNSFWImages(t *testing.T) {
 	ctx := context.Background()
 
 	// Create scans with different categories
-	nsfwScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID1 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID1)
+	nsfwScan1 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID1, moderation.ProviderSightEngine)
 	details := moderation.NewNSFWDetails(0.9, 0.1, 0.1, 0.1, 0.1)
 	err := nsfwScan1.Complete(moderation.CategoryNudity, 0.9, details)
 	require.NoError(t, err)
 	err = repo.Save(ctx, nsfwScan1)
 	require.NoError(t, err)
 
-	nsfwScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID2 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID2)
+	nsfwScan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID2, moderation.ProviderSightEngine)
 	violenceDetails := moderation.NewNSFWDetails(0.1, 0.1, 0.85, 0.1, 0.1)
 	err = nsfwScan2.Complete(moderation.CategoryViolence, 0.85, violenceDetails)
 	require.NoError(t, err)
 	err = repo.Save(ctx, nsfwScan2)
 	require.NoError(t, err)
 
-	safeScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+	imageID3 := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID3)
+	safeScan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID3, moderation.ProviderSightEngine)
 	safeDetails := moderation.NewNSFWDetails(0.1, 0.1, 0.1, 0.1, 0.1)
 	err = safeScan.Complete(moderation.CategorySafe, 0.1, safeDetails)
 	require.NoError(t, err)
@@ -300,7 +361,7 @@ func TestNSFWScanRepository_FindNSFWImages(t *testing.T) {
 	require.NoError(t, err)
 
 	// Find NSFW images (should only return nudity and violence, not safe)
-	pagination, _ := shared.NewPagination(10, 0)
+	pagination, _ := shared.NewPagination(1, 10)
 	scans, count, err := repo.FindNSFWImages(ctx, pagination)
 	require.NoError(t, err)
 	assert.Len(t, scans, 2)
@@ -322,6 +383,9 @@ func TestNSFWScanRepository_HasActiveScan(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 
 	// Initially no active scan
 	hasActive, err := repo.HasActiveScan(ctx, imageID)
@@ -361,6 +425,9 @@ func TestNSFWScanRepository_SaveUpdate(t *testing.T) {
 
 	ctx := context.Background()
 	imageID := gallery.NewImageID()
+
+	// Setup: Create test user and image
+	createTestImageForNSFW(t, db, imageID)
 	scanID := moderation.NewNSFWScanID()
 
 	// Create initial scan
@@ -400,28 +467,32 @@ func TestNSFWScanRepository_Pagination(t *testing.T) {
 
 	// Create 5 pending scans
 	for i := 0; i < 5; i++ {
-		scan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), gallery.NewImageID(), moderation.ProviderSightEngine)
+		imageID := gallery.NewImageID()
+
+		// Setup: Create test user and image
+		createTestImageForNSFW(t, db, imageID)
+		scan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID, moderation.ProviderSightEngine)
 		err := repo.Save(ctx, scan)
 		require.NoError(t, err)
 		time.Sleep(5 * time.Millisecond) // Ensure different timestamps
 	}
 
-	// Test pagination - first page
-	pagination1, _ := shared.NewPagination(2, 0)
+	// Test pagination - first page (page 1, 2 items per page)
+	pagination1, _ := shared.NewPagination(1, 2)
 	scans, count, err := repo.FindPending(ctx, pagination1)
 	require.NoError(t, err)
 	assert.Len(t, scans, 2)
 	assert.Equal(t, int64(5), count)
 
-	// Test pagination - second page
+	// Test pagination - second page (page 2, 2 items per page)
 	pagination2, _ := shared.NewPagination(2, 2)
 	scans, count, err = repo.FindPending(ctx, pagination2)
 	require.NoError(t, err)
 	assert.Len(t, scans, 2)
 	assert.Equal(t, int64(5), count)
 
-	// Test pagination - third page
-	pagination3, _ := shared.NewPagination(2, 4)
+	// Test pagination - third page (page 3, 2 items per page)
+	pagination3, _ := shared.NewPagination(3, 2)
 	scans, count, err = repo.FindPending(ctx, pagination3)
 	require.NoError(t, err)
 	assert.Len(t, scans, 1)
