@@ -447,7 +447,6 @@ func NewRouter(
 				r.Mount("/guest", guestHandler.Routes())
 			}
 
-
 			// User's groups endpoint
 			// GET /me/groups - List current user's group memberships
 			if groupHandler != nil {
