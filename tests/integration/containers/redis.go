@@ -3,6 +3,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -36,16 +37,24 @@ func NewRedisContainer(ctx context.Context, t *testing.T) (*RedisContainer, erro
 		return nil, fmt.Errorf("failed to start redis container: %w", err)
 	}
 
-	// Get connection string
+	// Get connection string (returns redis://host:port format)
 	connStr, err := redisC.ConnectionString(ctx)
 	if err != nil {
 		_ = redisC.Terminate(ctx)
 		return nil, fmt.Errorf("failed to get redis connection string: %w", err)
 	}
 
+	// Parse URL to extract host:port (redis.Options.Addr expects "host:port" not "redis://...")
+	parsedURL, err := url.Parse(connStr)
+	if err != nil {
+		_ = redisC.Terminate(ctx)
+		return nil, fmt.Errorf("failed to parse redis connection string: %w", err)
+	}
+	addr := parsedURL.Host
+
 	// Create Redis client
 	client := redis.NewClient(&redis.Options{
-		Addr:         connStr,
+		Addr:         addr,
 		Password:     "",
 		DB:           0,
 		DialTimeout:  5 * time.Second,
@@ -65,7 +74,7 @@ func NewRedisContainer(ctx context.Context, t *testing.T) (*RedisContainer, erro
 	return &RedisContainer{
 		Container: redisC,
 		Client:    client,
-		Addr:      connStr,
+		Addr:      addr,
 	}, nil
 }
 

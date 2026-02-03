@@ -33,9 +33,9 @@ CREATE INDEX idx_users_guest_expiry ON users(user_type, expires_at)
 CREATE INDEX idx_users_guest_ip ON users(ip_address)
     WHERE user_type = 'guest';
 
--- Index for active guests (not expired)
-CREATE INDEX idx_users_active_guests ON users(user_type, created_at DESC)
-    WHERE user_type = 'guest' AND expires_at > NOW();
+-- Index for active guests (not expired - filter by expires_at at query time)
+CREATE INDEX idx_users_active_guests ON users(user_type, expires_at, created_at DESC)
+    WHERE user_type = 'guest';
 
 COMMENT ON COLUMN users.user_type IS 'User type: registered (normal account), guest (temporary account)';
 COMMENT ON COLUMN users.ip_address IS 'IP address for guest users (used for rate limiting and security)';

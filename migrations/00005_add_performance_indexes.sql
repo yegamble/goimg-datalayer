@@ -5,7 +5,7 @@
 -- Index 1: Composite index for public image listings
 -- Covers: status = 'active' AND visibility = 'public' ORDER BY created_at DESC
 -- Impact: 3-5x faster on public image list queries (most frequent read operation)
-CREATE INDEX CONCURRENTLY idx_images_public_listing
+CREATE INDEX idx_images_public_listing
 ON images(status, visibility, created_at DESC)
 WHERE deleted_at IS NULL AND status = 'active' AND visibility = 'public';
 
@@ -21,7 +21,7 @@ GENERATED ALWAYS AS (
 
 -- Index 3: GIN index for full-text search
 -- Enables fast full-text search using the generated search_vector column
-CREATE INDEX CONCURRENTLY idx_images_search_vector
+CREATE INDEX idx_images_search_vector
 ON images USING GIN(search_vector);
 
 COMMENT ON COLUMN images.search_vector IS 'Pre-computed full-text search vector for title and description (auto-updated on row changes)';
@@ -30,7 +30,7 @@ COMMENT ON INDEX idx_images_search_vector IS 'GIN index for fast full-text searc
 -- Index 4: Composite index for user comment history
 -- Covers: user_id + created_at DESC ordering for comment pagination
 -- Impact: 2-3x faster on user comment history queries
-CREATE INDEX CONCURRENTLY idx_comments_user_history
+CREATE INDEX idx_comments_user_history
 ON comments(user_id, created_at DESC)
 WHERE deleted_at IS NULL;
 
@@ -38,7 +38,7 @@ COMMENT ON INDEX idx_comments_user_history IS 'Optimized index for paginated use
 
 -- Index 5: Composite index for image tag lookups
 -- Improves performance of tag-based image filtering
-CREATE INDEX CONCURRENTLY idx_image_tags_tag_image
+CREATE INDEX idx_image_tags_tag_image
 ON image_tags(tag_id, image_id);
 
 COMMENT ON INDEX idx_image_tags_tag_image IS 'Composite index for efficient tag-to-image lookups in search queries';

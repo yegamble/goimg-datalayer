@@ -8,6 +8,7 @@ ALTER TABLE albums ADD COLUMN parent_id UUID REFERENCES albums(id) ON DELETE SET
 CREATE INDEX idx_albums_parent_id ON albums(parent_id) WHERE deleted_at IS NULL;
 
 -- Prevent circular references via trigger
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION check_album_hierarchy_depth()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -47,6 +48,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_check_album_hierarchy
     BEFORE INSERT OR UPDATE OF parent_id ON albums
@@ -77,11 +79,22 @@ CREATE INDEX idx_variant_configs_user_id ON variant_configs(user_id);
 -- Index for global presets
 CREATE INDEX idx_variant_configs_presets ON variant_configs(is_preset) WHERE is_preset = TRUE;
 
+-- Auto-update updated_at function
+-- +goose StatementBegin
+CREATE OR REPLACE FUNCTION update_variant_configs_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+-- +goose StatementEnd
+
 -- Auto-update updated_at
 CREATE TRIGGER trg_variant_configs_updated_at
     BEFORE UPDATE ON variant_configs
     FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION update_variant_configs_updated_at();
 
 -- Insert default system presets (user_id is NULL for system presets)
 -- We'll use a special system user ID for presets
@@ -113,6 +126,8 @@ CREATE INDEX idx_custom_variants_config_id ON custom_image_variants(config_id);
 -- Remove in reverse order
 
 DROP TABLE IF EXISTS custom_image_variants;
+DROP TRIGGER IF EXISTS trg_variant_configs_updated_at ON variant_configs;
+DROP FUNCTION IF EXISTS update_variant_configs_updated_at();
 DROP TABLE IF EXISTS variant_configs;
 
 DROP TRIGGER IF EXISTS trg_check_album_hierarchy ON albums;

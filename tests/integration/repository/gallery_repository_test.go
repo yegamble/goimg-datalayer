@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -16,13 +18,45 @@ import (
 
 // Test helper functions
 
-// createTestUser creates a test user ID.
+// createTestUserInDB creates a test user in the database and returns the user ID.
+// This is required because images/albums have a foreign key reference to users.
+func createTestUserInDB(t *testing.T, ctx context.Context, db *sqlx.DB, prefix string) identity.UserID {
+	t.Helper()
+
+	userRepo := postgres.NewUserRepository(db)
+
+	// Generate unique suffix using short UUID to avoid conflicts
+	suffix := uuid.New().String()[:8]
+	uniquePrefix := prefix + suffix
+
+	email, err := identity.NewEmail(uniquePrefix + "@example.com")
+	require.NoError(t, err)
+
+	username, err := identity.NewUsername(uniquePrefix)
+	require.NoError(t, err)
+
+	passwordHash, err := identity.NewPasswordHash("Password123!")
+	require.NoError(t, err)
+
+	user, err := identity.NewUser(email, username, passwordHash)
+	require.NoError(t, err)
+
+	err = userRepo.Save(ctx, user)
+	require.NoError(t, err)
+
+	return user.ID()
+}
+
+// createTestUser creates a test user ID (without DB insert - use createTestUserInDB instead).
+// Deprecated: Use createTestUserInDB for integration tests that require DB operations.
 func createTestUser() identity.UserID {
 	return identity.NewUserID()
 }
 
 // createTestMetadata creates valid image metadata for testing.
 func createTestMetadata(title string) gallery.ImageMetadata {
+	// Generate unique storage key to avoid unique constraint violations
+	uniqueKey := "storage/test/" + uuid.New().String() + ".jpg"
 	metadata, err := gallery.NewImageMetadata(
 		title,
 		"Test description",
@@ -30,7 +64,7 @@ func createTestMetadata(title string) gallery.ImageMetadata {
 		"image/jpeg",
 		1920, 1080,
 		1024*500, // 500KB
-		"storage/test/image.jpg",
+		uniqueKey,
 		"local",
 	)
 	if err != nil {
@@ -102,7 +136,7 @@ func TestImageRepository_Save_Insert(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "imgtest1")
 	image := createTestImage(ownerID, "Test Image")
 
 	// Act
@@ -134,7 +168,7 @@ func TestImageRepository_Save_Update(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Original Title")
 
 	// Save initial version
@@ -169,7 +203,7 @@ func TestImageRepository_FindByID_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Test Image")
 
 	err = repo.Save(ctx, image)
@@ -221,7 +255,7 @@ func TestImageRepository_FindByOwner_Pagination(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create 5 images
 	for i := 1; i <= 5; i++ {
@@ -268,7 +302,7 @@ func TestImageRepository_FindByOwner_EmptyResult(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	pagination := shared.DefaultPagination()
 	images, total, err := repo.FindByOwner(ctx, ownerID, pagination, nil)
@@ -291,7 +325,7 @@ func TestImageRepository_FindPublic_OnlyReturnsPublicActiveImages(t *testing.T) 
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create public active image (should be returned)
 	publicImg := createTestImageWithVisibility(ownerID, "Public Image", gallery.VisibilityPublic)
@@ -335,7 +369,7 @@ func TestImageRepository_FindPublic_Pagination(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create 3 public active images
 	for i := 1; i <= 3; i++ {
@@ -366,7 +400,7 @@ func TestImageRepository_FindByTag_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create tag
 	tag := gallery.MustNewTag("nature")
@@ -415,7 +449,7 @@ func TestImageRepository_FindByTag_Pagination(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	tag := gallery.MustNewTag("landscape")
 
 	// Create 3 public active images with the tag
@@ -449,7 +483,7 @@ func TestImageRepository_FindByStatus_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create images with different statuses
 	processingImg := createTestImageWithStatus(ownerID, "Processing", gallery.StatusProcessing)
@@ -505,7 +539,7 @@ func TestImageRepository_Delete_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Test Image")
 
 	err = repo.Save(ctx, image)
@@ -558,7 +592,7 @@ func TestImageRepository_ExistsByID_True(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Test Image")
 
 	err = repo.Save(ctx, image)
@@ -608,7 +642,7 @@ func TestImageRepository_SaveWithTags_PreservesTagsOnUpdate(t *testing.T) {
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Test Image")
 
 	// Add tags
@@ -659,7 +693,7 @@ func TestImageRepository_SaveWithVariants_PreservesVariantsOnUpdate(t *testing.T
 	}()
 
 	repo := postgres.NewImageRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	image := createTestImage(ownerID, "Test Image")
 
 	// Add variants
@@ -725,7 +759,7 @@ func TestAlbumRepository_Save_Insert(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	album := createTestAlbum(ownerID, "Test Album")
 
 	// Act
@@ -756,7 +790,7 @@ func TestAlbumRepository_Save_Update(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	album := createTestAlbum(ownerID, "Original Title")
 
 	// Save initial version
@@ -793,7 +827,7 @@ func TestAlbumRepository_FindByID_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	album := createTestAlbum(ownerID, "Test Album")
 
 	err = repo.Save(ctx, album)
@@ -845,7 +879,7 @@ func TestAlbumRepository_FindByOwner_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create 3 albums
 	for i := 1; i <= 3; i++ {
@@ -877,7 +911,7 @@ func TestAlbumRepository_FindByOwner_Pagination(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create 5 albums
 	for i := 1; i <= 5; i++ {
@@ -924,7 +958,7 @@ func TestAlbumRepository_FindByOwner_EmptyResult(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Act
 	pagination := shared.DefaultPagination()
@@ -949,7 +983,7 @@ func TestAlbumRepository_FindPublic_OnlyReturnsPublicAlbums(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create public album
 	publicAlbum := createTestAlbum(ownerID, "Public Album")
@@ -988,7 +1022,7 @@ func TestAlbumRepository_FindPublic_Pagination(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create 3 public albums
 	for i := 1; i <= 3; i++ {
@@ -1021,7 +1055,7 @@ func TestAlbumRepository_Delete_Success(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	album := createTestAlbum(ownerID, "Test Album")
 
 	err = repo.Save(ctx, album)
@@ -1074,7 +1108,7 @@ func TestAlbumRepository_ExistsByID_True(t *testing.T) {
 	}()
 
 	repo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 	album := createTestAlbum(ownerID, "Test Album")
 
 	err = repo.Save(ctx, album)
@@ -1125,7 +1159,7 @@ func TestAlbumRepository_SaveWithCoverImage(t *testing.T) {
 
 	imageRepo := postgres.NewImageRepository(pgContainer.DB)
 	albumRepo := postgres.NewAlbumRepository(pgContainer.DB)
-	ownerID := createTestUser()
+	ownerID := createTestUserInDB(t, ctx, pgContainer.DB, "u")
 
 	// Create and save an image
 	image := createTestImage(ownerID, "Cover Image")

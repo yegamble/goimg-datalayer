@@ -22,7 +22,7 @@ CREATE TABLE images (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
 
-    CONSTRAINT images_status_check CHECK (status IN ('processing', 'active', 'failed', 'deleted')),
+    CONSTRAINT images_status_check CHECK (status IN ('processing', 'active', 'flagged', 'deleted')),
     CONSTRAINT images_visibility_check CHECK (visibility IN ('public', 'private', 'unlisted')),
     CONSTRAINT images_scan_status_check CHECK (scan_status IN ('pending', 'clean', 'infected', 'error')),
     CONSTRAINT images_file_size_positive CHECK (file_size > 0),
@@ -144,6 +144,7 @@ CREATE INDEX idx_image_tags_image_id ON image_tags(image_id);
 COMMENT ON TABLE image_tags IS 'Association between images and tags';
 
 -- Trigger to update album.image_count
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION update_album_image_count()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -159,6 +160,7 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_album_image_count
     AFTER INSERT OR DELETE ON album_images
@@ -166,6 +168,7 @@ CREATE TRIGGER trg_album_image_count
     EXECUTE FUNCTION update_album_image_count();
 
 -- Trigger to update tags.usage_count
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION update_tag_usage_count()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -179,6 +182,7 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_tag_usage_count
     AFTER INSERT OR DELETE ON image_tags
@@ -186,6 +190,7 @@ CREATE TRIGGER trg_tag_usage_count
     EXECUTE FUNCTION update_tag_usage_count();
 
 -- Trigger to update images.updated_at on modification
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION update_images_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -193,6 +198,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER trg_images_updated_at
     BEFORE UPDATE ON images

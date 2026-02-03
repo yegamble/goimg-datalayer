@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -30,10 +31,11 @@ type PostgresContainer struct {
 func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer, error) {
 	t.Helper()
 
-	// Get project root (3 levels up from tests/integration/containers)
-	projectRoot, err := filepath.Abs("../../..")
-	require.NoError(t, err)
-	migrationsPath := filepath.Join(projectRoot, "migrations")
+	// Find project root by looking for go.mod file
+	migrationsPath, err := findMigrationsDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to find migrations directory: %w", err)
+	}
 
 	// Start PostgreSQL container
 	postgresContainer, err := postgres.RunContainer(ctx,
@@ -89,6 +91,37 @@ func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer
 		DB:        db,
 		ConnStr:   connStr,
 	}, nil
+}
+
+// findMigrationsDir walks up from the current working directory to find the project root
+// (identified by go.mod) and returns the path to the migrations directory.
+func findMigrationsDir() (string, error) {
+	// Start from current working directory
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("get working directory: %w", err)
+	}
+
+	// Walk up looking for go.mod
+	for {
+		goModPath := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(goModPath); err == nil {
+			// Found go.mod, migrations should be in migrations/ subdirectory
+			migrationsDir := filepath.Join(dir, "migrations")
+			if _, err := os.Stat(migrationsDir); err == nil {
+				return migrationsDir, nil
+			}
+			return "", fmt.Errorf("migrations directory not found at %s", migrationsDir)
+		}
+
+		// Move up one directory
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached root without finding go.mod
+			return "", fmt.Errorf("could not find go.mod in any parent directory")
+		}
+		dir = parent
+	}
 }
 
 // runMigrations runs goose migrations from the specified directory.

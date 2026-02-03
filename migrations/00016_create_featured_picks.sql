@@ -26,12 +26,10 @@ CREATE TABLE featured_picks (
 CREATE INDEX idx_featured_picks_image_id ON featured_picks(image_id);
 CREATE INDEX idx_featured_picks_featured_by ON featured_picks(featured_by);
 CREATE INDEX idx_featured_picks_display_order ON featured_picks(display_order);
-CREATE INDEX idx_featured_picks_date_range ON featured_picks(featured_from, featured_until)
-    WHERE featured_until IS NULL OR featured_until > NOW();
+CREATE INDEX idx_featured_picks_date_range ON featured_picks(featured_from, featured_until);
 
--- Active featured picks (most common query)
-CREATE INDEX idx_featured_picks_active ON featured_picks(display_order, featured_from DESC)
-    WHERE (featured_until IS NULL OR featured_until > NOW());
+-- Active featured picks (most common query) - filter by featured_until at query time
+CREATE INDEX idx_featured_picks_active ON featured_picks(display_order, featured_until, featured_from DESC);
 
 COMMENT ON TABLE featured_picks IS 'Admin-curated featured images with scheduling and display order';
 COMMENT ON COLUMN featured_picks.image_id IS 'Image being featured';

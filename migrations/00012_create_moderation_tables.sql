@@ -67,7 +67,7 @@ CREATE INDEX idx_bans_user_id ON user_bans(user_id);
 CREATE INDEX idx_bans_banned_by ON user_bans(banned_by);
 CREATE INDEX idx_bans_created_at ON user_bans(created_at DESC);
 CREATE INDEX idx_bans_expires_at ON user_bans(expires_at) WHERE expires_at IS NOT NULL;
-CREATE INDEX idx_bans_active ON user_bans(user_id, created_at DESC) WHERE revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW());
+CREATE INDEX idx_bans_active ON user_bans(user_id, expires_at, created_at DESC) WHERE revoked_at IS NULL;
 CREATE INDEX idx_bans_revoked_by ON user_bans(revoked_by) WHERE revoked_by IS NOT NULL;
 
 COMMENT ON TABLE user_bans IS 'User bans (temporary and permanent)';
