@@ -194,7 +194,7 @@ Wrapped errors with context:
 ### Test Data
 - `testdata/` directory for sample images
 - `.gitkeep` file for version control
-- TODO: Add test images for each format
+- Test images: JPEG, PNG, GIF, WebP samples added
 
 ## Security Features
 
@@ -236,7 +236,7 @@ Wrapped errors with context:
 
 ### Development Dependencies
 - **github.com/stretchr/testify** (already in project)
-- Test images in `testdata/` (TODO: add samples)
+- Test images in `testdata/`
 
 ## Integration Points
 
@@ -331,7 +331,7 @@ variant, err := gallery.NewImageVariant(
 - [x] testdata/ - Test data directory
 - [x] go.mod - bimg dependency added
 - [ ] go.sum - Pending network (will be generated on next build)
-- [ ] Test images - Add JPEG, PNG, GIF, WebP samples
+- [x] Test images - Add JPEG, PNG, GIF, WebP samples
 - [ ] Integration test - Run with libvips installed
 - [ ] Performance test - Verify <30s for 10MB images
 - [ ] Application layer integration - Wire up in upload handler
