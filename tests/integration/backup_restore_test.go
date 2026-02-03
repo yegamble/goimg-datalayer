@@ -36,6 +36,9 @@ func TestBackupRestore_FullCycle(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
+	if _, err := exec.LookPath("pg_dump"); err != nil {
+		t.Skip("pg_dump not found, skipping test")
+	}
 
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
@@ -171,6 +174,9 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
+	if _, err := exec.LookPath("pg_dump"); err != nil {
+		t.Skip("pg_dump not found, skipping test")
+	}
 
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
@@ -206,6 +212,9 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 func TestBackupRestore_PartialData(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
+	}
+	if _, err := exec.LookPath("pg_dump"); err != nil {
+		t.Skip("pg_dump not found, skipping test")
 	}
 
 	suite := containers.NewIntegrationTestSuite(t)
@@ -416,6 +425,9 @@ func countTriggers(ctx context.Context, db *sql.DB) (int, error) {
 func TestBackupRestore_ChecksumCalculation(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
+	}
+	if _, err := exec.LookPath("pg_dump"); err != nil {
+		t.Skip("pg_dump not found, skipping test")
 	}
 
 	suite := containers.NewIntegrationTestSuite(t)
