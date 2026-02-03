@@ -21,19 +21,19 @@ type MockSessionStoreForDelete struct {
 }
 
 func (m *MockSessionStoreForDelete) Create(ctx context.Context, session *identity.Session) error {
-	panic("not implemented")
+	return nil
 }
 
 func (m *MockSessionStoreForDelete) Get(ctx context.Context, sessionID uuid.UUID) (*identity.Session, error) {
-	panic("not implemented")
+	return nil, nil
 }
 
 func (m *MockSessionStoreForDelete) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]*identity.Session, error) {
-	panic("not implemented")
+	return nil, nil
 }
 
 func (m *MockSessionStoreForDelete) Revoke(ctx context.Context, sessionID uuid.UUID) error {
-	panic("not implemented")
+	return nil
 }
 
 func (m *MockSessionStoreForDelete) RevokeAll(ctx context.Context, userID uuid.UUID) error {
@@ -44,7 +44,7 @@ func (m *MockSessionStoreForDelete) RevokeAll(ctx context.Context, userID uuid.U
 }
 
 func (m *MockSessionStoreForDelete) Exists(ctx context.Context, sessionID uuid.UUID) (bool, error) {
-	panic("not implemented")
+	return false, nil
 }
 
 func TestDeleteUserHandler_Handle_Success(t *testing.T) {

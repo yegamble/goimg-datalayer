@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 
+	appgallery "github.com/yegamble/goimg-datalayer/internal/application/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -100,14 +101,43 @@ type MockStorage struct {
 	mock.Mock
 }
 
+// Put implements storage.Storage (infrastructure).
 func (m *MockStorage) Put(ctx context.Context, key string, data io.Reader, size int64, opts storage.PutOptions) error {
 	args := m.Called(ctx, key, data, size, opts)
 	return args.Error(0)
 }
 
+// PutBytes implements storage.Storage (infrastructure).
 func (m *MockStorage) PutBytes(ctx context.Context, key string, data []byte, opts storage.PutOptions) error {
 	args := m.Called(ctx, key, data, opts)
 	return args.Error(0)
+}
+
+// MockStorageProvider is a mock implementation of gallery.StorageProvider (application).
+type MockStorageProvider struct {
+	mock.Mock
+}
+
+// Put implements appgallery.StorageProvider.
+// Note: We need to define this method to satisfy the interface.
+// If testify's matching is strict about types, we might need a workaround,
+// but usually interface matching works if the method signature is correct.
+func (m *MockStorageProvider) Put(ctx context.Context, key string, data io.Reader, size int64, opts appgallery.PutOptions) error {
+	args := m.Called(ctx, key, data, size, opts)
+	return args.Error(0)
+}
+
+func (m *MockStorageProvider) GetBytes(ctx context.Context, key string) ([]byte, error) {
+	args := m.Called(ctx, key)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockStorageProvider) Provider() string {
+	args := m.Called()
+	return args.String(0)
 }
 
 func (m *MockStorage) Get(ctx context.Context, key string) (io.ReadCloser, error) {
@@ -483,17 +513,4 @@ func (m *MockIPFSService) IsPinned(ctx context.Context, cid string) (bool, error
 func (m *MockIPFSService) GatewayURL(cid string) string {
 	args := m.Called(cid)
 	return args.String(0)
-}
-
-// MockStorageProvider is a mock implementation of gallery.StorageProvider.
-type MockStorageProvider struct {
-	mock.Mock
-}
-
-func (m *MockStorageProvider) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	args := m.Called(ctx, key)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]byte), args.Error(1)
 }

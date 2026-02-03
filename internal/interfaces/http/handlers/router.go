@@ -93,6 +93,12 @@ func NewRouter(
 	r.Use(middleware.Logger(middlewareConfig.Logger))
 	r.Use(middleware.Recovery(middlewareConfig.Logger))
 
+	// Request Body Limit (10MB default)
+	r.Use(middleware.BodyLimit(middleware.BodyLimitConfig{LimitBytes: 10 * 1024 * 1024}))
+
+	// Proxy validation if configured (trustProxy handled in Config)
+	// r.Use(middleware.ProxyValidation(...)) - added if trust proxy list is available
+
 	// Security headers with production config
 	securityCfg := middleware.DefaultSecurityHeadersConfig(isProd)
 	r.Use(middleware.SecurityHeaders(securityCfg))

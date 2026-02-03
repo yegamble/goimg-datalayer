@@ -19,11 +19,11 @@ type MockSessionStore struct {
 }
 
 func (m *MockSessionStore) Create(ctx context.Context, session *identity.Session) error {
-	panic("not implemented")
+	return nil
 }
 
 func (m *MockSessionStore) Get(ctx context.Context, sessionID uuid.UUID) (*identity.Session, error) {
-	panic("not implemented")
+	return nil, nil
 }
 
 func (m *MockSessionStore) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]*identity.Session, error) {
@@ -34,15 +34,15 @@ func (m *MockSessionStore) GetUserSessions(ctx context.Context, userID uuid.UUID
 }
 
 func (m *MockSessionStore) Revoke(ctx context.Context, sessionID uuid.UUID) error {
-	panic("not implemented")
+	return nil
 }
 
 func (m *MockSessionStore) RevokeAll(ctx context.Context, userID uuid.UUID) error {
-	panic("not implemented")
+	return nil
 }
 
 func (m *MockSessionStore) Exists(ctx context.Context, sessionID uuid.UUID) (bool, error) {
-	panic("not implemented")
+	return false, nil
 }
 
 func TestGetUserSessionsHandler_Handle_Success(t *testing.T) {

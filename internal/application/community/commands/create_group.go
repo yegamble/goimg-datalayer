@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog"
@@ -216,7 +215,7 @@ func (h *CreateGroupHandler) Handle(ctx context.Context, cmd CreateGroupCommand)
 // This is a helper function for authorization checks in commands.
 func ValidateOwnership(group *community.Group, userID identity.UserID) error {
 	if !group.IsOwnedBy(userID) {
-		return errors.New("only group owner can perform this action")
+		return fmt.Errorf("only group owner can perform this action: %w", community.ErrInsufficientGroupRole)
 	}
 	return nil
 }

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog"
@@ -117,7 +116,7 @@ func (h *RemoveImageFromGroupAlbumHandler) Handle(ctx context.Context, cmd Remov
 			Str("album_id", cmd.AlbumID.String()).
 			Str("image_id", cmd.ImageID.String()).
 			Msg("image not in album")
-		return errors.New("image not in album")
+		return fmt.Errorf("image not in album: %w", community.ErrImageNotInAlbum)
 	}
 
 	// 4. Verify authorization

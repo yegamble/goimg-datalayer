@@ -19,6 +19,7 @@ import (
 	actqueries "github.com/yegamble/goimg-datalayer/internal/application/activity/queries"
 	commcommands "github.com/yegamble/goimg-datalayer/internal/application/community/commands"
 	commqueries "github.com/yegamble/goimg-datalayer/internal/application/community/queries"
+	appgallery "github.com/yegamble/goimg-datalayer/internal/application/gallery"
 	gallerycommands "github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
 	galleryqueries "github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
 	appcommands "github.com/yegamble/goimg-datalayer/internal/application/identity/commands"
@@ -160,6 +161,7 @@ func main() {
 		log.Error().Err(err).Msg("Failed to initialize local storage")
 	}
 	storage := &storageAdapter{Store: localStorage}
+	storageInfra := &storageInfraAdapter{Store: localStorage}
 
 	// Security - TOTP
 	encryptor, err := security.NewSecretEncryptorFromBase64(encryptionKey)
@@ -529,7 +531,7 @@ func main() {
 	healthHandler := handlers.NewHealthHandler(
 		db,
 		redisClientWrapper,
-		storage,
+		storageInfra,
 		nil, // clamav
 		log.Logger,
 	)
@@ -647,7 +649,7 @@ func main() {
 		getImageHandler,
 		listImagesHandler,
 		searchImagesHandler,
-		storage,
+		storageInfra,
 		log.Logger,
 	)
 
@@ -891,13 +893,13 @@ func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.Imag
 func (r *noOpNSFWScanRepository) FindByImageIDAll(
 	_ context.Context, _ gallery.ImageID,
 ) ([]*moderation.NSFWScan, error) {
-	return nil, nil
+	return []*moderation.NSFWScan{}, nil
 }
 
 func (r *noOpNSFWScanRepository) FindPending(
 	_ context.Context, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return []*moderation.NSFWScan{}, 0, nil
+	return nil, 0, moderation.ErrNSFWScanNotFound
 }
 
 func (r *noOpNSFWScanRepository) FindByStatus(
@@ -936,6 +938,25 @@ type storageAdapter struct {
 }
 
 func (s *storageAdapter) Put(
+	ctx context.Context, key string, data io.Reader, size int64, opts appgallery.PutOptions,
+) error {
+	localOpts := local.PutOptions{
+		ContentType:  opts.ContentType,
+		CacheControl: opts.CacheControl,
+		Metadata:     opts.Metadata,
+	}
+	if err := s.Store.Put(ctx, key, data, size, localOpts); err != nil {
+		return fmt.Errorf("failed to put object: %w", err)
+	}
+	return nil
+}
+
+// storageInfraAdapter adapts local.Storage to storage.Storage interface.
+type storageInfraAdapter struct {
+	Store *local.Storage
+}
+
+func (s *storageInfraAdapter) Put(
 	ctx context.Context, key string, data io.Reader, size int64, opts appstorage.PutOptions,
 ) error {
 	localOpts := local.PutOptions{
@@ -947,6 +968,60 @@ func (s *storageAdapter) Put(
 		return fmt.Errorf("failed to put object: %w", err)
 	}
 	return nil
+}
+
+func (s *storageInfraAdapter) PutBytes(ctx context.Context, key string, data []byte, opts appstorage.PutOptions) error {
+	localOpts := local.PutOptions{
+		ContentType:  opts.ContentType,
+		CacheControl: opts.CacheControl,
+		Metadata:     opts.Metadata,
+	}
+	if err := s.Store.PutBytes(ctx, key, data, localOpts); err != nil {
+		return fmt.Errorf("failed to put bytes: %w", err)
+	}
+	return nil
+}
+
+func (s *storageInfraAdapter) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+	return s.Store.Get(ctx, key)
+}
+
+func (s *storageInfraAdapter) GetBytes(ctx context.Context, key string) ([]byte, error) {
+	return s.Store.GetBytes(ctx, key)
+}
+
+func (s *storageInfraAdapter) Delete(ctx context.Context, key string) error {
+	return s.Store.Delete(ctx, key)
+}
+
+func (s *storageInfraAdapter) Exists(ctx context.Context, key string) (bool, error) {
+	return s.Store.Exists(ctx, key)
+}
+
+func (s *storageInfraAdapter) URL(key string) string {
+	return s.Store.URL(key)
+}
+
+func (s *storageInfraAdapter) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
+	return s.Store.PresignedURL(ctx, key, duration)
+}
+
+func (s *storageInfraAdapter) Stat(ctx context.Context, key string) (*appstorage.ObjectInfo, error) {
+	info, err := s.Store.Stat(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	return &appstorage.ObjectInfo{
+		Key:          info.Key,
+		Size:         info.Size,
+		ContentType:  info.ContentType,
+		LastModified: info.LastModified,
+		ETag:         info.ETag,
+	}, nil
+}
+
+func (s *storageInfraAdapter) Provider() string {
+	return s.Store.Provider()
 }
 
 func (s *storageAdapter) PutBytes(ctx context.Context, key string, data []byte, opts appstorage.PutOptions) error {

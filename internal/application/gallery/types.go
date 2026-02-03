@@ -4,6 +4,7 @@ package gallery
 
 import (
 	"context"
+	"io"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
@@ -96,9 +97,29 @@ type IPFSService interface {
 	GatewayURL(cid string) string
 }
 
+// PutOptions configures storage upload behavior.
+type PutOptions struct {
+	// ContentType is the MIME type (e.g., "image/jpeg").
+	ContentType string
+
+	// CacheControl sets the Cache-Control header for CDN caching.
+	// Example: "public, max-age=31536000" for immutable content.
+	CacheControl string
+
+	// Metadata contains provider-specific metadata key-value pairs.
+	Metadata map[string]string
+}
+
 // StorageProvider provides access to primary image storage.
-// This interface is used to retrieve image data for IPFS pinning.
+// This interface is used for image uploading and retrieval.
 type StorageProvider interface {
+	// Put stores data at the given key using streaming.
+	// For small files, use PutBytes. For large files (>1MB), use Put with io.Reader.
+	Put(ctx context.Context, key string, data io.Reader, size int64, opts PutOptions) error
+
 	// GetBytes retrieves file data by storage key.
 	GetBytes(ctx context.Context, key string) ([]byte, error)
+
+	// Provider returns the provider type name (e.g., "local", "s3").
+	Provider() string
 }

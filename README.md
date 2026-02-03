@@ -349,6 +349,18 @@ docker-compose >= 2.20
 libvips >= 8.14  # Required for image processing (Sprint 5+)
 ```
 
+#### Install libvips
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install libvips-dev
+```
+
+**macOS:**
+```bash
+brew install vips
+```
+
 ### Setup
 
 ```bash
