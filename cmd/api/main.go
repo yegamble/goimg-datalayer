@@ -30,7 +30,6 @@ import (
 	appnotification "github.com/yegamble/goimg-datalayer/internal/application/notification"
 	notifcommands "github.com/yegamble/goimg-datalayer/internal/application/notification/commands"
 	notifqueries "github.com/yegamble/goimg-datalayer/internal/application/notification/queries"
-	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	domidentity "github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -187,7 +186,7 @@ func main() {
 	likeRepo := postgres.NewLikeRepository(db)
 	reportRepo := postgres.NewReportRepository(db)
 	banRepo := postgres.NewBanRepository(db)
-	nsfwRepo := &noOpNSFWScanRepository{} // Using no-op until implementation exists
+	nsfwRepo := postgres.NewNSFWScanRepository(db)
 	groupRepo := postgres.NewGroupRepository(db)
 	groupMemberRepo := postgres.NewGroupMembershipRepository(db)
 	groupInvitationRepo := postgres.NewGroupInvitationRepository(db)

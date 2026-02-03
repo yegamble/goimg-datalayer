@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -107,28 +108,30 @@ func (c *RedisPasswordCache) buildKey(hashPrefix, hashSuffix string) string {
 }
 
 // InMemoryPasswordCache is a simple in-memory cache for testing purposes.
-// DO NOT use in production - no TTL support, unbounded memory growth.
-//
-// TODO(audit-2026-02-03): CRITICAL - This implementation has a race condition.
-// The data map is accessed without mutex protection, causing data races in
-// concurrent access scenarios. Additionally, the map grows unboundedly with
-// no eviction policy. Either:
-// 1. Add sync.RWMutex protection and LRU eviction
-// 2. Mark this as explicitly test-only with build tags
-// See: claude/audit_report_2026-02-03.md for full details.
+// It includes mutex protection and a max size to prevent memory leaks,
+// though it's still primarily intended for testing or ephemeral environments.
 type InMemoryPasswordCache struct {
+	mu   sync.RWMutex
 	data map[string]bool
+	// maxEntries limits the number of entries to prevent unbounded growth.
+	maxEntries int
 }
 
-// NewInMemoryPasswordCache creates an in-memory password cache for testing.
+// Default max entries for in-memory cache
+const defaultMaxEntries = 1000
+
+// NewInMemoryPasswordCache creates an in-memory password cache.
 func NewInMemoryPasswordCache() *InMemoryPasswordCache {
 	return &InMemoryPasswordCache{
-		data: make(map[string]bool),
+		data:       make(map[string]bool),
+		maxEntries: defaultMaxEntries,
 	}
 }
 
 // Get retrieves a cached result from the in-memory map.
 func (c *InMemoryPasswordCache) Get(ctx context.Context, prefix, suffix string) (bool, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	key := prefix + ":" + suffix
 	pwned, found := c.data[key]
 	return pwned, found
@@ -136,13 +139,34 @@ func (c *InMemoryPasswordCache) Get(ctx context.Context, prefix, suffix string) 
 
 // Set stores a result in the in-memory map (ignores TTL).
 func (c *InMemoryPasswordCache) Set(ctx context.Context, prefix, suffix string, pwned bool, ttl time.Duration) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	key := prefix + ":" + suffix
+
+	// If key exists, just update
+	if _, exists := c.data[key]; exists {
+		c.data[key] = pwned
+		return nil
+	}
+
+	// If not exists, check capacity
+	if len(c.data) >= c.maxEntries {
+		// Simple eviction: remove a random entry
+		for k := range c.data {
+			delete(c.data, k)
+			break
+		}
+	}
+
 	c.data[key] = pwned
 	return nil
 }
 
 // Delete removes an entry from the in-memory map.
 func (c *InMemoryPasswordCache) Delete(ctx context.Context, prefix, suffix string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	key := prefix + ":" + suffix
 	delete(c.data, key)
 	return nil

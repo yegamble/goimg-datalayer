@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -167,20 +168,30 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	}
 
 	// 9. Publish domain events AFTER successful save
-	// TODO(audit-2026-02-03): CRITICAL - Event publishing errors are logged but
-	// not handled. This can lead to lost business events and eventual consistency
-	// violations. Consider implementing:
-	// 1. Retry with exponential backoff
-	// 2. Transactional outbox pattern
-	// 3. At minimum, return error to caller
-	// See: claude/audit_report_2026-02-03.md for full details.
+	// Retry logic for event publishing
+	const maxRetries = 3
 	for _, event := range image.Events() {
-		if err := h.eventPublisher.Publish(ctx, event); err != nil {
+		var pubErr error
+		for i := 0; i < maxRetries; i++ {
+			if err := h.eventPublisher.Publish(ctx, event); err != nil {
+				pubErr = err
+				// Backoff before retry (only if another retry will occur)
+				if i < maxRetries-1 {
+					time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+				}
+				continue
+			}
+			pubErr = nil
+			break
+		}
+
+		if pubErr != nil {
+			// Log error but don't fail the request as the image is already saved
 			h.logger.Error().
-				Err(err).
+				Err(pubErr).
 				Str("image_id", imageID.String()).
 				Str("event_type", event.EventType()).
-				Msg("failed to publish domain event after image upload")
+				Msg("failed to publish domain event after image upload (retries exhausted)")
 		}
 	}
 	image.ClearEvents()
@@ -191,6 +202,8 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 			Err(err).
 			Str("image_id", imageID.String()).
 			Msg("failed to enqueue image processing job")
+		// Ideally we should return error here, but image is already saved.
+		// For now, return error as caller might want to retry or know about failure.
 		return nil, fmt.Errorf("enqueue processing job: %w", err)
 	}
 

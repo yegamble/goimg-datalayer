@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -163,16 +164,38 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 	}
 
 	// 8. Publish domain events AFTER successful save
+	const maxRetries = 3
 	for _, event := range image.Events() {
-		if err := h.eventPublisher.Publish(ctx, event); err != nil {
+		var pubErr error
+		for i := 0; i < maxRetries; i++ {
+			if err := h.eventPublisher.Publish(ctx, event); err != nil {
+				pubErr = err
+				// Backoff before retry, but respect context cancellation
+				backoff := time.Duration(i+1) * 100 * time.Millisecond
+				select {
+				case <-ctx.Done():
+					h.logger.Warn().
+						Err(ctx.Err()).
+						Str("image_id", imageID.String()).
+						Str("event_type", event.EventType()).
+						Msg("context cancelled during event publish backoff")
+					return nil, ctx.Err()
+				case <-time.After(backoff):
+				}
+				continue
+			}
+			pubErr = nil
+			break
+		}
+
+		if pubErr != nil {
 			h.logger.Error().
-				Err(err).
+				Err(pubErr).
 				Str("image_id", imageID.String()).
 				Str("event_type", event.EventType()).
-				Msg("failed to publish domain event after image update")
+				Msg("failed to publish domain event after image update (retries exhausted)")
 			// We log but don't return error here to avoid rolling back the transaction
 			// or confusing the client, as the update was successful.
-			// Ideally, we should have an outbox pattern or reliable messaging.
 		}
 	}
 	image.ClearEvents()
