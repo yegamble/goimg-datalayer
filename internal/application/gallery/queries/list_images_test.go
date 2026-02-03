@@ -72,7 +72,9 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				ownerID := testhelpers.ValidUserIDParsed()
 				// Handler converts offset/limit to page: page = (0/20) + 1 = 1
 				pagination, _ := shared.NewPagination(1, 20)
-				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+				// Anonymous user defaults to public visibility
+				publicVis := gallery.VisibilityPublic
+				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &publicVis).
 					Return(images, int64(1), nil).Once()
 			},
 			wantErr: nil,
@@ -314,7 +316,9 @@ func TestListImagesHandler_Handle(t *testing.T) {
 				ownerID := testhelpers.ValidUserIDParsed()
 				// Handler converts offset/limit to page: page = (0/20) + 1 = 1
 				pagination, _ := shared.NewPagination(1, 20)
-				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination).
+				// Anonymous user defaults to public visibility
+				publicVis := gallery.VisibilityPublic
+				suite.ImageRepo.On("FindByOwner", mock.Anything, ownerID, pagination, &publicVis).
 					Return(nil, int64(0), fmt.Errorf("database error")).Once()
 			},
 			wantErr: nil,
