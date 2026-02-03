@@ -72,6 +72,9 @@ func main() {
 	if pwd := os.Getenv("REDIS_PASSWORD"); pwd != "" {
 		redisConfig.Password = pwd
 	}
+	if useTLS := os.Getenv("REDIS_USE_TLS"); useTLS == "true" {
+		redisConfig.UseTLS = true
+	}
 
 	encryptionKey := os.Getenv("ENCRYPTION_KEY")
 	if encryptionKey == "" {
@@ -605,6 +608,7 @@ func main() {
 		listPopularTagsHandler,
 		listTrendingTagsHandler,
 		searchTagsHandler,
+		listImagesHandler,
 		log.Logger,
 	)
 

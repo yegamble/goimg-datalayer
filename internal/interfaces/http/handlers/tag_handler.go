@@ -16,6 +16,7 @@ type TagHandler struct {
 	listPopular  *queries.ListPopularTagsHandler
 	listTrending *queries.ListTrendingTagsHandler
 	searchTags   *queries.SearchTagsHandler
+	listImages   *queries.ListImagesHandler
 	logger       zerolog.Logger
 }
 
@@ -24,12 +25,14 @@ func NewTagHandler(
 	listPopular *queries.ListPopularTagsHandler,
 	listTrending *queries.ListTrendingTagsHandler,
 	searchTags *queries.SearchTagsHandler,
+	listImages *queries.ListImagesHandler,
 	logger zerolog.Logger,
 ) *TagHandler {
 	return &TagHandler{
 		listPopular:  listPopular,
 		listTrending: listTrending,
 		searchTags:   searchTags,
+		listImages:   listImages,
 		logger:       logger,
 	}
 }
@@ -44,6 +47,7 @@ func (h *TagHandler) Routes() chi.Router {
 	r.Get("/popular", h.ListPopular)
 	r.Get("/trending", h.ListTrending)
 	r.Get("/search", h.Search)
+	r.Get("/{tag}/images", h.ListImagesByTag)
 
 	return r
 }
@@ -273,5 +277,93 @@ func (h *TagHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode tag search response")
+	}
+}
+
+// ListImagesByTag handles GET /api/v1/tags/{tag}/images
+// Retrieves public images tagged with the specified tag.
+//
+// URL Parameters:
+//   - tag (string, required): The tag name or slug
+//
+// Query parameters:
+//   - page (int): Page number, default 1
+//   - per_page (int): Items per page, default 20
+//
+// Response: Paginated list of images
+// Errors:
+//   - 400: Invalid query parameters
+func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	tag := chi.URLParam(r, "tag")
+
+	if tag == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Tag parameter is required",
+		)
+		return
+	}
+
+	// Parse pagination
+	page, err := parseIntParam(r.URL.Query().Get("page"), 1)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), 20)
+	if err != nil || perPage < 1 {
+		perPage = 20
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
+
+	offset := (page - 1) * perPage
+
+	// Build and execute query
+	query := queries.ListImagesQuery{
+		Tag:    tag,
+		Offset: offset,
+		Limit:  perPage,
+	}
+
+	result, err := h.listImages.Handle(ctx, query)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("tag", tag).
+			Int("page", page).
+			Msg("failed to list images by tag")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to retrieve images",
+		)
+		return
+	}
+
+	// Calculate pagination metadata
+	totalPages := (int(result.TotalCount) + perPage - 1) / perPage
+
+	// Build response
+	response := map[string]interface{}{
+		"items": result.Images,
+		"pagination": map[string]interface{}{
+			"total":       result.TotalCount,
+			"page":        page,
+			"per_page":    perPage,
+			"total_pages": totalPages,
+		},
+	}
+
+	h.logger.Debug().
+		Str("tag", tag).
+		Int("results", len(result.Images)).
+		Msg("images by tag retrieved")
+
+	if err := EncodeJSON(w, http.StatusOK, response); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode images by tag response")
 	}
 }

@@ -307,15 +307,27 @@ generate:
 # Database migrations with Goose
 migrate-up:
 	@echo "Running pending migrations..."
-	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations up
+	@if [ -n "$$DATABASE_URL" ]; then \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="$$DATABASE_URL" goose -dir migrations up; \
+	else \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations up; \
+	fi
 
 migrate-down:
 	@echo "Rolling back last migration..."
-	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations down
+	@if [ -n "$$DATABASE_URL" ]; then \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="$$DATABASE_URL" goose -dir migrations down; \
+	else \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations down; \
+	fi
 
 migrate-status:
 	@echo "Checking migration status..."
-	@GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations status
+	@if [ -n "$$DATABASE_URL" ]; then \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="$$DATABASE_URL" goose -dir migrations status; \
+	else \
+		GOOSE_DRIVER=postgres GOOSE_DBSTRING="host=$${DB_HOST:-localhost} port=$${DB_PORT:-5432} user=$${DB_USER:-postgres} password=$${DB_PASSWORD:-postgres} dbname=$${DB_NAME:-goimg} sslmode=$${DB_SSL_MODE:-disable}" goose -dir migrations status; \
+	fi
 
 migrate-create:
 	@if [ -z "$(NAME)" ]; then \
@@ -367,4 +379,12 @@ pre-commit: check-go-version
 	@go fmt ./...
 	@go vet ./...
 	@golangci-lint run ./...
+	@echo "Running govulncheck..."
+	@if command -v govulncheck > /dev/null; then \
+		govulncheck ./...; \
+	else \
+		echo "govulncheck not installed. Installing..."; \
+		go install golang.org/x/vuln/cmd/govulncheck@latest; \
+		govulncheck ./...; \
+	fi
 	@echo "Pre-commit checks passed!"
