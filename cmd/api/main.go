@@ -2,21 +2,20 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	commcommands "github.com/yegamble/goimg-datalayer/internal/application/community/commands"
-	"strconv"
-
 	actqueries "github.com/yegamble/goimg-datalayer/internal/application/activity/queries"
-	"github.com/yegamble/goimg-datalayer/internal/application/community/queries"
+	commcommands "github.com/yegamble/goimg-datalayer/internal/application/community/commands"
 	commqueries "github.com/yegamble/goimg-datalayer/internal/application/community/queries"
 	gallerycommands "github.com/yegamble/goimg-datalayer/internal/application/gallery/commands"
 	galleryqueries "github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
@@ -49,6 +48,13 @@ const (
 	defaultPort             = "8080"
 	serverReadHeaderTimeout = 5 * time.Second
 	shutdownTimeout         = 5 * time.Second
+
+	// Default configuration values
+	defaultSMTPPort      = 587
+	defaultSMTPRateLimit = 100
+	defaultSMTPTimeout   = 30 * time.Second
+	defaultAccessTTL     = 15 * time.Minute
+	defaultRefreshTTL    = 7 * 24 * time.Hour
 )
 
 func main() {
@@ -67,7 +73,8 @@ func main() {
 
 	encryptionKey := os.Getenv("ENCRYPTION_KEY")
 	if encryptionKey == "" {
-		log.Warn().Msg("ENCRYPTION_KEY not set. Generating a random key for this session (2FA secrets will be invalid after restart)")
+		log.Warn().
+			Msg("ENCRYPTION_KEY not set. Generating a random key for this session (2FA secrets will be invalid after restart)")
 		_, keyBase64, err := security.GenerateKey()
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to generate encryption key")
@@ -79,18 +86,18 @@ func main() {
 	// Email
 	emailConfig := email.Config{
 		Host:        getEnv("SMTP_HOST", "localhost"),
-		Port:        getEnvInt("SMTP_PORT", 587),
+		Port:        getEnvInt("SMTP_PORT", defaultSMTPPort),
 		Username:    getEnv("SMTP_USERNAME", ""),
 		Password:    getEnv("SMTP_PASSWORD", ""),
 		FromAddress: getEnv("SMTP_FROM_ADDRESS", "noreply@goimg.local"),
 		FromName:    getEnv("SMTP_FROM_NAME", "goimg Gallery"),
 		UseTLS:      getEnv("SMTP_USE_TLS", "true") == "true",
-		RateLimit:   getEnvInt("SMTP_RATE_LIMIT", 100),
+		RateLimit:   getEnvInt("SMTP_RATE_LIMIT", defaultSMTPRateLimit),
 		Enabled:     getEnv("SMTP_ENABLED", "false") == "true",
 	}
 	// Add timeout if needed, using default from Config struct if zero
 	if emailConfig.Timeout == 0 {
-		emailConfig.Timeout = 30 * time.Second
+		emailConfig.Timeout = defaultSMTPTimeout
 	}
 
 	smtpSender, err := email.NewSMTPSender(emailConfig, log.Logger)
@@ -146,13 +153,15 @@ func main() {
 	// Security - TOTP
 	encryptor, err := security.NewSecretEncryptorFromBase64(encryptionKey)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize secret encryptor")
+		log.Error().Err(err).Msg("Failed to initialize secret encryptor")
+		return // Exit early as security is compromised without encryptor
 	}
 
 	totpConfig := security.DefaultTOTPConfig()
 	totpService, err := security.NewTOTPService(totpConfig, encryptor)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize TOTP service")
+		log.Error().Err(err).Msg("Failed to initialize TOTP service")
+		return
 	}
 
 	// 4. Initialize Repositories
@@ -208,8 +217,8 @@ func main() {
 
 	jwtConfig := jwt.Config{
 		Issuer:         "goimg-api",
-		AccessTTL:      15 * time.Minute,
-		RefreshTTL:     7 * 24 * time.Hour,
+		AccessTTL:      defaultAccessTTL,
+		RefreshTTL:     defaultRefreshTTL,
 		PrivateKeyPath: os.Getenv("JWT_PRIVATE_KEY_PATH"),
 		PublicKeyPath:  os.Getenv("JWT_PUBLIC_KEY_PATH"),
 	}
@@ -308,13 +317,20 @@ func main() {
 	get2FAStatusHandler := appqueries.NewGet2FAStatusHandler(totpRepo, backupRepo, &log.Logger)
 
 	// OAuth Handlers
-	authOAuthHandler := appcommands.NewAuthenticateWithOAuthHandler(userRepo, oauthRepo, oauthProviderFactory, jwtServiceApp, refreshTokenServiceApp, sessionStoreApp, &log.Logger)
-	linkOAuthHandler := appcommands.NewLinkOAuthAccountHandler(userRepo, oauthRepo, oauthProviderFactory, &log.Logger)
+	authOAuthHandler := appcommands.NewAuthenticateWithOAuthHandler(
+		userRepo, oauthRepo, oauthProviderFactory, jwtServiceApp,
+		refreshTokenServiceApp, sessionStoreApp, &log.Logger,
+	)
+	linkOAuthHandler := appcommands.NewLinkOAuthAccountHandler(
+		userRepo, oauthRepo, oauthProviderFactory, &log.Logger,
+	)
 	unlinkOAuthHandler := appcommands.NewUnlinkOAuthAccountHandler(userRepo, oauthRepo, &log.Logger)
 	listOAuthAccountsHandler := appqueries.NewListOAuthAccountsHandler(oauthRepo, &log.Logger)
 
 	// Follow Handlers
-	followUserHandler := appcommands.NewFollowUserHandler(followRepo, userRepo, notificationService, &log.Logger)
+	followUserHandler := appcommands.NewFollowUserHandler(
+		followRepo, userRepo, notificationService, &log.Logger,
+	)
 	unfollowUserHandler := appcommands.NewUnfollowUserHandler(followRepo, &log.Logger)
 	getFollowersHandler := appqueries.NewGetFollowersHandler(followRepo, userRepo)
 	getFollowingHandler := appqueries.NewGetFollowingHandler(followRepo, userRepo)
@@ -328,24 +344,36 @@ func main() {
 	markNotificationsReadHandler := notifcommands.NewMarkNotificationsReadHandler(notifRepo, log.Logger)
 
 	// Guest Handlers
-	claimGuestImageHandler := gallerycommands.NewClaimGuestImageHandler(imageRepo, userRepo, galEventPub, &log.Logger)
+	claimGuestImageHandler := gallerycommands.NewClaimGuestImageHandler(
+		imageRepo, userRepo, galEventPub, &log.Logger,
+	)
 
 	// Gallery Context
-	uploadImageHandler := gallerycommands.NewUploadImageHandler(imageRepo, storage, jobEnqueuer, galEventPub, &log.Logger)
+	uploadImageHandler := gallerycommands.NewUploadImageHandler(
+		imageRepo, storage, jobEnqueuer, galEventPub, &log.Logger,
+	)
 	updateImageHandler := gallerycommands.NewUpdateImageHandler(imageRepo, galEventPub, &log.Logger)
-	deleteImageHandler := gallerycommands.NewDeleteImageHandler(imageRepo, jobEnqueuer, galEventPub, &log.Logger)
+	deleteImageHandler := gallerycommands.NewDeleteImageHandler(
+		imageRepo, jobEnqueuer, galEventPub, &log.Logger,
+	)
 
 	getImageHandler := galleryqueries.NewGetImageHandler(imageRepo, &log.Logger)
 	listImagesHandler := galleryqueries.NewListImagesHandler(imageRepo, &log.Logger)
 	searchImagesHandler := galleryqueries.NewSearchImagesHandler(imageRepo)
 
 	// IPFS Handlers
-	pinImageHandler := gallerycommands.NewPinImageToIPFSHandler(imageRepo, storage, ipfsService, galEventPub, &log.Logger)
-	unpinImageHandler := gallerycommands.NewUnpinImageFromIPFSHandler(imageRepo, ipfsService, galEventPub, &log.Logger)
+	pinImageHandler := gallerycommands.NewPinImageToIPFSHandler(
+		imageRepo, storage, ipfsService, galEventPub, &log.Logger,
+	)
+	unpinImageHandler := gallerycommands.NewUnpinImageFromIPFSHandler(
+		imageRepo, ipfsService, galEventPub, &log.Logger,
+	)
 	getIPFSStatusHandler := galleryqueries.NewGetImageIPFSStatusHandler(imageRepo, ipfsService, &log.Logger)
 
 	// Variant Config Handlers
-	createVarHandler := gallerycommands.NewCreateVariantConfigHandler(variantRepo, userRepo, galEventPub, &log.Logger)
+	createVarHandler := gallerycommands.NewCreateVariantConfigHandler(
+		variantRepo, userRepo, galEventPub, &log.Logger,
+	)
 	updateVarHandler := gallerycommands.NewUpdateVariantConfigHandler(variantRepo, galEventPub, &log.Logger)
 	deleteVarHandler := gallerycommands.NewDeleteVariantConfigHandler(variantRepo, galEventPub, &log.Logger)
 	getVarHandler := galleryqueries.NewGetVariantConfigHandler(variantRepo)
@@ -365,8 +393,12 @@ func main() {
 	createAlbumHandler := gallerycommands.NewCreateAlbumHandler(albumRepo, userRepo, galEventPub, &log.Logger)
 	updateAlbumHandler := gallerycommands.NewUpdateAlbumHandler(albumRepo, galEventPub, &log.Logger)
 	deleteAlbumHandler := gallerycommands.NewDeleteAlbumHandler(albumRepo, galEventPub, &log.Logger)
-	addImageToAlbumHandler := gallerycommands.NewAddImageToAlbumHandler(albumRepo, imageRepo, albumImageRepo, galEventPub, &log.Logger)
-	removeImageFromAlbumHandler := gallerycommands.NewRemoveImageFromAlbumHandler(albumRepo, albumImageRepo, galEventPub, &log.Logger)
+	addImageToAlbumHandler := gallerycommands.NewAddImageToAlbumHandler(
+		albumRepo, imageRepo, albumImageRepo, galEventPub, &log.Logger,
+	)
+	removeImageFromAlbumHandler := gallerycommands.NewRemoveImageFromAlbumHandler(
+		albumRepo, albumImageRepo, galEventPub, &log.Logger,
+	)
 
 	getAlbumHandler := galleryqueries.NewGetAlbumHandler(albumRepo)
 	listAlbumsHandler := galleryqueries.NewListAlbumsHandler(albumRepo)
@@ -375,10 +407,18 @@ func main() {
 	getAlbumChildrenHandler := galleryqueries.NewGetAlbumChildrenHandler(albumRepo)
 
 	// Social Context
-	likeImageHandler := gallerycommands.NewLikeImageHandler(imageRepo, likeRepo, userRepo, galEventPub, &log.Logger)
-	unlikeImageHandler := gallerycommands.NewUnlikeImageHandler(imageRepo, likeRepo, userRepo, galEventPub, &log.Logger)
-	addCommentHandler := gallerycommands.NewAddCommentHandler(imageRepo, commentRepo, userRepo, galEventPub, &log.Logger)
-	deleteCommentHandler := gallerycommands.NewDeleteCommentHandler(imageRepo, commentRepo, userRepo, galEventPub, &log.Logger)
+	likeImageHandler := gallerycommands.NewLikeImageHandler(
+		imageRepo, likeRepo, userRepo, galEventPub, &log.Logger,
+	)
+	unlikeImageHandler := gallerycommands.NewUnlikeImageHandler(
+		imageRepo, likeRepo, userRepo, galEventPub, &log.Logger,
+	)
+	addCommentHandler := gallerycommands.NewAddCommentHandler(
+		imageRepo, commentRepo, userRepo, galEventPub, &log.Logger,
+	)
+	deleteCommentHandler := gallerycommands.NewDeleteCommentHandler(
+		imageRepo, commentRepo, userRepo, galEventPub, &log.Logger,
+	)
 
 	listImageCommentsHandler := galleryqueries.NewListImageCommentsHandler(commentRepo)
 	getUserLikedImagesHandler := galleryqueries.NewGetUserLikedImagesHandler(likeRepo, imageRepo)
@@ -390,7 +430,9 @@ func main() {
 	dismissReportHandler := modcommands.NewDismissReportHandler(reportRepo, modEventPub, &log.Logger)
 	banUserHandler := modcommands.NewBanUserHandler(banRepo, modEventPub, &log.Logger)
 	unbanUserHandler := modcommands.NewUnbanUserHandler(banRepo, modEventPub, &log.Logger)
-	scanNSFWHandler := modcommands.NewScanImageNSFWHandler(nsfwRepo, imageRepo, nsfwService, modEventPub, &log.Logger)
+	scanNSFWHandler := modcommands.NewScanImageNSFWHandler(
+		nsfwRepo, imageRepo, nsfwService, modEventPub, &log.Logger,
+	)
 
 	getReportHandler := modqueries.NewGetReportHandler(reportRepo)
 	listPendingReportsHandler := modqueries.NewListPendingReportsHandler(reportRepo, &log.Logger)
@@ -398,40 +440,76 @@ func main() {
 	listActiveBansHandler := modqueries.NewListActiveBansHandler(banRepo, &log.Logger)
 
 	// Group Context
-	createGroupHandler := commcommands.NewCreateGroupHandler(groupRepo, groupMemberRepo, commEventPub, &log.Logger)
-	updateGroupHandler := commcommands.NewUpdateGroupHandler(groupRepo, groupMemberRepo, commEventPub, &log.Logger)
+	createGroupHandler := commcommands.NewCreateGroupHandler(
+		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
+	updateGroupHandler := commcommands.NewUpdateGroupHandler(
+		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
 	deleteGroupHandler := commcommands.NewDeleteGroupHandler(groupRepo, commEventPub, &log.Logger)
-	joinGroupHandler := commcommands.NewJoinGroupHandler(groupRepo, groupMemberRepo, commEventPub, &log.Logger)
-	leaveGroupHandler := commcommands.NewLeaveGroupHandler(groupRepo, groupMemberRepo, commEventPub, &log.Logger)
-	updateMemberRoleHandler := commcommands.NewUpdateMemberRoleHandler(groupMemberRepo, commEventPub, &log.Logger)
-	removeMemberHandler := commcommands.NewRemoveMemberHandler(groupRepo, groupMemberRepo, commEventPub, &log.Logger)
-	banMemberHandler := commcommands.NewBanMemberHandler(groupRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger)
-	inviteToGroupHandler := commcommands.NewInviteToGroupHandler(groupRepo, groupMemberRepo, groupInvitationRepo, commEventPub, &log.Logger)
-	acceptInvitationHandler := commcommands.NewAcceptInvitationHandler(groupRepo, groupMemberRepo, groupInvitationRepo, commEventPub, &log.Logger)
-	declineInvitationHandler := commcommands.NewDeclineInvitationHandler(groupInvitationRepo, commEventPub, &log.Logger)
+	joinGroupHandler := commcommands.NewJoinGroupHandler(
+		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
+	leaveGroupHandler := commcommands.NewLeaveGroupHandler(
+		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
+	updateMemberRoleHandler := commcommands.NewUpdateMemberRoleHandler(
+		groupMemberRepo, commEventPub, &log.Logger,
+	)
+	removeMemberHandler := commcommands.NewRemoveMemberHandler(
+		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
+	banMemberHandler := commcommands.NewBanMemberHandler(
+		groupRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger,
+	)
+	inviteToGroupHandler := commcommands.NewInviteToGroupHandler(
+		groupRepo, groupMemberRepo, groupInvitationRepo, commEventPub, &log.Logger,
+	)
+	acceptInvitationHandler := commcommands.NewAcceptInvitationHandler(
+		groupRepo, groupMemberRepo, groupInvitationRepo, commEventPub, &log.Logger,
+	)
+	declineInvitationHandler := commcommands.NewDeclineInvitationHandler(
+		groupInvitationRepo, commEventPub, &log.Logger,
+	)
 
-	getGroupHandler := queries.NewGetGroupHandler(groupRepo)
-	getGroupBySlugHandler := queries.NewGetGroupBySlugHandler(groupRepo)
-	listPublicGroupsHandler := queries.NewListPublicGroupsHandler(groupRepo)
-	searchGroupsHandler := queries.NewSearchGroupsHandler(groupRepo)
-	listGroupMembersHandler := queries.NewListGroupMembersHandler(groupMemberRepo)
-	listUserGroupsHandler := queries.NewListUserGroupsHandler(groupMemberRepo)
-	listGroupInvitationsHandler := queries.NewListGroupInvitationsHandler(groupInvitationRepo)
+	getGroupHandler := commqueries.NewGetGroupHandler(groupRepo)
+	getGroupBySlugHandler := commqueries.NewGetGroupBySlugHandler(groupRepo)
+	listPublicGroupsHandler := commqueries.NewListPublicGroupsHandler(groupRepo)
+	searchGroupsHandler := commqueries.NewSearchGroupsHandler(groupRepo)
+	listGroupMembersHandler := commqueries.NewListGroupMembersHandler(groupMemberRepo)
+	listUserGroupsHandler := commqueries.NewListUserGroupsHandler(groupMemberRepo)
+	listGroupInvitationsHandler := commqueries.NewListGroupInvitationsHandler(groupInvitationRepo)
 
 	// Group Album Handlers
-	createGroupAlbumHandler := commcommands.NewCreateGroupAlbumHandler(groupRepo, groupMemberRepo, groupAlbumRepo, commEventPub, &log.Logger)
-	updateGroupAlbumHandler := commcommands.NewUpdateGroupAlbumHandler(groupAlbumRepo, groupMemberRepo, commEventPub, &log.Logger)
-	deleteGroupAlbumHandler := commcommands.NewDeleteGroupAlbumHandler(groupAlbumRepo, groupMemberRepo, &log.Logger)
-	addImageToGroupAlbumHandler := commcommands.NewAddImageToGroupAlbumHandler(groupAlbumRepo, groupAlbumImageRepo, groupImageRepo, groupMemberRepo, &log.Logger)
-	removeImageFromGroupAlbumHandler := commcommands.NewRemoveImageFromGroupAlbumHandler(groupAlbumRepo, groupAlbumImageRepo, groupMemberRepo, &log.Logger)
+	createGroupAlbumHandler := commcommands.NewCreateGroupAlbumHandler(
+		groupRepo, groupMemberRepo, groupAlbumRepo, commEventPub, &log.Logger,
+	)
+	updateGroupAlbumHandler := commcommands.NewUpdateGroupAlbumHandler(
+		groupAlbumRepo, groupMemberRepo, commEventPub, &log.Logger,
+	)
+	deleteGroupAlbumHandler := commcommands.NewDeleteGroupAlbumHandler(
+		groupAlbumRepo, groupMemberRepo, &log.Logger,
+	)
+	addImageToGroupAlbumHandler := commcommands.NewAddImageToGroupAlbumHandler(
+		groupAlbumRepo, groupAlbumImageRepo, groupImageRepo, groupMemberRepo, &log.Logger,
+	)
+	removeImageFromGroupAlbumHandler := commcommands.NewRemoveImageFromGroupAlbumHandler(
+		groupAlbumRepo, groupAlbumImageRepo, groupMemberRepo, &log.Logger,
+	)
 
 	getGroupAlbumHandler := commqueries.NewGetGroupAlbumHandler(groupRepo, groupAlbumRepo, groupMemberRepo)
 	listGroupAlbumsHandler := commqueries.NewListGroupAlbumsHandler(groupRepo, groupAlbumRepo, groupMemberRepo)
 
 	// Group Image Handlers
-	shareImageHandler := commcommands.NewShareImageToGroupHandler(groupRepo, groupMemberRepo, groupImageRepo, groupActivityRepo, commEventPub, &log.Logger)
-	approveImageHandler := commcommands.NewApproveGroupImageHandler(groupImageRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger)
-	rejectImageHandler := commcommands.NewRejectGroupImageHandler(groupImageRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger)
+	shareImageHandler := commcommands.NewShareImageToGroupHandler(
+		groupRepo, groupMemberRepo, groupImageRepo, groupActivityRepo, commEventPub, &log.Logger,
+	)
+	approveImageHandler := commcommands.NewApproveGroupImageHandler(
+		groupImageRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger,
+	)
+	rejectImageHandler := commcommands.NewRejectGroupImageHandler(
+		groupImageRepo, groupMemberRepo, groupActivityRepo, commEventPub, &log.Logger,
+	)
 
 	listPendingImagesHandler := commqueries.NewListPendingGroupImagesHandler(groupImageRepo, groupMemberRepo)
 	listApprovedImagesHandler := commqueries.NewListApprovedGroupImagesHandler(groupImageRepo)
@@ -717,53 +795,59 @@ func main() {
 // --- Adapters ---
 
 type identityEventPublisher struct{}
-func (p *identityEventPublisher) Publish(ctx context.Context, event interface{}) error {
+
+func (p *identityEventPublisher) Publish(_ context.Context, _ interface{}) error {
 	return nil
 }
 
 type galleryEventPublisher struct{}
-func (p *galleryEventPublisher) Publish(ctx context.Context, event shared.DomainEvent) error {
+
+func (p *galleryEventPublisher) Publish(_ context.Context, _ shared.DomainEvent) error {
 	return nil
 }
 
 type moderationEventPublisher struct{}
-func (p *moderationEventPublisher) Publish(ctx context.Context, event shared.DomainEvent) error {
+
+func (p *moderationEventPublisher) Publish(_ context.Context, _ shared.DomainEvent) error {
 	return nil
 }
 
 type communityEventPublisher struct{}
-func (p *communityEventPublisher) Publish(ctx context.Context, event shared.DomainEvent) error {
+
+func (p *communityEventPublisher) Publish(_ context.Context, _ shared.DomainEvent) error {
 	return nil
 }
 
 type noOpJobEnqueuer struct{}
-func (j *noOpJobEnqueuer) EnqueueImageCleanup(ctx context.Context, imageID string, originalPath string, variants []string) error {
+
+func (j *noOpJobEnqueuer) EnqueueImageCleanup(_ context.Context, _ string, _ string, _ []string) error {
 	return nil
 }
-func (j *noOpJobEnqueuer) EnqueueImageProcessing(ctx context.Context, imageID string) error {
+func (j *noOpJobEnqueuer) EnqueueImageProcessing(_ context.Context, _ string) error {
 	return nil
 }
-func (j *noOpJobEnqueuer) EnqueueImageScan(ctx context.Context, imageID string) error {
+func (j *noOpJobEnqueuer) EnqueueImageScan(_ context.Context, _ string) error {
 	return nil
 }
 
 type noOpNSFWService struct{}
-func (s *noOpNSFWService) Scan(ctx context.Context, imageURL string) (*nsfw.ScanResult, error) {
+
+func (s *noOpNSFWService) Scan(_ context.Context, _ string) (*nsfw.ScanResult, error) {
 	// Return a safe mock result
 	return &nsfw.ScanResult{
 		Category: moderation.CategorySafe,
-		Score: 0.0,
+		Score:    0.0,
 		Provider: moderation.ProviderSightEngine, // Assuming standard provider or mock
 	}, nil
 }
-func (s *noOpNSFWService) ScanBytes(ctx context.Context, data []byte, contentType string) (*nsfw.ScanResult, error) {
+func (s *noOpNSFWService) ScanBytes(_ context.Context, _ []byte, _ string) (*nsfw.ScanResult, error) {
 	return &nsfw.ScanResult{
 		Category: moderation.CategorySafe,
-		Score: 0.0,
+		Score:    0.0,
 		Provider: moderation.ProviderSightEngine,
 	}, nil
 }
-func (s *noOpNSFWService) IsAvailable(ctx context.Context) bool {
+func (s *noOpNSFWService) IsAvailable(_ context.Context) bool {
 	return true
 }
 func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
@@ -773,59 +857,102 @@ func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
 // Stub for missing NSFW repository
 // Implementing moderation.NSFWScanRepository interface
 type noOpNSFWScanRepository struct{}
+
 func (r *noOpNSFWScanRepository) NextID() moderation.NSFWScanID { return moderation.NSFWScanID{} }
-func (r *noOpNSFWScanRepository) FindByID(ctx context.Context, id moderation.NSFWScanID) (*moderation.NSFWScan, error) { return nil, nil }
-func (r *noOpNSFWScanRepository) FindByImageID(ctx context.Context, imageID gallery.ImageID) (*moderation.NSFWScan, error) { return nil, nil }
-func (r *noOpNSFWScanRepository) FindByImageIDAll(ctx context.Context, imageID gallery.ImageID) ([]*moderation.NSFWScan, error) { return nil, nil }
-func (r *noOpNSFWScanRepository) FindPending(ctx context.Context, pagination shared.Pagination) ([]*moderation.NSFWScan, int64, error) { return nil, 0, nil }
-func (r *noOpNSFWScanRepository) FindByStatus(ctx context.Context, status moderation.NSFWScanStatus, pagination shared.Pagination) ([]*moderation.NSFWScan, int64, error) { return nil, 0, nil }
-func (r *noOpNSFWScanRepository) FindNSFWImages(ctx context.Context, pagination shared.Pagination) ([]*moderation.NSFWScan, int64, error) { return nil, 0, nil }
-func (r *noOpNSFWScanRepository) HasActiveScan(ctx context.Context, imageID gallery.ImageID) (bool, error) { return false, nil }
-func (r *noOpNSFWScanRepository) Save(ctx context.Context, scan *moderation.NSFWScan) error { return nil }
+func (r *noOpNSFWScanRepository) FindByID(_ context.Context, _ moderation.NSFWScanID) (*moderation.NSFWScan, error) {
+	return nil, nil
+}
+func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.ImageID) (*moderation.NSFWScan, error) {
+	return nil, nil
+}
+func (r *noOpNSFWScanRepository) FindByImageIDAll(_ context.Context, _ gallery.ImageID) ([]*moderation.NSFWScan, error) {
+	return nil, nil
+}
+func (r *noOpNSFWScanRepository) FindPending(_ context.Context, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+	return nil, 0, nil
+}
+func (r *noOpNSFWScanRepository) FindByStatus(_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+	return nil, 0, nil
+}
+func (r *noOpNSFWScanRepository) FindNSFWImages(_ context.Context, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+	return nil, 0, nil
+}
+func (r *noOpNSFWScanRepository) HasActiveScan(_ context.Context, _ gallery.ImageID) (bool, error) {
+	return false, nil
+}
+func (r *noOpNSFWScanRepository) Save(_ context.Context, _ *moderation.NSFWScan) error {
+	return nil
+}
 
 type noOpIPFSService struct{}
-func (s *noOpIPFSService) Add(ctx context.Context, data []byte) (string, error) { return "QmFakeCID", nil }
-func (s *noOpIPFSService) Pin(ctx context.Context, cid string) error { return nil }
-func (s *noOpIPFSService) Unpin(ctx context.Context, cid string) error { return nil }
-func (s *noOpIPFSService) IsPinned(ctx context.Context, cid string) (bool, error) { return false, nil }
+
+func (s *noOpIPFSService) Add(_ context.Context, _ []byte) (string, error) {
+	return "QmFakeCID", nil
+}
+func (s *noOpIPFSService) Pin(_ context.Context, _ string) error { return nil }
+func (s *noOpIPFSService) Unpin(_ context.Context, _ string) error { return nil }
+func (s *noOpIPFSService) IsPinned(_ context.Context, _ string) (bool, error) { return false, nil }
 func (s *noOpIPFSService) GatewayURL(cid string) string { return "https://ipfs.io/ipfs/" + cid }
 
 type storageAdapter struct {
 	Store *local.Storage
 }
 
-func (s *storageAdapter) Put(ctx context.Context, key string, data io.Reader, size int64, opts appstorage.PutOptions) error {
+func (s *storageAdapter) Put(
+	ctx context.Context, key string, data io.Reader, size int64, opts appstorage.PutOptions,
+) error {
 	localOpts := local.PutOptions{
-		ContentType: opts.ContentType,
+		ContentType:  opts.ContentType,
 		CacheControl: opts.CacheControl,
-		Metadata: opts.Metadata,
+		Metadata:     opts.Metadata,
 	}
-	return s.Store.Put(ctx, key, data, size, localOpts)
+	if err := s.Store.Put(ctx, key, data, size, localOpts); err != nil {
+		return fmt.Errorf("failed to put object: %w", err)
+	}
+	return nil
 }
 
 func (s *storageAdapter) PutBytes(ctx context.Context, key string, data []byte, opts appstorage.PutOptions) error {
 	localOpts := local.PutOptions{
-		ContentType: opts.ContentType,
+		ContentType:  opts.ContentType,
 		CacheControl: opts.CacheControl,
-		Metadata: opts.Metadata,
+		Metadata:     opts.Metadata,
 	}
-	return s.Store.PutBytes(ctx, key, data, localOpts)
+	if err := s.Store.PutBytes(ctx, key, data, localOpts); err != nil {
+		return fmt.Errorf("failed to put bytes: %w", err)
+	}
+	return nil
 }
 
 func (s *storageAdapter) Get(ctx context.Context, key string) (io.ReadCloser, error) {
-	return s.Store.Get(ctx, key)
+	reader, err := s.Store.Get(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object: %w", err)
+	}
+	return reader, nil
 }
 
 func (s *storageAdapter) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	return s.Store.GetBytes(ctx, key)
+	data, err := s.Store.GetBytes(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bytes: %w", err)
+	}
+	return data, nil
 }
 
 func (s *storageAdapter) Delete(ctx context.Context, key string) error {
-	return s.Store.Delete(ctx, key)
+	if err := s.Store.Delete(ctx, key); err != nil {
+		return fmt.Errorf("failed to delete object: %w", err)
+	}
+	return nil
 }
 
 func (s *storageAdapter) Exists(ctx context.Context, key string) (bool, error) {
-	return s.Store.Exists(ctx, key)
+	exists, err := s.Store.Exists(ctx, key)
+	if err != nil {
+		return false, fmt.Errorf("failed to check existence: %w", err)
+	}
+	return exists, nil
 }
 
 func (s *storageAdapter) URL(key string) string {
@@ -833,20 +960,24 @@ func (s *storageAdapter) URL(key string) string {
 }
 
 func (s *storageAdapter) PresignedURL(ctx context.Context, key string, duration time.Duration) (string, error) {
-	return s.Store.PresignedURL(ctx, key, duration)
+	url, err := s.Store.PresignedURL(ctx, key, duration)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
+	}
+	return url, nil
 }
 
 func (s *storageAdapter) Stat(ctx context.Context, key string) (*appstorage.ObjectInfo, error) {
 	info, err := s.Store.Stat(ctx, key)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to stat object: %w", err)
 	}
 	return &appstorage.ObjectInfo{
-		Key: info.Key,
-		Size: info.Size,
-		ContentType: info.ContentType,
+		Key:          info.Key,
+		Size:         info.Size,
+		ContentType:  info.ContentType,
 		LastModified: info.LastModified,
-		ETag: info.ETag,
+		ETag:         info.ETag,
 	}, nil
 }
 
@@ -854,7 +985,7 @@ func (s *storageAdapter) Provider() string {
 	return s.Store.Provider()
 }
 
-// Helper functions for env vars
+// Helper functions for env vars.
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -862,21 +993,31 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// oauthProviderFactoryAdapter adapts security.OAuthProviderFactory to appcommands.OAuthProviderFactory
+// oauthProviderFactoryAdapter adapts security.OAuthProviderFactory to appcommands.OAuthProviderFactory.
 type oauthProviderFactoryAdapter struct {
 	factory *security.OAuthProviderFactory
 	configs map[domidentity.OAuthProvider]security.OAuthProviderConfig
 }
 
+// CreateProvider creates a new OAuth provider.
+//
+//nolint:ireturn // Adapter requires returning interface
 func (a *oauthProviderFactoryAdapter) CreateProvider(pType domidentity.OAuthProvider) (appcommands.OAuthProvider, error) {
 	cfg, ok := a.configs[pType]
 	if !ok {
 		// Default config or error
 		cfg = security.OAuthProviderConfig{}
 	}
-	return a.factory.CreateProvider(pType, cfg)
+	provider, err := a.factory.CreateProvider(pType, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create provider: %w", err)
+	}
+	return provider, nil
 }
 
+// Encryptor returns the token encryptor.
+//
+//nolint:ireturn // Adapter requires returning interface
 func (a *oauthProviderFactoryAdapter) Encryptor() appcommands.TokenEncryptor {
 	return a.factory.Encryptor()
 }
