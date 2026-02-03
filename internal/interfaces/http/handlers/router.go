@@ -131,6 +131,13 @@ func NewRouter(
 
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
+		// Health check endpoints (duplicated for E2E tests compatibility)
+		if healthHandler != nil {
+			r.Get("/health", healthHandler.Liveness)
+			r.Get("/health/live", healthHandler.Liveness) // Alias for backward compatibility
+			r.Get("/health/ready", healthHandler.Readiness)
+		}
+
 		// Public auth routes (no authentication required)
 		// Most auth routes are public, but guest session creation is rate-limited
 		if authHandler != nil {
@@ -446,7 +453,6 @@ func NewRouter(
 			if guestHandler != nil {
 				r.Mount("/guest", guestHandler.Routes())
 			}
-
 
 			// User's groups endpoint
 			// GET /me/groups - List current user's group memberships
