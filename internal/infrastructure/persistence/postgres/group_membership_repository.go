@@ -16,20 +16,16 @@ import (
 
 // SQL queries for group membership operations.
 const (
-	sqlInsertGroupMembership = `
+	sqlUpsertGroupMembership = `
 		INSERT INTO group_memberships (
 			id, group_id, user_id, role, status, invited_by, joined_at, updated_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8
 		)
-	`
-
-	sqlUpdateGroupMembership = `
-		UPDATE group_memberships
-		SET role = $2,
-		    status = $3,
-		    updated_at = $4
-		WHERE id = $1
+		ON CONFLICT (id) DO UPDATE SET
+			role = EXCLUDED.role,
+			status = EXCLUDED.status,
+			updated_at = EXCLUDED.updated_at
 	`
 
 	sqlSelectMembershipByID = `
@@ -275,19 +271,30 @@ func (r *GroupMembershipRepository) CountByGroupAndStatus(
 }
 
 // Save persists the membership to storage.
-// This handles both creation and updates.
+// This handles both creation and updates using UPSERT.
 func (r *GroupMembershipRepository) Save(ctx context.Context, membership *community.GroupMembership) error {
-	// Check if membership exists
-	var exists bool
-	err := r.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM group_memberships WHERE id = $1)", membership.ID().String())
-	if err != nil {
-		return fmt.Errorf("failed to check membership existence: %w", err)
+	var invitedBy sql.NullString
+	if membership.InvitedBy() != nil {
+		invitedBy = sql.NullString{String: membership.InvitedBy().String(), Valid: true}
 	}
 
-	if exists {
-		return r.update(ctx, membership)
+	_, err := r.db.ExecContext(
+		ctx,
+		sqlUpsertGroupMembership,
+		membership.ID().String(),
+		membership.GroupID().String(),
+		membership.UserID().String(),
+		membership.Role().String(),
+		membership.Status().String(),
+		invitedBy,
+		membership.JoinedAt(),
+		membership.UpdatedAt(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to save membership: %w", err)
 	}
-	return r.insert(ctx, membership)
+
+	return nil
 }
 
 // Delete removes the membership from storage.
@@ -323,57 +330,6 @@ func (r *GroupMembershipRepository) ExistsActiveByGroupAndUser(
 	return exists, nil
 }
 
-// insert creates a new membership in the database.
-func (r *GroupMembershipRepository) insert(ctx context.Context, membership *community.GroupMembership) error {
-	var invitedBy sql.NullString
-	if membership.InvitedBy() != nil {
-		invitedBy = sql.NullString{String: membership.InvitedBy().String(), Valid: true}
-	}
-
-	_, err := r.db.ExecContext(
-		ctx,
-		sqlInsertGroupMembership,
-		membership.ID().String(),
-		membership.GroupID().String(),
-		membership.UserID().String(),
-		membership.Role().String(),
-		membership.Status().String(),
-		invitedBy,
-		membership.JoinedAt(),
-		membership.UpdatedAt(),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to insert membership: %w", err)
-	}
-
-	return nil
-}
-
-// update updates an existing membership in the database.
-func (r *GroupMembershipRepository) update(ctx context.Context, membership *community.GroupMembership) error {
-	result, err := r.db.ExecContext(
-		ctx,
-		sqlUpdateGroupMembership,
-		membership.ID().String(),
-		membership.Role().String(),
-		membership.Status().String(),
-		membership.UpdatedAt(),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to update membership: %w", err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return community.ErrMembershipNotFound
-	}
-
-	return nil
-}
 
 // buildFindByGroupQuery constructs a dynamic SQL query for finding memberships by group.
 func (r *GroupMembershipRepository) buildFindByGroupQuery(
