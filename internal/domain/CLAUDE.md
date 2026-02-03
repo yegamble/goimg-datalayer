@@ -26,10 +26,13 @@ internal/domain/{context}/
 
 ## Bounded Contexts in This Project
 
-- **identity**: Users, authentication, roles, permissions
-- **media**: Images, albums, metadata, EXIF data
-- **moderation**: Content review, flagging, approval workflows
-- **social**: Follows, favorites, comments, likes
+- **identity**: Users, authentication, roles, permissions, OAuth accounts, sessions
+- **gallery**: Images, albums, tags, comments, likes, metadata, EXIF data
+- **moderation**: Content review, reporting, bans, appeals, NSFW scanning
+- **community**: Groups, memberships, invitations, group albums
+- **activity**: Activity feeds, user follows
+- **notification**: User notifications (email, in-app)
+- **shared**: Common value objects (Pagination, Timestamps)
 
 ## Patterns
 

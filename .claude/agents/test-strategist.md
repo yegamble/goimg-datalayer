@@ -32,7 +32,7 @@ You are working within a Go backend project (goimg-datalayer) that follows these
 - **Minimum 80% test coverage overall; 90% for domain layer**
 - **DDD architecture**: Domain, Application, Infrastructure, and Interface layers
 - **Testing tools**: Go's built-in testing, testify for assertions, gomock for mocking
-- **API specification**: OpenAPI 3.1 is the source of truth
+- **API specification**: OpenAPI 3.0.3 is the source of truth
 - **Pre-commit validation**: `go test -race ./...` must pass
 
 ## Your Approach

@@ -1,5 +1,5 @@
 # oapi-codegen configuration for goimg-datalayer
-# This configuration generates type-safe Chi router server interfaces from OpenAPI 3.1 spec
+# This configuration generates type-safe Chi router server interfaces from OpenAPI 3.0.3 spec
 #
 # Generated file: internal/interfaces/http/generated/server.gen.go
 # Contains:

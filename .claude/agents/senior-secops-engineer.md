@@ -115,7 +115,7 @@ For the goimg project, you are aware of:
 - ClamAV integration for malware scanning of uploaded images
 - Image processing via bimg/libvips (watch for image parsing vulnerabilities)
 - Object storage across Local/S3/DO Spaces/B2 and IPFS
-- OpenAPI 3.1 specification as the API contract source of truth
+- OpenAPI 3.0.3 specification as the API contract source of truth
 - DDD architecture with domain logic isolated from infrastructure
 
 ## Response Format

@@ -400,7 +400,7 @@ Minor post-launch enhancements identified (2FA, password breach check, timing at
 **OpenAPI Specification**:
 - File: `api/openapi/openapi.yaml`
 - Lines: 2,341 lines (comprehensive)
-- Version: OpenAPI 3.1
+- Version: OpenAPI 3.0.3
 - Validation: `make validate-openapi` passing
 
 ---

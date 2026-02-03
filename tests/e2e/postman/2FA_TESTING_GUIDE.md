@@ -174,7 +174,7 @@ The tests are designed to run sequentially in the following order:
 
 ## OpenAPI Specification Compliance
 
-All tests are designed to match the OpenAPI 3.1 specification defined in:
+All tests are designed to match the OpenAPI 3.0.3 specification defined in:
 ```
 /home/user/goimg-datalayer/api/openapi/openapi.yaml
 ```
