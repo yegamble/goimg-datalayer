@@ -37,8 +37,14 @@ const (
 
 	sqlSelectFeedForUser = `
 		SELECT a.id, a.actor_id, a.activity_type, a.target_type, a.target_id, a.metadata, a.created_at
-		FROM activities a
-		INNER JOIN user_follows uf ON a.actor_id = uf.followed_id
+		FROM user_follows uf
+		CROSS JOIN LATERAL (
+			SELECT *
+			FROM activities
+			WHERE actor_id = uf.followed_id
+			ORDER BY created_at DESC
+			LIMIT $4
+		) a
 		WHERE uf.follower_id = $1
 		ORDER BY a.created_at DESC
 		LIMIT $2 OFFSET $3
@@ -204,6 +210,7 @@ func (r *ActivityRepository) FindFeedForUser(
 		userID.String(),
 		pagination.Limit(),
 		pagination.Offset(),
+		pagination.Limit()+pagination.Offset(), // $4: Inner limit (must be limit + offset to ensure we get enough candidates)
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to find feed for user: %w", err)
