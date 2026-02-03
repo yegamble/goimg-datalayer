@@ -13,9 +13,9 @@ import (
 func BenchmarkNotificationRow_toDomain(b *testing.B) {
 	// Setup test data
 	meta := map[string]string{
-		"key1": "value1",
-		"key2": "value2",
-		"key3": "value3",
+		"key1":     "value1",
+		"key2":     "value2",
+		"key3":     "value3",
 		"long_key": "some reasonably long string value to simulate real metadata",
 	}
 	metaBytes, _ := json.Marshal(meta)
