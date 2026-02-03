@@ -36,7 +36,7 @@ make lint && make test && make validate-openapi
 | Security | ClamAV, JWT, OAuth2 |
 | Object Storage | Local/S3/DO Spaces/B2 |
 | Decentralized Storage | IPFS (Kubo) + Pinata/Infura |
-| API Spec | OpenAPI 3.1 |
+| API Spec | OpenAPI 3.0.3 |
 | Observability | zerolog, Prometheus, OpenTelemetry |
 
 ## Navigation
@@ -165,7 +165,7 @@ internal/
 │   ├── security/     # JWT, OAuth, ClamAV
 │   └── messaging/    # Event publishing
 └── interfaces/http/  # Handlers, middleware, DTOs
-api/openapi/          # OpenAPI 3.1 spec (source of truth)
+api/openapi/          # OpenAPI 3.0.3 spec (source of truth)
 tests/                # Unit, integration, e2e, contract tests
 docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 ```

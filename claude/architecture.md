@@ -158,7 +158,7 @@ type ImageUploaded struct {
 
 ```
 goimg-datalayer/
-├── api/openapi/              # OpenAPI 3.1 spec (source of truth)
+├── api/openapi/              # OpenAPI 3.0.3 spec (source of truth)
 ├── cmd/
 │   ├── api/                  # HTTP server entrypoint
 │   ├── worker/               # Background worker entrypoint

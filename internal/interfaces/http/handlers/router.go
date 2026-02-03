@@ -80,6 +80,7 @@ func NewRouter(
 	featuredHandler *FeaturedHandler,
 	groupHandler *GroupHandler,
 	groupAlbumHandler *GroupAlbumHandler,
+	groupImageHandler *GroupImageHandler,
 	metricsCollector *middleware.MetricsCollector,
 	middlewareConfig MiddlewareConfig,
 	isProd bool,
@@ -416,10 +417,22 @@ func NewRouter(
 					r.Delete("/{groupID}/members/{userID}", groupHandler.RemoveMember)
 					r.Post("/{groupID}/members/{userID}/ban", groupHandler.BanMember)
 
+					// Group invitation routes (Sprint 20)
+					r.Post("/{groupID}/invitations", groupHandler.CreateInvitation)
+					r.Get("/{groupID}/invitations", groupHandler.ListInvitations)
+					r.Post("/invitations/{token}/accept", groupHandler.AcceptInvitation)
+					r.Post("/invitations/{token}/decline", groupHandler.DeclineInvitation)
+
 					// Group albums routes (Sprint 20)
 					// Nested under /groups/{groupID}/albums
 					if groupAlbumHandler != nil {
 						r.Mount("/{groupID}/albums", groupAlbumHandler.Routes())
+					}
+
+					// Group images routes (Sprint 20)
+					// Nested under /groups/{groupID}/images
+					if groupImageHandler != nil {
+						r.Mount("/{groupID}/images", groupImageHandler.Routes())
 					}
 				})
 			}
