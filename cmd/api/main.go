@@ -49,7 +49,7 @@ const (
 	serverReadHeaderTimeout = 5 * time.Second
 	shutdownTimeout         = 5 * time.Second
 
-	// Default configuration values
+	// Default configuration values.
 	defaultSMTPPort      = 587
 	defaultSMTPRateLimit = 100
 	defaultSMTPTimeout   = 30 * time.Second
@@ -134,7 +134,7 @@ func main() {
 		}()
 	}
 
-	var rdbClient = redisClientWrapper.UnderlyingClient()
+	rdbClient := redisClientWrapper.UnderlyingClient()
 
 	// Storage
 	storageConfig := local.Config{
@@ -854,32 +854,56 @@ func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
 	return moderation.ProviderSightEngine // Return a valid provider enum
 }
 
-// Stub for missing NSFW repository
-// Implementing moderation.NSFWScanRepository interface
+// Stub for missing NSFW repository.
+// Implementing moderation.NSFWScanRepository interface.
 type noOpNSFWScanRepository struct{}
 
+//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) NextID() moderation.NSFWScanID { return moderation.NSFWScanID{} }
+
+//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByID(_ context.Context, _ moderation.NSFWScanID) (*moderation.NSFWScan, error) {
 	return nil, nil
 }
+
+//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.ImageID) (*moderation.NSFWScan, error) {
 	return nil, nil
 }
-func (r *noOpNSFWScanRepository) FindByImageIDAll(_ context.Context, _ gallery.ImageID) ([]*moderation.NSFWScan, error) {
+
+//nolint:nilnil // Stub implementation
+func (r *noOpNSFWScanRepository) FindByImageIDAll(
+	_ context.Context, _ gallery.ImageID,
+) ([]*moderation.NSFWScan, error) {
 	return nil, nil
 }
-func (r *noOpNSFWScanRepository) FindPending(_ context.Context, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+
+//nolint:nilnil // Stub implementation
+func (r *noOpNSFWScanRepository) FindPending(
+	_ context.Context, _ shared.Pagination,
+) ([]*moderation.NSFWScan, int64, error) {
 	return nil, 0, nil
 }
-func (r *noOpNSFWScanRepository) FindByStatus(_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+
+//nolint:nilnil // Stub implementation
+func (r *noOpNSFWScanRepository) FindByStatus(
+	_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination,
+) ([]*moderation.NSFWScan, int64, error) {
 	return nil, 0, nil
 }
-func (r *noOpNSFWScanRepository) FindNSFWImages(_ context.Context, _ shared.Pagination) ([]*moderation.NSFWScan, int64, error) {
+
+//nolint:nilnil // Stub implementation
+func (r *noOpNSFWScanRepository) FindNSFWImages(
+	_ context.Context, _ shared.Pagination,
+) ([]*moderation.NSFWScan, int64, error) {
 	return nil, 0, nil
 }
+
+//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) HasActiveScan(_ context.Context, _ gallery.ImageID) (bool, error) {
 	return false, nil
 }
+
 func (r *noOpNSFWScanRepository) Save(_ context.Context, _ *moderation.NSFWScan) error {
 	return nil
 }
@@ -889,10 +913,10 @@ type noOpIPFSService struct{}
 func (s *noOpIPFSService) Add(_ context.Context, _ []byte) (string, error) {
 	return "QmFakeCID", nil
 }
-func (s *noOpIPFSService) Pin(_ context.Context, _ string) error { return nil }
-func (s *noOpIPFSService) Unpin(_ context.Context, _ string) error { return nil }
+func (s *noOpIPFSService) Pin(_ context.Context, _ string) error              { return nil }
+func (s *noOpIPFSService) Unpin(_ context.Context, _ string) error            { return nil }
 func (s *noOpIPFSService) IsPinned(_ context.Context, _ string) (bool, error) { return false, nil }
-func (s *noOpIPFSService) GatewayURL(cid string) string { return "https://ipfs.io/ipfs/" + cid }
+func (s *noOpIPFSService) GatewayURL(cid string) string                       { return "https://ipfs.io/ipfs/" + cid }
 
 type storageAdapter struct {
 	Store *local.Storage
@@ -1002,7 +1026,9 @@ type oauthProviderFactoryAdapter struct {
 // CreateProvider creates a new OAuth provider.
 //
 //nolint:ireturn // Adapter requires returning interface
-func (a *oauthProviderFactoryAdapter) CreateProvider(pType domidentity.OAuthProvider) (appcommands.OAuthProvider, error) {
+func (a *oauthProviderFactoryAdapter) CreateProvider(
+	pType domidentity.OAuthProvider,
+) (appcommands.OAuthProvider, error) {
 	cfg, ok := a.configs[pType]
 	if !ok {
 		// Default config or error
