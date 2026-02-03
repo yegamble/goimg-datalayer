@@ -141,6 +141,8 @@ func NewInMemoryPasswordCache() *InMemoryPasswordCache {
 
 // Get retrieves a cached result from the in-memory map.
 // On a cache hit, the entry is moved to the back of the LRU list (marked as recently used).
+// Note: Uses write lock for all Get operations (not read lock) to maintain LRU order.
+// This is acceptable for testing/ephemeral use, but production should use Redis.
 func (c *InMemoryPasswordCache) Get(ctx context.Context, prefix, suffix string) (bool, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

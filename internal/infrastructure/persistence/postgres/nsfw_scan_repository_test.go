@@ -155,7 +155,7 @@ func TestNSFWScanRepository_FindByImageID(t *testing.T) {
 	err := repo.Save(ctx, scan1)
 	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
+	time.Sleep(100 * time.Millisecond) // Ensure different timestamps
 
 	scan2 := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID, moderation.ProviderSightEngine)
 	err = repo.Save(ctx, scan2)
@@ -474,7 +474,7 @@ func TestNSFWScanRepository_Pagination(t *testing.T) {
 		scan := moderation.NewNSFWScan(moderation.NewNSFWScanID(), imageID, moderation.ProviderSightEngine)
 		err := repo.Save(ctx, scan)
 		require.NoError(t, err)
-		time.Sleep(5 * time.Millisecond) // Ensure different timestamps
+		time.Sleep(50 * time.Millisecond) // Ensure different timestamps
 	}
 
 	// Test pagination - first page (page 1, 2 items per page)
