@@ -884,7 +884,7 @@ func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.Imag
 func (r *noOpNSFWScanRepository) FindByImageIDAll(
 	_ context.Context, _ gallery.ImageID,
 ) ([]*moderation.NSFWScan, error) {
-	return nil, moderation.ErrNSFWScanNotFound
+	return nil, nil
 }
 
 func (r *noOpNSFWScanRepository) FindPending(
