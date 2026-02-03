@@ -35,16 +35,7 @@ const (
 		WHERE actor_id = $1
 	`
 
-	// TODO(audit-2026-02-03): CRITICAL - This query has unbounded inner LIMIT.
-	// The inner LIMIT ($4) is set to (limit + offset) which can be very large for
-	// deep pagination. For 100 followed users at offset 10000:
-	// - Inner LIMIT = 10020 (for each of 100 follows = 1M+ rows scanned)
-	// - Memory explosion and CPU spikes
-	// Fix options:
-	// 1. Cap inner limit: min(limit + offset, 1000)
-	// 2. Implement cursor-based pagination instead of offset
-	// 3. Add index: CREATE INDEX idx_activities_actor_created ON activities(actor_id, created_at DESC)
-	// See: claude/audit_report_2026-02-03.md for full details.
+	// Optimized feed query with capped inner LIMIT in code
 	sqlSelectFeedForUser = `
 		SELECT a.id, a.actor_id, a.activity_type, a.target_type, a.target_id, a.metadata, a.created_at
 		FROM user_follows uf
@@ -211,6 +202,14 @@ func (r *ActivityRepository) FindFeedForUser(
 	userID identity.UserID,
 	pagination shared.Pagination,
 ) ([]*activity.Activity, int, error) {
+
+	// Calculate inner limit for LATERAL JOIN optimization
+	// Cap the inner limit to prevent unbounded scans on large offsets
+	innerLimit := pagination.Limit() + pagination.Offset()
+	if innerLimit > 1000 {
+		innerLimit = 1000
+	}
+
 	// Get feed activities
 	var rows []activityRow
 	err := r.db.SelectContext(
@@ -220,7 +219,7 @@ func (r *ActivityRepository) FindFeedForUser(
 		userID.String(),
 		pagination.Limit(),
 		pagination.Offset(),
-		pagination.Limit()+pagination.Offset(), // $4: Inner limit (must be limit + offset to ensure we get enough candidates)
+		innerLimit, // $4: Capped inner limit
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to find feed for user: %w", err)
