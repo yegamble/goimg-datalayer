@@ -13,8 +13,10 @@ The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project i
 
 **Completeness Score:** ~86% (Estimate based on feature count)
 
-**Recent Fixes (2026-01-20):**
-- Resolved critical stubs in `NSFWScanRepository` (blocking moderation).
+**Recent Fixes (2026-02-03):**
+- Resolved critical stubs in `NSFWScanRepository` (blocking moderation):
+  - Singular find methods return `ErrNSFWScanNotFound` when no entity exists
+  - Collection-returning methods return empty slices when no items match
 - Fixed error swallowing in Image Upload workflow.
 - Verified and documented `libvips` dependencies.
 
