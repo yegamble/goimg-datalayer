@@ -873,42 +873,36 @@ type noOpNSFWScanRepository struct{}
 //nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) NextID() moderation.NSFWScanID { return moderation.NSFWScanID{} }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByID(_ context.Context, _ moderation.NSFWScanID) (*moderation.NSFWScan, error) {
-	return nil, nil
+	return nil, moderation.ErrNSFWScanNotFound
 }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.ImageID) (*moderation.NSFWScan, error) {
-	return nil, nil
+	return nil, moderation.ErrNSFWScanNotFound
 }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByImageIDAll(
 	_ context.Context, _ gallery.ImageID,
 ) ([]*moderation.NSFWScan, error) {
-	return nil, nil
+	return nil, moderation.ErrNSFWScanNotFound
 }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindPending(
 	_ context.Context, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return nil, 0, nil
+	return nil, 0, moderation.ErrNSFWScanNotFound
 }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindByStatus(
 	_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return nil, 0, nil
+	return nil, 0, moderation.ErrNSFWScanNotFound
 }
 
-//nolint:nilnil // Stub implementation
 func (r *noOpNSFWScanRepository) FindNSFWImages(
 	_ context.Context, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return nil, 0, nil
+	return nil, 0, moderation.ErrNSFWScanNotFound
 }
 
 //nolint:nilnil // Stub implementation

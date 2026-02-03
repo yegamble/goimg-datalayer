@@ -332,7 +332,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			},
 		},
 		{
-			name: "job enqueueing failure - should still succeed",
+			name: "job enqueueing failure",
 			cmd: commands.UploadImageCommand{
 				UserID:      testhelpers.ValidUserID,
 				FileContent: testhelpers.ValidFileReader(),
@@ -351,15 +351,15 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil).Once()
 				suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 
-				// Job enqueueing fails (non-critical)
+				// Job enqueueing fails
 				suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).
 					Return(fmt.Errorf("queue unavailable")).Once()
 			},
 			wantErr: nil,
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
-				// Should still succeed even if job enqueueing fails
-				require.NoError(t, err)
-				require.NotNil(t, result)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "enqueue processing job")
+				assert.Nil(t, result)
 				suite.AssertExpectations(t)
 			},
 		},

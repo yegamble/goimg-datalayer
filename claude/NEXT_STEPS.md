@@ -21,6 +21,12 @@
 3. **Establish regression prevention** practices
 4. **Update documentation** to reflect current state
 
+### Recent Critical Fixes (2026-01-20) ✅
+
+- **Fixed Critical Stubs**: Updated `noOpNSFWScanRepository` in `cmd/api/main.go` to return `moderation.ErrNSFWScanNotFound` instead of `nil, nil`, preventing nil pointer dereferences.
+- **Fixed Error Handling**: Updated `UploadImageHandler` in `internal/application/gallery/commands/upload_image.go` to correctly propagate job enqueuing errors instead of swallowing them.
+- **Environment**: Documented `libvips` dependency installation in `README.md`.
+
 ### Critical Coverage Gaps
 
 | Area | Files | Tests | Coverage | Priority |

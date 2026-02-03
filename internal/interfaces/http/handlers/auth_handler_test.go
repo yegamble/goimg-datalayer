@@ -234,7 +234,7 @@ func TestAuthHandler_Refresh(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		mockRefresh.On("ValidateToken", mock.Anything, "valid_refresh_token").Return(&services.RefreshTokenMetadata{
-			UserID: uuid.New().String(),
+			UserID:    uuid.New().String(),
 			SessionID: uuid.New().String(),
 			ExpiresAt: time.Now().Add(time.Hour),
 		}, nil)
