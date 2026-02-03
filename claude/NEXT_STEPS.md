@@ -52,7 +52,9 @@
 
 ### Recent Critical Fixes (2026-02-03) ✅
 
-- **Fixed Critical Stubs**: Updated `noOpNSFWScanRepository` in `cmd/api/main.go` to return `moderation.ErrNSFWScanNotFound` instead of `nil, nil`, preventing nil pointer dereferences.
+- **Fixed Critical Stubs**: Updated `noOpNSFWScanRepository` in `cmd/api/main.go`:
+  - Singular find methods (`FindByID`, `FindByImageID`) now return `moderation.ErrNSFWScanNotFound` instead of `nil, nil`
+  - Collection-returning methods (`FindByImageIDAll`, `FindPending`, `FindByStatus`, `FindNSFWImages`) now return empty slices instead of errors when no items are found
 - **Fixed Error Handling**: Updated `UploadImageHandler` in `internal/application/gallery/commands/upload_image.go` to correctly propagate job enqueuing errors instead of swallowing them.
 - **Environment**: Documented `libvips` dependency installation in `README.md`.
 
