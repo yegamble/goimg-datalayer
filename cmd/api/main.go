@@ -890,7 +890,7 @@ func (r *noOpNSFWScanRepository) FindByImageIDAll(
 func (r *noOpNSFWScanRepository) FindPending(
 	_ context.Context, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return nil, 0, moderation.ErrNSFWScanNotFound
+	return []*moderation.NSFWScan{}, 0, nil
 }
 
 func (r *noOpNSFWScanRepository) FindByStatus(
