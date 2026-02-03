@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
@@ -84,12 +85,13 @@ func DefaultHIBPConfig() HIBPConfig {
 //   - Timeout: Configurable timeout prevents hanging
 //   - Metrics: Records check results and durations (Sprint 10)
 type HIBPClient struct {
-	httpClient *http.Client
-	apiURL     string
-	config     HIBPConfig
-	cache      PasswordCache       // Optional: nil if no caching
-	metrics    HIBPMetricsRecorder // Optional: nil if no metrics
-	logger     *zerolog.Logger
+	httpClient   *http.Client
+	apiURL       string
+	config       HIBPConfig
+	cache        PasswordCache       // Optional: nil if no caching
+	metrics      HIBPMetricsRecorder // Optional: nil if no metrics
+	logger       *zerolog.Logger
+	requestGroup singleflight.Group
 }
 
 // NewHIBPClient creates a new HIBP password checker with default configuration.
@@ -214,8 +216,12 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 		}
 	}
 
-	// 4. Cache miss - call HIBP API
-	pwned, err := c.checkHIBPAPI(ctx, prefix, suffix)
+	// 4. Cache miss - call HIBP API using singleflight to prevent cache stampede
+	// Use the prefix as the key, since all requests with the same prefix trigger the same API call.
+	result, err, _ := c.requestGroup.Do(prefix, func() (interface{}, error) {
+		return c.fetchPrefixSuffixes(ctx, prefix)
+	})
+
 	if err != nil {
 		// Log the error
 		if c.logger != nil {
@@ -235,6 +241,9 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 		// Fail closed: block registration on API failure
 		return false, fmt.Errorf("password breach check unavailable: %w", err)
 	}
+
+	suffixesMap := result.(map[string]struct{})
+	_, pwned := suffixesMap[suffix]
 
 	// 5. Store result in cache (if configured)
 	if c.cache != nil {
@@ -262,11 +271,11 @@ func (c *HIBPClient) IsCompromised(ctx context.Context, password string) (bool, 
 	}
 
 	// Record metrics for successful check
-	result := "clean"
+	metricResult := "clean"
 	if pwned {
-		result = "compromised"
+		metricResult = "compromised"
 	}
-	c.recordMetric(result, false, time.Since(startTime))
+	c.recordMetric(metricResult, false, time.Since(startTime))
 
 	return pwned, nil
 }
@@ -280,15 +289,14 @@ func (c *HIBPClient) recordMetric(result string, cacheHit bool, duration time.Du
 	c.metrics.RecordHIBPCheckDuration(duration.Seconds(), cacheHit)
 }
 
-// checkHIBPAPI performs the actual HIBP API call and response parsing.
-// Separated from IsCompromised for cleaner caching logic.
-func (c *HIBPClient) checkHIBPAPI(ctx context.Context, prefix, suffix string) (bool, error) {
+// fetchPrefixSuffixes performs the actual HIBP API call and returns a set of pwned suffixes.
+func (c *HIBPClient) fetchPrefixSuffixes(ctx context.Context, prefix string) (map[string]struct{}, error) {
 	// 1. Build API request
 	url := c.apiURL + prefix
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return false, fmt.Errorf("create HIBP request: %w", err)
+		return nil, fmt.Errorf("create HIBP request: %w", err)
 	}
 
 	// Set User-Agent header as requested by HIBP fair use policy
@@ -297,29 +305,23 @@ func (c *HIBPClient) checkHIBPAPI(ctx context.Context, prefix, suffix string) (b
 	// 2. Execute request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return false, fmt.Errorf("HIBP API request failed: %w", err)
+		return nil, fmt.Errorf("HIBP API request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// 3. Check HTTP status
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("HIBP API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("HIBP API returned status %d", resp.StatusCode)
 	}
 
 	// 4. Read response body
-	// HIBP returns a list of hash suffixes with occurrence counts:
-	// <suffix>:<count>
-	// Example:
-	// 0018A45C4D1DEF81644B54AB7F969B88D65:1
-	// 00D4F6E8FA6EECAD2A3AA415EEC418D38EC:2
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, fmt.Errorf("read HIBP response: %w", err)
+		return nil, fmt.Errorf("read HIBP response: %w", err)
 	}
 
-	// 5. Search for our suffix in the response
-	// Each line is: <suffix>:<count>
-	// We only care if our suffix exists, not the count
+	// 5. Parse suffixes
+	suffixes := make(map[string]struct{})
 	lines := strings.Split(string(body), "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -334,12 +336,8 @@ func (c *HIBPClient) checkHIBPAPI(ctx context.Context, prefix, suffix string) (b
 		}
 
 		responseSuffix := strings.TrimSpace(parts[0])
-		if responseSuffix == suffix {
-			// Password found in breach database
-			return true, nil
-		}
+		suffixes[responseSuffix] = struct{}{}
 	}
 
-	// Password not found in breach database
-	return false, nil
+	return suffixes, nil
 }
