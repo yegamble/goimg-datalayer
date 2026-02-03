@@ -175,8 +175,10 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 		for i := 0; i < maxRetries; i++ {
 			if err := h.eventPublisher.Publish(ctx, event); err != nil {
 				pubErr = err
-				// Backoff before retry
-				time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+				// Backoff before retry (only if another retry will occur)
+				if i < maxRetries-1 {
+					time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+				}
 				continue
 			}
 			pubErr = nil
