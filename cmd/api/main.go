@@ -896,7 +896,7 @@ func (r *noOpNSFWScanRepository) FindPending(
 func (r *noOpNSFWScanRepository) FindByStatus(
 	_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination,
 ) ([]*moderation.NSFWScan, int64, error) {
-	return nil, 0, moderation.ErrNSFWScanNotFound
+	return []*moderation.NSFWScan{}, 0, nil
 }
 
 func (r *noOpNSFWScanRepository) FindNSFWImages(
