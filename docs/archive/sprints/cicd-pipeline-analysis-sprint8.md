@@ -296,7 +296,7 @@ security-scan ───────┘
 **Spec Location:** `api/openapi/openapi.yaml`
 
 **Checks:**
-1. **Syntax validation:** YAML structure and OpenAPI 3.1 compliance
+1. **Syntax validation:** YAML structure and OpenAPI 3.0 compliance
 2. **Drift detection:** Ensures generated code matches spec
    - Runs `make generate`
    - Fails if git diff shows modified files

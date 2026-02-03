@@ -41,10 +41,10 @@ Sprint 1-2 successfully established the foundational architecture for the goimg-
 - Testify for test assertions
 - Table-driven tests as the standard pattern
 
-### 2. OpenAPI 3.1 Specification (Week 2)
+### 2. OpenAPI 3.0 Specification (Week 2)
 
 **Completed**:
-- Created comprehensive OpenAPI 3.1 specification (2,341 lines)
+- Created comprehensive OpenAPI 3.0 specification (2,341 lines)
 - Defined all MVP endpoints across 5 contexts:
   - **Authentication**: `/auth/login`, `/auth/register`, `/auth/refresh`, `/auth/logout`
   - **Users**: `/users`, `/users/{id}`, profile management
