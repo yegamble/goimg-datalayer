@@ -371,11 +371,23 @@ jobs:
         with:
           name: coverage-domain
 
+      - name: Download E2E test coverage
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        if: always()
+        with:
+          name: coverage-e2e
+
       - name: Merge coverage reports
         run: |
           # Install gocovmerge to combine coverage files (pinned to specific commit)
           go install github.com/wadey/gocovmerge@b5bfa59ec0adc420475f97f89b58045c721d761c
-          gocovmerge coverage-unit.out coverage-integration.out domain-coverage.out > coverage-merged.out
+
+          FILES="coverage-unit.out coverage-integration.out domain-coverage.out"
+          if [ -f "coverage-e2e.out" ]; then
+            FILES="$FILES coverage-e2e.out"
+          fi
+
+          gocovmerge $FILES > coverage-merged.out
 
       - name: Calculate coverage percentage
         id: coverage
@@ -542,7 +554,7 @@ jobs:
           for dir in cmd/*; do
             if [ -d "$dir" ]; then
               echo "Building $dir..."
-              go build -o bin/ -v -trimpath -ldflags="${LDFLAGS}" "./$dir"
+              go build -cover -o bin/ -v -trimpath -ldflags="${LDFLAGS}" "./$dir"
             fi
           done
 
@@ -671,6 +683,8 @@ jobs:
 
       - name: Start API server
         if: steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
+        env:
+          GOCOVERDIR: coverage-e2e
         run: |
           if [ -f "bin/api" ]; then
             ./bin/api &
@@ -690,6 +704,7 @@ jobs:
         if: steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
         run: |
           mkdir -p tests/e2e/fixtures
+          mkdir -p coverage-e2e
           # Create a minimal valid JPEG for upload tests
           echo -n -e '\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\x09\x09\x08\x0a\x0c\x14\x0d\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.\x27",#\x22\x1c\x1c(7telegramApi(telegramApi1444444444444444\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\xb1\xc1\x15R\xd1\xf0$3br\x82\x09\x0a\x16\x17\x18\x19\x1a%&\x27()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94\x95\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xfb\xd5\x00\x00\x00\x00\x00\xff\xd9' > tests/e2e/fixtures/test-image.jpg || true
 
@@ -705,11 +720,29 @@ jobs:
 
           # Exit with test result
           exit ${E2E_EXIT:-0}
-        continue-on-error: true
 
       - name: Stop API server
         if: always() && env.API_PID != ''
         run: kill $API_PID || true
+
+      - name: Process E2E coverage
+        if: always() && steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
+        run: |
+          if [ -d "coverage-e2e" ]; then
+            echo "Processing coverage data..."
+            go tool covdata textfmt -i=coverage-e2e -o coverage-e2e.out
+          else
+            echo "No coverage data found."
+          fi
+
+      - name: Upload E2E coverage
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: always() && steps.check_e2e.outputs.exists == 'true' && env.skip_e2e != 'true'
+        with:
+          name: coverage-e2e
+          path: coverage-e2e.out
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Add E2E Test Summary
         if: always() && steps.check_e2e.outputs.exists == 'true'

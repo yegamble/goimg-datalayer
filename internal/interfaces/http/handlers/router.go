@@ -183,12 +183,6 @@ func NewRouter(
 			r.Mount("/tags", tagHandler.Routes())
 		}
 
-		// Public group endpoints (Sprint 20 - no authentication required)
-		// List, search, and get group operations are public
-		if groupHandler != nil {
-			r.Mount("/groups", groupHandler.PublicRoutes())
-		}
-
 		// Image variant endpoint with optional authentication
 		// Supports both authenticated and anonymous access (respects image visibility)
 		if imageHandler != nil {
@@ -204,6 +198,75 @@ func NewRouter(
 
 				// Variant endpoint returns binary image data
 				r.Get("/images/{imageID}/variants/{size}", imageHandler.GetImageVariant)
+			})
+		}
+
+		// Group routes (Sprint 20) - Mixed Public/Protected
+		if groupHandler != nil {
+			r.Route("/groups", func(r chi.Router) {
+				// Public routes
+				r.Get("/", groupHandler.ListPublicGroups)
+				r.Get("/search", groupHandler.SearchGroups)
+				r.Get("/{groupID}", groupHandler.GetGroup)
+				r.Get("/by-slug/{slug}", groupHandler.GetGroupBySlug)
+
+				// Protected routes
+				r.Group(func(r chi.Router) {
+					authCfg := middleware.AuthConfig{
+						JWTService:     middlewareConfig.JWTService,
+						TokenBlacklist: middlewareConfig.TokenBlacklist,
+						Logger:         middlewareConfig.Logger,
+						Optional:       false,
+					}
+					r.Use(middleware.JWTAuth(authCfg))
+
+					// Group creation with rate limiting (5 groups/hour per user)
+					if middlewareConfig.RateLimiterConfig != nil {
+						r.With(middleware.GroupCreationRateLimiter(*middlewareConfig.RateLimiterConfig)).
+							Post("/", groupHandler.CreateGroup)
+					} else {
+						r.Post("/", groupHandler.CreateGroup)
+					}
+
+					// Group update and delete (no rate limiting - these are updates to existing groups)
+					r.Put("/{groupID}", groupHandler.UpdateGroup)
+					r.Delete("/{groupID}", groupHandler.DeleteGroup)
+
+					// Group join with rate limiting (10 joins/hour per user)
+					if middlewareConfig.RateLimiterConfig != nil {
+						r.With(middleware.GroupJoinRateLimiter(*middlewareConfig.RateLimiterConfig)).
+							Post("/{groupID}/join", groupHandler.JoinGroup)
+					} else {
+						r.Post("/{groupID}/join", groupHandler.JoinGroup)
+					}
+
+					// Other membership operations (no rate limiting)
+					r.Delete("/{groupID}/leave", groupHandler.LeaveGroup)
+					r.Get("/{groupID}/members", groupHandler.ListMembers)
+
+					// Member management routes (admin+ only)
+					r.Put("/{groupID}/members/{userID}/role", groupHandler.UpdateMemberRole)
+					r.Delete("/{groupID}/members/{userID}", groupHandler.RemoveMember)
+					r.Post("/{groupID}/members/{userID}/ban", groupHandler.BanMember)
+
+					// Group invitation routes (Sprint 20)
+					r.Post("/{groupID}/invitations", groupHandler.CreateInvitation)
+					r.Get("/{groupID}/invitations", groupHandler.ListInvitations)
+					r.Post("/invitations/{token}/accept", groupHandler.AcceptInvitation)
+					r.Post("/invitations/{token}/decline", groupHandler.DeclineInvitation)
+
+					// Group albums routes (Sprint 20)
+					// Nested under /groups/{groupID}/albums
+					if groupAlbumHandler != nil {
+						r.Mount("/{groupID}/albums", groupAlbumHandler.Routes())
+					}
+
+					// Group images routes (Sprint 20)
+					// Nested under /groups/{groupID}/images
+					if groupImageHandler != nil {
+						r.Mount("/{groupID}/images", groupImageHandler.Routes())
+					}
+				})
 			})
 		}
 
@@ -384,58 +447,6 @@ func NewRouter(
 				r.Mount("/guest", guestHandler.Routes())
 			}
 
-			// Protected group endpoints (Sprint 20)
-			// Create, update, delete, join, leave, member management
-			if groupHandler != nil {
-				r.Route("/groups", func(r chi.Router) {
-					// Group creation with rate limiting (5 groups/hour per user)
-					if middlewareConfig.RateLimiterConfig != nil {
-						r.With(middleware.GroupCreationRateLimiter(*middlewareConfig.RateLimiterConfig)).
-							Post("/", groupHandler.CreateGroup)
-					} else {
-						r.Post("/", groupHandler.CreateGroup)
-					}
-
-					// Group update and delete (no rate limiting - these are updates to existing groups)
-					r.Put("/{groupID}", groupHandler.UpdateGroup)
-					r.Delete("/{groupID}", groupHandler.DeleteGroup)
-
-					// Group join with rate limiting (10 joins/hour per user)
-					if middlewareConfig.RateLimiterConfig != nil {
-						r.With(middleware.GroupJoinRateLimiter(*middlewareConfig.RateLimiterConfig)).
-							Post("/{groupID}/join", groupHandler.JoinGroup)
-					} else {
-						r.Post("/{groupID}/join", groupHandler.JoinGroup)
-					}
-
-					// Other membership operations (no rate limiting)
-					r.Delete("/{groupID}/leave", groupHandler.LeaveGroup)
-					r.Get("/{groupID}/members", groupHandler.ListMembers)
-
-					// Member management routes (admin+ only)
-					r.Put("/{groupID}/members/{userID}/role", groupHandler.UpdateMemberRole)
-					r.Delete("/{groupID}/members/{userID}", groupHandler.RemoveMember)
-					r.Post("/{groupID}/members/{userID}/ban", groupHandler.BanMember)
-
-					// Group invitation routes (Sprint 20)
-					r.Post("/{groupID}/invitations", groupHandler.CreateInvitation)
-					r.Get("/{groupID}/invitations", groupHandler.ListInvitations)
-					r.Post("/invitations/{token}/accept", groupHandler.AcceptInvitation)
-					r.Post("/invitations/{token}/decline", groupHandler.DeclineInvitation)
-
-					// Group albums routes (Sprint 20)
-					// Nested under /groups/{groupID}/albums
-					if groupAlbumHandler != nil {
-						r.Mount("/{groupID}/albums", groupAlbumHandler.Routes())
-					}
-
-					// Group images routes (Sprint 20)
-					// Nested under /groups/{groupID}/images
-					if groupImageHandler != nil {
-						r.Mount("/{groupID}/images", groupImageHandler.Routes())
-					}
-				})
-			}
 
 			// User's groups endpoint
 			// GET /me/groups - List current user's group memberships

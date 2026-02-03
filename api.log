@@ -1,0 +1,11 @@
+[90m4:29AM[0m [32mINF[0m [1mStarting goimg-datalayer API server...[0m
+[90m4:29AM[0m [33mWRN[0m [1mDB_USER environment variable not set - database connection will fail[0m
+[90m4:29AM[0m [33mWRN[0m [1mDB_PASSWORD environment variable not set - database connection will fail[0m
+[90m4:29AM[0m [33mWRN[0m [1mENCRYPTION_KEY not set. Generating a random key for this session (2FA secrets will be invalid after restart)[0m
+[90m4:29AM[0m [31mERR[0m [1mFailed to connect to database (continuing in degraded mode)[0m [36merror=[0m[31m[1m"failed to ping database: dial tcp [::1]:5432: connect: connection refused"[0m[0m
+[90m4:29AM[0m [31mERR[0m [1mFailed to connect to Redis (continuing in degraded mode)[0m [36merror=[0m[31m[1m"failed to connect to redis at localhost:6379: redis ping failed: dial tcp [::1]:6379: connect: connection refused"[0m[0m
+[90m4:29AM[0m [33mWRN[0m [1mJWT keys not found, auth will fail[0m
+[90m4:29AM[0m [31mERR[0m [1mFailed to initialize JWT service[0m [36merror=[0m[31m[1m"failed to load private key: failed to read private key file: open certs/private.pem: no such file or directory"[0m[0m
+[90m4:29AM[0m [32mINF[0m [1mServer listening on port 8080[0m
+[90m4:30AM[0m [32mINF[0m [1mShutting down server...[0m
+[90m4:30AM[0m [32mINF[0m [1mServer exited properly[0m

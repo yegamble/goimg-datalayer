@@ -14,6 +14,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
+	goredis "github.com/redis/go-redis/v9"
+
 	actqueries "github.com/yegamble/goimg-datalayer/internal/application/activity/queries"
 	commcommands "github.com/yegamble/goimg-datalayer/internal/application/community/commands"
 	commqueries "github.com/yegamble/goimg-datalayer/internal/application/community/queries"
@@ -134,7 +136,10 @@ func main() {
 		}()
 	}
 
-	rdbClient := redisClientWrapper.UnderlyingClient()
+	var rdbClient *goredis.Client
+	if redisClientWrapper != nil {
+		rdbClient = redisClientWrapper.UnderlyingClient()
+	}
 
 	// Storage
 	storageConfig := local.Config{
@@ -556,7 +561,7 @@ func main() {
 		unlinkOAuthHandler,
 		listOAuthAccountsHandler,
 		oauthProviderFactory,
-		redisClientWrapper.UnderlyingClient(),
+		rdbClient,
 		log.Logger,
 	)
 
