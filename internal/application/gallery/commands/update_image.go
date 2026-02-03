@@ -170,8 +170,18 @@ func (h *UpdateImageHandler) Handle(ctx context.Context, cmd UpdateImageCommand)
 		for i := 0; i < maxRetries; i++ {
 			if err := h.eventPublisher.Publish(ctx, event); err != nil {
 				pubErr = err
-				// Backoff before retry
-				time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+				// Backoff before retry, but respect context cancellation
+				backoff := time.Duration(i+1) * 100 * time.Millisecond
+				select {
+				case <-ctx.Done():
+					h.logger.Warn().
+						Err(ctx.Err()).
+						Str("image_id", imageID.String()).
+						Str("event_type", event.EventType()).
+						Msg("context cancelled during event publish backoff")
+					return nil, ctx.Err()
+				case <-time.After(backoff):
+				}
 				continue
 			}
 			pubErr = nil
