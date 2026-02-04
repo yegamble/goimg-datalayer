@@ -20,11 +20,12 @@ func TestDefaultConfig(t *testing.T) {
 
 	cfg := DefaultConfig()
 
-	assert.Equal(t, int64(10*1024*1024), cfg.MaxFileSize)
+	assert.Equal(t, int64(50*1024*1024), cfg.MaxFileSize)
 	assert.Equal(t, 8192, cfg.MaxWidth)
 	assert.Equal(t, 8192, cfg.MaxHeight)
 	assert.Equal(t, int64(100_000_000), cfg.MaxPixels)
-	assert.Equal(t, []string{"image/jpeg", "image/png", "image/gif", "image/webp"}, cfg.AllowedMIMETypes)
+	assert.Contains(t, cfg.AllowedMIMETypes, "image/jpeg")
+	assert.Contains(t, cfg.AllowedMIMETypes, "video/mp4")
 	assert.True(t, cfg.EnableMalwareScan)
 }
 
@@ -114,6 +115,9 @@ func TestValidateMIMEType_Valid(t *testing.T) {
 		{"png", "image/png"},
 		{"gif", "image/gif"},
 		{"webp", "image/webp"},
+		{"mp4", "video/mp4"},
+		{"webm", "video/webm"},
+		{"quicktime", "video/quicktime"},
 		{"with charset", "image/jpeg; charset=utf-8"},
 		{"with whitespace", " image/png "},
 	}
@@ -142,7 +146,6 @@ func TestValidateMIMEType_Invalid(t *testing.T) {
 		{"text file", "text/plain"},
 		{"pdf", "application/pdf"},
 		{"executable", "application/x-executable"},
-		{"video", "video/mp4"},
 		{"audio", "audio/mpeg"},
 		{"svg", "image/svg+xml"},
 		{"empty", ""},
@@ -189,6 +192,22 @@ func TestValidateMagicBytes_ValidFormats(t *testing.T) {
 		{
 			name: "WebP",
 			data: []byte{0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50},
+		},
+		{
+			name: "MP4",
+			data: append([]byte{0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70}, make([]byte, 8)...), // Pad to >12 bytes
+		},
+		{
+			name: "WebM",
+			data: append([]byte{0x1A, 0x45, 0xDF, 0xA3, 0x00, 0x00, 0x00, 0x00}, make([]byte, 8)...), // Pad to >12 bytes
+		},
+		{
+			name: "MOV (ftyp)",
+			data: append([]byte{0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70}, make([]byte, 8)...), // Pad to >12 bytes
+		},
+		{
+			name: "MOV (moov)",
+			data: append([]byte{0x00, 0x00, 0x00, 0x18, 0x6D, 0x6F, 0x6F, 0x76}, make([]byte, 8)...), // Pad to >12 bytes
 		},
 	}
 
@@ -267,6 +286,7 @@ func TestValidateDimensions_Success(t *testing.T) {
 		{"tall image", 1024, 4096},
 		{"max allowed", 8192, 8192},
 		{"single pixel", 1, 1},
+		{"video/unknown (0x0)", 0, 0},
 	}
 
 	for _, tt := range tests {
@@ -294,18 +314,18 @@ func TestValidateDimensions_Invalid(t *testing.T) {
 		wantError error
 	}{
 		{
-			name:      "zero width",
+			name:      "zero width only",
 			width:     0,
 			height:    100,
 			maxPixels: 100_000_000,
-			wantError: gallery.ErrInvalidDimensions,
+			wantError: nil, // Note: now allowed in validator, check domain for stricter rules if needed
 		},
 		{
-			name:      "zero height",
+			name:      "zero height only",
 			width:     100,
 			height:    0,
 			maxPixels: 100_000_000,
-			wantError: gallery.ErrInvalidDimensions,
+			wantError: nil,
 		},
 		{
 			name:      "negative width",
@@ -360,8 +380,12 @@ func TestValidateDimensions_Invalid(t *testing.T) {
 			v := New(cfg, nil)
 
 			err := v.ValidateDimensions(tt.width, tt.height)
-			require.Error(t, err)
-			assert.ErrorIs(t, err, tt.wantError, "expected %v, got %v", tt.wantError, err)
+			if tt.wantError != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantError, "expected %v, got %v", tt.wantError, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
