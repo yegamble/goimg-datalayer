@@ -1,8 +1,10 @@
 package shared_test
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
@@ -89,29 +91,15 @@ func TestNewPagination(t *testing.T) {
 			p, err := shared.NewPagination(tt.page, tt.perPage)
 
 			if tt.wantErr {
-				if err == nil {
-					t.Errorf("NewPagination() expected error, got nil")
-				}
-				if !errors.Is(err, shared.ErrInvalidInput) {
-					t.Errorf("NewPagination() error = %v, want wrapped ErrInvalidInput", err)
-				}
+				require.Error(t, err)
+				require.ErrorIs(t, err, shared.ErrInvalidInput)
 				return
 			}
 
-			if err != nil {
-				t.Errorf("NewPagination() unexpected error = %v", err)
-				return
-			}
-
-			if p.Page() != tt.wantPage {
-				t.Errorf("Page() = %v, want %v", p.Page(), tt.wantPage)
-			}
-			if p.PerPage() != tt.wantPerPage {
-				t.Errorf("PerPage() = %v, want %v", p.PerPage(), tt.wantPerPage)
-			}
-			if p.Total() != 0 {
-				t.Errorf("Total() = %v, want 0", p.Total())
-			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantPage, p.Page())
+			assert.Equal(t, tt.wantPerPage, p.PerPage())
+			assert.Equal(t, int64(0), p.Total())
 		})
 	}
 }
@@ -121,15 +109,9 @@ func TestDefaultPagination(t *testing.T) {
 
 	p := shared.DefaultPagination()
 
-	if p.Page() != shared.DefaultPage {
-		t.Errorf("Page() = %v, want %v", p.Page(), shared.DefaultPage)
-	}
-	if p.PerPage() != shared.DefaultPerPage {
-		t.Errorf("PerPage() = %v, want %v", p.PerPage(), shared.DefaultPerPage)
-	}
-	if p.Total() != 0 {
-		t.Errorf("Total() = %v, want 0", p.Total())
-	}
+	assert.Equal(t, shared.DefaultPage, p.Page())
+	assert.Equal(t, shared.DefaultPerPage, p.PerPage())
+	assert.Equal(t, int64(0), p.Total())
 }
 
 func TestPagination_WithTotal(t *testing.T) {
@@ -172,17 +154,9 @@ func TestPagination_WithTotal(t *testing.T) {
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
-			if p.Total() != tt.wantTotal {
-				t.Errorf("Total() = %v, want %v", p.Total(), tt.wantTotal)
-			}
-
-			// Verify original pagination values are preserved
-			if p.Page() != tt.page {
-				t.Errorf("Page() = %v, want %v", p.Page(), tt.page)
-			}
-			if p.PerPage() != tt.perPage {
-				t.Errorf("PerPage() = %v, want %v", p.PerPage(), tt.perPage)
-			}
+			assert.Equal(t, tt.wantTotal, p.Total())
+			assert.Equal(t, tt.page, p.Page())
+			assert.Equal(t, tt.perPage, p.PerPage())
 		})
 	}
 }
@@ -234,9 +208,7 @@ func TestPagination_Offset(t *testing.T) {
 
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
-			if p.Offset() != tt.wantOffset {
-				t.Errorf("Offset() = %v, want %v", p.Offset(), tt.wantOffset)
-			}
+			assert.Equal(t, tt.wantOffset, p.Offset())
 		})
 	}
 }
@@ -282,9 +254,7 @@ func TestPagination_Limit(t *testing.T) {
 
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
-			if p.Limit() != tt.wantLimit {
-				t.Errorf("Limit() = %v, want %v", p.Limit(), tt.wantLimit)
-			}
+			assert.Equal(t, tt.wantLimit, p.Limit())
 		})
 	}
 }
@@ -357,9 +327,7 @@ func TestPagination_TotalPages(t *testing.T) {
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
-			if p.TotalPages() != tt.wantTotalPages {
-				t.Errorf("TotalPages() = %v, want %v", p.TotalPages(), tt.wantTotalPages)
-			}
+			assert.Equal(t, tt.wantTotalPages, p.TotalPages())
 		})
 	}
 }
@@ -425,9 +393,7 @@ func TestPagination_HasNext(t *testing.T) {
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 			p = p.WithTotal(tt.total)
 
-			if p.HasNext() != tt.wantHasNext {
-				t.Errorf("HasNext() = %v, want %v", p.HasNext(), tt.wantHasNext)
-			}
+			assert.Equal(t, tt.wantHasNext, p.HasNext())
 		})
 	}
 }
@@ -467,9 +433,7 @@ func TestPagination_HasPrev(t *testing.T) {
 
 			p, _ := shared.NewPagination(tt.page, tt.perPage)
 
-			if p.HasPrev() != tt.wantHasPrev {
-				t.Errorf("HasPrev() = %v, want %v", p.HasPrev(), tt.wantHasPrev)
-			}
+			assert.Equal(t, tt.wantHasPrev, p.HasPrev())
 		})
 	}
 }
@@ -481,20 +445,12 @@ func TestPagination_Immutability(t *testing.T) {
 	modified := original.WithTotal(100)
 
 	// Verify original is unchanged
-	if original.Total() != 0 {
-		t.Errorf("original Total() = %v, want 0 (immutability violated)", original.Total())
-	}
+	assert.Equal(t, int64(0), original.Total())
 
 	// Verify modified has new total
-	if modified.Total() != 100 {
-		t.Errorf("modified Total() = %v, want 100", modified.Total())
-	}
+	assert.Equal(t, int64(100), modified.Total())
 
 	// Verify other fields are preserved
-	if modified.Page() != original.Page() {
-		t.Errorf("modified Page() = %v, want %v", modified.Page(), original.Page())
-	}
-	if modified.PerPage() != original.PerPage() {
-		t.Errorf("modified PerPage() = %v, want %v", modified.PerPage(), original.PerPage())
-	}
+	assert.Equal(t, original.Page(), modified.Page())
+	assert.Equal(t, original.PerPage(), modified.PerPage())
 }

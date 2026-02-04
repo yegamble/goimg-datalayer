@@ -75,7 +75,7 @@ func TestGetNSFWScanHandler_Handle(t *testing.T) {
 			query: queries.GetNSFWScanQuery{
 				ScanID: "invalid-uuid",
 			},
-			setup: func(t *testing.T, suite *testhelpers.TestSuite) {},
+			setup:   func(t *testing.T, suite *testhelpers.TestSuite) {},
 			wantErr: "invalid scan id",
 			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *queries.NSFWScanDTO, err error) {
 				require.Error(t, err)
