@@ -694,7 +694,7 @@ jobs:
 
       - name: Install Newman
         if: steps.check_e2e.outputs.exists == 'true'
-        run: npm install -g newman newman-reporter-htmlextra
+        run: npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1
         # Cache npm global packages for faster installs
         env:
           npm_config_cache: ~/.npm

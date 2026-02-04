@@ -94,22 +94,22 @@ const (
 )
 
 type nsfwScanRow struct {
-	ID             string          `db:"id"`
-	ImageID        string          `db:"image_id"`
-	Provider       string          `db:"provider"`
-	Status         string          `db:"status"`
-	Category       string          `db:"category"`
-	Score          float64         `db:"score"`
-	NudityScore    float64         `db:"nudity_score"`
-	WeaponScore    float64         `db:"weapon_score"`
-	ViolenceScore  float64         `db:"violence_score"`
-	OffensiveScore float64         `db:"offensive_score"`
-	DrugScore      float64         `db:"drug_score"`
-	SubCategories  pq.StringArray  `db:"sub_categories"`
-	ErrorMessage   sql.NullString  `db:"error_message"`
-	ScannedAt      sql.NullTime    `db:"scanned_at"`
-	CreatedAt      time.Time       `db:"created_at"`
-	UpdatedAt      time.Time       `db:"updated_at"`
+	ID             string         `db:"id"`
+	ImageID        string         `db:"image_id"`
+	Provider       string         `db:"provider"`
+	Status         string         `db:"status"`
+	Category       string         `db:"category"`
+	Score          float64        `db:"score"`
+	NudityScore    float64        `db:"nudity_score"`
+	WeaponScore    float64        `db:"weapon_score"`
+	ViolenceScore  float64        `db:"violence_score"`
+	OffensiveScore float64        `db:"offensive_score"`
+	DrugScore      float64        `db:"drug_score"`
+	SubCategories  pq.StringArray `db:"sub_categories"`
+	ErrorMessage   sql.NullString `db:"error_message"`
+	ScannedAt      sql.NullTime   `db:"scanned_at"`
+	CreatedAt      time.Time      `db:"created_at"`
+	UpdatedAt      time.Time      `db:"updated_at"`
 }
 
 func (r *nsfwScanRow) toDomain() (*moderation.NSFWScan, error) {
