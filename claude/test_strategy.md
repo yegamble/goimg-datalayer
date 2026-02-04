@@ -66,6 +66,37 @@ go tool cover -func=coverage.out | grep "total:" | awk '{print $3}' | sed 's/%//
 
 ---
 
+## Regression Prevention
+
+### Local Regression Testing
+
+Developers are expected to run the following before pushing code to prevent regressions:
+
+1.  **Pre-Commit Checklist**:
+    ```bash
+    make pre-commit       # Runs go fmt, go vet, golangci-lint
+    make test             # Run full test suite
+    make validate-openapi # Validate API spec (if changed)
+    ```
+
+2.  **Local Testing Strategy**:
+    *   **Unit Tests**: Run `make test-unit` frequently.
+    *   **Domain Tests**: Run `make test-domain` to enforce high coverage on core logic.
+    *   **Integration**: Run `make test-integration` when modifying repositories or external services.
+    *   **E2E**: Run `make test-e2e` when modifying API endpoints.
+
+### CI Workflow
+
+The CI pipeline runs all test layers on every push and pull request. It enforces:
+*   Linting (golangci-lint)
+*   Unit tests passing
+*   Integration tests passing (with Testcontainers)
+*   E2E tests passing (with Newman)
+*   Code coverage thresholds (80% overall)
+*   OpenAPI spec validity
+
+---
+
 ## Layer-Specific Test Patterns
 
 ### 1. Domain Layer Tests (90%+ Coverage)

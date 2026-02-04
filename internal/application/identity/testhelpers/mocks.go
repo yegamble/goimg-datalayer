@@ -529,6 +529,24 @@ func (m *MockTOTPRepository) IsEnabled(ctx context.Context, userID identity.User
 	return args.Bool(0), args.Error(1)
 }
 
+// Save persists a TOTP secret.
+func (m *MockTOTPRepository) Save(ctx context.Context, userID identity.UserID, secret identity.TOTPSecret) error {
+	args := m.Called(ctx, userID, secret)
+	return args.Error(0)
+}
+
+// Delete removes a TOTP secret.
+func (m *MockTOTPRepository) Delete(ctx context.Context, userID identity.UserID) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
+// DeleteByUserID deletes all backup codes for a user (alias for DeleteAll).
+func (m *MockBackupCodeRepository) DeleteByUserID(ctx context.Context, userID identity.UserID) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
 // MockBackupCodeRepository is a mock implementation of queries.BackupCodeRepository.
 type MockBackupCodeRepository struct {
 	mock.Mock
@@ -538,4 +556,50 @@ type MockBackupCodeRepository struct {
 func (m *MockBackupCodeRepository) CountUnused(ctx context.Context, userID identity.UserID) (int, error) {
 	args := m.Called(ctx, userID)
 	return args.Int(0), args.Error(1)
+}
+
+// SaveAll persists a batch of backup codes.
+func (m *MockBackupCodeRepository) SaveAll(ctx context.Context, userID identity.UserID, codes []identity.BackupCode) error {
+	args := m.Called(ctx, userID, codes)
+	return args.Error(0)
+}
+
+// FindByUserID retrieves all backup codes for a user.
+func (m *MockBackupCodeRepository) FindByUserID(ctx context.Context, userID identity.UserID) ([]identity.BackupCode, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]identity.BackupCode), args.Error(1)
+}
+
+// FindUnusedByUserID retrieves unused backup codes for a user.
+func (m *MockBackupCodeRepository) FindUnusedByUserID(ctx context.Context, userID identity.UserID) ([]identity.BackupCode, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]identity.BackupCode), args.Error(1)
+}
+
+// DeleteAll deletes all backup codes for a user.
+func (m *MockBackupCodeRepository) DeleteAll(ctx context.Context, userID identity.UserID) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
+// FindByUserIDAndCode retrieves a specific backup code for a user.
+// This might be needed for VerifyLogin with backup code
+func (m *MockBackupCodeRepository) FindByUserIDAndCode(ctx context.Context, userID identity.UserID, code string) (*identity.BackupCode, error) {
+	args := m.Called(ctx, userID, code)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*identity.BackupCode), args.Error(1)
+}
+
+// Save persists a single backup code.
+func (m *MockBackupCodeRepository) Save(ctx context.Context, code *identity.BackupCode) error {
+	args := m.Called(ctx, code)
+	return args.Error(0)
 }

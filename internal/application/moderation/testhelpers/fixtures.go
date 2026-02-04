@@ -36,6 +36,7 @@ type TestSuite struct {
 	NSFWScanRepo   *MockNSFWScanRepository
 	ImageRepo      *MockImageRepository
 	EventPublisher *MockEventPublisher
+	NSFWClient     *MockNSFWClient
 	Logger         zerolog.Logger
 }
 
@@ -50,6 +51,7 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		NSFWScanRepo:   new(MockNSFWScanRepository),
 		ImageRepo:      new(MockImageRepository),
 		EventPublisher: new(MockEventPublisher),
+		NSFWClient:     new(MockNSFWClient),
 		Logger:         zerolog.Nop(), // No-op logger for tests
 	}
 }
@@ -64,6 +66,7 @@ func (s *TestSuite) AssertExpectations(t *testing.T) {
 	s.NSFWScanRepo.AssertExpectations(t)
 	s.ImageRepo.AssertExpectations(t)
 	s.EventPublisher.AssertExpectations(t)
+	s.NSFWClient.AssertExpectations(t)
 }
 
 // ValidUserIDParsed returns a parsed UserID for testing.

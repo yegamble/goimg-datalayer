@@ -9,6 +9,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/nsfw"
 )
 
 // MockBanRepository is a mock implementation of moderation.BanRepository.
@@ -306,4 +307,35 @@ func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchP
 func (m *MockImageRepository) ExistsByID(ctx context.Context, id gallery.ImageID) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
+}
+
+// MockNSFWClient is a mock implementation of nsfw.Client.
+type MockNSFWClient struct {
+	mock.Mock
+}
+
+func (m *MockNSFWClient) Scan(ctx context.Context, imageURL string) (*nsfw.ScanResult, error) {
+	args := m.Called(ctx, imageURL)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*nsfw.ScanResult), args.Error(1)
+}
+
+func (m *MockNSFWClient) ScanBytes(ctx context.Context, data []byte, contentType string) (*nsfw.ScanResult, error) {
+	args := m.Called(ctx, data, contentType)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*nsfw.ScanResult), args.Error(1)
+}
+
+func (m *MockNSFWClient) Provider() moderation.NSFWProvider {
+	args := m.Called()
+	return args.Get(0).(moderation.NSFWProvider)
+}
+
+func (m *MockNSFWClient) IsAvailable(ctx context.Context) bool {
+	args := m.Called(ctx)
+	return args.Bool(0)
 }

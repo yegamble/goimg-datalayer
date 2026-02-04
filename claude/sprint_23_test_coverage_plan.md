@@ -33,12 +33,12 @@
 
 #### P0: Security-Critical (Week 1)
 
-| Package | Files | Tests | Priority | Est. Effort |
-|---------|-------|-------|----------|-------------|
-| `application/moderation` | 16 | 0 | P0 | 3 days |
-| `handlers/auth_handler` | 1 | 0 | P0 | 1 day |
-| `handlers/oauth_handler` | 1 | 0 | P0 | 1 day |
-| `handlers/twofa_handler` | 1 | 0 | P0 | 0.5 day |
+| Package | Files | Tests | Priority | Status |
+|---------|-------|-------|----------|--------|
+| `application/moderation` | 16 | 7 (new) | P0 | ✅ COMPLETE |
+| `handlers/auth_handler` | 1 | 4 (new) | P0 | ✅ COMPLETE |
+| `handlers/oauth_handler` | 1 | 3 (new) | P0 | ✅ COMPLETE |
+| `handlers/twofa_handler` | 1 | 4 (new) | P0 | ✅ COMPLETE |
 
 #### P1: Core Functionality (Week 1-2)
 
@@ -73,13 +73,20 @@
 
 #### Day 1-2: Moderation Application Layer Tests
 
-**Files to create:**
+**Status**: ✅ COMPLETE
+
+**Files created:**
 - `internal/application/moderation/commands/ban_user_test.go`
 - `internal/application/moderation/commands/unban_user_test.go`
 - `internal/application/moderation/commands/create_report_test.go`
 - `internal/application/moderation/commands/resolve_report_test.go`
 - `internal/application/moderation/commands/dismiss_report_test.go`
 - `internal/application/moderation/commands/scan_image_nsfw_test.go`
+- `internal/application/moderation/commands/start_review_test.go`
+- `internal/application/moderation/queries/get_nsfw_scan_test.go`
+- `internal/application/moderation/queries/list_active_bans_test.go`
+- `internal/application/moderation/queries/list_nsfw_flagged_test.go`
+- `internal/application/moderation/queries/list_nsfw_scans_by_image_test.go`
 
 **Test scenarios for each:**
 - Happy path with valid inputs
@@ -90,7 +97,9 @@
 
 #### Day 3: Auth Handler Tests
 
-**Files to create:**
+**Status**: ✅ COMPLETE
+
+**Files created:**
 - `internal/interfaces/http/handlers/auth_handler_test.go`
 
 **Test scenarios:**
@@ -103,7 +112,9 @@
 
 #### Day 4: OAuth & 2FA Handler Tests
 
-**Files to create:**
+**Status**: ✅ COMPLETE
+
+**Files created:**
 - `internal/interfaces/http/handlers/oauth_handler_test.go`
 - `internal/interfaces/http/handlers/twofa_handler_test.go`
 
@@ -272,22 +283,22 @@ go version             # Should show go1.25.x
 
 ```
 internal/application/moderation/commands/
-├── ban_user_test.go
-├── unban_user_test.go
-├── create_report_test.go
-├── resolve_report_test.go
-├── dismiss_report_test.go
-├── scan_image_nsfw_test.go
-└── start_review_test.go
+├── ban_user_test.go (Complete)
+├── unban_user_test.go (Complete)
+├── create_report_test.go (Complete)
+├── resolve_report_test.go (Complete)
+├── dismiss_report_test.go (Complete)
+├── scan_image_nsfw_test.go (Complete)
+└── start_review_test.go (Complete)
 
 internal/application/moderation/queries/
-├── get_report_test.go
-├── get_nsfw_scan_test.go
-├── get_user_ban_status_test.go
-├── list_pending_reports_test.go
-├── list_active_bans_test.go
-├── list_nsfw_flagged_test.go
-└── list_nsfw_scans_by_image_test.go
+├── get_report_test.go (Complete)
+├── get_nsfw_scan_test.go (Complete)
+├── get_user_ban_status_test.go (Complete)
+├── list_pending_reports_test.go (Complete)
+├── list_active_bans_test.go (Complete)
+├── list_nsfw_flagged_test.go (Complete)
+└── list_nsfw_scans_by_image_test.go (Complete)
 
 internal/application/community/commands/
 ├── join_group_test.go
@@ -335,9 +346,9 @@ internal/application/activity/queries/
 
 ```
 internal/interfaces/http/handlers/
-├── auth_handler_test.go
-├── oauth_handler_test.go
-├── twofa_handler_test.go
+├── auth_handler_test.go (Complete)
+├── oauth_handler_test.go (Complete)
+├── twofa_handler_test.go (Complete)
 ├── user_handler_test.go
 ├── album_handler_test.go
 ├── moderation_handler_test.go
