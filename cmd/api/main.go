@@ -30,6 +30,7 @@ import (
 	appnotification "github.com/yegamble/goimg-datalayer/internal/application/notification"
 	notifcommands "github.com/yegamble/goimg-datalayer/internal/application/notification/commands"
 	notifqueries "github.com/yegamble/goimg-datalayer/internal/application/notification/queries"
+	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	domidentity "github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"

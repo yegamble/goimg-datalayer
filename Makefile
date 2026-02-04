@@ -121,7 +121,7 @@ test-e2e:
 		exit 1; \
 	fi
 	@if ! command -v newman &> /dev/null; then \
-		echo "Newman not installed. Install with: npm install -g newman newman-reporter-htmlextra"; \
+		echo "Newman not installed. Install with: npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1"; \
 		exit 1; \
 	fi
 	@newman run tests/e2e/postman/goimg-api.postman_collection.json \
