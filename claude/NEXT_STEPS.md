@@ -58,15 +58,18 @@
 - **Fixed Error Handling**: Updated `UploadImageHandler` in `internal/application/gallery/commands/upload_image.go` to correctly propagate job enqueuing errors instead of swallowing them.
 - **Environment**: Documented `libvips` dependency installation in `README.md`.
 
-### Critical Coverage Gaps
+### Critical Coverage Gaps - Progress Update
 
-| Area | Files | Tests | Coverage | Priority |
-|------|-------|-------|----------|----------|
-| `application/moderation` | 16 | 0 | 0% | P0 |
-| `application/community` | 29 | 1 | ~5% | P1 |
-| `application/notification` | 4 | 0 | 0% | P1 |
-| `handlers/*` | 27 | 3 | ~11% | P1 |
-| `postgres/*_repository` | 30 | 6 | ~20% | P2 |
+| Area | Files | Tests | Coverage | Priority | Status |
+|------|-------|-------|----------|----------|--------|
+| `application/moderation` | 16 | 7 (new) | High | P0 | ✅ COMPLETE |
+| `handlers/auth_handler` | 1 | 4 (new) | High | P0 | ✅ COMPLETE |
+| `handlers/oauth_handler` | 1 | 3 (new) | High | P0 | ✅ COMPLETE |
+| `handlers/twofa_handler` | 1 | 4 (new) | High | P0 | ✅ COMPLETE |
+| `application/community` | 29 | 1 | ~5% | P1 | 🚧 IN PROGRESS |
+| `application/notification` | 4 | 0 | 0% | P1 | 🚧 IN PROGRESS |
+| `handlers/*` | 27 | 14 (new) | Improving | P1 | 🚧 IN PROGRESS |
+| `postgres/*_repository` | 30 | 6 | ~20% | P2 | 📅 SCHEDULED |
 
 ### Regression Prevention Checklist
 

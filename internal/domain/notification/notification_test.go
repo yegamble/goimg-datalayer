@@ -21,6 +21,8 @@ func TestNewNotification(t *testing.T) {
 	metadata := map[string]string{"key": "value"}
 
 	t.Run("Success", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
 		n, err := NewNotification(recipientID, notifType, title, body, metadata)
 		require.NoError(t, err)
 		assert.NotNil(t, n)
@@ -37,6 +39,8 @@ func TestNewNotification(t *testing.T) {
 	})
 
 	t.Run("Success_NilMetadata", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
 		n, err := NewNotification(recipientID, notifType, title, body, nil)
 		require.NoError(t, err)
 		assert.NotNil(t, n.Metadata())
@@ -44,18 +48,24 @@ func TestNewNotification(t *testing.T) {
 	})
 
 	t.Run("Error_ZeroRecipient", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
 		n, err := NewNotification(identity.UserID{}, notifType, title, body, metadata)
 		assert.ErrorIs(t, err, ErrRecipientRequired)
 		assert.Nil(t, n)
 	})
 
 	t.Run("Error_EmptyTitle", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
 		n, err := NewNotification(recipientID, notifType, "", body, metadata)
 		assert.ErrorIs(t, err, ErrTitleRequired)
 		assert.Nil(t, n)
 	})
 
 	t.Run("Error_InvalidType", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
 		n, err := NewNotification(recipientID, NotificationType("invalid"), title, body, metadata)
 		assert.ErrorIs(t, err, ErrInvalidNotificationType)
 		assert.Nil(t, n)
@@ -157,8 +167,52 @@ func TestNotification_Lifecycle(t *testing.T) {
 
 	n.ClearEvents()
 	assert.Empty(t, n.Events())
+}
 
-	// Since addEvent is private and not exposed via public methods that trigger events (passive entity),
-	// we can't test event generation directly without reflection or exposing it,
-	// but ClearEvents is tested.
+func TestNotification_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Generates JSON from map", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
+		metadata := map[string]string{"foo": "bar"}
+		recipientID := identity.NewUserID()
+		n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
+
+		raw := n.MetadataRaw()
+		assert.Contains(t, string(raw), `"foo":"bar"`)
+	})
+
+	t.Run("Returns empty JSON object for nil metadata", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
+		recipientID := identity.NewUserID()
+		n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
+
+		// Manually set metadata to nil to simulate loaded state where map isn't hydrated
+		// (NewNotification creates an empty map, so we override it)
+		n.metadata = nil
+		n.metadataRaw = nil
+
+		raw := n.MetadataRaw()
+		assert.Equal(t, []byte("{}"), raw)
+	})
+
+	t.Run("Returns cached raw bytes if map is nil", func(t *testing.T) {
+		t.Parallel() // Fix: Add t.Parallel()
+
+		expectedRaw := []byte(`{"cached":"true"}`)
+		n := ReconstructNotification(
+			NewNotificationID(),
+			identity.NewUserID(),
+			TypeNewFollower,
+			"Title",
+			"Body",
+			expectedRaw,
+			nil,
+			time.Now(),
+		)
+
+		assert.Equal(t, expectedRaw, n.MetadataRaw())
+	})
 }
