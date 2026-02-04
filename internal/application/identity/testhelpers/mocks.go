@@ -589,7 +589,7 @@ func (m *MockBackupCodeRepository) DeleteAll(ctx context.Context, userID identit
 }
 
 // FindByUserIDAndCode retrieves a specific backup code for a user.
-// This might be needed for VerifyLogin with backup code
+// This might be needed for VerifyLogin with backup code.
 func (m *MockBackupCodeRepository) FindByUserIDAndCode(ctx context.Context, userID identity.UserID, code string) (*identity.BackupCode, error) {
 	args := m.Called(ctx, userID, code)
 	if args.Get(0) == nil {
