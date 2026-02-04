@@ -197,6 +197,11 @@ func (r *ActivityRepository) FindByActor(
 
 // FindFeedForUser retrieves activities from users that the specified user follows.
 // This is the main feed query that powers the user's activity feed.
+//
+// Performance Note: The inner limit is capped at 1000 to prevent unbounded database scans.
+// This is a necessary trade-off for performance. At very high pagination offsets (e.g., offset=990),
+// results may be incomplete if followed users have highly uneven activity distributions.
+// This limitation ensures acceptable query performance even with large follower counts.
 func (r *ActivityRepository) FindFeedForUser(
 	ctx context.Context,
 	userID identity.UserID,

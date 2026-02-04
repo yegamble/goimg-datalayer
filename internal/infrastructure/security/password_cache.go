@@ -1,6 +1,7 @@
 package security
 
 import (
+	"container/list"
 	"context"
 	"fmt"
 	"sync"
@@ -108,66 +109,100 @@ func (c *RedisPasswordCache) buildKey(hashPrefix, hashSuffix string) string {
 }
 
 // InMemoryPasswordCache is a simple in-memory cache for testing purposes.
-// It includes mutex protection and a max size to prevent memory leaks,
-// though it's still primarily intended for testing or ephemeral environments.
+// It uses an LRU (Least Recently Used) eviction policy to maintain cache effectiveness
+// while preventing unbounded memory growth. This implementation is primarily intended
+// for testing or ephemeral environments.
 type InMemoryPasswordCache struct {
 	mu   sync.RWMutex
-	data map[string]bool
+	data map[string]*list.Element
+	// lruList maintains access order with most recently used at the back
+	lruList *list.List
 	// maxEntries limits the number of entries to prevent unbounded growth.
 	maxEntries int
+}
+
+// lruEntry represents a cache entry with its key and value
+type lruEntry struct {
+	key   string
+	pwned bool
 }
 
 // Default max entries for in-memory cache
 const defaultMaxEntries = 1000
 
-// NewInMemoryPasswordCache creates an in-memory password cache.
+// NewInMemoryPasswordCache creates an in-memory password cache with LRU eviction.
 func NewInMemoryPasswordCache() *InMemoryPasswordCache {
 	return &InMemoryPasswordCache{
-		data:       make(map[string]bool),
+		data:       make(map[string]*list.Element),
+		lruList:    list.New(),
 		maxEntries: defaultMaxEntries,
 	}
 }
 
 // Get retrieves a cached result from the in-memory map.
+// On a cache hit, the entry is moved to the back of the LRU list (marked as recently used).
+// Note: Uses write lock for all Get operations (not read lock) to maintain LRU order.
+// This is acceptable for testing/ephemeral use, but production should use Redis.
 func (c *InMemoryPasswordCache) Get(ctx context.Context, prefix, suffix string) (bool, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	key := prefix + ":" + suffix
-	pwned, found := c.data[key]
-	return pwned, found
+	element, found := c.data[key]
+	if !found {
+		return false, false
+	}
+
+	// Move to back (most recently used)
+	c.lruList.MoveToBack(element)
+	entry := element.Value.(*lruEntry)
+	return entry.pwned, true
 }
 
 // Set stores a result in the in-memory map (ignores TTL).
+// Uses LRU eviction when the cache is full - removes the least recently used entry.
 func (c *InMemoryPasswordCache) Set(ctx context.Context, prefix, suffix string, pwned bool, ttl time.Duration) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	key := prefix + ":" + suffix
 
-	// If key exists, just update
-	if _, exists := c.data[key]; exists {
-		c.data[key] = pwned
+	// If key exists, update it and move to back
+	if element, exists := c.data[key]; exists {
+		c.lruList.MoveToBack(element)
+		entry := element.Value.(*lruEntry)
+		entry.pwned = pwned
 		return nil
 	}
 
-	// If not exists, check capacity
+	// If at capacity, evict least recently used (front of list)
 	if len(c.data) >= c.maxEntries {
-		// Simple eviction: remove a random entry
-		for k := range c.data {
-			delete(c.data, k)
-			break
+		oldest := c.lruList.Front()
+		if oldest != nil {
+			oldEntry := oldest.Value.(*lruEntry)
+			delete(c.data, oldEntry.key)
+			c.lruList.Remove(oldest)
 		}
 	}
 
-	c.data[key] = pwned
+	// Add new entry to back (most recently used)
+	entry := &lruEntry{key: key, pwned: pwned}
+	element := c.lruList.PushBack(entry)
+	c.data[key] = element
+
 	return nil
 }
 
-// Delete removes an entry from the in-memory map.
+// Delete removes an entry from the in-memory map and LRU list.
 func (c *InMemoryPasswordCache) Delete(ctx context.Context, prefix, suffix string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	key := prefix + ":" + suffix
-	delete(c.data, key)
+	if element, exists := c.data[key]; exists {
+		c.lruList.Remove(element)
+		delete(c.data, key)
+	}
+
 	return nil
 }
