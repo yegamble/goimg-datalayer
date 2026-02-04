@@ -742,7 +742,7 @@ jobs:
             echo "API_PID=$!" >> $GITHUB_ENV
             # Wait for server to be ready
             for i in {1..30}; do
-              curl -s http://localhost:8080/health && break
+              curl -s -f http://localhost:8080/health/ready && break
               echo "Waiting for API server..."
               sleep 1
             done
