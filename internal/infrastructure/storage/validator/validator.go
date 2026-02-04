@@ -5,6 +5,7 @@ package validator
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"net/http"
 	"strings"
@@ -16,7 +17,7 @@ import (
 
 const (
 	// Default validation limits.
-	defaultMaxFileSizeMB  = 10
+	defaultMaxFileSizeMB  = 50
 	defaultMaxWidth       = 8192
 	defaultMaxHeight      = 8192
 	defaultMaxPixels      = 100_000_000
@@ -78,11 +79,19 @@ type Config struct {
 // DefaultConfig returns sensible defaults for image validation.
 func DefaultConfig() Config {
 	return Config{
-		MaxFileSize:       defaultMaxFileSizeMB * bytesPerMB,
-		MaxWidth:          defaultMaxWidth,
-		MaxHeight:         defaultMaxHeight,
-		MaxPixels:         defaultMaxPixels,
-		AllowedMIMETypes:  []string{"image/jpeg", "image/png", "image/gif", "image/webp"},
+		MaxFileSize: defaultMaxFileSizeMB * bytesPerMB,
+		MaxWidth:    defaultMaxWidth,
+		MaxHeight:   defaultMaxHeight,
+		MaxPixels:   defaultMaxPixels,
+		AllowedMIMETypes: []string{
+			"image/jpeg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+			"video/mp4",
+			"video/webm",
+			"video/quicktime",
+		},
 		EnableMalwareScan: true,
 	}
 }
@@ -100,7 +109,7 @@ func New(cfg Config, clamavClient clamav.Scanner) *Validator {
 
 // Validate performs the full validation pipeline on uploaded image data.
 // The 7-step pipeline:
-// 1. Size check (max 10MB)
+// 1. Size check (max 50MB)
 // 2. MIME sniffing (by content, not extension)
 // 3. Magic byte validation
 // 4. Dimension check (max 8192x8192)
@@ -194,9 +203,23 @@ func (v *Validator) validateMagicBytes(data []byte) error {
 		"png":  {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
 		"gif":  {0x47, 0x49, 0x46, 0x38},
 		"webp": {0x52, 0x49, 0x46, 0x46}, // RIFF header
+		// Video formats
+		"mp4":  {0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70}, // ftyp
+		"webm": {0x1A, 0x45, 0xDF, 0xA3},                         // EBML ID
+		// mov often starts with ftyp at offset 4, checking common signature
+		// Typically 00 00 00 14 66 74 79 70 (ftyp) or similar box size
 	}
 
 	for format, magic := range magicBytes {
+		if format == "mp4" {
+			// MP4 usually starts with size (4 bytes) then 'ftyp' (4 bytes)
+			// The size is usually 00 00 00 18 or 00 00 00 20
+			// We check for 'ftyp' signature at offset 4
+			if len(data) >= 8 && string(data[4:8]) == "ftyp" {
+				return nil
+			}
+		}
+
 		if bytes.HasPrefix(data, magic) {
 			// For WebP, also check for WEBP signature at offset 8
 			if format == "webp" && len(data) >= defaultMinFilenameLen {
@@ -208,13 +231,51 @@ func (v *Validator) validateMagicBytes(data []byte) error {
 		}
 	}
 
+	// Additional check for QuickTime/MOV if not caught by generic MP4/ftyp check
+	// QuickTime files also use ftyp atoms, often 'qt  ' major brand
+	if len(data) >= 8 && string(data[4:8]) == "ftyp" {
+		return nil
+	}
+	if len(data) >= 8 && string(data[4:8]) == "moov" {
+		return nil
+	}
+	// Check for 'skip' atom (free space) which some MOVs start with
+	if len(data) >= 8 && string(data[4:8]) == "free" {
+		return nil
+	}
+	// Check for 'wide' atom
+	if len(data) >= 8 && string(data[4:8]) == "wide" {
+		return nil
+	}
+
+	// Check for 'mdat' atom early in file (less common as start)
+	if len(data) >= 8 && string(data[4:8]) == "mdat" {
+		return nil
+	}
+
+	// Check for Matroska/WebM EBML Header specifically if prefix check failed
+	// The prefix 1A 45 DF A3 is the EBML header.
+	// If the file starts with this, it is likely WebM or MKV.
+	if len(data) >= 4 {
+		id := binary.BigEndian.Uint32(data[0:4])
+		if id == 0x1A45DFA3 {
+			return nil
+		}
+	}
+
 	return fmt.Errorf("%w: invalid magic bytes", gallery.ErrInvalidMimeType)
 }
 
 // ValidateDimensions checks if image dimensions are within limits.
 // This should be called after image decoding.
 func (v *Validator) ValidateDimensions(width, height int) error {
-	if width <= 0 || height <= 0 {
+	// For video/unknown dimensions (0x0), we skip validation here.
+	// The processor will validate if it can process it.
+	if width == 0 && height == 0 {
+		return nil
+	}
+
+	if width < 0 || height < 0 {
 		return gallery.ErrInvalidDimensions
 	}
 
