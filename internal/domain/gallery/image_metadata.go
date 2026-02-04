@@ -22,13 +22,16 @@ const (
 	MaxImagePixels = 100000000
 )
 
-// SupportedMimeTypes lists all allowed image MIME types.
+// SupportedMimeTypes lists all allowed image and video MIME types.
 var SupportedMimeTypes = map[string]bool{
-	"image/jpeg": true,
-	"image/jpg":  true,
-	"image/png":  true,
-	"image/gif":  true,
-	"image/webp": true,
+	"image/jpeg":      true,
+	"image/jpg":       true,
+	"image/png":       true,
+	"image/gif":       true,
+	"image/webp":      true,
+	"video/mp4":       true,
+	"video/webm":      true,
+	"video/quicktime": true,
 }
 
 // ImageMetadata is a value object containing image file metadata and descriptive information.
