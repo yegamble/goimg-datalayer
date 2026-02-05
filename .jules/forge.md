@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - Sequential Docker Builds
+**Issue:** The `docker-build` job was running API and Worker image builds sequentially, increasing the total CI time unnecessarily.
+**Root Cause:** The workflow was configured with separate steps for each build in a single job without using a matrix strategy.
+**Fix:** Refactored the job to use a matrix strategy (`service: [api, worker]`), allowing both images to build in parallel and reducing the critical path duration.
