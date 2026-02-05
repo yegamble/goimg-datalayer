@@ -173,6 +173,7 @@ func TestNotification_MetadataRaw(t *testing.T) {
 	now := time.Now().UTC()
 
 	t.Run("MapTakesPrecedence", func(t *testing.T) {
+		t.Parallel()
 		meta := map[string]string{"foo": "bar"}
 		n, _ := NewNotification(recipientID, notifType, title, body, meta)
 
@@ -181,6 +182,7 @@ func TestNotification_MetadataRaw(t *testing.T) {
 	})
 
 	t.Run("LazyLoadFromRaw", func(t *testing.T) {
+		t.Parallel()
 		rawJSON := []byte(`{"baz":"qux"}`)
 		n := ReconstructNotification(NewNotificationID(), recipientID, notifType, title, body, rawJSON, nil, now)
 
@@ -195,6 +197,7 @@ func TestNotification_MetadataRaw(t *testing.T) {
 	})
 
 	t.Run("EmptyDefaults", func(t *testing.T) {
+		t.Parallel()
 		n := ReconstructNotification(NewNotificationID(), recipientID, notifType, title, body, nil, nil, now)
 
 		// Should return empty JSON object
