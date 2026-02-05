@@ -148,6 +148,13 @@ func main() {
 		rdbClient = redisClientWrapper.UnderlyingClient()
 	}
 
+	// Initialize Rate Limiter Config if Redis is available
+	var rateLimiterConfig *middleware.RateLimiterConfig
+	if rdbClient != nil {
+		cfg := middleware.DefaultRateLimiterConfig(rdbClient, log.Logger)
+		rateLimiterConfig = &cfg
+	}
+
 	// Storage
 	storageConfig := local.Config{
 		BasePath: os.Getenv("STORAGE_BASE_PATH"),
@@ -652,6 +659,9 @@ func main() {
 		storageInfra,
 		log.Logger,
 	)
+	if rateLimiterConfig != nil {
+		imageHandler.WithRateLimiter(rateLimiterConfig)
+	}
 
 	albumHandler := handlers.NewAlbumHandler(
 		createAlbumHandler,
@@ -738,9 +748,10 @@ func main() {
 	)
 
 	middlewareConfig := handlers.MiddlewareConfig{
-		Logger:         log.Logger,
-		JWTService:     jwtServiceImpl,
-		TokenBlacklist: tokenBlacklistImpl,
+		Logger:            log.Logger,
+		JWTService:        jwtServiceImpl,
+		TokenBlacklist:    tokenBlacklistImpl,
+		RateLimiterConfig: rateLimiterConfig,
 	}
 
 	router := handlers.NewRouter(
