@@ -30,7 +30,7 @@ import (
 	appnotification "github.com/yegamble/goimg-datalayer/internal/application/notification"
 	notifcommands "github.com/yegamble/goimg-datalayer/internal/application/notification/commands"
 	notifqueries "github.com/yegamble/goimg-datalayer/internal/application/notification/queries"
-	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
+	domgallery "github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	domidentity "github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -886,12 +886,12 @@ func (r *noOpNSFWScanRepository) FindByID(_ context.Context, _ moderation.NSFWSc
 	return nil, moderation.ErrNSFWScanNotFound
 }
 
-func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ gallery.ImageID) (*moderation.NSFWScan, error) {
+func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ domgallery.ImageID) (*moderation.NSFWScan, error) {
 	return nil, moderation.ErrNSFWScanNotFound
 }
 
 func (r *noOpNSFWScanRepository) FindByImageIDAll(
-	_ context.Context, _ gallery.ImageID,
+	_ context.Context, _ domgallery.ImageID,
 ) ([]*moderation.NSFWScan, error) {
 	return []*moderation.NSFWScan{}, nil
 }
@@ -915,7 +915,7 @@ func (r *noOpNSFWScanRepository) FindNSFWImages(
 }
 
 //nolint:nilnil // Stub implementation
-func (r *noOpNSFWScanRepository) HasActiveScan(_ context.Context, _ gallery.ImageID) (bool, error) {
+func (r *noOpNSFWScanRepository) HasActiveScan(_ context.Context, _ domgallery.ImageID) (bool, error) {
 	return false, nil
 }
 
