@@ -160,10 +160,12 @@ func TestNotification_Lifecycle(t *testing.T) {
 	assert.Empty(t, n.Events())
 
 	// Test addEvent (private method, whitebox testing for coverage)
-	event := shared.NewDomainEvent(identity.NewUserID(), "test.event", 1, nil)
+	// Create a concrete implementation of DomainEvent for testing
+	event := shared.NewBaseEvent("test.event", recipientID.String())
 	n.addEvent(event)
+
 	assert.Len(t, n.Events(), 1)
-	assert.Equal(t, event.ID(), n.Events()[0].ID())
+	assert.Equal(t, event.EventID(), n.Events()[0].EventID())
 
 	n.ClearEvents()
 	assert.Empty(t, n.Events())
