@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
 func TestNewNotification(t *testing.T) {
@@ -158,7 +159,38 @@ func TestNotification_Lifecycle(t *testing.T) {
 	n.ClearEvents()
 	assert.Empty(t, n.Events())
 
-	// Since addEvent is private and not exposed via public methods that trigger events (passive entity),
-	// we can't test event generation directly without reflection or exposing it,
-	// but ClearEvents is tested.
+	// Test addEvent (private method, whitebox testing for coverage)
+	event := shared.NewDomainEvent(identity.NewUserID(), "test.event", 1, nil)
+	n.addEvent(event)
+	assert.Len(t, n.Events(), 1)
+	assert.Equal(t, event.ID(), n.Events()[0].ID())
+
+	n.ClearEvents()
+	assert.Empty(t, n.Events())
+}
+
+func TestNotification_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	// Case 1: Metadata map is present (created via NewNotification)
+	recipientID := identity.NewUserID()
+	metadata := map[string]string{"key": "value"}
+	n1, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
+
+	raw1 := n1.MetadataRaw()
+	assert.JSONEq(t, `{"key":"value"}`, string(raw1))
+
+	// Case 2: Metadata map is nil, but raw bytes are present (reconstructed)
+	// Important: Do NOT call Metadata() before MetadataRaw() to test lazy loading
+	expectedRaw := []byte(`{"foo":"bar"}`)
+	n2 := ReconstructNotification(NewNotificationID(), recipientID, TypeNewFollower, "Title", "Body", expectedRaw, nil, time.Now())
+
+	raw2 := n2.MetadataRaw()
+	assert.Equal(t, expectedRaw, raw2)
+
+	// Case 3: Both are nil
+	n3 := ReconstructNotification(NewNotificationID(), recipientID, TypeNewFollower, "Title", "Body", nil, nil, time.Now())
+
+	raw3 := n3.MetadataRaw()
+	assert.Equal(t, []byte("{}"), raw3)
 }
