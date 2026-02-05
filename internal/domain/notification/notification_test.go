@@ -162,3 +162,42 @@ func TestNotification_Lifecycle(t *testing.T) {
 	// we can't test event generation directly without reflection or exposing it,
 	// but ClearEvents is tested.
 }
+
+func TestNotification_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	notifType := TypeNewFollower
+	title := "Title"
+	body := "Body"
+	now := time.Now().UTC()
+
+	t.Run("MapTakesPrecedence", func(t *testing.T) {
+		meta := map[string]string{"foo": "bar"}
+		n, _ := NewNotification(recipientID, notifType, title, body, meta)
+
+		raw := n.MetadataRaw()
+		assert.JSONEq(t, `{"foo":"bar"}`, string(raw))
+	})
+
+	t.Run("LazyLoadFromRaw", func(t *testing.T) {
+		rawJSON := []byte(`{"baz":"qux"}`)
+		n := ReconstructNotification(NewNotificationID(), recipientID, notifType, title, body, rawJSON, nil, now)
+
+		// Should return the original raw bytes
+		assert.Equal(t, rawJSON, n.MetadataRaw())
+
+		// Accessing metadata should parse it
+		assert.Equal(t, "qux", n.GetMetadata("baz"))
+
+		// After access, MetadataRaw should still return consistent data (re-marshaled or original)
+		assert.JSONEq(t, `{"baz":"qux"}`, string(n.MetadataRaw()))
+	})
+
+	t.Run("EmptyDefaults", func(t *testing.T) {
+		n := ReconstructNotification(NewNotificationID(), recipientID, notifType, title, body, nil, nil, now)
+
+		// Should return empty JSON object
+		assert.JSONEq(t, "{}", string(n.MetadataRaw()))
+	})
+}
