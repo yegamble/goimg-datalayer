@@ -374,9 +374,9 @@ func (h *HealthHandler) checkClamAV(ctx context.Context) (CheckDetails, float64)
 	if h.clamav == nil {
 		latency := time.Since(start).Seconds() * millisecondConversion
 		return CheckDetails{
-			Status:    statusDown,
+			Status:    statusUp, // ClamAV is optional in some environments (e.g. dev/test without ClamAV)
 			LatencyMs: latency,
-			Error:     "clamav not configured",
+			Error:     "clamav not configured", // Keep informative error but don't fail readiness
 		}, latency
 	}
 
