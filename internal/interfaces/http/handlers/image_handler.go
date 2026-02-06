@@ -36,6 +36,14 @@ type ImageHandler struct {
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
 	logger                zerolog.Logger
+	rateLimiterMiddleware func(http.Handler) http.Handler
+}
+
+// WithRateLimiter sets the rate limiter middleware for the handler.
+// This allows dependency injection of the rate limiter configuration.
+func (h *ImageHandler) WithRateLimiter(middleware func(http.Handler) http.Handler) *ImageHandler {
+	h.rateLimiterMiddleware = middleware
+	return h
 }
 
 // StorageProvider is the interface for retrieving image files from storage.
@@ -83,7 +91,12 @@ func (h *ImageHandler) Routes() chi.Router {
 
 	// All routes require authentication - applied at router level
 	// Upload route has special rate limiting
-	r.Post("/", h.Upload)
+	if h.rateLimiterMiddleware != nil {
+		r.With(h.rateLimiterMiddleware).Post("/", h.Upload)
+	} else {
+		r.Post("/", h.Upload)
+	}
+
 	r.Get("/", h.List)
 	r.Get("/search", h.Search)
 	r.Get("/{imageID}", h.Get)
