@@ -8,8 +8,15 @@ import (
 
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/notification"
-	"github.com/yegamble/goimg-datalayer/internal/infrastructure/email"
 )
+
+// EmailSender defines the interface for sending email notifications.
+// This abstraction decouples the application layer from infrastructure email details.
+type EmailSender interface {
+	IsEnabled() bool
+	SendNewFollowerEmail(ctx context.Context, recipientEmail, followerUsername string) error
+	SendMalwareDetectedEmail(ctx context.Context, recipientEmail, username, filename string) error
+}
 
 // NotificationService provides application-level notification operations.
 // It coordinates between notification persistence, user preferences, and email delivery.
@@ -21,7 +28,7 @@ import (
 type NotificationService struct {
 	notifications notification.NotificationRepository
 	users         identity.UserRepository
-	emailSender   *email.SMTPSender
+	emailSender   EmailSender
 	logger        zerolog.Logger
 }
 
@@ -29,7 +36,7 @@ type NotificationService struct {
 func NewNotificationService(
 	notifications notification.NotificationRepository,
 	users identity.UserRepository,
-	emailSender *email.SMTPSender,
+	emailSender EmailSender,
 	logger zerolog.Logger,
 ) *NotificationService {
 	return &NotificationService{

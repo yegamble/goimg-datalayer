@@ -102,7 +102,7 @@ func (h *UpdateAlbumHandler) Handle(ctx context.Context, cmd UpdateAlbumCommand)
 	// 4. Apply updates via domain methods
 	updateNeeded, err := h.applyAlbumUpdates(album, cmd)
 	if err != nil {
-		return err
+		return fmt.Errorf("apply album updates: %w", err)
 	}
 
 	// 5. If no changes, return early

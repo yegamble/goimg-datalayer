@@ -485,7 +485,7 @@ func (r *ImageRepository) Save(ctx context.Context, image *gallery.Image) error 
 
 	// Perform UPSERT
 	if err := r.upsertInTx(ctx, tx, image); err != nil {
-		return err
+		return fmt.Errorf("upsert image: %w", err)
 	}
 
 	// Save variants (delete old ones and insert new ones)

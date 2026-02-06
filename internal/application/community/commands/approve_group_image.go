@@ -89,7 +89,7 @@ func (h *ApproveGroupImageHandler) Handle(ctx context.Context, cmd ApproveGroupI
 			Str("actor_id", cmd.ActorID.String()).
 			Str("actor_role", membership.Role().String()).
 			Msg("unauthorized image approval attempt")
-		return err
+		return fmt.Errorf("validate approval permission: %w", err)
 	}
 
 	// 3. Approve the image via domain method

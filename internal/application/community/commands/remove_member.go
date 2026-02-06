@@ -80,7 +80,7 @@ func (h *RemoveMemberHandler) Handle(ctx context.Context, cmd RemoveMemberComman
 			Str("actor_id", cmd.ActorID.String()).
 			Str("actor_role", actorMembership.Role().String()).
 			Msg("unauthorized member removal attempt")
-		return err
+		return fmt.Errorf("validate removal permission: %w", err)
 	}
 
 	// 3. Load target's membership

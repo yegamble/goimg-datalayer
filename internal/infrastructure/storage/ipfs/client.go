@@ -73,7 +73,10 @@ type ObjectInfo struct {
 // The key parameter is ignored for IPFS as content is addressed by CID.
 func (c *Client) Put(ctx context.Context, _ string, data io.Reader, _ int64, _ PutOptions) error {
 	_, err := c.Add(ctx, data)
-	return err
+	if err != nil {
+		return fmt.Errorf("ipfs add: %w", err)
+	}
+	return nil
 }
 
 // PutBytes is a convenience method for storing small in-memory data.
@@ -196,7 +199,7 @@ func (c *Client) Unpin(ctx context.Context, cid string) error {
 // pinOperation executes a pin add/remove operation.
 func (c *Client) pinOperation(ctx context.Context, cid, apiPath string, failErr error) error {
 	if err := ValidateCID(cid); err != nil {
-		return err
+		return fmt.Errorf("validate cid: %w", err)
 	}
 
 	apiURL := fmt.Sprintf("%s%s?arg=%s", c.config.APIEndpoint, apiPath, url.QueryEscape(cid))
