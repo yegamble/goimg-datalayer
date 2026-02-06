@@ -520,12 +520,12 @@ func (i *Image) UpdateMetadata(title, description string) error {
 	// Update metadata immutably
 	newMetadata, err := i.metadata.WithTitle(title)
 	if err != nil {
-		return err
+		return fmt.Errorf("update title: %w", err)
 	}
 
 	newMetadata, err = newMetadata.WithDescription(description)
 	if err != nil {
-		return err
+		return fmt.Errorf("update description: %w", err)
 	}
 
 	// Only update if something changed

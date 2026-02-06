@@ -90,7 +90,7 @@ func (h *RejectGroupImageHandler) Handle(ctx context.Context, cmd RejectGroupIma
 			Str("actor_id", cmd.ActorID.String()).
 			Str("actor_role", membership.Role().String()).
 			Msg("unauthorized image rejection attempt")
-		return err
+		return fmt.Errorf("validate rejection permission: %w", err)
 	}
 
 	// 3. Reject the image via domain method

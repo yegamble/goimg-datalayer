@@ -30,7 +30,6 @@ import (
 	appnotification "github.com/yegamble/goimg-datalayer/internal/application/notification"
 	notifcommands "github.com/yegamble/goimg-datalayer/internal/application/notification/commands"
 	notifqueries "github.com/yegamble/goimg-datalayer/internal/application/notification/queries"
-	domgallery "github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	domidentity "github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -451,6 +450,9 @@ func main() {
 	listPendingReportsHandler := modqueries.NewListPendingReportsHandler(reportRepo, &log.Logger)
 	getUserBanStatusHandler := modqueries.NewGetUserBanStatusHandler(banRepo)
 	listActiveBansHandler := modqueries.NewListActiveBansHandler(banRepo, &log.Logger)
+	getNSFWScanHandler := modqueries.NewGetNSFWScanHandler(nsfwRepo)
+	listNSFWFlaggedHandler := modqueries.NewListNSFWFlaggedHandler(nsfwRepo)
+	listNSFWScansByImageHandler := modqueries.NewListNSFWScansByImageHandler(nsfwRepo)
 
 	// Group Context
 	createGroupHandler := commcommands.NewCreateGroupHandler(
@@ -689,9 +691,9 @@ func main() {
 		listPendingReportsHandler,
 		getUserBanStatusHandler,
 		listActiveBansHandler,
-		nil, // getNSFWScanHandler
-		nil, // listNSFWFlaggedHandler
-		nil, // listNSFWScansByImageHandler
+		getNSFWScanHandler,
+		listNSFWFlaggedHandler,
+		listNSFWScansByImageHandler,
 		log.Logger,
 	)
 
@@ -866,61 +868,6 @@ func (s *noOpNSFWService) IsAvailable(_ context.Context) bool {
 }
 func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
 	return moderation.ProviderSightEngine // Return a valid provider enum
-}
-
-// Stub for missing NSFW repository.
-// Implementing moderation.NSFWScanRepository interface.
-//
-// TODO(audit-2026-02-03): CRITICAL - This is a stub repository that returns
-// nil/empty for all operations. NSFW scanning functionality is completely
-// non-functional in production. Either:
-// 1. Implement real PostgreSQL repository in internal/infrastructure/persistence/postgres/
-// 2. Disable NSFW feature via feature flag until implementation complete
-// See: claude/audit_report_2026-02-03.md for full details.
-type noOpNSFWScanRepository struct{}
-
-//nolint:nilnil // Stub implementation
-func (r *noOpNSFWScanRepository) NextID() moderation.NSFWScanID { return moderation.NSFWScanID{} }
-
-func (r *noOpNSFWScanRepository) FindByID(_ context.Context, _ moderation.NSFWScanID) (*moderation.NSFWScan, error) {
-	return nil, moderation.ErrNSFWScanNotFound
-}
-
-func (r *noOpNSFWScanRepository) FindByImageID(_ context.Context, _ domgallery.ImageID) (*moderation.NSFWScan, error) {
-	return nil, moderation.ErrNSFWScanNotFound
-}
-
-func (r *noOpNSFWScanRepository) FindByImageIDAll(
-	_ context.Context, _ domgallery.ImageID,
-) ([]*moderation.NSFWScan, error) {
-	return []*moderation.NSFWScan{}, nil
-}
-
-func (r *noOpNSFWScanRepository) FindPending(
-	_ context.Context, _ shared.Pagination,
-) ([]*moderation.NSFWScan, int64, error) {
-	return []*moderation.NSFWScan{}, 0, nil
-}
-
-func (r *noOpNSFWScanRepository) FindByStatus(
-	_ context.Context, _ moderation.NSFWScanStatus, _ shared.Pagination,
-) ([]*moderation.NSFWScan, int64, error) {
-	return []*moderation.NSFWScan{}, 0, nil
-}
-
-func (r *noOpNSFWScanRepository) FindNSFWImages(
-	_ context.Context, _ shared.Pagination,
-) ([]*moderation.NSFWScan, int64, error) {
-	return []*moderation.NSFWScan{}, 0, nil
-}
-
-//nolint:nilnil // Stub implementation
-func (r *noOpNSFWScanRepository) HasActiveScan(_ context.Context, _ domgallery.ImageID) (bool, error) {
-	return false, nil
-}
-
-func (r *noOpNSFWScanRepository) Save(_ context.Context, _ *moderation.NSFWScan) error {
-	return nil
 }
 
 type noOpIPFSService struct{}

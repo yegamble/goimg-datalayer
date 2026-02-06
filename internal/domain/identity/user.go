@@ -451,7 +451,7 @@ func (u *User) SetupTOTP(encryptedSecret []byte) error {
 
 	secret, err := NewTOTPSecret(encryptedSecret, u.email.String())
 	if err != nil {
-		return err
+		return fmt.Errorf("create totp secret: %w", err)
 	}
 
 	u.totpSecret = &secret

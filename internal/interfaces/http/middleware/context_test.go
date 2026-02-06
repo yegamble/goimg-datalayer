@@ -14,22 +14,22 @@ func TestGetRequestID(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		ctx      context.Context
+		setupCtx func() context.Context
 		expected string
 	}{
 		{
 			name:     "returns request ID when present",
-			ctx:      context.WithValue(context.Background(), RequestIDKey, "test-request-id-123"),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), RequestIDKey, "test-request-id-123") },
 			expected: "test-request-id-123",
 		},
 		{
 			name:     "returns empty string when not present",
-			ctx:      context.Background(),
+			setupCtx: context.Background,
 			expected: "",
 		},
 		{
 			name:     "returns empty string when wrong type",
-			ctx:      context.WithValue(context.Background(), RequestIDKey, 12345),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), RequestIDKey, 12345) },
 			expected: "",
 		},
 	}
@@ -37,7 +37,7 @@ func TestGetRequestID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := GetRequestID(tt.ctx)
+			result := GetRequestID(tt.setupCtx())
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -62,25 +62,25 @@ func TestGetUserID(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		ctx        context.Context
+		setupCtx   func() context.Context
 		expectedID uuid.UUID
 		expectedOK bool
 	}{
 		{
 			name:       "returns user ID when present",
-			ctx:        context.WithValue(context.Background(), UserIDKey, userID),
+			setupCtx:   func() context.Context { return context.WithValue(context.Background(), UserIDKey, userID) },
 			expectedID: userID,
 			expectedOK: true,
 		},
 		{
 			name:       "returns nil UUID and false when not present",
-			ctx:        context.Background(),
+			setupCtx:   context.Background,
 			expectedID: uuid.Nil,
 			expectedOK: false,
 		},
 		{
 			name:       "returns nil UUID and false when wrong type",
-			ctx:        context.WithValue(context.Background(), UserIDKey, "not-a-uuid"),
+			setupCtx:   func() context.Context { return context.WithValue(context.Background(), UserIDKey, "not-a-uuid") },
 			expectedID: uuid.Nil,
 			expectedOK: false,
 		},
@@ -89,7 +89,7 @@ func TestGetUserID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			id, ok := GetUserID(tt.ctx)
+			id, ok := GetUserID(tt.setupCtx())
 			assert.Equal(t, tt.expectedID, id)
 			assert.Equal(t, tt.expectedOK, ok)
 		})
@@ -103,19 +103,19 @@ func TestGetUserIDString(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		ctx        context.Context
+		setupCtx   func() context.Context
 		expectedID string
 		expectedOK bool
 	}{
 		{
 			name:       "returns user ID string when present",
-			ctx:        context.WithValue(context.Background(), UserIDKey, userID),
+			setupCtx:   func() context.Context { return context.WithValue(context.Background(), UserIDKey, userID) },
 			expectedID: userID.String(),
 			expectedOK: true,
 		},
 		{
 			name:       "returns empty string and false when not present",
-			ctx:        context.Background(),
+			setupCtx:   context.Background,
 			expectedID: "",
 			expectedOK: false,
 		},
@@ -124,7 +124,7 @@ func TestGetUserIDString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			id, ok := GetUserIDString(tt.ctx)
+			id, ok := GetUserIDString(tt.setupCtx())
 			assert.Equal(t, tt.expectedID, id)
 			assert.Equal(t, tt.expectedOK, ok)
 		})
@@ -136,19 +136,19 @@ func TestGetUserEmail(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		ctx      context.Context
+		setupCtx func() context.Context
 		expected string
 		ok       bool
 	}{
 		{
 			name:     "returns email when present",
-			ctx:      context.WithValue(context.Background(), UserEmailKey, "test@example.com"),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), UserEmailKey, "test@example.com") },
 			expected: "test@example.com",
 			ok:       true,
 		},
 		{
 			name:     "returns empty and false when not present",
-			ctx:      context.Background(),
+			setupCtx: context.Background,
 			expected: "",
 			ok:       false,
 		},
@@ -157,7 +157,7 @@ func TestGetUserEmail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			email, ok := GetUserEmail(tt.ctx)
+			email, ok := GetUserEmail(tt.setupCtx())
 			assert.Equal(t, tt.expected, email)
 			assert.Equal(t, tt.ok, ok)
 		})
@@ -169,19 +169,19 @@ func TestGetUserRole(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		ctx      context.Context
+		setupCtx func() context.Context
 		expected string
 		ok       bool
 	}{
 		{
 			name:     "returns role when present",
-			ctx:      context.WithValue(context.Background(), UserRoleKey, "admin"),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), UserRoleKey, "admin") },
 			expected: "admin",
 			ok:       true,
 		},
 		{
 			name:     "returns empty and false when not present",
-			ctx:      context.Background(),
+			setupCtx: context.Background,
 			expected: "",
 			ok:       false,
 		},
@@ -190,7 +190,7 @@ func TestGetUserRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			role, ok := GetUserRole(tt.ctx)
+			role, ok := GetUserRole(tt.setupCtx())
 			assert.Equal(t, tt.expected, role)
 			assert.Equal(t, tt.ok, ok)
 		})
@@ -204,19 +204,19 @@ func TestGetSessionID(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		ctx        context.Context
+		setupCtx   func() context.Context
 		expectedID uuid.UUID
 		expectedOK bool
 	}{
 		{
 			name:       "returns session ID when present",
-			ctx:        context.WithValue(context.Background(), SessionIDKey, sessionID),
+			setupCtx:   func() context.Context { return context.WithValue(context.Background(), SessionIDKey, sessionID) },
 			expectedID: sessionID,
 			expectedOK: true,
 		},
 		{
 			name:       "returns nil UUID and false when not present",
-			ctx:        context.Background(),
+			setupCtx:   context.Background,
 			expectedID: uuid.Nil,
 			expectedOK: false,
 		},
@@ -225,7 +225,7 @@ func TestGetSessionID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			id, ok := GetSessionID(tt.ctx)
+			id, ok := GetSessionID(tt.setupCtx())
 			assert.Equal(t, tt.expectedID, id)
 			assert.Equal(t, tt.expectedOK, ok)
 		})
@@ -239,19 +239,19 @@ func TestGetSessionIDString(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		ctx        context.Context
+		setupCtx   func() context.Context
 		expectedID string
 		expectedOK bool
 	}{
 		{
 			name:       "returns session ID string when present",
-			ctx:        context.WithValue(context.Background(), SessionIDKey, sessionID),
+			setupCtx:   func() context.Context { return context.WithValue(context.Background(), SessionIDKey, sessionID) },
 			expectedID: sessionID.String(),
 			expectedOK: true,
 		},
 		{
 			name:       "returns empty string and false when not present",
-			ctx:        context.Background(),
+			setupCtx:   context.Background,
 			expectedID: "",
 			expectedOK: false,
 		},
@@ -260,7 +260,7 @@ func TestGetSessionIDString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			id, ok := GetSessionIDString(tt.ctx)
+			id, ok := GetSessionIDString(tt.setupCtx())
 			assert.Equal(t, tt.expectedID, id)
 			assert.Equal(t, tt.expectedOK, ok)
 		})
@@ -272,25 +272,25 @@ func TestGet2FAVerified(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		ctx      context.Context
+		setupCtx func() context.Context
 		expected bool
 		ok       bool
 	}{
 		{
 			name:     "returns true when verified",
-			ctx:      context.WithValue(context.Background(), TwoFAVerifiedKey, true),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), TwoFAVerifiedKey, true) },
 			expected: true,
 			ok:       true,
 		},
 		{
 			name:     "returns false when not verified",
-			ctx:      context.WithValue(context.Background(), TwoFAVerifiedKey, false),
+			setupCtx: func() context.Context { return context.WithValue(context.Background(), TwoFAVerifiedKey, false) },
 			expected: false,
 			ok:       true,
 		},
 		{
 			name:     "returns false and false when not present",
-			ctx:      context.Background(),
+			setupCtx: context.Background,
 			expected: false,
 			ok:       false,
 		},
@@ -299,7 +299,7 @@ func TestGet2FAVerified(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			verified, ok := Get2FAVerified(tt.ctx)
+			verified, ok := Get2FAVerified(tt.setupCtx())
 			assert.Equal(t, tt.expected, verified)
 			assert.Equal(t, tt.ok, ok)
 		})

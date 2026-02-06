@@ -86,7 +86,7 @@ func (h *BanMemberHandler) Handle(ctx context.Context, cmd BanMemberCommand) err
 			Str("actor_id", cmd.ActorID.String()).
 			Str("actor_role", actorMembership.Role().String()).
 			Msg("unauthorized ban attempt")
-		return err
+		return fmt.Errorf("validate ban permission: %w", err)
 	}
 
 	// 3. Load target's membership
