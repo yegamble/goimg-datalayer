@@ -30,7 +30,6 @@ import (
 	appnotification "github.com/yegamble/goimg-datalayer/internal/application/notification"
 	notifcommands "github.com/yegamble/goimg-datalayer/internal/application/notification/commands"
 	notifqueries "github.com/yegamble/goimg-datalayer/internal/application/notification/queries"
-	domgallery "github.com/yegamble/goimg-datalayer/internal/domain/gallery"
 	domidentity "github.com/yegamble/goimg-datalayer/internal/domain/identity"
 	"github.com/yegamble/goimg-datalayer/internal/domain/moderation"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
@@ -451,6 +450,9 @@ func main() {
 	listPendingReportsHandler := modqueries.NewListPendingReportsHandler(reportRepo, &log.Logger)
 	getUserBanStatusHandler := modqueries.NewGetUserBanStatusHandler(banRepo)
 	listActiveBansHandler := modqueries.NewListActiveBansHandler(banRepo, &log.Logger)
+	getNSFWScanHandler := modqueries.NewGetNSFWScanHandler(nsfwRepo)
+	listNSFWFlaggedHandler := modqueries.NewListNSFWFlaggedHandler(nsfwRepo)
+	listNSFWScansByImageHandler := modqueries.NewListNSFWScansByImageHandler(nsfwRepo)
 
 	// Group Context
 	createGroupHandler := commcommands.NewCreateGroupHandler(
@@ -689,9 +691,9 @@ func main() {
 		listPendingReportsHandler,
 		getUserBanStatusHandler,
 		listActiveBansHandler,
-		nil, // getNSFWScanHandler
-		nil, // listNSFWFlaggedHandler
-		nil, // listNSFWScansByImageHandler
+		getNSFWScanHandler,
+		listNSFWFlaggedHandler,
+		listNSFWScansByImageHandler,
 		log.Logger,
 	)
 
