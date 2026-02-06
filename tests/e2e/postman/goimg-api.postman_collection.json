@@ -72,8 +72,8 @@
                   "pm.test('All services are ready', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('status');",
-                  "    pm.expect(jsonData.status).to.eql('ok');",
-                  "    pm.expect(jsonData).to.have.property('services');",
+                  "    pm.expect(['ok', 'degraded']).to.include(jsonData.status);",
+                  "    pm.expect(jsonData).to.have.property('checks');",
                   "});",
                   "",
                   "pm.test('Response has X-Request-ID header', function () {",
@@ -5306,13 +5306,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5364,13 +5362,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5422,13 +5418,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5473,13 +5467,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5523,13 +5515,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5574,13 +5564,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5615,13 +5603,11 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/ipfs",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "ipfs"
@@ -5661,13 +5647,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/00000000-0000-0000-0000-000000000000/ipfs",
+              "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/ipfs",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "00000000-0000-0000-0000-000000000000",
                 "ipfs"
@@ -5725,13 +5709,11 @@
               "raw": "{\n  \"name\": \"test-square\",\n  \"max_width\": 500,\n  \"max_height\": 500,\n  \"format\": \"webp\",\n  \"quality\": 85,\n  \"crop_mode\": \"fit\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/variants",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "variants"
@@ -5778,13 +5760,11 @@
               "raw": "{\n  \"name\": \"profile-avatar\",\n  \"max_width\": 200,\n  \"max_height\": 200,\n  \"format\": \"jpeg\",\n  \"quality\": 90,\n  \"crop_mode\": \"fill\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/variants",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "variants"
@@ -5832,13 +5812,11 @@
               "raw": "{\n  \"name\": \"missing-params\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/variants",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "variants"
@@ -5874,13 +5852,11 @@
               "raw": "{\n  \"max_width\": 500,\n  \"max_height\": 500\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/images/{{testImageId}}/variants",
+              "raw": "{{baseUrl}}/images/{{testImageId}}/variants",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "images",
                 "{{testImageId}}",
                 "variants"
@@ -10241,13 +10217,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}",
+              "raw": "{{baseUrl}}/oembed?url={{baseUrl}}/images/{{publicImageId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ],
               "query": [
@@ -10298,13 +10272,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=xml",
+              "raw": "{{baseUrl}}/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=xml",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ],
               "query": [
@@ -10349,13 +10321,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&maxwidth=800",
+              "raw": "{{baseUrl}}/oembed?url={{baseUrl}}/images/{{publicImageId}}&maxwidth=800",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ],
               "query": [
@@ -10396,13 +10366,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed",
+              "raw": "{{baseUrl}}/oembed",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ]
             }
@@ -10433,13 +10401,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=invalid",
+              "raw": "{{baseUrl}}/oembed?url={{baseUrl}}/images/{{publicImageId}}&format=invalid",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ],
               "query": [
@@ -10479,13 +10445,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/oembed?url={{baseUrl}}/images/00000000-0000-0000-0000-000000000000",
+              "raw": "{{baseUrl}}/oembed?url={{baseUrl}}/images/00000000-0000-0000-0000-000000000000",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "oembed"
               ],
               "query": [

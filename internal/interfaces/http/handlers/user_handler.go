@@ -55,6 +55,9 @@ func NewUserHandler(
 func (h *UserHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
+	// "me" routes resolve to the current authenticated user
+	r.Get("/me", h.GetCurrentUser)
+
 	// All routes require authentication (enforced by parent router)
 	r.Get("/{id}", h.GetUser)
 	r.Put("/{id}", h.UpdateUser)
@@ -62,6 +65,44 @@ func (h *UserHandler) Routes() chi.Router {
 	r.Get("/{id}/sessions", h.GetUserSessions)
 
 	return r
+}
+
+// GetCurrentUser handles GET /api/v1/users/me
+// Retrieves the authenticated user's own profile.
+//
+// Response: 200 OK with UserDTO
+// Errors:
+//   - 401: Not authenticated
+//   - 404: User not found
+//   - 500: Internal server error
+func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("user context not found")
+		middleware.WriteError(w, r,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			"Authentication required",
+		)
+		return
+	}
+
+	query := queries.GetUserQuery{
+		UserID:      userCtx.UserID,
+		RequestorID: userCtx.UserID,
+	}
+
+	userDTO, err := h.getUserHandler.Handle(ctx, query)
+	if err != nil {
+		h.mapErrorAndRespond(w, r, err, "get current user")
+		return
+	}
+
+	if err := EncodeJSON(w, http.StatusOK, userDTO); err != nil {
+		h.logger.Error().Err(err).Msg("failed to encode get current user response")
+	}
 }
 
 // GetUser handles GET /api/v1/users/{id}
