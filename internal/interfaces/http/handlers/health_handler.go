@@ -179,15 +179,23 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	storageStatus, storageLatency := h.checkStorage(ctx)
 	checks["storage"] = storageStatus
 
-	clamavStatus, clamavLatency := h.checkClamAV(ctx)
-	checks["clamav"] = clamavStatus
+	// Only check ClamAV if configured (nil means not deployed, not a failure)
+	var clamavLatency float64
+	if h.clamav != nil {
+		var clamavStatus CheckDetails
+		clamavStatus, clamavLatency = h.checkClamAV(ctx)
+		checks["clamav"] = clamavStatus
+	}
 
 	// Determine overall status with graceful degradation
-	// Critical dependencies: database, storage, ClamAV
+	// Critical dependencies: database, storage
+	// Critical when configured: ClamAV
 	// Non-critical: Redis (caching/sessions)
 	criticalDown := dbStatus.Status == statusDown ||
-		storageStatus.Status == statusDown ||
-		clamavStatus.Status == statusDown
+		storageStatus.Status == statusDown
+	if clamavCheck, ok := checks["clamav"]; ok {
+		criticalDown = criticalDown || clamavCheck.Status == statusDown
+	}
 
 	redisDown := redisStatus.Status == statusDown
 
@@ -222,7 +230,6 @@ func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 		Bool("database_healthy", dbStatus.Status == statusUp).
 		Bool("redis_healthy", redisStatus.Status == statusUp).
 		Bool("storage_healthy", storageStatus.Status == statusUp).
-		Bool("clamav_healthy", clamavStatus.Status == statusUp).
 		Logger()
 
 	switch status {
