@@ -18,8 +18,10 @@ func TestGetRequestID(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "returns request ID when present",
-			setupCtx: func() context.Context { return context.WithValue(context.Background(), RequestIDKey, "test-request-id-123") },
+			name: "returns request ID when present",
+			setupCtx: func() context.Context {
+				return context.WithValue(context.Background(), RequestIDKey, "test-request-id-123")
+			},
 			expected: "test-request-id-123",
 		},
 		{
@@ -141,8 +143,10 @@ func TestGetUserEmail(t *testing.T) {
 		ok       bool
 	}{
 		{
-			name:     "returns email when present",
-			setupCtx: func() context.Context { return context.WithValue(context.Background(), UserEmailKey, "test@example.com") },
+			name: "returns email when present",
+			setupCtx: func() context.Context {
+				return context.WithValue(context.Background(), UserEmailKey, "test@example.com")
+			},
 			expected: "test@example.com",
 			ok:       true,
 		},

@@ -689,15 +689,14 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: '20'
-          # Caching disabled because tests/e2e/package.json does not exist
-          # Newman is installed globally in the next step
+          cache: 'npm'
+          cache-dependency-path: tests/e2e/package-lock.json
 
       - name: Install Newman
         if: steps.check_e2e.outputs.exists == 'true'
-        run: npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1
-        # Cache npm global packages for faster installs
-        env:
-          npm_config_cache: ~/.npm
+        run: |
+          cd tests/e2e
+          npm ci
 
       - name: Download build artifacts
         if: steps.check_e2e.outputs.exists == 'true'
@@ -764,7 +763,7 @@ jobs:
         id: newman
         continue-on-error: true
         run: |
-          newman run tests/e2e/postman/goimg-api.postman_collection.json \
+          ./tests/e2e/node_modules/.bin/newman run tests/e2e/postman/goimg-api.postman_collection.json \
             --environment tests/e2e/postman/ci.postman_environment.json \
             --reporters cli,htmlextra,junit \
             --reporter-htmlextra-export newman-report.html \
