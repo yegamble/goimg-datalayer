@@ -149,7 +149,15 @@ func NewRouter(
 		if authHandler != nil {
 			r.Route("/auth", func(r chi.Router) {
 				r.Post("/register", authHandler.Register)
-				r.Post("/login", authHandler.Login)
+
+				// Login with IP-based rate limiting (5/min per IP)
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/login", authHandler.Login)
+				} else {
+					r.Post("/login", authHandler.Login)
+				}
+
 				r.Post("/refresh", authHandler.Refresh)
 				r.Post("/logout", authHandler.Logout)
 
@@ -322,6 +330,12 @@ func NewRouter(
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level
 			if imageHandler != nil {
+				// Apply upload rate limiting if configured
+				if middlewareConfig.RateLimiterConfig != nil {
+					imageHandler.WithUploadRateLimiter(
+						middleware.UploadRateLimiter(*middlewareConfig.RateLimiterConfig),
+					)
+				}
 				r.Mount("/images", imageHandler.Routes())
 			}
 
