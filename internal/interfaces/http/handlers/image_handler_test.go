@@ -177,3 +177,35 @@ func TestImageHandler_Search_TagsWithSpaces(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	mockRepo.AssertExpectations(t)
 }
+
+func TestImageHandler_Routes_UploadRateLimiter(t *testing.T) {
+	// Arrange
+	imageHandler := NewImageHandler(
+		nil, nil, nil, nil, nil, nil, nil, nil,
+		zerolog.Nop(),
+	)
+
+	// Create a dummy middleware that stops the request chain and sets a header.
+	// This simulates rate limiting or any middleware execution.
+	blockingMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Test-Middleware", "applied")
+			w.WriteHeader(http.StatusTeapot)
+			// Do NOT call next.ServeHTTP to avoid invoking the actual handler
+		})
+	}
+
+	// Apply middleware
+	imageHandler.WithUploadRateLimiter(blockingMiddleware)
+
+	// Act
+	r := imageHandler.Routes()
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	rec := httptest.NewRecorder()
+
+	r.ServeHTTP(rec, req)
+
+	// Assert
+	assert.Equal(t, "applied", rec.Header().Get("X-Test-Middleware"))
+	assert.Equal(t, http.StatusTeapot, rec.Code)
+}

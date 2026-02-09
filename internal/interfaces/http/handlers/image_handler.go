@@ -36,6 +36,7 @@ type ImageHandler struct {
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
 	logger                zerolog.Logger
+	uploadRateLimiter     func(http.Handler) http.Handler
 }
 
 // StorageProvider is the interface for retrieving image files from storage.
@@ -70,6 +71,12 @@ func NewImageHandler(
 	}
 }
 
+// WithUploadRateLimiter sets the rate limiting middleware for the upload endpoint.
+func (h *ImageHandler) WithUploadRateLimiter(middleware func(http.Handler) http.Handler) *ImageHandler {
+	h.uploadRateLimiter = middleware
+	return h
+}
+
 // Routes registers image routes with the chi router.
 // Returns a chi.Router that can be mounted under /api/v1/images
 //
@@ -83,7 +90,12 @@ func (h *ImageHandler) Routes() chi.Router {
 
 	// All routes require authentication - applied at router level
 	// Upload route has special rate limiting
-	r.Post("/", h.Upload)
+	if h.uploadRateLimiter != nil {
+		r.With(h.uploadRateLimiter).Post("/", h.Upload)
+	} else {
+		r.Post("/", h.Upload)
+	}
+
 	r.Get("/", h.List)
 	r.Get("/search", h.Search)
 	r.Get("/{imageID}", h.Get)
