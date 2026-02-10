@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive end-to-end test suite for the GoImg API with 290 test requests across 20 folders, providing ~100% coverage of all implemented API endpoints. Tests validate authentication, authorization, business logic, error handling, and complete user journeys.
+Comprehensive end-to-end test suite for the GoImg API with 293 test requests across 20 folders, providing ~100% coverage of all implemented API endpoints. Tests validate authentication, authorization, business logic, error handling, and complete user journeys.
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ make test-e2e-report
 | **Users** | 8 | Profile management, sessions, account deletion |
 | **User Liked Images** | 2 | Like/unlike images, view liked images |
 | **Images** | 15 | Upload, view, update, delete, ownership checks |
-| **Image Discovery** | 10 | List, search, filters (date, user, tags), variants |
+| **Image Discovery** | 13 | List, search, filters (date, user, tags), variants, QR endpoints |
 | **Albums** | 12 | CRUD operations, privacy settings, ownership |
 | **Album Image Management** | 13 | Add/remove images, list album images, ordering |
 | **Tags** | 8 | Create, list, assign to images |
@@ -49,7 +49,7 @@ make test-e2e-report
 | **Error Handling** | 25 | 4xx/5xx responses, RFC 7807 compliance |
 | **Complete User Journey** | 11 | Full user lifecycle integration test |
 | **Health Checks** | 2 | Liveness and readiness probes |
-| **Total** | **290** | Comprehensive API coverage |
+| **Total** | **293** | Comprehensive API coverage |
 
 ## Test Structure
 
@@ -194,7 +194,7 @@ For local testing with different settings, create `local.postman_environment.jso
 
 ### Full Test Suite
 
-Run all 290 tests:
+Run all 293 tests:
 
 ```bash
 make test-e2e
@@ -622,9 +622,10 @@ Commit changes:
 |---------|------|---------|
 | 1.0.0 | 2025-12-03 | Initial release (Sprint 4: Auth & Users) |
 | 2.0.0 | 2026-02-10 | Comprehensive expansion to 290 tests across 20 folders |
+| 2.1.0 | 2026-02-10 | Added image QR endpoint E2E coverage (+3 tests; total 293) |
 
 **Current Status**: Complete coverage of all implemented API endpoints (~100%)
 
 **Owned by**: Test Strategist
 **Last updated**: 2026-02-10
-**Version**: 2.0.0
+**Version**: 2.1.0

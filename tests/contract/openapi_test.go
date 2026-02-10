@@ -92,6 +92,7 @@ func TestEndpointDefinitions(t *testing.T) {
 		"/images":                      {http.MethodGet, http.MethodPost},
 		"/images/{id}":                 {http.MethodGet, http.MethodPut, http.MethodDelete},
 		"/images/{id}/variants/{size}": {http.MethodGet},
+		"/images/{id}/qr":              {http.MethodGet},
 		// Album endpoints
 		"/albums":                       {http.MethodGet, http.MethodPost},
 		"/albums/{id}":                  {http.MethodGet, http.MethodPut, http.MethodDelete},
@@ -375,6 +376,18 @@ func TestImageEndpointsContract(t *testing.T) {
 			responseSchemas: map[int]string{
 				200: "image_binary",
 				404: "ProblemDetail",
+			},
+		},
+		{
+			name:         "GET /images/{id}/qr",
+			path:         "/images/{id}/qr",
+			method:       http.MethodGet,
+			requiresAuth: false,
+			responseSchemas: map[int]string{
+				200: "image_binary",
+				400: "ProblemDetail",
+				404: "ProblemDetail",
+				500: "ProblemDetail",
 			},
 		},
 	}
@@ -1683,6 +1696,7 @@ func TestOptionalAuthenticationEndpoints(t *testing.T) {
 		{"/images", http.MethodGet},
 		{"/images/{id}", http.MethodGet},
 		{"/images/{id}/variants/{size}", http.MethodGet},
+		{"/images/{id}/qr", http.MethodGet},
 		{"/images/{id}/comments", http.MethodGet},
 		{"/albums", http.MethodGet},
 		{"/albums/{id}", http.MethodGet},
@@ -1766,6 +1780,13 @@ func TestMediaTypeCompliance(t *testing.T) {
 						response.Value.Content.Get("image/webp") != nil
 					assert.True(t, hasImageContent,
 						"GET /images/{id}/variants/{size} should return image content type")
+				}
+
+				// Image QR endpoint should return PNG content type.
+				if path == "/images/{id}/qr" && statusCodeStr == "200" {
+					pngContent := response.Value.Content.Get("image/png")
+					assert.NotNil(t, pngContent,
+						"GET /images/{id}/qr should return image/png content type")
 				}
 
 				// Error responses should use application/json (status codes 400+)

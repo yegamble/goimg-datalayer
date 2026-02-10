@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-The Postman E2E test collection has achieved **comprehensive coverage of all implemented gallery endpoints**. Starting from ~60% coverage (223 tests) in Sprint 8, we have systematically addressed all gaps and now have **290 tests** covering:
+The Postman E2E test collection has achieved **comprehensive coverage of all implemented gallery endpoints**. Starting from ~60% coverage (223 tests) in Sprint 8, we have systematically addressed all gaps and now have **293 tests** covering:
 
 - ✅ **COMPLETED:** Authentication flows (basic auth, 2FA, OAuth)
 - ✅ **COMPLETED:** Social interactions (likes, comments, follows)
@@ -42,7 +42,7 @@ The Postman E2E test collection has achieved **comprehensive coverage of all imp
 | **Activity Feed** | ✅ | ✅ | ✅ | High | 7 |
 | **Notifications** | ✅ | ✅ | ✅ | High | 10 |
 | **Image Upload/CRUD** | ✅ | ✅ | ✅ | Critical | 27 |
-| **Image Search/List** | ✅ | ✅ | ✅ | High | 27 |
+| **Image Search/List** | ✅ | ✅ | ✅ | High | 30 |
 | **Image Variants** | ✅ | ✅ | ✅ | Medium | 8 |
 | **Albums CRUD** | ✅ | ✅ | ✅ | High | 21 |
 | **Album Image Management** | ✅ | ✅ | ✅ | High | 21 |
@@ -60,7 +60,7 @@ The Postman E2E test collection has achieved **comprehensive coverage of all imp
 | **Error Handling** | ✅ | ✅ | ✅ | Critical | 6 |
 | **Complete User Journeys** | ✅ | ✅ | ✅ | Critical | 12 |
 
-**Total Test Count:** 290 tests
+**Total Test Count:** 293 tests
 
 ---
 
@@ -130,7 +130,7 @@ The Postman E2E test collection has achieved **comprehensive coverage of all imp
 
 ---
 
-### 3. Images (27 tests) ✅ FULLY COVERED
+### 3. Images (30 tests) ✅ FULLY COVERED
 
 **Status:** ✅ Complete image lifecycle and discovery
 
@@ -153,11 +153,14 @@ The Postman E2E test collection has achieved **comprehensive coverage of all imp
   - Sort order (asc/desc)
   - Search by title/description
 
-- ✅ **Image Variants** (7 tests)
+- ✅ **Image Variants & QR Sharing** (10 tests)
   - List available variants
   - Get specific variant (thumbnail, small, medium, large)
   - Variant generation status
   - Cache headers validation
+  - Get image share QR code (PNG response)
+  - QR validation: invalid size parameter
+  - QR validation: image not found
 
 **Verification:** Complete image management with all filters, sorting, and variant handling tested.
 
@@ -692,7 +695,7 @@ GoImg API E2E Tests/
 │       ├── List Sessions
 │       └── Revoke Session
 │
-├── Images/ (27 tests)
+├── Images/ (30 tests)
 │   ├── Upload/
 │   │   ├── Upload - Success
 │   │   ├── Upload - Invalid File
@@ -706,7 +709,8 @@ GoImg API E2E Tests/
 │       ├── List All Images (with filters)
 │       ├── Filter by Owner/Album/Tags
 │       ├── Sort by Date/Views/Likes
-│       └── Search Images
+│       ├── Search Images
+│       └── QR Share Endpoint (success + validation)
 │
 ├── Albums/ (21 tests)
 │   ├── CRUD/
@@ -820,7 +824,7 @@ GoImg API E2E Tests/
     └── Journey 5: Group Collaboration (2 tests) ✅ NEW
 ```
 
-**Total: 290 tests**
+**Total: 293 tests**
 
 ---
 
@@ -895,7 +899,7 @@ An endpoint is considered fully tested when it has:
 
 ## Sprint 23 Progress Summary
 
-### Tests Added in Sprint 23: +67 tests
+### Tests Added in Sprint 23+: +70 tests
 
 | Feature Area | Tests Added | Description |
 |--------------|-------------|-------------|
@@ -907,11 +911,12 @@ An endpoint is considered fully tested when it has:
 | Content Moderation (NSFW) | +10 | NSFW detection, queue, review workflow |
 | Groups Invitations | +10 | Full invitation lifecycle |
 | Group Albums/Images | +5 | Group album management |
+| Image QR Codes | +3 | QR generation success, invalid size, not found |
 | Error Handling | +3 | Bad JSON, method not allowed |
 | Metrics | +1 | Prometheus metrics endpoint |
 | User Journeys | +11 | Complete multi-step flows (5 journeys) |
 
-**Total Growth:** 223 tests → 290 tests (+30% increase)
+**Total Growth:** 223 tests → 293 tests (+31% increase)
 
 ---
 
@@ -1077,6 +1082,6 @@ jobs:
 **Document End**
 
 **Status:** E2E test coverage COMPLETE as of Sprint 23 (2026-02-10)
-**Test Count:** 290 tests
+**Test Count:** 293 tests
 **Coverage:** ~100% of implemented gallery endpoints
 **Next Review:** Sprint 25 or when new features are added

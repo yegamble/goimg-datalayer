@@ -211,6 +211,8 @@ func NewRouter(
 
 				// Variant endpoint returns binary image data
 				r.Get("/images/{imageID}/variants/{size}", imageHandler.GetImageVariant)
+				// QR endpoint returns PNG QR code for image share/preview URL
+				r.Get("/images/{imageID}/qr", imageHandler.GetImageQRCode)
 			})
 		}
 

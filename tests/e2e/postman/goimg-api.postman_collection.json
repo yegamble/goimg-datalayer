@@ -6540,6 +6540,149 @@
               }
             },
             {
+              "name": "Get Image QR Code - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has PNG content type', function () {",
+                      "    const ct = pm.response.headers.get('Content-Type') || '';",
+                      "    pm.expect(ct).to.include('image/png');",
+                      "});",
+                      "",
+                      "pm.test('Response has cache control header', function () {",
+                      "    pm.response.to.have.header('Cache-Control');",
+                      "});",
+                      "",
+                      "pm.test('Response body is non-empty', function () {",
+                      "    const contentLength = parseInt(pm.response.headers.get('Content-Length') || '0', 10);",
+                      "    pm.expect(contentLength).to.be.above(0);",
+                      "});",
+                      "",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}/qr?size=256",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}",
+                    "qr"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "256"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Image QR Code - Invalid Size",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "pm.test('Error response follows RFC 7807', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(400);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}/qr?size=abc",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}",
+                    "qr"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "abc"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Image QR Code - Image Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "pm.test('Error response follows RFC 7807', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('type');",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "    pm.expect(jsonData).to.have.property('status');",
+                      "    pm.expect(jsonData.status).to.eql(404);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/qr",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "00000000-0000-0000-0000-000000000000",
+                    "qr"
+                  ]
+                }
+              }
+            },
+            {
               "name": "Update Image - PUT Full Update",
               "event": [
                 {

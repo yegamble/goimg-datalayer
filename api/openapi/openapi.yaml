@@ -2009,6 +2009,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /images/{id}/qr:
+    get:
+      tags: [images]
+      summary: Get image share QR code
+      description: |
+        Generate a PNG QR code for sharing a public image.
+        The QR code points to the SEO/social preview page:
+        `/images/{id}/preview`.
+
+        Optional authentication is supported, but only public images
+        are shareable via this endpoint.
+      operationId: getImageQRCode
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+        - name: size
+          in: query
+          required: false
+          description: QR code size in pixels
+          schema:
+            type: integer
+            minimum: 128
+            maximum: 1024
+            default: 256
+      responses:
+        '200':
+          description: QR code generated successfully
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid image ID or size parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found or not publicly shareable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: QR code generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /images/{id}/variants:
     post:
       tags: [images]

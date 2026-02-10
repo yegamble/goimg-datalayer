@@ -16,8 +16,17 @@ runs:
       shell: bash
       run: |
         echo "Waiting for PostgreSQL to be ready..."
+        check_postgres_ready() {
+          if command -v pg_isready >/dev/null 2>&1; then
+            pg_isready -h localhost -p 5432 -U goimg_test >/dev/null 2>&1
+          else
+            # Fallback for minimal runners where postgresql-client is unavailable.
+            timeout 1 bash -c '</dev/tcp/localhost/5432' >/dev/null 2>&1
+          fi
+        }
+
         for i in {1..30}; do
-          if pg_isready -h localhost -p 5432 -U goimg_test; then
+          if check_postgres_ready; then
             echo "PostgreSQL is ready!"
             break
           fi
@@ -26,7 +35,7 @@ runs:
         done
 
         # Final check
-        if ! pg_isready -h localhost -p 5432 -U goimg_test; then
+        if ! check_postgres_ready; then
           echo "ERROR: PostgreSQL failed to become ready after 30 seconds"
           exit 1
         fi

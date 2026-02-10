@@ -82,7 +82,7 @@ The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project i
 | Groups/Communities | Phase 3 | ✅ Implemented | Sprint 20 Deliverable |
 | Notifications | Phase 2 | ✅ Implemented | Email (SMTP), Internal |
 | oEmbed / Cards | Phase 3 | ✅ Implemented | Social Previews |
-| QR Codes for Images | Phase 2 | ❌ **Missing** | Mentioned in `mvp_features.md` |
+| QR Codes for Images | Phase 2 | ✅ Implemented | `GET /images/{id}/qr` PNG endpoint |
 
 ### 2.5 Moderation & Safety
 **Status:** ✅ **Complete**
@@ -113,11 +113,6 @@ The following features are part of the vision but are currently unimplemented:
 - **Use Case:** Photographers want to protect their intellectual property.
 - **Current State:** Mentioned in `mvp_features.md` as "Phase 2 (Should Have)" but deferred.
 - **Impact:** Important for professional photographer demographic.
-
-### Priority 4: QR Codes for Images
-- **Use Case:** Sharing images via physical media or mobile scanning.
-- **Current State:** 2FA uses QR codes (via URI generation), but no generic QR code generation for image URLs exists.
-- **Impact:** Minor convenience feature.
 
 ## 4. Conclusion
 

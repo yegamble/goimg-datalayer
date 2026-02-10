@@ -30,6 +30,19 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libvips-dev
 
+    # Some local runners (for example act) can drop system paths after setup steps.
+    # Re-adding common binary paths keeps Node-based actions available.
+    - name: Ensure node and system binary paths (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo "/usr/local/bin" >> "$GITHUB_PATH"
+        echo "/usr/bin" >> "$GITHUB_PATH"
+        ACT_NODE_BIN_DIR="$(ls -d /opt/acttoolcache/node/*/x64/bin 2>/dev/null | sort -V | tail -n 1)"
+        if [ -n "$ACT_NODE_BIN_DIR" ]; then
+          echo "$ACT_NODE_BIN_DIR" >> "$GITHUB_PATH"
+        fi
+
     - name: Install libvips (macOS)
       if: inputs.install-libvips == 'true' && runner.os == 'macOS'
       shell: bash

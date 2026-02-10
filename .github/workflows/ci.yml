@@ -64,7 +64,7 @@ jobs:
         uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
-          args: --timeout=5m --config=.golangci.yml
+          args: --timeout=10m --config=.golangci.yml
           # Only show new issues on PRs
           only-new-issues: ${{ github.event_name == 'pull_request' }}
 
@@ -104,6 +104,7 @@ jobs:
 
       - name: Run unit tests with race detection
         run: |
+          set -o pipefail
           echo "Running unit tests..."
           go test -race -short -coverprofile=coverage-unit.out -covermode=atomic \
             -timeout 10m -parallel=4 -tags='!integration' ./... 2>&1 | tee test-output.txt || TEST_EXIT=$?
@@ -164,6 +165,7 @@ jobs:
 
       - name: Run Domain Tests
         run: |
+          set -o pipefail
           echo "Running domain layer tests..."
           # Check if domain tests exist
           if go list ./internal/domain/... 2>/dev/null | grep -q .; then
@@ -193,7 +195,7 @@ jobs:
           COVERAGE=$(go tool cover -func=domain-coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Domain layer coverage: ${COVERAGE}%"
 
-          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+          if awk "BEGIN {exit !($COVERAGE < 90)}"; then
             echo "::error::Domain coverage ${COVERAGE}% below 90% threshold"
             echo "The domain layer requires 90% coverage as it contains core business logic"
             exit 1
@@ -291,20 +293,24 @@ jobs:
 
       - name: Run integration tests
         run: |
+          set -o pipefail
           # Run integration tests if they exist, otherwise create empty coverage file
           echo "Running integration tests..."
           go test -race -coverprofile=coverage-integration.out -covermode=atomic \
-            -timeout 15m -parallel=2 -tags=integration ./... 2>&1 | tee test-output.txt
+            -timeout 15m -parallel=2 -tags=integration ./... 2>&1 | tee test-output.txt || TEST_EXIT=$?
 
-          # Check if any tests were run
-          if grep -q "no test files" test-output.txt || grep -q "no packages to test" test-output.txt; then
-            echo "No integration tests found (expected in early development)"
-            # Create empty coverage file so downstream jobs don't fail
-            echo "mode: atomic" > coverage-integration.out
-          elif [ ! -f coverage-integration.out ]; then
-            echo "No integration tests with coverage found"
+          # Ensure a coverage file exists for downstream jobs even when tests fail early.
+          if [ ! -f coverage-integration.out ] || [ "$(wc -l < coverage-integration.out)" -le 1 ]; then
+            if grep -q "no packages to test" test-output.txt; then
+              echo "No integration tests found (expected in early development)"
+            else
+              echo "No integration coverage generated"
+            fi
             echo "mode: atomic" > coverage-integration.out
           fi
+
+          # Propagate the integration test exit status.
+          exit ${TEST_EXIT:-0}
 
       - name: Add Integration Test Coverage Summary
         if: always()
@@ -420,7 +426,7 @@ jobs:
           echo "Statements covered: ${STATEMENTS}"
           echo "Threshold: ${THRESHOLD}%"
 
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          if awk "BEGIN {exit !($COVERAGE < $THRESHOLD)}"; then
             if [ "$IS_MAIN_OR_DEVELOP" = true ]; then
               echo "ERROR: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
               echo "Strict enforcement on main/develop branches"

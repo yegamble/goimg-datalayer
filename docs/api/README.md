@@ -873,6 +873,41 @@ Cache-Control: public, max-age=31536000
 
 ---
 
+#### GET /images/{id}/qr
+
+Generate a share QR code for a public image.
+
+The QR code points to the public preview page: `/images/{id}/preview`.
+
+**Authentication**: Optional
+
+**Path Parameters**:
+- `id` (UUID): Image ID
+
+**Query Parameters**:
+- `size` (integer, optional): QR image size in pixels (default: `256`, min: `128`, max: `1024`)
+
+**Success Response (200 OK)**:
+Binary PNG data
+
+**Response Headers**:
+```
+Content-Type: image/png
+Cache-Control: public, max-age=3600
+Content-Disposition: inline; filename="image-<id>-qr.png"
+```
+
+**Error Responses**:
+- `400`: Invalid image ID or invalid `size`
+- `404`: Image not found or not publicly shareable
+- `500`: QR code generation failed
+
+**Notes**:
+- Only public images are shareable with QR codes
+- Endpoint can be called with or without a bearer token
+
+---
+
 ### Album Endpoints
 
 #### POST /albums

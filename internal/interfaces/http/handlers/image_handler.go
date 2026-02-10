@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"image/png"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
@@ -22,6 +27,12 @@ const (
 	maxUploadSizeMB = 50
 	// megabyteShift is the bit shift to convert megabytes to bytes (1 MB = 1 << 20 bytes).
 	megabyteShift = 20
+	// defaultQRCodeSize is the default output size for QR code images in pixels.
+	defaultQRCodeSize = 256
+	// minQRCodeSize is the minimum supported QR code size in pixels.
+	minQRCodeSize = 128
+	// maxQRCodeSize is the maximum supported QR code size in pixels.
+	maxQRCodeSize = 1024
 )
 
 // ImageHandler handles image-related HTTP endpoints.
@@ -848,6 +859,141 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 		Msg("image variant retrieved successfully")
 }
 
+// GetImageQRCode handles GET /api/v1/images/{imageID}/qr
+// Generates a PNG QR code for the public image preview URL.
+//
+// Query parameters:
+//   - size: QR code image size in pixels (optional, default 256, min 128, max 1024)
+//
+// Security: Optional auth - only public images are shareable via QR code.
+//
+// Response: Binary PNG image
+// Errors:
+//   - 400: Invalid image ID or size
+//   - 404: Image not found or not publicly shareable
+//   - 500: QR code generation failure
+func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// 1. Extract and validate image ID.
+	imageID := GetPathParam(r, "imageID")
+	if imageID == "" {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Missing image ID",
+		)
+		return
+	}
+
+	if _, err := gallery.ParseImageID(imageID); err != nil {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid image ID format",
+		)
+		return
+	}
+
+	// 2. Parse optional size parameter.
+	qrSize, err := parseIntParam(r.URL.Query().Get("size"), defaultQRCodeSize)
+	if err != nil {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			"Invalid size parameter",
+		)
+		return
+	}
+	if qrSize < minQRCodeSize || qrSize > maxQRCodeSize {
+		middleware.WriteError(w, r,
+			http.StatusBadRequest,
+			"Bad Request",
+			fmt.Sprintf("size must be between %d and %d", minQRCodeSize, maxQRCodeSize),
+		)
+		return
+	}
+
+	// 3. Load image and verify shareability.
+	// Use anonymous lookup semantics so QR generation never increments view counts.
+	image, err := h.getImage.Handle(ctx, queries.GetImageQuery{
+		ImageID:          imageID,
+		RequestingUserID: "",
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, gallery.ErrImageNotFound), errors.Is(err, gallery.ErrUnauthorizedAccess):
+			middleware.WriteError(w, r,
+				http.StatusNotFound,
+				"Not Found",
+				"Image not found",
+			)
+		default:
+			h.logger.Error().
+				Err(err).
+				Str("image_id", imageID).
+				Msg("failed to load image for QR code generation")
+			middleware.WriteError(w, r,
+				http.StatusInternalServerError,
+				"Internal Server Error",
+				"Failed to load image",
+			)
+		}
+		return
+	}
+
+	// QR is intended for anonymous sharing via preview page.
+	if image.Visibility != gallery.VisibilityPublic.String() {
+		middleware.WriteError(w, r,
+			http.StatusNotFound,
+			"Not Found",
+			"Image not found",
+		)
+		return
+	}
+
+	// 4. Generate QR for preview URL.
+	baseURL := inferBaseURLFromRequest(r)
+	previewURL := fmt.Sprintf("%s/images/%s/preview", baseURL, image.ID)
+
+	pngData, err := generateQRCodePNG(previewURL, qrSize)
+	if err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID).
+			Str("preview_url", previewURL).
+			Int("size", qrSize).
+			Msg("failed to generate image QR code")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Failed to generate QR code",
+		)
+		return
+	}
+
+	// 5. Return PNG binary.
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Length", strconv.Itoa(len(pngData)))
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"image-%s-qr.png\"", image.ID))
+	w.WriteHeader(http.StatusOK)
+
+	if _, err := w.Write(pngData); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("image_id", imageID).
+			Msg("failed to write QR code response")
+		return
+	}
+
+	h.logger.Debug().
+		Str("image_id", imageID).
+		Str("preview_url", previewURL).
+		Int("size", qrSize).
+		Msg("image QR code generated successfully")
+}
+
 // GenerateCustomVariantRequest represents the request body for generating a custom variant.
 type GenerateCustomVariantRequest struct {
 	ConfigID  string `json:"config_id,omitempty"`  // Use a saved variant config
@@ -981,6 +1127,46 @@ func formatToMimeType(format string) string {
 	default:
 		return "application/octet-stream"
 	}
+}
+
+// generateQRCodePNG renders a QR code as PNG bytes at the requested square size.
+func generateQRCodePNG(content string, size int) ([]byte, error) {
+	qrCode, err := qr.Encode(content, qr.M, qr.Auto)
+	if err != nil {
+		return nil, fmt.Errorf("encode qr: %w", err)
+	}
+
+	scaled, err := barcode.Scale(qrCode, size, size)
+	if err != nil {
+		return nil, fmt.Errorf("scale qr: %w", err)
+	}
+
+	var buffer bytes.Buffer
+	if err := png.Encode(&buffer, scaled); err != nil {
+		return nil, fmt.Errorf("encode png: %w", err)
+	}
+
+	return buffer.Bytes(), nil
+}
+
+// inferBaseURLFromRequest builds an absolute base URL from request metadata.
+func inferBaseURLFromRequest(r *http.Request) string {
+	// Prefer forwarded headers when behind reverse proxies/load balancers.
+	proto := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Proto"), ",")[0])
+	if proto == "" {
+		if r.TLS != nil {
+			proto = "https"
+		} else {
+			proto = "http"
+		}
+	}
+
+	host := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Host"), ",")[0])
+	if host == "" {
+		host = r.Host
+	}
+
+	return fmt.Sprintf("%s://%s", proto, host)
 }
 
 // parseIntParam parses an integer query parameter with a default value.

@@ -6,9 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/yegamble/goimg-datalayer/internal/application/gallery/queries"
 	"github.com/yegamble/goimg-datalayer/internal/domain/gallery"
@@ -176,4 +178,114 @@ func TestImageHandler_Search_TagsWithSpaces(t *testing.T) {
 	// Assert
 	assert.Equal(t, http.StatusOK, rec.Code)
 	mockRepo.AssertExpectations(t)
+}
+
+func TestImageHandler_GetImageQRCode_PublicImage(t *testing.T) {
+	mockRepo := new(MockImageRepository)
+	logger := zerolog.Nop()
+	getImageHandler := queries.NewGetImageHandler(mockRepo, &logger)
+
+	image := createQRTestImage(t, gallery.VisibilityPublic)
+	mockRepo.
+		On("FindByID", mock.Anything, image.ID()).
+		Return(image, nil).
+		Once()
+
+	imageHandler := NewImageHandler(
+		nil, nil, nil, nil,
+		getImageHandler, nil, nil, nil,
+		logger,
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/images/"+image.ID().String()+"/qr?size=256", nil)
+	req = withRouteParam(req, "imageID", image.ID().String())
+	rec := httptest.NewRecorder()
+
+	imageHandler.GetImageQRCode(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "image/png", rec.Header().Get("Content-Type"))
+	assert.NotEmpty(t, rec.Body.Bytes())
+	assert.GreaterOrEqual(t, rec.Body.Len(), 8)
+	assert.Equal(t, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}, rec.Body.Bytes()[:8])
+	mockRepo.AssertExpectations(t)
+}
+
+func TestImageHandler_GetImageQRCode_PrivateImage(t *testing.T) {
+	mockRepo := new(MockImageRepository)
+	logger := zerolog.Nop()
+	getImageHandler := queries.NewGetImageHandler(mockRepo, &logger)
+
+	image := createQRTestImage(t, gallery.VisibilityPrivate)
+	mockRepo.
+		On("FindByID", mock.Anything, image.ID()).
+		Return(image, nil).
+		Once()
+
+	imageHandler := NewImageHandler(
+		nil, nil, nil, nil,
+		getImageHandler, nil, nil, nil,
+		logger,
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/images/"+image.ID().String()+"/qr", nil)
+	req = withRouteParam(req, "imageID", image.ID().String())
+	rec := httptest.NewRecorder()
+
+	imageHandler.GetImageQRCode(rec, req)
+
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestImageHandler_GetImageQRCode_InvalidSize(t *testing.T) {
+	logger := zerolog.Nop()
+	imageHandler := NewImageHandler(
+		nil, nil, nil, nil,
+		nil, nil, nil, nil,
+		logger,
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/images/00000000-0000-0000-0000-000000000000/qr?size=abc", nil)
+	req = withRouteParam(req, "imageID", "00000000-0000-0000-0000-000000000000")
+	rec := httptest.NewRecorder()
+
+	imageHandler.GetImageQRCode(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func createQRTestImage(t *testing.T, visibility gallery.Visibility) *gallery.Image {
+	t.Helper()
+
+	ownerID := identity.NewUserID()
+	metadata, err := gallery.NewImageMetadata(
+		"QR Test Image",
+		"Used for QR code endpoint tests",
+		"qr-test.jpg",
+		"image/jpeg",
+		1200,
+		800,
+		1024,
+		"images/qr-test/original.jpg",
+		"local",
+	)
+	require.NoError(t, err)
+
+	image, err := gallery.NewImage(ownerID, metadata)
+	require.NoError(t, err)
+	require.NoError(t, image.MarkAsClean())
+	require.NoError(t, image.MarkAsActive())
+
+	if visibility != gallery.VisibilityPrivate {
+		require.NoError(t, image.UpdateVisibility(visibility))
+	}
+
+	return image
+}
+
+func withRouteParam(req *http.Request, key, value string) *http.Request {
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add(key, value)
+	return req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 }

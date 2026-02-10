@@ -106,6 +106,7 @@ claude/               # AI agent guides and documentation
 **Image Management**
 - Multi-format support: JPEG, PNG, GIF, WebP
 - Auto-generated variants (thumbnail, small, medium, large)
+- Share QR codes for public image preview pages (`GET /images/{id}/qr`)
 - ClamAV malware scanning, EXIF extraction
 - IPFS decentralized storage option
 
@@ -159,7 +160,7 @@ See [claude/test_strategy.md](claude/test_strategy.md) for testing patterns.
 
 ## E2E Testing
 
-**290 Postman E2E tests** across 20 categories provide comprehensive API validation.
+**293 Postman E2E tests** across 20 categories provide comprehensive API validation.
 
 **Coverage**: ~100% endpoint coverage with tests for happy paths, error handling, authentication, authorization, and regression detection.
 
@@ -170,7 +171,7 @@ See [claude/test_strategy.md](claude/test_strategy.md) for testing patterns.
 make setup-e2e
 
 # Run all E2E tests
-make test-e2e              # Full suite (290 tests)
+make test-e2e              # Full suite (293 tests)
 
 # Run specific category
 make test-e2e-folder FOLDER=Auth
@@ -191,7 +192,7 @@ make ci-local              # Lint, test, E2E, validate OpenAPI
 
 **Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
 
-See [tests/e2e/README.md](tests/e2e/README.md) for collection structure and test categories.
+See [tests/e2e/postman/README.md](tests/e2e/postman/README.md) for collection structure and test categories.
 
 ## Contributing
 
