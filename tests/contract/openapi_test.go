@@ -1769,7 +1769,8 @@ func TestMediaTypeCompliance(t *testing.T) {
 				}
 
 				// Error responses should use application/json (status codes 400+)
-				if len(statusCodeStr) > 0 && statusCodeStr[0] >= '4' {
+				// Exception: HTML endpoints (e.g., /images/{id}/preview) may return HTML errors
+				if len(statusCodeStr) > 0 && statusCodeStr[0] >= '4' && path != "/images/{id}/preview" {
 					jsonContent := response.Value.Content.Get("application/json")
 					problemContent := response.Value.Content.Get("application/problem+json")
 					assert.True(t, jsonContent != nil || problemContent != nil,

@@ -487,12 +487,12 @@ func TestUpload_EnforcesDimensionLimits(t *testing.T) {
 			wantError: gallery.ErrImageTooLarge,
 		},
 		{
-			name:      "invalid dimensions (zero)",
+			name:      "zero dimensions (allowed for unknown formats)",
 			width:     0,
 			height:    0,
 			maxWidth:  8192,
 			maxHeight: 8192,
-			wantError: gallery.ErrInvalidDimensions,
+			wantError: nil, // 0x0 is intentionally allowed for video/unknown formats
 		},
 		{
 			name:      "invalid dimensions (negative)",

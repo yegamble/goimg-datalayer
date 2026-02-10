@@ -158,6 +158,11 @@ func (s *TOTPService) GenerateSecret(accountName string) (*TOTPSetupResult, erro
 // ValidateCode validates a TOTP code against an encrypted secret.
 // Returns nil if the code is valid, ErrTOTPInvalidCode if invalid.
 func (s *TOTPService) ValidateCode(encryptedSecret []byte, code string) error {
+	// Validate code format before decryption (fail fast)
+	if code == "" {
+		return ErrTOTPInvalidCode
+	}
+
 	// Decrypt the secret
 	secretBytes, err := s.encryptor.Decrypt(encryptedSecret)
 	if err != nil {

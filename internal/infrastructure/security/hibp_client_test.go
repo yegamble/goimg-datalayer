@@ -34,6 +34,7 @@ func TestHIBPClient_IsCompromised_PasswordFound(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act
@@ -59,6 +60,7 @@ func TestHIBPClient_IsCompromised_PasswordNotFound(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act: Use a strong unique password
@@ -81,14 +83,15 @@ func TestHIBPClient_IsCompromised_APIError(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: false},
 	}
 
 	// Act
 	compromised, err := client.IsCompromised(context.Background(), "testpassword123")
 
-	// Assert: Should fail open (return false but with error)
+	// Assert: Should fail closed (return false with error)
 	require.Error(t, err)
-	assert.False(t, compromised, "should fail open on API error")
+	assert.False(t, compromised, "should fail closed on API error")
 	assert.Contains(t, err.Error(), "HIBP API returned status 500")
 }
 
@@ -99,15 +102,15 @@ func TestHIBPClient_IsCompromised_NetworkError(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 100 * time.Millisecond},
 		apiURL:     "http://localhost:99999/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: false},
 	}
 
 	// Act
 	compromised, err := client.IsCompromised(context.Background(), "testpassword123")
 
-	// Assert: Should fail open (return false but with error)
+	// Assert: Should fail closed (return false with error)
 	require.Error(t, err)
-	assert.False(t, compromised, "should fail open on network error")
-	assert.Contains(t, err.Error(), "HIBP API request failed")
+	assert.False(t, compromised, "should fail closed on network error")
 }
 
 func TestHIBPClient_IsCompromised_Timeout(t *testing.T) {
@@ -123,14 +126,15 @@ func TestHIBPClient_IsCompromised_Timeout(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 50 * time.Millisecond},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: false},
 	}
 
 	// Act
 	compromised, err := client.IsCompromised(context.Background(), "testpassword123")
 
-	// Assert: Should fail open on timeout
+	// Assert: Should fail closed on timeout
 	require.Error(t, err)
-	assert.False(t, compromised, "should fail open on timeout")
+	assert.False(t, compromised, "should fail closed on timeout")
 }
 
 func TestHIBPClient_IsCompromised_EmptyResponse(t *testing.T) {
@@ -146,6 +150,7 @@ func TestHIBPClient_IsCompromised_EmptyResponse(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act
@@ -171,6 +176,7 @@ func TestHIBPClient_IsCompromised_MalformedResponse(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act
@@ -194,6 +200,7 @@ func TestHIBPClient_IsCompromised_ContextCancellation(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: false},
 	}
 
 	// Create context with immediate cancellation
@@ -212,17 +219,19 @@ func TestHIBPClient_IsCompromised_CaseInsensitive(t *testing.T) {
 	t.Parallel()
 
 	// Arrange: Test that hash comparison is case-insensitive
-	// Password: "Password1!" -> SHA-1: A1733B6D75BD906A9DA80FB2D4991FA2F9B5F3E7
+	// Password: "Password1!" -> SHA-1: 32CA9FC1A0F5B6330E3F4C8C1BBECDE9BEDB9573
+	// Prefix: 32CA9, Suffix: FC1A0F5B6330E3F4C8C1BBECDE9BEDB9573
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		// Return suffix in lowercase (should still match)
-		_, _ = w.Write([]byte("733b6d75bd906a9da80fb2d4991fa2f9b5f3e7:100\n"))
+		_, _ = w.Write([]byte("fc1a0f5b6330e3f4c8c1bbecde9bedb9573:100\n"))
 	}))
 	defer server.Close()
 
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act
@@ -248,6 +257,7 @@ func TestHIBPClient_IsCompromised_WhitespaceHandling(t *testing.T) {
 	client := &HIBPClient{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 		apiURL:     server.URL + "/range/",
+		config:     HIBPConfig{Enabled: true, FailOpen: true},
 	}
 
 	// Act

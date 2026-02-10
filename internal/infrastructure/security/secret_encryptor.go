@@ -127,8 +127,8 @@ func (e *SecretEncryptor) Decrypt(ciphertext []byte) ([]byte, error) {
 		return nil, ErrKeyNotConfigured
 	}
 
-	// Minimum length: nonce (12) + at least 1 byte of data + GCM tag (16)
-	minLength := aesGCMNonceSize + 1 + e.gcm.Overhead()
+	// Minimum length: nonce (12) + GCM tag (16). Empty plaintext is valid for GCM.
+	minLength := aesGCMNonceSize + e.gcm.Overhead()
 	if len(ciphertext) < minLength {
 		return nil, ErrInvalidCiphertext
 	}

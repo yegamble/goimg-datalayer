@@ -335,7 +335,7 @@ func (c *HIBPClient) fetchPrefixSuffixes(ctx context.Context, prefix string) (ma
 			continue
 		}
 
-		responseSuffix := strings.TrimSpace(parts[0])
+		responseSuffix := strings.ToUpper(strings.TrimSpace(parts[0]))
 		suffixes[responseSuffix] = struct{}{}
 	}
 
