@@ -105,11 +105,12 @@ const (
 
 // tagRepoRow represents a row from the tags table.
 type tagRepoRow struct {
-	ID         uuid.UUID `db:"id"`
-	Name       string    `db:"name"`
-	Slug       string    `db:"slug"`
-	UsageCount int64     `db:"usage_count"`
-	CreatedAt  time.Time `db:"created_at"`
+	ID          uuid.UUID `db:"id"`
+	Name        string    `db:"name"`
+	Slug        string    `db:"slug"`
+	UsageCount  int64     `db:"usage_count"`
+	PeriodCount int64     `db:"period_count"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 // tagWithScoreRow represents a tag row with trending score.

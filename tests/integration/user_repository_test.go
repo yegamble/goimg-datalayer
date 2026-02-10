@@ -270,7 +270,8 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 	expiredID := identity.NewUserID()
 	expiredEmail, _ := identity.NewEmail(fmt.Sprintf("guest_%s@goimg.local", expiredID.String()))
 	expiredUsername, _ := identity.NewUsername(fmt.Sprintf("guest_%s", expiredID.String()[:8]))
-	expiredHash, _ := identity.NewPasswordHash("dummy")
+	expiredHash, err := identity.NewPasswordHash("dummy-password-123!")
+	require.NoError(t, err)
 
 	now := time.Now().UTC()
 	// Ensure expired time is definitely in the past relative to the query time (25 hours ago)
@@ -294,7 +295,7 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 		&expiredTime,
 	)
 
-	err := repo.Save(ctx, expiredGuest)
+	err = repo.Save(ctx, expiredGuest)
 	require.NoError(t, err)
 
 	// Verify persistence immediately to ensure data is correct before querying

@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "{{BASE_URL}}"
+      "value": "http://localhost:8080/api/v1"
     },
     {
       "key": "testPassword",
@@ -16030,8 +16030,8 @@
                       "pm.test('User registered', function () {",
                       "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
                       "});",
-                      "const data = pm.response.json();",
-                      "if (data.id) pm.collectionVariables.set('journeyUserId', data.id);"
+                      "var journeyRegisterData = pm.response.json();",
+                      "if (journeyRegisterData.id) pm.collectionVariables.set('journeyUserId', journeyRegisterData.id);"
                     ],
                     "type": "text/javascript"
                   }
@@ -16084,8 +16084,8 @@
                       "pm.test('Login successful', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
-                      "const data = pm.response.json();",
-                      "pm.collectionVariables.set('journeyToken', data.access_token || data.accessToken);"
+                      "var journeyLoginData = pm.response.json();",
+                      "pm.collectionVariables.set('journeyToken', journeyLoginData.access_token || journeyLoginData.accessToken);"
                     ],
                     "type": "text/javascript"
                   }
@@ -16132,8 +16132,8 @@
                       "pm.test('Album created', function () {",
                       "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
                       "});",
-                      "const data = pm.response.json();",
-                      "if (data.id) pm.collectionVariables.set('journeyAlbumId', data.id);"
+                      "var journeyAlbumData = pm.response.json();",
+                      "if (journeyAlbumData.id) pm.collectionVariables.set('journeyAlbumId', journeyAlbumData.id);"
                     ],
                     "type": "text/javascript"
                   }
@@ -16164,7 +16164,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"My Journey Album\",\n  \"description\": \"Album created during E2E journey\"\n}",
+                  "raw": "{\n  \"title\": \"My Journey Album\",\n  \"description\": \"Album created during E2E journey\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -16183,8 +16183,8 @@
                       "pm.test('Image uploaded', function () {",
                       "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
                       "});",
-                      "const data = pm.response.json();",
-                      "if (data.id) pm.collectionVariables.set('journeyImageId', data.id);"
+                      "var journeyImageData = pm.response.json();",
+                      "if (journeyImageData.id) pm.collectionVariables.set('journeyImageId', journeyImageData.id);"
                     ],
                     "type": "text/javascript"
                   }

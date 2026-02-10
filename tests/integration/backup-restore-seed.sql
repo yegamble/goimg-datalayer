@@ -36,7 +36,7 @@ SELECT
     gen_random_uuid(),
     'user' || i || '@testdomain' || (i % 5) || '.com',
     'testuser' || i,
-    '$argon2id$v=19$m=65536,t=3,p=2$' || encode(gen_random_bytes(16), 'base64'),  -- Fake argon2 hash
+    '$argon2id$v=19$m=65536,t=3,p=2$' || md5(i::text || random()::text),  -- Fake argon2 hash
     CASE (i % 10)
         WHEN 0 THEN 'admin'
         WHEN 1 THEN 'moderator'
@@ -73,7 +73,7 @@ INSERT INTO sessions (id, user_id, refresh_token_hash, ip_address, user_agent, e
 SELECT
     gen_random_uuid(),
     u.id,
-    encode(sha256(gen_random_bytes(32)), 'hex'),
+    md5(u.id::text || s::text || random()::text || clock_timestamp()::text),
     ('192.168.' || (row_number() OVER () % 255) || '.' || (row_number() OVER () / 255 % 255))::inet,
     CASE (row_number() OVER () % 5)
         WHEN 0 THEN 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -157,7 +157,7 @@ SELECT
         WHEN 2 THEN 'spaces'
         ELSE 'b2'
     END,
-    'images/' || to_char(NOW() - (i || ' days')::interval, 'YYYY/MM/DD') || '/' || encode(gen_random_bytes(16), 'hex') || '.jpg',
+    'images/' || to_char(NOW() - (i || ' days')::interval, 'YYYY/MM/DD') || '/' || md5(i::text || random()::text || clock_timestamp()::text) || '.jpg',
     'IMG_' || LPAD(i::text, 4, '0') || '.jpg',
     CASE (i % 5)
         WHEN 0 THEN 'image/jpeg'
@@ -171,7 +171,7 @@ SELECT
     600 + (i % 15) * 100,  -- Heights from 600 to 2100
     CASE (i % 20)
         WHEN 0 THEN 'processing'
-        WHEN 1 THEN 'failed'
+        WHEN 1 THEN 'flagged'
         WHEN 19 THEN 'deleted'
         ELSE 'active'
     END,
@@ -389,7 +389,7 @@ SELECT
         WHEN 3 THEN repeat('Amazing image! ', 50)  -- Long comment
         WHEN 4 THEN 'Nice.'  -- Short comment
         WHEN 5 THEN 'Beautiful composition and lighting. The colors are stunning and the framing is perfect. This really captures the essence of the moment.'
-        WHEN 6 THEN ''  -- Edge case handled by constraint
+        WHEN 6 THEN 'Edge case comment'  -- Non-empty to satisfy comments_content_not_empty
         ELSE 'Comment #' || row_number() OVER () || ' from user ' || nu.user_num
     END,
     NOW() - ((row_number() OVER () % 500) || ' hours')::interval,

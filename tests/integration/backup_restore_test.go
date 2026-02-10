@@ -8,14 +8,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 
 	"github.com/yegamble/goimg-datalayer/tests/integration/containers"
 )
@@ -35,9 +39,6 @@ import (
 func TestBackupRestore_FullCycle(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
-	}
-	if _, err := exec.LookPath("pg_dump"); err != nil {
-		t.Skip("pg_dump not found, skipping test")
 	}
 
 	suite := containers.NewIntegrationTestSuite(t)
@@ -62,7 +63,7 @@ func TestBackupRestore_FullCycle(t *testing.T) {
 
 	// Step 3: Create backup
 	t.Log("Step 3: Creating backup...")
-	backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
+	backupFile, err := createBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr)
 	require.NoError(t, err, "failed to create backup")
 	require.FileExists(t, backupFile, "backup file should exist")
 	defer os.Remove(backupFile) // Cleanup
@@ -86,7 +87,7 @@ func TestBackupRestore_FullCycle(t *testing.T) {
 	t.Log("Step 5: Restoring from backup (measuring RTO)...")
 	rtoStart := time.Now()
 
-	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
+	err = restoreBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err, "failed to restore backup")
 
 	rtoDuration := time.Since(rtoStart)
@@ -174,9 +175,6 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
-	if _, err := exec.LookPath("pg_dump"); err != nil {
-		t.Skip("pg_dump not found, skipping test")
-	}
 
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
@@ -185,7 +183,7 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 	suite.CleanupBetweenTests(ctx)
 
 	// Create backup of empty database
-	backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
+	backupFile, err := createBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr)
 	require.NoError(t, err, "failed to create backup of empty database")
 	defer os.Remove(backupFile)
 
@@ -196,7 +194,7 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 
 	// Restore from backup
 	suite.CleanupBetweenTests(ctx)
-	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
+	err = restoreBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err, "failed to restore empty database backup")
 
 	// Verify all tables exist but are empty
@@ -212,9 +210,6 @@ func TestBackupRestore_EmptyDatabase(t *testing.T) {
 func TestBackupRestore_PartialData(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
-	}
-	if _, err := exec.LookPath("pg_dump"); err != nil {
-		t.Skip("pg_dump not found, skipping test")
 	}
 
 	suite := containers.NewIntegrationTestSuite(t)
@@ -234,13 +229,13 @@ func TestBackupRestore_PartialData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create backup
-	backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
+	backupFile, err := createBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr)
 	require.NoError(t, err)
 	defer os.Remove(backupFile)
 
 	// Cleanup and restore
 	suite.CleanupBetweenTests(ctx)
-	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
+	err = restoreBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err)
 
 	// Verify checksums match
@@ -332,8 +327,45 @@ func getRowCounts(ctx context.Context, db *sql.DB) (map[string]int, error) {
 	return counts, nil
 }
 
-// createBackup creates a PostgreSQL backup using pg_dump.
-func createBackup(ctx context.Context, connStr string) (string, error) {
+type pgConnConfig struct {
+	user     string
+	password string
+	dbName   string
+}
+
+func parsePostgresConnStr(connStr string) (pgConnConfig, error) {
+	parsed, err := url.Parse(connStr)
+	if err != nil {
+		return pgConnConfig{}, fmt.Errorf("parse connection string: %w", err)
+	}
+
+	if parsed.User == nil {
+		return pgConnConfig{}, fmt.Errorf("missing user info in connection string")
+	}
+
+	user := parsed.User.Username()
+	password, hasPassword := parsed.User.Password()
+	dbName := strings.TrimPrefix(parsed.Path, "/")
+
+	if user == "" {
+		return pgConnConfig{}, fmt.Errorf("missing username in connection string")
+	}
+	if !hasPassword {
+		return pgConnConfig{}, fmt.Errorf("missing password in connection string")
+	}
+	if dbName == "" {
+		return pgConnConfig{}, fmt.Errorf("missing database name in connection string")
+	}
+
+	return pgConnConfig{
+		user:     user,
+		password: password,
+		dbName:   dbName,
+	}, nil
+}
+
+// createBackup creates a PostgreSQL backup by running pg_dump in the postgres test container.
+func createBackup(ctx context.Context, pgContainer testcontainers.Container, connStr string) (string, error) {
 	// Create temporary file for backup
 	tmpFile, err := os.CreateTemp("", "backup-*.dump")
 	if err != nil {
@@ -342,39 +374,77 @@ func createBackup(ctx context.Context, connStr string) (string, error) {
 	backupPath := tmpFile.Name()
 	tmpFile.Close()
 
-	// Run pg_dump
-	cmd := exec.CommandContext(ctx, "pg_dump",
-		connStr,
+	connCfg, err := parsePostgresConnStr(connStr)
+	if err != nil {
+		_ = os.Remove(backupPath)
+		return "", fmt.Errorf("invalid postgres connection string: %w", err)
+	}
+
+	// Use pg_dump from inside the running postgres container to guarantee version match.
+	cmd := exec.CommandContext(ctx, "docker", "exec",
+		"-e", "PGPASSWORD="+connCfg.password,
+		pgContainer.GetContainerID(),
+		"pg_dump",
+		"-h", "localhost",
+		"-p", "5432",
+		"-U", connCfg.user,
+		"-d", connCfg.dbName,
 		"-Fc",     // Custom format
 		"-Z", "9", // Maximum compression
-		"--no-owner", // Don't output ownership commands
-		"--no-acl",   // Don't output ACL commands
-		"-f", backupPath,
+		"--no-owner",
+		"--no-acl",
 	)
 
+	var stdout bytes.Buffer
 	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		os.Remove(backupPath)
+		_ = os.Remove(backupPath)
 		return "", fmt.Errorf("pg_dump failed: %w\nStderr: %s", err, stderr.String())
+	}
+
+	if err := os.WriteFile(backupPath, stdout.Bytes(), 0o600); err != nil {
+		_ = os.Remove(backupPath)
+		return "", fmt.Errorf("failed to write backup file: %w", err)
 	}
 
 	return backupPath, nil
 }
 
-// restoreBackup restores a PostgreSQL backup using pg_restore.
-func restoreBackup(ctx context.Context, connStr string, backupFile string) error {
-	cmd := exec.CommandContext(ctx, "pg_restore",
-		"-d", connStr,
+// restoreBackup restores a PostgreSQL backup by running pg_restore in the postgres test container.
+func restoreBackup(ctx context.Context, pgContainer testcontainers.Container, connStr string, backupFile string) error {
+	connCfg, err := parsePostgresConnStr(connStr)
+	if err != nil {
+		return fmt.Errorf("invalid postgres connection string: %w", err)
+	}
+
+	backupData, err := os.ReadFile(backupFile)
+	if err != nil {
+		return fmt.Errorf("failed to read backup file: %w", err)
+	}
+
+	cmd := exec.CommandContext(ctx, "docker", "exec",
+		"-i",
+		"-e", "PGPASSWORD="+connCfg.password,
+		pgContainer.GetContainerID(),
+		"pg_restore",
+		"-h", "localhost",
+		"-p", "5432",
+		"-U", connCfg.user,
+		"-d", connCfg.dbName,
+		"--clean",
+		"--if-exists",
 		"--no-owner",
 		"--no-acl",
 		"--exit-on-error",
-		backupFile,
 	)
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+	cmd.Stdin = bytes.NewReader(backupData)
+	cmd.Stdout = io.Discard
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("pg_restore failed: %w\nStderr: %s", err, stderr.String())
@@ -426,9 +496,6 @@ func TestBackupRestore_ChecksumCalculation(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
-	if _, err := exec.LookPath("pg_dump"); err != nil {
-		t.Skip("pg_dump not found, skipping test")
-	}
 
 	suite := containers.NewIntegrationTestSuite(t)
 	ctx := context.Background()
@@ -478,7 +545,7 @@ func TestBackupRestore_LargeDataset(t *testing.T) {
 	// Backup
 	t.Log("Creating backup...")
 	backupStart := time.Now()
-	backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
+	backupFile, err := createBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr)
 	require.NoError(t, err)
 	defer os.Remove(backupFile)
 	backupDuration := time.Since(backupStart)
@@ -488,7 +555,7 @@ func TestBackupRestore_LargeDataset(t *testing.T) {
 	suite.CleanupBetweenTests(ctx)
 	t.Log("Restoring backup...")
 	restoreStart := time.Now()
-	err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
+	err = restoreBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr, backupFile)
 	require.NoError(t, err)
 	restoreDuration := time.Since(restoreStart)
 	t.Logf("Restore completed in %v", restoreDuration)
@@ -520,7 +587,7 @@ func BenchmarkBackupRestore(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		// Backup
-		backupFile, err := createBackup(ctx, suite.Postgres.ConnStr)
+		backupFile, err := createBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr)
 		if err != nil {
 			b.Fatalf("backup failed: %v", err)
 		}
@@ -529,7 +596,7 @@ func BenchmarkBackupRestore(b *testing.B) {
 		suite.Postgres.Cleanup(ctx, &testing.T{})
 
 		// Restore
-		err = restoreBackup(ctx, suite.Postgres.ConnStr, backupFile)
+		err = restoreBackup(ctx, suite.Postgres.Container, suite.Postgres.ConnStr, backupFile)
 		if err != nil {
 			b.Fatalf("restore failed: %v", err)
 		}

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -1053,31 +1054,31 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 
 	// Map domain errors to HTTP status codes
 	switch {
-	case err == community.ErrGroupNotFound:
+	case errors.Is(err, community.ErrGroupNotFound):
 		middleware.WriteError(w, r, http.StatusNotFound, "Not Found", "Group not found")
-	case err == community.ErrGroupSlugTaken:
+	case errors.Is(err, community.ErrGroupSlugTaken):
 		middleware.WriteError(w, r, http.StatusConflict, "Conflict", "Group slug is already taken")
-	case err == community.ErrInsufficientGroupRole:
+	case errors.Is(err, community.ErrInsufficientGroupRole):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Insufficient permissions for this operation")
-	case err == community.ErrAlreadyGroupMember:
+	case errors.Is(err, community.ErrAlreadyGroupMember):
 		middleware.WriteError(w, r, http.StatusConflict, "Conflict", "User is already a member of this group")
-	case err == community.ErrPrivateGroupNoAccess:
+	case errors.Is(err, community.ErrPrivateGroupNoAccess):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Cannot join private group without invitation")
-	case err == community.ErrMemberLimitReached:
+	case errors.Is(err, community.ErrMemberLimitReached):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Group has reached maximum member capacity")
-	case err == community.ErrMemberBanned:
+	case errors.Is(err, community.ErrMemberBanned):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "User is banned from this group")
-	case err == community.ErrMembershipNotFound:
+	case errors.Is(err, community.ErrMembershipNotFound):
 		middleware.WriteError(w, r, http.StatusNotFound, "Not Found", "Membership not found")
-	case err == community.ErrCannotRemoveOwner:
+	case errors.Is(err, community.ErrCannotRemoveOwner):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Cannot remove the group owner")
-	case err == community.ErrCannotBanOwner:
+	case errors.Is(err, community.ErrCannotBanOwner):
 		middleware.WriteError(w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Cannot ban the group owner",
 		)
-	case err == community.ErrCannotLeaveAsOwner:
+	case errors.Is(err, community.ErrCannotLeaveAsOwner):
 		middleware.WriteError(w, r,
 			http.StatusForbidden,
 			"Forbidden",

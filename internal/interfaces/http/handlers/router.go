@@ -144,6 +144,9 @@ func NewRouter(
 			r.Get("/health/ready", healthHandler.Readiness)
 		}
 
+		// Metrics endpoint alias for API-versioned test suites.
+		r.Handle("/metrics", promhttp.Handler())
+
 		// Public auth routes (no authentication required)
 		// Most auth routes are public, but guest session creation is rate-limited
 		if authHandler != nil {

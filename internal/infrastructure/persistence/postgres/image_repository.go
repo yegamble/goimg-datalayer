@@ -630,9 +630,10 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 	if params.NSFWFilter != nil {
 		switch *params.NSFWFilter {
 		case gallery.NSFWFilterExcludeAll:
-			// Exclude all NSFW content (nudity, explicit, violence)
+			// Exclude all NSFW content (nudity, explicit, violence).
+			// nsfw_scans does not have an is_nsfw boolean; "safe" is the non-NSFW category.
 			conditions = append(conditions,
-				"(nsfw.id IS NULL OR nsfw.is_nsfw = false)")
+				"(nsfw.id IS NULL OR nsfw.category = 'safe')")
 		case gallery.NSFWFilterSafeOnly:
 			// Only show content explicitly marked as safe
 			conditions = append(conditions,

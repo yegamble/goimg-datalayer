@@ -162,6 +162,17 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 
+	// Keep API registration behavior consistent with E2E and existing auth flows:
+	// users created via /auth/register should be immediately able to authenticate.
+	if err := user.Activate(); err != nil {
+		h.logger.Error().
+			Err(err).
+			Str("email", email.String()).
+			Str("username", username.String()).
+			Msg("failed to activate user during registration")
+		return nil, fmt.Errorf("activate user: %w", err)
+	}
+
 	// 7. Persist user to repository
 	if err := h.users.Save(ctx, user); err != nil {
 		h.logger.Error().
