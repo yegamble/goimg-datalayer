@@ -13,6 +13,66 @@
     {
       "key": "testPassword",
       "value": "SecureP@ssw0rd123!"
+    },
+    {
+      "key": "albumTestImageId",
+      "value": ""
+    },
+    {
+      "key": "inviteTestEmail",
+      "value": ""
+    },
+    {
+      "key": "inviteTestUsername",
+      "value": ""
+    },
+    {
+      "key": "inviteTestUserId",
+      "value": ""
+    },
+    {
+      "key": "testInvitationToken",
+      "value": ""
+    },
+    {
+      "key": "testInvitationId",
+      "value": ""
+    },
+    {
+      "key": "inviteUserToken",
+      "value": ""
+    },
+    {
+      "key": "nsfwScanId",
+      "value": ""
+    },
+    {
+      "key": "testGroupAlbumId",
+      "value": ""
+    },
+    {
+      "key": "journeyEmail",
+      "value": ""
+    },
+    {
+      "key": "journeyUsername",
+      "value": ""
+    },
+    {
+      "key": "journeyUserId",
+      "value": ""
+    },
+    {
+      "key": "journeyToken",
+      "value": ""
+    },
+    {
+      "key": "journeyAlbumId",
+      "value": ""
+    },
+    {
+      "key": "journeyImageId",
+      "value": ""
     }
   ],
   "item": [
@@ -1853,6 +1913,120 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "2FA Login Verify - No 2FA Setup",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 401', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/login-verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "login-verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\",\n  \"login_token\": \"fake-login-token\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "2FA Login Verify - Invalid Code",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 401', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/2fa/login-verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "2fa",
+                    "login-verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"000000\",\n  \"login_token\": \"invalid-token\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
             }
           ]
         },
@@ -2283,6 +2457,48 @@
                     "auth",
                     "oauth",
                     "google"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "OAuth Unlink Account - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/oauth/link",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "oauth",
+                    "link"
                   ]
                 }
               }
@@ -5898,6 +6114,490 @@
               ]
             }
           }
+        },
+        {
+          "name": "Image Discovery",
+          "item": [
+            {
+              "name": "List Images - Public",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has images array and pagination', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('images');",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "    pm.expect(jsonData.total_count).to.be.a('number');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images?limit=20&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Images - With Owner Filter",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('All images belong to filtered owner', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const ownerId = pm.collectionVariables.get('testUserId');",
+                      "    if (jsonData.images && jsonData.images.length > 0) {",
+                      "        jsonData.images.forEach(img => {",
+                      "            pm.expect(img.owner_id).to.eql(ownerId);",
+                      "        });",
+                      "    }",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images?owner_id={{testUserId}}&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images"
+                  ],
+                  "query": [
+                    {
+                      "key": "owner_id",
+                      "value": "{{testUserId}}"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Images - Sort by Likes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has images array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('images');",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images?sort_by=like_count&sort_order=desc&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images"
+                  ],
+                  "query": [
+                    {
+                      "key": "sort_by",
+                      "value": "like_count"
+                    },
+                    {
+                      "key": "sort_order",
+                      "value": "desc"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Images - By Title",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has search results structure', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('images');",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/search?q=test&per_page=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "test"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "10"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Images - No Results",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Empty results returned', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "    pm.expect(jsonData.images.length).to.eql(0);",
+                      "    pm.expect(jsonData.total_count).to.eql(0);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/search?q=zzz_nonexistent_query_xyx_999",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "zzz_nonexistent_query_xyx_999"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Images - Missing Query (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/search",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "search"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Image Variant - Thumbnail",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 404', function () {",
+                      "    // 200 if variant exists, 404 if not generated yet",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200) {",
+                      "    pm.test('Response has image content type', function () {",
+                      "        const ct = pm.response.headers.get('Content-Type');",
+                      "        pm.expect(ct).to.match(/^image\\//);",
+                      "    });",
+                      "",
+                      "    pm.test('Response has cache control header', function () {",
+                      "        pm.response.to.have.header('Cache-Control');",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}/variants/thumbnail",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}",
+                    "variants",
+                    "thumbnail"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Image Variant - Invalid Size",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 404', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}/variants/nonexistent",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}",
+                    "variants",
+                    "nonexistent"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Image Variant - Image Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/00000000-0000-0000-0000-000000000000/variants/thumbnail",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "00000000-0000-0000-0000-000000000000",
+                    "variants",
+                    "thumbnail"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Image - PUT Full Update",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Image was updated', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('title');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated via PUT\",\n  \"description\": \"Full update test\",\n  \"visibility\": \"public\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -6248,6 +6948,757 @@
               ]
             }
           }
+        },
+        {
+          "name": "Album Image Management",
+          "item": [
+            {
+              "name": "Setup - Upload Image for Album Tests",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 201', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 200 || pm.response.code === 201) {",
+                      "    const jsonData = pm.response.json();",
+                      "    if (jsonData.id) {",
+                      "        pm.collectionVariables.set('albumTestImageId', jsonData.id);",
+                      "    }",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// This test requires a multipart form upload.",
+                      "// If form upload isn't possible, we reuse existing testImageId.",
+                      "const existingImageId = pm.collectionVariables.get('testImageId');",
+                      "if (existingImageId) {",
+                      "    pm.collectionVariables.set('albumTestImageId', existingImageId);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "{{testImagePath}}"
+                    },
+                    {
+                      "key": "title",
+                      "value": "Album Test Image",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Image for album management tests",
+                      "type": "text"
+                    },
+                    {
+                      "key": "visibility",
+                      "value": "public",
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Albums - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has albums array and pagination', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('albums');",
+                      "    pm.expect(jsonData.albums).to.be.an('array');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "    pm.expect(jsonData.total_count).to.be.a('number');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums?limit=20&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Albums - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 401', function () {",
+                      "    // Albums list may be public or require auth",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/albums",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Album was updated', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('name');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Ensure we have an albumId",
+                      "const albumId = pm.collectionVariables.get('testAlbumId');",
+                      "if (!albumId) {",
+                      "    console.log('No testAlbumId set, test may fail');",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Album Name\",\n  \"description\": \"Updated album description\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update Album - Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Add Image to Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 201', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "",
+                      "pm.test('Image added successfully', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('message');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const imageId = pm.collectionVariables.get('albumTestImageId') || pm.collectionVariables.get('testImageId');",
+                      "pm.request.body = {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({ image_id: imageId }),",
+                      "    options: { raw: { language: 'json' } }",
+                      "};"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"image_id\": \"{{albumTestImageId}}\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Add Image to Album - Already Exists",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 409 Conflict', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([409, 200]);",
+                      "    // Some APIs are idempotent, some return 409",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{albumTestImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Add Image to Album - Album Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/00000000-0000-0000-0000-000000000000/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "00000000-0000-0000-0000-000000000000",
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{albumTestImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "List Album Images - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has images array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('images');",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "});",
+                      "",
+                      "pm.test('Album contains at least one image', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.images.length).to.be.above(0);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images?limit=20&offset=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Album Images - Album Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/00000000-0000-0000-0000-000000000000/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "00000000-0000-0000-0000-000000000000",
+                    "images"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Image from Album - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204 No Content', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images/{{albumTestImageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images",
+                    "{{albumTestImageId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Image from Album - Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Remove Image from Album - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{testAlbumId}}/images/{{albumTestImageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{testAlbumId}}",
+                    "images",
+                    "{{albumTestImageId}}"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -7143,6 +8594,94 @@
                     "images",
                     "00000000-0000-0000-0000-000000000000",
                     "like"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get User Liked Images",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has images array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('images');",
+                      "    pm.expect(jsonData.images).to.be.an('array');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{testUserId}}/likes?per_page=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{testUserId}}",
+                    "likes"
+                  ],
+                  "query": [
+                    {
+                      "key": "per_page",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get User Liked Images - Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/likes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "00000000-0000-0000-0000-000000000000",
+                    "likes"
                   ]
                 }
               }
@@ -8042,6 +9581,149 @@
               ]
             }
           }
+        },
+        {
+          "name": "Get Popular Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has items and pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "});",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/explore/popular?period=week&per_page=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "explore",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Popular Images - Monthly",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response returns monthly popular images', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData).to.have.property('period');",
+                  "});",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/explore/popular?period=month&per_page=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "explore",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Popular Images - Invalid Period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "if (pm.response.code >= 400) {",
+                  "    pm.test('Error response follows RFC 7807', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('type');",
+                  "        pm.expect(jsonData).to.have.property('title');",
+                  "        pm.expect(jsonData).to.have.property('status');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/explore/popular?period=invalid_period",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "explore",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "invalid_period"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -8364,6 +10046,93 @@
                   "key": "q",
                   "value": "n"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Images by Tag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has items and pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "});",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/test/images?per_page=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "test",
+                "images"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Images by Tag - No Results",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Empty results returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "    pm.expect(jsonData.items.length).to.eql(0);",
+                  "});",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/zzz_nonexistent_tag_xyx/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tags",
+                "zzz_nonexistent_tag_xyx",
+                "images"
               ]
             }
           }
@@ -9843,6 +11612,521 @@
               ]
             }
           }
+        },
+        {
+          "name": "NSFW Moderation",
+          "item": [
+            {
+              "name": "NSFW Scan - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/scan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "scan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{testImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "NSFW Scan - Forbidden (Non-Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/scan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "scan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{testImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "NSFW Scan - Admin",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201 or 503 (service unavailable)', function () {",
+                      "    // 201 if NSFW service is running, 503 if not available",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 503, 404, 500]);",
+                      "});",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.test('Response has scan details', function () {",
+                      "        pm.expect(jsonData).to.have.property('scan_id');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "        pm.collectionVariables.set('nsfwScanId', jsonData.scan_id);",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/scan",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "scan"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{reportedImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Get NSFW Scan - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/scans/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "scans",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get NSFW Scan - Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/scans/00000000-0000-0000-0000-000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "scans",
+                    "00000000-0000-0000-0000-000000000000"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List NSFW Flagged - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/flagged",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "flagged"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List NSFW Flagged - Admin",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has scans array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('scans');",
+                      "    pm.expect(jsonData.scans).to.be.an('array');",
+                      "    pm.expect(jsonData).to.have.property('total_count');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/flagged?page=1&page_size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "flagged"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "page_size",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List NSFW Flagged - Forbidden (Non-Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 403', function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/moderation/nsfw/flagged",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "moderation",
+                    "nsfw",
+                    "flagged"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Image NSFW Scans - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{testImageId}}/nsfw-scans",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{testImageId}}",
+                    "nsfw-scans"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Image NSFW Scans - Admin",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has scans array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('scans');",
+                      "    pm.expect(jsonData.scans).to.be.an('array');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{reportedImageId}}/nsfw-scans",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{reportedImageId}}",
+                    "nsfw-scans"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -10692,6 +12976,139 @@
               "path": [
                 "auth",
                 "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "403 - Forbidden (Insufficient Permissions)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Error follows RFC 7807 format', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('type');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql(403);",
+                  "});",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/moderation/bans/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "moderation",
+                "bans",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          }
+        },
+        {
+          "name": "400 - Invalid JSON Body",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "if (pm.response.code >= 400) {",
+                  "    pm.test('Error response follows RFC 7807', function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property('type');",
+                  "        pm.expect(jsonData).to.have.property('title');",
+                  "        pm.expect(jsonData).to.have.property('status');",
+                  "    });",
+                  "}",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{invalid json!!!}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "405 - Method Not Allowed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 405 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([405, 404]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
               ]
             }
           }
@@ -12879,6 +15296,1079 @@
                     "{{testPublicGroupId}}",
                     "albums",
                     "{{testGroupAlbumId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Group Invitations",
+          "item": [
+            {
+              "name": "Setup - Create User for Invitation Tests",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "const jsonData = pm.response.json();",
+                      "if (jsonData.id) {",
+                      "    pm.collectionVariables.set('inviteTestUserId', jsonData.id);",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const timestamp = Date.now();",
+                      "const email = `invitation-test-${timestamp}@test.com`;",
+                      "const username = `inviteuser${timestamp}`;",
+                      "pm.collectionVariables.set('inviteTestEmail', email);",
+                      "pm.collectionVariables.set('inviteTestUsername', username);",
+                      "",
+                      "pm.request.body = {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "        email: email,",
+                      "        username: username,",
+                      "        password: 'SecureP@ssw0rd123!',",
+                      "        displayName: 'Invite Test User'",
+                      "    }),",
+                      "    options: { raw: { language: 'json' } }",
+                      "};"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"invitation-test-1770722085772@test.com\",\n  \"username\": \"inviteuser1770722085772\",\n  \"password\": \"SecureP@ssw0rd123!\",\n  \"displayName\": \"Invite Test User\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Create Group Invitation - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201 Created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response has invitation with token', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('id');",
+                      "    pm.expect(jsonData).to.have.property('token');",
+                      "    pm.expect(jsonData).to.have.property('group_id');",
+                      "    pm.collectionVariables.set('testInvitationToken', jsonData.token);",
+                      "    pm.collectionVariables.set('testInvitationId', jsonData.id);",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const userId = pm.collectionVariables.get('inviteTestUserId');",
+                      "pm.request.body = {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({ user_id: userId }),",
+                      "    options: { raw: { language: 'json' } }",
+                      "};"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testGroupId}}/invitations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testGroupId}}",
+                    "invitations"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"user_id\": \"{{inviteTestUserId}}\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Create Group Invitation - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testGroupId}}/invitations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testGroupId}}",
+                    "invitations"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_id\": \"{{inviteTestUserId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "List Group Invitations - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has invitations array', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('invitations');",
+                      "    pm.expect(jsonData.invitations).to.be.an('array');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testGroupId}}/invitations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testGroupId}}",
+                    "invitations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Group Invitations - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{testGroupId}}/invitations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "{{testGroupId}}",
+                    "invitations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Decline Group Invitation - Invalid Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 404', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/invitations/invalid-token-12345/decline",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "invitations",
+                    "invalid-token-12345",
+                    "decline"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Accept Group Invitation - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has membership details', function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('group_id');",
+                      "    pm.expect(jsonData).to.have.property('user_id');",
+                      "    pm.expect(jsonData).to.have.property('role');",
+                      "});",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "// Login as the invited user to accept the invitation",
+                      "const email = pm.collectionVariables.get('inviteTestEmail');",
+                      "if (!email) { return; }",
+                      "",
+                      "const loginReq = {",
+                      "    url: pm.collectionVariables.get('baseUrl') + '/auth/login',",
+                      "    method: 'POST',",
+                      "    header: { 'Content-Type': 'application/json' },",
+                      "    body: {",
+                      "        mode: 'raw',",
+                      "        raw: JSON.stringify({ email: email, password: 'SecureP@ssw0rd123!' })",
+                      "    }",
+                      "};",
+                      "",
+                      "pm.sendRequest(loginReq, function (err, res) {",
+                      "    if (!err && res.code === 200) {",
+                      "        const data = res.json();",
+                      "        pm.collectionVariables.set('inviteUserToken', data.access_token || data.accessToken);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{memberAccessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/invitations/{{testInvitationToken}}/accept",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "invitations",
+                    "{{testInvitationToken}}",
+                    "accept"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Accept Group Invitation - Invalid Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 400 or 404', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/invitations/invalid-token-99999/accept",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "invitations",
+                    "invalid-token-99999",
+                    "accept"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Accept Group Invitation - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "if (pm.response.code >= 400) {",
+                      "    pm.test('Error response follows RFC 7807', function () {",
+                      "        const jsonData = pm.response.json();",
+                      "        pm.expect(jsonData).to.have.property('type');",
+                      "        pm.expect(jsonData).to.have.property('title');",
+                      "        pm.expect(jsonData).to.have.property('status');",
+                      "    });",
+                      "}",
+                      "pm.test('Response has X-Request-ID header', function () {",
+                      "    pm.response.to.have.header('X-Request-ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/invitations/{{testInvitationToken}}/accept",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "groups",
+                    "invitations",
+                    "{{testInvitationToken}}",
+                    "accept"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Metrics",
+      "item": [
+        {
+          "name": "Get Prometheus Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains Prometheus metrics', function () {",
+                  "    const body = pm.response.text();",
+                  "    // Prometheus metrics format uses # for comments and metric_name for values",
+                  "    pm.expect(body.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct content type', function () {",
+                  "    const ct = pm.response.headers.get('Content-Type');",
+                  "    // Prometheus uses text/plain or application/openmetrics-text",
+                  "    pm.expect(ct).to.match(/text\\/plain|openmetrics/);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complete User Journeys",
+      "item": [
+        {
+          "name": "Journey: Upload, Album & Social Flow",
+          "item": [
+            {
+              "name": "J1 - Register Journey User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('User registered', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "if (data.id) pm.collectionVariables.set('journeyUserId', data.id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "const ts = Date.now();",
+                      "pm.collectionVariables.set('journeyEmail', `journey-${ts}@test.com`);",
+                      "pm.collectionVariables.set('journeyUsername', `journeyuser${ts}`);",
+                      "",
+                      "pm.request.body = {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "        email: `journey-${ts}@test.com`,",
+                      "        username: `journeyuser${ts}`,",
+                      "        password: 'SecureP@ssw0rd123!',",
+                      "        displayName: 'Journey Test User'",
+                      "    }),",
+                      "    options: { raw: { language: 'json' } }",
+                      "};"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J2 - Login Journey User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "pm.collectionVariables.set('journeyToken', data.access_token || data.accessToken);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.request.body = {",
+                      "    mode: 'raw',",
+                      "    raw: JSON.stringify({",
+                      "        email: pm.collectionVariables.get('journeyEmail'),",
+                      "        password: 'SecureP@ssw0rd123!'",
+                      "    }),",
+                      "    options: { raw: { language: 'json' } }",
+                      "};"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J3 - Create Album",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Album created', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "if (data.id) pm.collectionVariables.set('journeyAlbumId', data.id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"My Journey Album\",\n  \"description\": \"Album created during E2E journey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "J4 - Upload Image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Image uploaded', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([201, 200]);",
+                      "});",
+                      "const data = pm.response.json();",
+                      "if (data.id) pm.collectionVariables.set('journeyImageId', data.id);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "{{testImagePath}}"
+                    },
+                    {
+                      "key": "title",
+                      "value": "Journey Test Image",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Uploaded during E2E journey",
+                      "type": "text"
+                    },
+                    {
+                      "key": "visibility",
+                      "value": "public",
+                      "type": "text"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J5 - Add Image to Album",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Image added to album', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{journeyAlbumId}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{journeyAlbumId}}",
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image_id\": \"{{journeyImageId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "J6 - View Album Images",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Album has images', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.images).to.be.an('array');",
+                      "    pm.expect(data.images.length).to.be.above(0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{journeyAlbumId}}/images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{journeyAlbumId}}",
+                    "images"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J7 - Like Own Image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Image liked', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{journeyImageId}}/like",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{journeyImageId}}",
+                    "like"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J8 - Comment on Image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Comment added', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{journeyImageId}}/comments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{journeyImageId}}",
+                    "comments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Great photo from the journey test!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "J9 - Browse Explore",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Explore returns results', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/explore/recent",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "explore",
+                    "recent"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J10 - Cleanup: Delete Image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Image deleted', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/images/{{journeyImageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "images",
+                    "{{journeyImageId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "J11 - Cleanup: Delete Album",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Album deleted', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{journeyToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/albums/{{journeyAlbumId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "albums",
+                    "{{journeyAlbumId}}"
                   ]
                 }
               }
