@@ -49,12 +49,26 @@ func New(cfg Config) (*Processor, error) {
 //
 // Returns a ProcessResult containing all variants.
 func (p *Processor) Process(ctx context.Context, input []byte, _ string) (*ProcessResult, error) {
+	// Fast-fail before doing any work when caller context is already cancelled.
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context cancelled: %w", ctx.Err())
+	default:
+	}
+
 	// Acquire semaphore slot (limits concurrent operations)
 	select {
 	case p.semaphore <- struct{}{}:
 		defer func() { <-p.semaphore }()
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context cancelled: %w", ctx.Err())
+	}
+
+	// Context may be cancelled right after acquiring the semaphore.
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context cancelled: %w", ctx.Err())
+	default:
 	}
 
 	// Step 1: Validate image dimensions

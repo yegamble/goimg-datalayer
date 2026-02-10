@@ -14,19 +14,20 @@ This sprint plan is informed by:
 
 ## Current State
 
-**Status**: **Phase 3 IN PROGRESS** (Sprints 1-20 Complete, Sprint 23 In Progress)
+**Status**: **Phase 3 IN PROGRESS** (Sprints 1-20 and 23 Complete, Sprint 24 In Progress)
 
 | Phase | Status | Sprints | Key Deliverables |
 |-------|--------|---------|------------------|
 | Phase 1 (MVP) | ✅ Complete | 1-9 | Core gallery, auth, storage, security, launch prep |
 | Phase 2 (Advanced) | ✅ Complete | 10-15 | 2FA, OAuth, IPFS, moderation, AI NSFW detection |
-| Phase 3 (Current) | 🚧 In Progress | 16-23 | Social cards, groups, test coverage (Sprints 16-20 done) |
+| Phase 3 (Current) | 🚧 In Progress | 16-24 | Social cards, groups, regression hardening, audit remediation |
 
-**Current Sprint**: Sprint 23 - Test Coverage & Regression Prevention
-- Goal: Improve coverage from ~65% to 80%+
-- See `claude/sprint_23_test_coverage_plan.md` for details
+**Current Sprint**: Sprint 24 - Comprehensive Codebase Audit & Critical Fixes
+- Goal: Resolve critical drift, stabilize CI/test health, and complete high-priority audit fixes
+- See `claude/sprint_24_comprehensive_audit_plan.md` for details
 
 **Latest Audit** (2026-02-03): 5 critical issues identified. See `claude/audit_report_2026-02-03.md`.
+**Latest Verification** (2026-02-10): `go test -race ./...` and `make test` pass.
 
 For detailed sprint status, see:
 - `claude/NEXT_STEPS.md` - Current status and next actions
@@ -76,9 +77,9 @@ Based on Flickr/Chevereto competitive analysis:
 | Feature | Priority | Status |
 |---------|----------|--------|
 | MFA (TOTP) | P3 | ✅ DONE (Sprint 11) |
-| Groups/communities | P3 | Backlog |
+| Groups/communities | P3 | ✅ DONE (Sprint 20) |
 | Watermarking | P3 | Backlog |
-| AI-based NSFW detection | P3 | Backlog |
+| AI-based NSFW detection | P3 | ✅ DONE (Sprint 15) |
 | Account tiers/subscriptions | P3 | Backlog |
 | Video support | P3 | Backlog |
 

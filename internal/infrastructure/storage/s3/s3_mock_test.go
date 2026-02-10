@@ -474,14 +474,14 @@ func TestContextPaths(t *testing.T) {
 	})
 
 	t.Run("context with timeout", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 		defer cancel()
 
-		time.Sleep(2 * time.Millisecond)
+		<-ctx.Done()
 
 		err := ctx.Err()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "deadline exceeded")
+		require.Error(t, err)
+		assert.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }
 

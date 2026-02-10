@@ -20,7 +20,7 @@ import (
 const (
 	sqlAddImageToAlbum = `
 		INSERT INTO group_album_images (
-			album_id, image_id, added_by, added_at
+			group_album_id, image_id, added_by, added_at
 		) VALUES (
 			$1, $2, $3, NOW()
 		)
@@ -28,13 +28,13 @@ const (
 
 	sqlRemoveImageFromAlbum = `
 		DELETE FROM group_album_images
-		WHERE album_id = $1 AND image_id = $2
+		WHERE group_album_id = $1 AND image_id = $2
 	`
 
 	sqlIsImageInAlbum = `
 		SELECT EXISTS(
 			SELECT 1 FROM group_album_images
-			WHERE album_id = $1 AND image_id = $2
+			WHERE group_album_id = $1 AND image_id = $2
 		)
 	`
 
@@ -46,7 +46,7 @@ const (
 		       i.created_at, i.updated_at
 		FROM group_album_images gai
 		INNER JOIN images i ON gai.image_id = i.id
-		WHERE gai.album_id = $1 AND i.deleted_at IS NULL
+		WHERE gai.group_album_id = $1 AND i.deleted_at IS NULL
 		ORDER BY gai.added_at DESC
 		LIMIT $2 OFFSET $3
 	`
@@ -55,12 +55,12 @@ const (
 		SELECT COUNT(*)
 		FROM group_album_images gai
 		INNER JOIN images i ON gai.image_id = i.id
-		WHERE gai.album_id = $1 AND i.deleted_at IS NULL
+		WHERE gai.group_album_id = $1 AND i.deleted_at IS NULL
 	`
 
 	sqlGetImageAddedBy = `
 		SELECT added_by FROM group_album_images
-		WHERE album_id = $1 AND image_id = $2
+		WHERE group_album_id = $1 AND image_id = $2
 	`
 )
 

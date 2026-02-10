@@ -29,7 +29,19 @@ type PostgresContainer struct {
 // NewPostgresContainer creates and starts a PostgreSQL 16 testcontainer.
 // It automatically runs migrations from the migrations directory.
 func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer, error) {
-	t.Helper()
+	if t != nil {
+		t.Helper()
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if t != nil && isDockerUnavailablePanic(r) {
+				skipDockerUnavailable(t, r)
+				return
+			}
+			panic(r)
+		}
+	}()
 
 	// Find project root by looking for go.mod file
 	migrationsPath, err := findMigrationsDir()
@@ -50,6 +62,10 @@ func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer
 		),
 	)
 	if err != nil {
+		if t != nil && isDockerUnavailable(err) {
+			skipDockerUnavailable(t, err)
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to start postgres container: %w", err)
 	}
 

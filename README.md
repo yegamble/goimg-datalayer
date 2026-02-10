@@ -4,19 +4,24 @@ Go backend for an image gallery web application (Flickr/Chevereto-style). Provid
 
 ## Status
 
-**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 23 IN PROGRESS** 🚧
+**Last Validated**: **2026-02-10**
+**Current Phase**: **Phase 3 - Advanced Features** | **Sprint 24 IN PROGRESS** 🚧
 
 | Phase | Status | Sprints | Highlights |
 |-------|--------|---------|------------|
 | Phase 1 (MVP) | ✅ Complete | 1-9 | Core gallery, auth, storage, security |
 | Phase 2 (Advanced) | ✅ Complete | 10-15 | 2FA, OAuth, IPFS, moderation, AI NSFW |
-| Phase 3 (In Progress) | 🚧 Active | 16-23 | Social cards, groups, test coverage |
+| Phase 3 (In Progress) | 🚧 Active | 16-24 | Social cards, groups, audit hardening, coverage improvements |
 
-**Sprint 23 (Current)**: Test Coverage & Regression Prevention
-- Target: Improve coverage from ~65% to 80%+
-- See [claude/sprint_23_test_coverage_plan.md](claude/sprint_23_test_coverage_plan.md)
+**Sprint 24 (Current)**: Comprehensive Codebase Audit & Critical Fixes
+- Focus: Resolve cross-artifact drift, stabilize repository tests, and close remaining high-priority audit issues
+- See [claude/sprint_24_comprehensive_audit_plan.md](claude/sprint_24_comprehensive_audit_plan.md)
+
+**Sprint 23**: Test Coverage & Regression Prevention (Complete)
+- Plan: [claude/sprint_23_test_coverage_plan.md](claude/sprint_23_test_coverage_plan.md)
 
 **Latest Audit**: [2026-02-03](claude/audit_report_2026-02-03.md) - 5 critical issues identified
+**Latest Verification**: `go test -race ./...` and `make test` passing on `2026-02-10`
 
 For detailed sprint history, see [claude/sprint_plan.md](claude/sprint_plan.md) and [claude/NEXT_STEPS.md](claude/NEXT_STEPS.md).
 
@@ -146,13 +151,9 @@ See [docs/deployment/environment_variables.md](docs/deployment/environment_varia
 
 ## Test Coverage
 
-**Current**: ~65% overall (Sprint 23 targeting 80%+)
-
-| Layer | Coverage | Target |
-|-------|----------|--------|
-| Domain | 90%+ | 90% |
-| Application | ~40% | 85% |
-| Infrastructure | ~30% | 70% |
+Coverage hardening is active under Sprints 23 and 24.
+Run `make test-coverage` for current metrics in your environment.
+Latest full-suite status (2026-02-10): `go test -race ./...` and `make test` pass.
 
 See [claude/test_strategy.md](claude/test_strategy.md) for testing patterns.
 

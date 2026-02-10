@@ -22,8 +22,20 @@ type RedisContainer struct {
 }
 
 // NewRedisContainer creates and starts a Redis 7 testcontainer.
-func NewRedisContainer(ctx context.Context, t *testing.T) (*RedisContainer, error) {
-	t.Helper()
+func NewRedisContainer(ctx context.Context, t testing.TB) (*RedisContainer, error) {
+	if t != nil {
+		t.Helper()
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			if t != nil && isDockerUnavailablePanic(r) {
+				skipDockerUnavailable(t, r)
+				return
+			}
+			panic(r)
+		}
+	}()
 
 	// Start Redis container
 	redisC, err := rediscontainer.RunContainer(ctx,
@@ -34,6 +46,10 @@ func NewRedisContainer(ctx context.Context, t *testing.T) (*RedisContainer, erro
 		),
 	)
 	if err != nil {
+		if t != nil && isDockerUnavailable(err) {
+			skipDockerUnavailable(t, err)
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to start redis container: %w", err)
 	}
 

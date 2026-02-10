@@ -18,7 +18,7 @@ func BenchmarkSaveWithVariants(b *testing.B) {
 
 	ctx := context.Background()
 
-	pgContainer, err := containers.NewPostgresContainer(ctx, nil)
+	pgContainer, err := containers.NewPostgresContainer(ctx, b)
 	if err != nil {
 		b.Fatalf("failed to start postgres container: %v", err)
 	}

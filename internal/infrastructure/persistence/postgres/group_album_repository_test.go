@@ -282,7 +282,7 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 	createTestGroupAlbum(t, db, album3ID, groupID, creator1ID, "Album 3", false)
 
 	t.Run("finds all albums for group", func(t *testing.T) {
-		pagination, _ := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(1, 10)
 
 		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
 		require.NoError(t, err)
@@ -296,30 +296,29 @@ func TestGroupAlbumRepository_FindByGroup(t *testing.T) {
 	})
 
 	t.Run("respects pagination limit", func(t *testing.T) {
-		pagination, _ := shared.NewPagination(0, 2)
-
-		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
-		require.NoError(t, err)
-		assert.Equal(t, 3, total)
-		assert.Len(t, albums, 2)
-	})
-
-	t.Run("respects pagination offset", func(t *testing.T) {
 		pagination, _ := shared.NewPagination(1, 2)
 
 		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
 		require.NoError(t, err)
 		assert.Equal(t, 3, total)
 		assert.Len(t, albums, 2)
-		assert.Equal(t, album2ID, albums[0].ID())
-		assert.Equal(t, album1ID, albums[1].ID())
+	})
+
+	t.Run("respects pagination page", func(t *testing.T) {
+		pagination, _ := shared.NewPagination(2, 2)
+
+		albums, total, err := repo.FindByGroup(ctx, groupID, pagination)
+		require.NoError(t, err)
+		assert.Equal(t, 3, total)
+		assert.Len(t, albums, 1)
+		assert.Equal(t, album1ID, albums[0].ID())
 	})
 
 	t.Run("returns empty for group with no albums", func(t *testing.T) {
 		emptyGroupID := community.NewGroupID()
 		createTestGroup(t, db, emptyGroupID, ownerID, "empty-group")
 
-		pagination, _ := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(1, 10)
 
 		albums, total, err := repo.FindByGroup(ctx, emptyGroupID, pagination)
 		require.NoError(t, err)
@@ -363,7 +362,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	createTestGroupAlbum(t, db, album4ID, groupID, creator1ID, "Creator1 Album 3", true)
 
 	t.Run("finds albums by specific creator", func(t *testing.T) {
-		pagination, _ := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(1, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator1ID, pagination)
 		require.NoError(t, err)
@@ -382,7 +381,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	})
 
 	t.Run("finds albums by other creator", func(t *testing.T) {
-		pagination, _ := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(1, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator2ID, pagination)
 		require.NoError(t, err)
@@ -396,7 +395,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 		noAlbumsCreatorID := identity.NewUserID()
 		createTestUser(t, db, noAlbumsCreatorID)
 
-		pagination, _ := shared.NewPagination(0, 10)
+		pagination, _ := shared.NewPagination(1, 10)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, noAlbumsCreatorID, pagination)
 		require.NoError(t, err)
@@ -405,7 +404,7 @@ func TestGroupAlbumRepository_FindByGroupAndCreator(t *testing.T) {
 	})
 
 	t.Run("respects pagination", func(t *testing.T) {
-		pagination, _ := shared.NewPagination(0, 2)
+		pagination, _ := shared.NewPagination(1, 2)
 
 		albums, total, err := repo.FindByGroupAndCreator(ctx, groupID, creator1ID, pagination)
 		require.NoError(t, err)
@@ -459,7 +458,7 @@ func TestGroupAlbumRepository_Delete(t *testing.T) {
 
 		// Add image to album
 		_, err := db.Exec(`
-			INSERT INTO group_album_images (album_id, image_id, added_at, added_by)
+			INSERT INTO group_album_images (group_album_id, image_id, added_at, added_by)
 			VALUES ($1, $2, $3, $4)
 		`, albumWithImagesID.String(), imageID.String(), time.Now().UTC(), creatorID.String())
 		require.NoError(t, err)
@@ -470,7 +469,7 @@ func TestGroupAlbumRepository_Delete(t *testing.T) {
 
 		// Verify album images were deleted (cascade)
 		var count int
-		err = db.Get(&count, "SELECT COUNT(*) FROM group_album_images WHERE album_id = $1", albumWithImagesID.String())
+		err = db.Get(&count, "SELECT COUNT(*) FROM group_album_images WHERE group_album_id = $1", albumWithImagesID.String())
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})

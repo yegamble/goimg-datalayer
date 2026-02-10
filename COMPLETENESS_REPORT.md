@@ -1,6 +1,6 @@
 # Codebase Completeness Report: Image Gallery Vision
 
-**Date:** 2026-01-20
+**Date:** 2026-02-10
 **Version:** 1.0
 **Target Vision:** Flickr/Chevereto-style Image Gallery
 
@@ -9,7 +9,7 @@
 This report assesses the completeness of the `goimg-datalayer` codebase against the project vision defined in `README.md`, `claude/mvp_features.md`, and `claude/sprint_plan.md`.
 
 **Overall Status:** **Phase 3 (Advanced Features) - In Progress**
-The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project is currently in Phase 3, Sprint 23, focusing on test coverage.
+The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project is currently in Phase 3, Sprint 24, focused on audit remediation and stability hardening.
 
 **Completeness Score:** ~85% (Estimate based on feature count; unchanged from prior report — recent work is quality/stability)
 
@@ -19,6 +19,17 @@ The core MVP (Phase 1) and most Phase 2 features are **Complete**. The project i
   - Collection-returning methods return empty slices when no items match
 - Fixed error swallowing in Image Upload workflow.
 - Verified and documented `libvips` dependencies.
+
+**Validation Refresh (2026-02-10):**
+- Full suite verification: `go test -race ./...` and `make test` pass.
+- Resolved schema/query drift in group album persistence:
+  - Added migration `00021_add_group_album_visibility.sql` for `group_albums.is_public`
+  - Aligned `group_album_images` SQL usage to `group_album_id`
+- Fixed pagination inconsistencies in repository integration tests (1-indexed page model).
+- Stabilized race-sensitive tests:
+  - Processor context cancellation now fails fast on canceled contexts.
+  - S3 context timeout mock test no longer relies on sleep timing.
+- Integration container setup now skips gracefully when Docker is unavailable instead of panicking.
 
 ## 2. Feature Completeness Matrix
 

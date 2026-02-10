@@ -1,6 +1,6 @@
 # goimg-datalayer Documentation
 
-> **Status**: Phase 3 IN PROGRESS | **Version**: 2.2 | **Updated**: 2026-02-03
+> **Status**: Phase 3 IN PROGRESS | **Version**: 2.3 | **Updated**: 2026-02-10
 
 Welcome to the goimg-datalayer documentation. This is a Go backend for an image gallery application (Flickr/Chevereto-style) supporting uploads, moderation, and user management.
 
@@ -84,7 +84,7 @@ docs/
 
 3. **Run tests**:
    ```bash
-   make test       # Unit tests
+   make test       # Full test suite (race-enabled)
    make lint       # Linting
    make test-e2e   # E2E tests (requires running server)
    ```
@@ -136,7 +136,7 @@ docs/
 |----------|--------|---------|
 | Core Features | Complete | 100% implemented |
 | API Endpoints | Complete | 85 paths (Phase 3 expansion) |
-| Test Coverage | ~65% | Sprint 23 targeting 80%+ |
+| Test Coverage | In progress | Sprint 24 hardening (target: 80%+) |
 | Security | Excellent | A- penetration test rating |
 | Documentation | Complete | All guides written |
 | Deployment | Ready | Production configurations validated |
@@ -175,7 +175,8 @@ All security controls verified for production deployment.
 | 20 | Groups/Communities | ✅ **Complete** |
 | 21 | Video Support | 📋 Backlog |
 | 22 | Account Tiers/Subscriptions | 📋 Backlog |
-| 23 | Test Coverage & Regression Prevention | 🚧 **In Progress** |
+| 23 | Test Coverage & Regression Prevention | ✅ **Complete** |
+| 24 | Comprehensive Codebase Audit & Critical Fixes | 🚧 **In Progress** |
 
 See [Phase 3 Sprint Plan](../claude/phase_3_sprint_plan.md) for detailed planning.
 
