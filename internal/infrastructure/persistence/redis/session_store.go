@@ -19,6 +19,11 @@ const (
 	scanBatchSize = 100
 )
 
+var (
+	// ErrSessionNotFound indicates that the requested session key is not present.
+	ErrSessionNotFound = errors.New("session not found")
+)
+
 // Session represents user session metadata stored in Redis.
 type Session struct {
 	SessionID string    `json:"session_id"` // Unique session identifier
@@ -107,7 +112,7 @@ func (s *SessionStore) Get(ctx context.Context, sessionID string) (*Session, err
 	data, err := s.redis.Get(ctx, sessionKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, fmt.Errorf("session not found")
+			return nil, ErrSessionNotFound
 		}
 		return nil, fmt.Errorf("failed to retrieve session: %w", err)
 	}
@@ -146,7 +151,10 @@ func (s *SessionStore) Revoke(ctx context.Context, sessionID string) error {
 	// Get session to find user ID
 	session, err := s.Get(ctx, sessionID)
 	if err != nil {
-		// Session might already be expired or not exist
+		// Idempotent behavior: already expired/missing session is effectively revoked.
+		if errors.Is(err, ErrSessionNotFound) {
+			return nil
+		}
 		return fmt.Errorf("get session: %w", err)
 	}
 

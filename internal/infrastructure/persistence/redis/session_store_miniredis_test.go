@@ -320,10 +320,9 @@ func TestSessionStore_Revoke_NonexistentSession_Miniredis(t *testing.T) {
 	_, store := setupSessionStore(t)
 	ctx := context.Background()
 
-	// Revoking nonexistent session should return an error
+	// Revoking nonexistent session should be idempotent.
 	err := store.Revoke(ctx, "nonexistent-session")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "get session")
+	require.NoError(t, err)
 }
 
 func TestSessionStore_RevokeAll_Success(t *testing.T) {
