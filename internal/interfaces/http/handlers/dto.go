@@ -351,7 +351,7 @@ type ListNSFWScansByImageResponse struct {
 // POST /api/v1/groups
 type CreateGroupRequest struct {
 	Name        string                   `json:"name" validate:"required,min=3,max=100"`
-	Slug        string                   `json:"slug" validate:"required,min=3,max=100,alphanum"`
+	Slug        string                   `json:"slug" validate:"required,min=3,max=100"`
 	Description string                   `json:"description,omitempty" validate:"omitempty,max=1000"`
 	GroupType   string                   `json:"group_type" validate:"required,oneof=public private invite-only"`
 	Settings    *community.GroupSettings `json:"settings,omitempty"`

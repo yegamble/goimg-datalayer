@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -176,21 +178,40 @@ func MustGetUserFromContext(ctx context.Context) *UserContext {
 // In production, configure this based on your infrastructure.
 func GetClientIP(r *http.Request) string {
 	// Try X-Forwarded-For first (standard for proxies/load balancers)
-	forwarded := r.Header.Get("X-Forwarded-For")
+	forwarded := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
 	if forwarded != "" {
 		// X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2, ...)
 		// First IP is typically the original client
-		return forwarded
+		first := forwarded
+		if idx := strings.IndexByte(forwarded, ','); idx >= 0 {
+			first = forwarded[:idx]
+		}
+		return normalizeClientIP(first)
 	}
 
 	// Try X-Real-IP (some proxies use this instead)
-	realIP := r.Header.Get("X-Real-IP")
+	realIP := strings.TrimSpace(r.Header.Get("X-Real-IP"))
 	if realIP != "" {
-		return realIP
+		return normalizeClientIP(realIP)
 	}
 
 	// Fallback to RemoteAddr (direct connection)
-	return r.RemoteAddr
+	return normalizeClientIP(r.RemoteAddr)
+}
+
+func normalizeClientIP(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return value
+	}
+
+	// Handles "ip:port" and "[ipv6]:port".
+	if host, _, err := net.SplitHostPort(value); err == nil {
+		return strings.Trim(host, "[]")
+	}
+
+	// Handles bracketed IPv6 without port.
+	return strings.Trim(value, "[]")
 }
 
 // GetUserAgent extracts the User-Agent header from the request.

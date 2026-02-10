@@ -581,8 +581,8 @@ func (r *ImageRepository) Search(ctx context.Context, params gallery.SearchParam
 func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string, string, []interface{}) {
 	query := sqlSearchImagesBase
 	countQuery := "SELECT COUNT(DISTINCT i.id) FROM images i"
-	args := []interface{}{params.Query}
-	paramIndex := 2
+	args := []interface{}{}
+	paramIndex := 1
 
 	// Join NSFW scans table if NSFW filtering is needed (most recent scan per image)
 	nsfwJoin := ""
@@ -603,9 +603,12 @@ func (r *ImageRepository) buildSearchQuery(params gallery.SearchParams) (string,
 	// Full-text search condition (only if query is not empty)
 	// Uses pre-computed search_vector column for 10-50x performance improvement
 	if params.Query != "" {
-		conditions = append(conditions,
-			"i.search_vector @@ plainto_tsquery('english', $1)",
-		)
+		conditions = append(conditions, fmt.Sprintf(
+			"i.search_vector @@ plainto_tsquery('english', $%d)",
+			paramIndex,
+		))
+		args = append(args, params.Query)
+		paramIndex++
 	}
 
 	// Filter by visibility
