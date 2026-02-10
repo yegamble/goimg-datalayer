@@ -2,7 +2,9 @@
 
 ## Overview
 
-Comprehensive E2E test suite for the Groups/Communities API endpoints, covering all 14 API endpoints with 27 test scenarios and 105+ assertions.
+Comprehensive E2E test suite for the Groups/Communities API endpoints, covering all API endpoints with 43 test scenarios and 150+ assertions.
+
+> **Updated: 2026-02-10** - Added Group Invitations (10 tests) and Group Album Images (5 tests) in Sprint 23.
 
 ## Test Organization
 
@@ -188,12 +190,63 @@ All 14 Sprint 20 Groups endpoints are covered:
 13. `POST /api/v1/groups/{groupID}/members/{userID}/ban` - Ban member (admin+)
 14. `GET /api/v1/me/groups` - User's groups
 
+### 6. Group Invitations (10 tests) - Added Sprint 23
+Tests for group invitation workflow.
+
+- **Setup - Create User for Invitation Tests** (201)
+  - Creates a user to receive invitations
+
+- **Create Group Invitation - Success** (201)
+  - Group owner/admin creates invitation for a user
+  - Stores invitation token for accept/decline tests
+
+- **Create Group Invitation - Unauthorized** (401)
+  - Tests unauthenticated invitation creation
+
+- **List Group Invitations - Success** (200)
+  - Lists pending invitations for a group
+  - Validates response structure
+
+- **List Group Invitations - Unauthorized** (401)
+  - Tests unauthenticated invitation listing
+
+- **Decline Group Invitation - Invalid Token** (400/404)
+  - Tests declining with invalid token
+
+- **Accept Group Invitation - Success** (200)
+  - Invited user accepts invitation
+  - Validates membership response
+
+- **Accept Group Invitation - Invalid Token** (400/404)
+  - Tests accepting with invalid token
+
+- **Accept Group Invitation - Unauthorized** (401)
+  - Tests unauthenticated acceptance
+
+### 7. Group Album Images (5 tests) - Added Sprint 23
+Tests for adding/removing images in group albums.
+
+- **Add Image to Group Album - Success** (200/201)
+  - Adds an image to a group album
+
+- **Add Image to Group Album - Not Member** (403)
+  - Tests non-member cannot add images
+
+- **Add Image to Group Album - Unauthorized** (401)
+  - Tests unauthenticated image addition
+
+- **Remove Image from Group Album - Success** (204)
+  - Removes an image from a group album
+
+- **Remove Image from Group Album - Not Found** (404)
+  - Tests removing non-existent image
+
 ## Test Metrics
 
-- **Total Test Requests**: 27
-- **Total Assertions**: 105+
+- **Total Test Requests**: 43
+- **Total Assertions**: 150+
 - **Average Assertions per Test**: ~4
-- **API Endpoints Covered**: 14/14 (100%)
+- **API Endpoints Covered**: 100%
 - **HTTP Methods Tested**: GET, POST, PUT, DELETE
 - **Status Codes Tested**: 200, 201, 204, 400, 401, 403, 404, 409
 - **RFC 7807 Error Tests**: 5 tests
@@ -359,7 +412,7 @@ Tests should run in sequence within each category:
 
 ## Success Criteria
 
-All 27 tests passing indicates:
+All 43 tests passing indicates:
 - All 14 Groups API endpoints are functional
 - Authentication and authorization working correctly
 - Group types (public, private, invite-only) behave as specified
