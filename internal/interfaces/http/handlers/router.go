@@ -154,7 +154,6 @@ func NewRouter(
 				r.Post("/register", authHandler.Register)
 				r.Post("/login", authHandler.Login)
 				r.Post("/refresh", authHandler.Refresh)
-				r.Post("/logout", authHandler.Logout)
 
 				// Guest session creation with IP-based rate limiting (10/hour per IP)
 				// Prevents abuse of anonymous upload feature
@@ -299,9 +298,32 @@ func NewRouter(
 			}
 			r.Use(middleware.JWTAuth(authCfg))
 
-			// Mount user routes
-			if userHandler != nil {
-				r.Mount("/users", userHandler.Routes())
+			// Protected logout route: handler requires authenticated user context.
+			if authHandler != nil {
+				r.Post("/auth/logout", authHandler.Logout)
+			}
+
+			// User profile + social user routes + follow routes share a /users subtree.
+			// Registering them together avoids path conflicts between mounted and inline routes.
+			if userHandler != nil || socialHandler != nil || followHandler != nil {
+				r.Route("/users", func(r chi.Router) {
+					if userHandler != nil {
+						r.Get("/me", userHandler.GetCurrentUser)
+						r.Get("/{id}", userHandler.GetUser)
+						r.Put("/{id}", userHandler.UpdateUser)
+						r.Delete("/{id}", userHandler.DeleteUser)
+						r.Get("/{id}/sessions", userHandler.GetUserSessions)
+					}
+
+					if socialHandler != nil {
+						r.Get("/{userID}/likes", socialHandler.GetUserLikedImages)
+					}
+
+					if followHandler != nil {
+						r.Post("/{id}/follow", followHandler.FollowUser)
+						r.Delete("/{id}/follow", followHandler.UnfollowUser)
+					}
+				})
 			}
 
 			// Mount 2FA routes (requires authentication)
@@ -365,19 +387,6 @@ func NewRouter(
 
 				// Comment deletion endpoint (not under images path)
 				r.Delete("/comments/{commentID}", socialHandler.DeleteComment)
-
-				// User liked images endpoint
-				r.Get("/users/{userID}/likes", socialHandler.GetUserLikedImages)
-			}
-
-			// Follow endpoints (authenticated routes)
-			// POST /users/{id}/follow - Follow a user
-			// DELETE /users/{id}/follow - Unfollow a user
-			if followHandler != nil {
-				r.Route("/users/{id}", func(r chi.Router) {
-					r.Post("/follow", followHandler.FollowUser)
-					r.Delete("/follow", followHandler.UnfollowUser)
-				})
 			}
 
 			// Activity feed endpoint (authenticated route)

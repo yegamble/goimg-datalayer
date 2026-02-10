@@ -1,0 +1,429 @@
+{
+  "info": {
+    "name": "GoImg API E2E Smoke Tests",
+    "description": "Stable end-to-end smoke coverage for core auth and album flows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runInitialized')) {",
+          "  const suffix = `${Date.now()}${Math.floor(Math.random() * 10000)}`;",
+          "  pm.collectionVariables.set('testEmail', `smoke-${suffix}@example.com`);",
+          "  pm.collectionVariables.set('testUsername', `smoke${suffix}`);",
+          "  pm.collectionVariables.set('testPassword', 'SecureP@ssw0rd123!');",
+          "  pm.collectionVariables.unset('accessToken');",
+          "  pm.collectionVariables.unset('testUserId');",
+          "  pm.collectionVariables.unset('testAlbumId');",
+          "  pm.collectionVariables.set('runInitialized', 'true');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health - Liveness",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response contains status', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('status');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.collectionVariables.set('testUserId', jsonData.id);",
+              "pm.test('User ID captured', function () {",
+              "  pm.expect(pm.collectionVariables.get('testUserId')).to.be.a('string');",
+              "  pm.expect(pm.collectionVariables.get('testUserId').length).to.be.above(0);",
+              "});",
+              "pm.test('Email and username match request', function () {",
+              "  pm.expect(jsonData.email).to.eql(pm.collectionVariables.get('testEmail'));",
+              "  pm.expect(jsonData.username).to.eql(pm.collectionVariables.get('testUsername'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "const accessToken = (jsonData.tokens && jsonData.tokens.access_token) || jsonData.access_token;",
+              "pm.collectionVariables.set('accessToken', accessToken);",
+              "pm.test('Access token captured', function () {",
+              "  pm.expect(accessToken).to.be.a('string');",
+              "  pm.expect(accessToken.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users - Get Current User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response matches logged in user', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('testUserId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Albums - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Smoke Album\",\n  \"description\": \"Created by smoke E2E\",\n  \"visibility\": \"public\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/albums",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "albums"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const jsonData = pm.response.json();",
+              "pm.collectionVariables.set('testAlbumId', jsonData.id);",
+              "pm.test('Album ID captured', function () {",
+              "  pm.expect(pm.collectionVariables.get('testAlbumId')).to.be.a('string');",
+              "  pm.expect(pm.collectionVariables.get('testAlbumId').length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Albums - Get By ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/albums/{{testAlbumId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "albums",
+            "{{testAlbumId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Album ID matches', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('testAlbumId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Albums - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/albums/{{testAlbumId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "albums",
+            "{{testAlbumId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 204', function () {",
+              "  pm.response.to.have.status(204);",
+              "});",
+              "pm.test('Response body is empty', function () {",
+              "  pm.expect(pm.response.text()).to.eql('');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth - Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 204', function () {",
+              "  pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users - Access After Logout",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "  pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Error response includes detail', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('detail');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1"
+    },
+    {
+      "key": "testEmail",
+      "value": ""
+    },
+    {
+      "key": "testUsername",
+      "value": ""
+    },
+    {
+      "key": "testPassword",
+      "value": "SecureP@ssw0rd123!"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "testUserId",
+      "value": ""
+    },
+    {
+      "key": "testAlbumId",
+      "value": ""
+    },
+    {
+      "key": "runInitialized",
+      "value": ""
+    }
+  ]
+}

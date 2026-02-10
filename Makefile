@@ -1,4 +1,4 @@
-.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e test-e2e-folder test-e2e-dry test-e2e-report test-all load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit setup-e2e ci-local agent-check agent-check-quick
+.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e test-e2e-full test-e2e-folder test-e2e-dry test-e2e-report test-all load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit setup-e2e ci-local agent-check agent-check-quick
 
 # Default target
 help:
@@ -11,7 +11,8 @@ help:
 	@echo "  test-domain       - Run domain layer tests with 90% threshold"
 	@echo "  test-unit         - Run unit tests only"
 	@echo "  test-integration  - Run integration tests only"
-	@echo "  test-e2e          - Run Newman/Postman E2E tests"
+	@echo "  test-e2e          - Run Newman/Postman smoke E2E tests"
+	@echo "  test-e2e-full     - Run full Newman/Postman E2E test suite"
 	@echo "  load-test                    - Run all k6 load tests"
 	@echo "  load-test-quick              - Run quick smoke load test (1 minute)"
 	@echo "  load-test-auth               - Run authentication flow load test"
@@ -42,7 +43,8 @@ help:
 	@echo ""
 	@echo "E2E Testing:"
 	@echo "  setup-e2e         - Install Newman and E2E test dependencies"
-	@echo "  test-e2e          - Run full Newman/Postman E2E test suite"
+	@echo "  test-e2e          - Run smoke Newman/Postman E2E suite"
+	@echo "  test-e2e-full     - Run full Newman/Postman E2E suite"
 	@echo "  test-e2e-folder   - Run E2E tests for a specific folder (FOLDER=Auth)"
 	@echo "  test-e2e-dry      - Validate Postman collection without running tests"
 	@echo "  test-e2e-report   - Run E2E tests with HTML report generation"
@@ -128,9 +130,92 @@ test-integration:
 	@echo "Note: Docker must be running for testcontainers"
 	@go test -race -tags=integration -v -timeout=10m ./tests/integration/...
 
-# E2E tests (Newman/Postman)
+# E2E smoke tests (Newman/Postman)
 test-e2e:
-	@echo "Running Newman E2E tests..."
+	@echo "Running Newman E2E smoke tests..."
+	@if [ ! -f tests/e2e/postman/goimg-api.smoke.postman_collection.json ]; then \
+		echo "Postman smoke collection not found: tests/e2e/postman/goimg-api.smoke.postman_collection.json"; \
+		exit 1; \
+	fi
+	@if ! command -v newman &> /dev/null; then \
+		echo "Newman not installed. Install with: npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1"; \
+		exit 1; \
+	fi
+	@if ! command -v curl &> /dev/null; then \
+		echo "curl is required for API health checks."; \
+		exit 1; \
+	fi
+	@set -e; \
+		API_HEALTH_URL="http://localhost:8080/api/v1/health"; \
+		STARTED_API=0; \
+		API_PID=""; \
+		cleanup() { \
+			if [ "$$STARTED_API" -eq 1 ] && [ -n "$$API_PID" ] && kill -0 "$$API_PID" > /dev/null 2>&1; then \
+				echo "Stopping auto-started API (PID $$API_PID)..."; \
+				kill "$$API_PID" > /dev/null 2>&1 || true; \
+				wait "$$API_PID" 2>/dev/null || true; \
+			fi; \
+		}; \
+		trap cleanup EXIT INT TERM; \
+		if ! curl -sf "$$API_HEALTH_URL" > /dev/null; then \
+			echo "API is not reachable at $$API_HEALTH_URL; auto-starting local E2E stack..."; \
+			if ! command -v docker > /dev/null 2>&1; then \
+				echo "Docker is required to auto-start E2E dependencies."; \
+				exit 1; \
+			fi; \
+			$(DOCKER_COMPOSE) -f docker/docker-compose.yml up -d postgres redis; \
+			echo "Waiting for PostgreSQL (goimg-postgres)..."; \
+			TRIES=0; \
+			until docker exec goimg-postgres pg_isready -U goimg > /dev/null 2>&1; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 30 ]; then \
+					echo "PostgreSQL did not become ready in time."; \
+					exit 1; \
+				fi; \
+				sleep 2; \
+			done; \
+			echo "Waiting for Redis (goimg-redis)..."; \
+			TRIES=0; \
+			until docker exec goimg-redis redis-cli ping > /dev/null 2>&1; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 30 ]; then \
+					echo "Redis did not become ready in time."; \
+					exit 1; \
+				fi; \
+				sleep 1; \
+			done; \
+			if ! command -v goose > /dev/null 2>&1; then \
+				echo "goose not found; installing migration tool..."; \
+				GOTOOLCHAIN=local go install github.com/pressly/goose/v3/cmd/goose@v3.24.2; \
+				export PATH="$$PATH:$$(go env GOPATH)/bin"; \
+			fi; \
+			echo "Running database migrations for E2E..."; \
+			DB_HOST=localhost DB_PORT=5432 DB_USER=goimg DB_PASSWORD=goimg_dev_password DB_NAME=goimg DB_SSL_MODE=disable $(MAKE) migrate-up; \
+			echo "Starting API for E2E tests..."; \
+			DB_HOST=localhost DB_PORT=5432 DB_USER=goimg DB_PASSWORD=goimg_dev_password DB_NAME=goimg DB_SSL_MODE=disable nohup go run ./cmd/api > /tmp/goimg-e2e-api.log 2>&1 & \
+			API_PID=$$!; \
+			STARTED_API=1; \
+			echo "Auto-started API PID $$API_PID (logs: /tmp/goimg-e2e-api.log)"; \
+			TRIES=0; \
+			until curl -sf "$$API_HEALTH_URL" > /dev/null; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 60 ]; then \
+					echo "API failed to become healthy in time. Recent log output:"; \
+					tail -n 80 /tmp/goimg-e2e-api.log || true; \
+					exit 1; \
+				fi; \
+				sleep 1; \
+			done; \
+		fi; \
+		newman run tests/e2e/postman/goimg-api.smoke.postman_collection.json \
+			--environment tests/e2e/postman/ci.postman_environment.json \
+			--reporters cli,htmlextra \
+			--reporter-htmlextra-export newman-report.html
+	@echo "E2E test report: newman-report.html"
+
+# Full E2E test suite (legacy comprehensive collection)
+test-e2e-full:
+	@echo "Running full Newman E2E suite..."
 	@if [ ! -f tests/e2e/postman/goimg-api.postman_collection.json ]; then \
 		echo "Postman collection not found: tests/e2e/postman/goimg-api.postman_collection.json"; \
 		exit 1; \
@@ -139,10 +224,76 @@ test-e2e:
 		echo "Newman not installed. Install with: npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1"; \
 		exit 1; \
 	fi
-	@newman run tests/e2e/postman/goimg-api.postman_collection.json \
-		--environment tests/e2e/postman/ci.postman_environment.json \
-		--reporters cli,htmlextra \
-		--reporter-htmlextra-export newman-report.html
+	@if ! command -v curl &> /dev/null; then \
+		echo "curl is required for API health checks."; \
+		exit 1; \
+	fi
+	@set -e; \
+		API_HEALTH_URL="http://localhost:8080/api/v1/health"; \
+		STARTED_API=0; \
+		API_PID=""; \
+		cleanup() { \
+			if [ "$$STARTED_API" -eq 1 ] && [ -n "$$API_PID" ] && kill -0 "$$API_PID" > /dev/null 2>&1; then \
+				echo "Stopping auto-started API (PID $$API_PID)..."; \
+				kill "$$API_PID" > /dev/null 2>&1 || true; \
+				wait "$$API_PID" 2>/dev/null || true; \
+			fi; \
+		}; \
+		trap cleanup EXIT INT TERM; \
+		if ! curl -sf "$$API_HEALTH_URL" > /dev/null; then \
+			echo "API is not reachable at $$API_HEALTH_URL; auto-starting local E2E stack..."; \
+			if ! command -v docker > /dev/null 2>&1; then \
+				echo "Docker is required to auto-start E2E dependencies."; \
+				exit 1; \
+			fi; \
+			$(DOCKER_COMPOSE) -f docker/docker-compose.yml up -d postgres redis; \
+			echo "Waiting for PostgreSQL (goimg-postgres)..."; \
+			TRIES=0; \
+			until docker exec goimg-postgres pg_isready -U goimg > /dev/null 2>&1; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 30 ]; then \
+					echo "PostgreSQL did not become ready in time."; \
+					exit 1; \
+				fi; \
+				sleep 2; \
+			done; \
+			echo "Waiting for Redis (goimg-redis)..."; \
+			TRIES=0; \
+			until docker exec goimg-redis redis-cli ping > /dev/null 2>&1; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 30 ]; then \
+					echo "Redis did not become ready in time."; \
+					exit 1; \
+				fi; \
+				sleep 1; \
+			done; \
+			if ! command -v goose > /dev/null 2>&1; then \
+				echo "goose not found; installing migration tool..."; \
+				GOTOOLCHAIN=local go install github.com/pressly/goose/v3/cmd/goose@v3.24.2; \
+				export PATH="$$PATH:$$(go env GOPATH)/bin"; \
+			fi; \
+			echo "Running database migrations for E2E..."; \
+			DB_HOST=localhost DB_PORT=5432 DB_USER=goimg DB_PASSWORD=goimg_dev_password DB_NAME=goimg DB_SSL_MODE=disable $(MAKE) migrate-up; \
+			echo "Starting API for E2E tests..."; \
+			DB_HOST=localhost DB_PORT=5432 DB_USER=goimg DB_PASSWORD=goimg_dev_password DB_NAME=goimg DB_SSL_MODE=disable nohup go run ./cmd/api > /tmp/goimg-e2e-api.log 2>&1 & \
+			API_PID=$$!; \
+			STARTED_API=1; \
+			echo "Auto-started API PID $$API_PID (logs: /tmp/goimg-e2e-api.log)"; \
+			TRIES=0; \
+			until curl -sf "$$API_HEALTH_URL" > /dev/null; do \
+				TRIES=$$((TRIES + 1)); \
+				if [ "$$TRIES" -ge 60 ]; then \
+					echo "API failed to become healthy in time. Recent log output:"; \
+					tail -n 80 /tmp/goimg-e2e-api.log || true; \
+					exit 1; \
+				fi; \
+				sleep 1; \
+			done; \
+		fi; \
+		newman run tests/e2e/postman/goimg-api.postman_collection.json \
+			--environment tests/e2e/postman/ci.postman_environment.json \
+			--reporters cli,htmlextra \
+			--reporter-htmlextra-export newman-report.html
 	@echo "E2E test report: newman-report.html"
 
 # Load tests (k6)
