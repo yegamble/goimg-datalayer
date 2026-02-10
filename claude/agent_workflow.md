@@ -256,11 +256,12 @@ When an agent is working on a task, use this format for progress updates:
 ### Pre-Merge Review Process
 
 **Phase 1: Self-Review** (Agent completing work)
-1. Run checklist from `/home/user/goimg-datalayer/claude/agent_checklist.md`
-2. Verify all acceptance criteria met
-3. Confirm tests pass: `go test -race ./...`
-4. Validate OpenAPI if HTTP changes: `make validate-openapi`
-5. Check linting: `golangci-lint run`
+1. **Run `make agent-check`** (MANDATORY - blocks push if failed)
+2. Run checklist from `/home/user/goimg-datalayer/claude/agent_checklist.md`
+3. Verify all acceptance criteria met
+4. Confirm tests pass: `go test -race ./...` (if Go toolchain available)
+5. Validate OpenAPI if HTTP changes: `make validate-openapi`
+6. Check linting: `golangci-lint run` (if Go toolchain available)
 
 **Phase 2: Peer Review** (If specified in assignment)
 1. Scrum master assigns review to appropriate agent
@@ -807,6 +808,8 @@ When work is complete, the agent should document:
 **Trigger**: Before merging feature branch to main
 
 **Checklist** (from `claude/agent_checklist.md`):
+- [ ] Agent CI Check
+  - `make agent-check` passes (MANDATORY - no exceptions)
 - [ ] Code Quality
   - `go fmt ./...` passes
   - `go vet ./...` passes

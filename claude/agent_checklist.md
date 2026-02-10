@@ -17,28 +17,50 @@ See `claude/audit_report_2026-02-03.md` for full details and fix recommendations
 
 ---
 
-## Mandatory Lint Before Push
+## Mandatory CI Check Before Push
 
-> **ALL CLAUDE AGENTS MUST RUN LINT BEFORE PUSHING ANY COMMITS**
+> **ALL CLAUDE AGENTS MUST RUN `make agent-check` BEFORE PUSHING ANY COMMITS**
 
 ```bash
-# REQUIRED: Run before every commit/push
-make pre-commit
+# REQUIRED: Run before every push (MANDATORY - NO EXCEPTIONS)
+make agent-check            # Full check (Go + non-Go changes)
+make agent-check-quick      # Quick check (non-Go changes only)
+
+# RECOMMENDED: Additional checks if Go toolchain available
+make pre-commit             # go fmt + go vet + golangci-lint
 ```
 
-If lint fails:
+### Agent Push Sequence (REQUIRED)
 
-1. Fix ALL lint errors
-2. Run `make pre-commit` again
-3. Only push when lint passes
+```bash
+# 1. Stage changes
+git add <files>
 
-**Never use `git commit --no-verify` or skip lint checks.**
+# 2. Run CI check (MANDATORY)
+make agent-check
+
+# 3. Commit (only if step 2 passes)
+git commit -m "message"
+
+# 4. Push
+git push -u origin <branch>
+```
+
+If checks fail:
+
+1. Fix ALL failures
+2. Re-run `make agent-check` until it passes
+3. Only push when all checks pass
+
+**Never use `git commit --no-verify` or skip CI checks.**
 
 ## Quick Validation Commands
 
 ```bash
-# Run all checks (use this before pushing)
-make pre-commit                               # MANDATORY lint check
+# MANDATORY before push
+make agent-check                              # Agent CI validation
+# Additional checks
+make pre-commit                               # Full lint check
 go test -race ./...
 make validate-openapi
 ```
@@ -275,7 +297,8 @@ user, err := NewUser(email, username, hash)  // ✓ Validates
 
 Before submitting PR:
 
-- [ ] **`make pre-commit` passes** (MANDATORY - lint check)
+- [ ] **`make agent-check` passes** (MANDATORY - agent CI validation)
+- [ ] **`make pre-commit` passes** (MANDATORY - lint check, if Go toolchain available)
 - [ ] All CI checks pass
 - [ ] Code coverage maintained or improved
 - [ ] OpenAPI spec updated (if API changed)

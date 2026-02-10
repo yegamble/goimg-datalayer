@@ -1,4 +1,4 @@
-.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e test-e2e-folder test-e2e-dry test-e2e-report test-all load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit setup-e2e ci-local
+.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e test-e2e-folder test-e2e-dry test-e2e-report test-all load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit setup-e2e ci-local agent-check agent-check-quick
 
 # Default target
 help:
@@ -50,10 +50,14 @@ help:
 	@echo "Local CI:"
 	@echo "  ci-local          - Run complete CI pipeline locally (lint + test + e2e)"
 	@echo "  test-all          - Run all test types (unit + integration + domain)"
+	@echo ""
+	@echo "Agent CI Enforcement (MANDATORY for Claude agents):"
+	@echo "  agent-check       - Run all agent CI checks before pushing (REQUIRED)"
+	@echo "  agent-check-quick - Run quick checks only (no Go compilation)"
 
 # Go version check - enforces minimum Go 1.25
 GO_VERSION_MIN := 1.25
-GO_VERSION_CURRENT := $(shell go version | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
+GO_VERSION_CURRENT := $(shell GOTOOLCHAIN=local go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
 GO_VERSION_OK := $(shell printf '%s\n%s' "$(GO_VERSION_MIN)" "$(GO_VERSION_CURRENT)" | sort -V | head -n1)
 
 check-go-version:
@@ -510,3 +514,15 @@ ci-local: check-go-version
 	@echo ""
 	@echo "Note: Integration and E2E tests require Docker services."
 	@echo "Run 'make docker-up' first, then 'make test-integration' and 'make test-e2e'"
+
+# Agent CI Check - MANDATORY before every push (Claude agents)
+# Validates core CI checks locally to prevent pipeline failures
+agent-check:
+	@echo "Running agent CI checks (MANDATORY before push)..."
+	@./scripts/agent-ci-check.sh
+
+# Agent CI Check - Quick mode (no Go compilation)
+# Use when you only changed non-Go files (JSON, Markdown, YAML, etc.)
+agent-check-quick:
+	@echo "Running quick agent CI checks..."
+	@./scripts/agent-ci-check.sh --quick
