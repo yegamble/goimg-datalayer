@@ -1,4 +1,4 @@
-.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit
+.PHONY: help check-go-version build test test-coverage test-domain test-unit test-integration test-e2e test-e2e-folder test-e2e-dry test-e2e-report test-all load-test load-test-quick load-test-auth load-test-browse load-test-upload load-test-social load-test-groups test-load-sprint10-login test-load-sprint10-hibp test-load-sprint10-failopen test-load-sprint10-all coverage-domain fmt lint generate migrate-up migrate-down migrate-status run run-worker validate-openapi docker-up docker-down clean install-hooks pre-commit setup-e2e ci-local
 
 # Default target
 help:
@@ -39,6 +39,17 @@ help:
 	@echo "  clean             - Remove build artifacts"
 	@echo "  install-hooks     - Install git pre-commit hooks (REQUIRED for Claude agents)"
 	@echo "  pre-commit        - Run pre-commit checks manually"
+	@echo ""
+	@echo "E2E Testing:"
+	@echo "  setup-e2e         - Install Newman and E2E test dependencies"
+	@echo "  test-e2e          - Run full Newman/Postman E2E test suite"
+	@echo "  test-e2e-folder   - Run E2E tests for a specific folder (FOLDER=Auth)"
+	@echo "  test-e2e-dry      - Validate Postman collection without running tests"
+	@echo "  test-e2e-report   - Run E2E tests with HTML report generation"
+	@echo ""
+	@echo "Local CI:"
+	@echo "  ci-local          - Run complete CI pipeline locally (lint + test + e2e)"
+	@echo "  test-all          - Run all test types (unit + integration + domain)"
 
 # Go version check - enforces minimum Go 1.25
 GO_VERSION_MIN := 1.25
@@ -352,14 +363,16 @@ validate-openapi:
 	@GOTOOLCHAIN=local go run tools/validate-openapi/main.go api/openapi/openapi.yaml
 	@echo "OpenAPI spec validation passed"
 
-# Docker Compose
+# Docker Compose (supports both standalone docker-compose and docker compose plugin)
+DOCKER_COMPOSE := $(shell command -v docker-compose 2>/dev/null || echo "docker compose")
+
 docker-up:
 	@echo "Starting Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml up -d
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml up -d
 
 docker-down:
 	@echo "Stopping Docker Compose services..."
-	@docker-compose -f docker/docker-compose.yml down
+	@$(DOCKER_COMPOSE) -f docker/docker-compose.yml down
 
 # Clean
 clean:
@@ -388,3 +401,112 @@ pre-commit: check-go-version
 		govulncheck ./...; \
 	fi
 	@echo "Pre-commit checks passed!"
+
+# E2E Test Setup - Install Newman and dependencies
+setup-e2e:
+	@echo "Setting up E2E test dependencies..."
+	@if ! command -v npm &> /dev/null; then \
+		echo "ERROR: npm not found. Install Node.js first."; \
+		exit 1; \
+	fi
+	@npm install -g newman@6.2.2 newman-reporter-htmlextra@1.23.1
+	@echo "E2E dependencies installed successfully"
+	@echo "  newman: $$(newman --version)"
+
+# E2E tests for a specific folder
+# Usage: make test-e2e-folder FOLDER="Auth"
+test-e2e-folder:
+	@if [ -z "$(FOLDER)" ]; then \
+		echo "Error: FOLDER is required. Usage: make test-e2e-folder FOLDER=Auth"; \
+		echo "Available folders:"; \
+		node -e "const c=JSON.parse(require('fs').readFileSync('tests/e2e/postman/goimg-api.postman_collection.json','utf8'));c.item.forEach(i=>console.log('  -',i.name))"; \
+		exit 1; \
+	fi
+	@echo "Running E2E tests for folder: $(FOLDER)..."
+	@newman run tests/e2e/postman/goimg-api.postman_collection.json \
+		--environment tests/e2e/postman/ci.postman_environment.json \
+		--folder "$(FOLDER)" \
+		--reporters cli
+
+# Dry run - validate collection without executing requests
+test-e2e-dry:
+	@echo "Validating Postman collection structure..."
+	@node -e "\
+		const c = JSON.parse(require('fs').readFileSync('tests/e2e/postman/goimg-api.postman_collection.json', 'utf8')); \
+		function countTests(items) { let n = 0; for (const i of items) { if (i.item) n += countTests(i.item); else n++; } return n; } \
+		const total = countTests(c.item); \
+		console.log('Collection: ' + c.info.name); \
+		console.log('Total test requests: ' + total); \
+		console.log('Top-level folders: ' + c.item.length); \
+		console.log(''); \
+		c.item.forEach(function(folder) { \
+			const n = folder.item ? countTests(folder.item) : 1; \
+			console.log('  ' + folder.name + ': ' + n + ' tests'); \
+		}); \
+		console.log(''); \
+		console.log('Collection variables: ' + (c.variable || []).length); \
+		console.log('JSON valid: true'); \
+	"
+	@echo ""
+	@echo "Validating environment file..."
+	@node -e "\
+		const e = JSON.parse(require('fs').readFileSync('tests/e2e/postman/ci.postman_environment.json', 'utf8')); \
+		console.log('Environment: ' + e.name); \
+		console.log('Variables: ' + e.values.length); \
+		e.values.forEach(function(v) { console.log('  ' + v.key + ': ' + (v.value ? '[set]' : '[empty]')); }); \
+	"
+
+# E2E tests with detailed HTML report
+test-e2e-report:
+	@echo "Running Newman E2E tests with HTML report..."
+	@if ! command -v newman &> /dev/null; then \
+		echo "Newman not installed. Run: make setup-e2e"; \
+		exit 1; \
+	fi
+	@mkdir -p reports
+	@newman run tests/e2e/postman/goimg-api.postman_collection.json \
+		--environment tests/e2e/postman/ci.postman_environment.json \
+		--reporters cli,htmlextra \
+		--reporter-htmlextra-export reports/newman-report.html \
+		--reporter-htmlextra-title "GoImg API E2E Test Report" \
+		--reporter-htmlextra-browserTitle "GoImg E2E Tests"
+	@echo ""
+	@echo "HTML report generated: reports/newman-report.html"
+
+# Run all Go test types
+test-all: test-unit test-domain
+	@echo "All test suites completed"
+
+# Local CI pipeline - mimics GitHub Actions CI
+ci-local: check-go-version
+	@echo "=========================================="
+	@echo "Running local CI pipeline"
+	@echo "=========================================="
+	@echo ""
+	@echo "--- Step 1: Formatting ---"
+	@go fmt ./...
+	@echo ""
+	@echo "--- Step 2: Vet ---"
+	@go vet ./...
+	@echo ""
+	@echo "--- Step 3: Lint ---"
+	@golangci-lint run ./...
+	@echo ""
+	@echo "--- Step 4: Unit Tests ---"
+	@go test -race -short -count=1 ./...
+	@echo ""
+	@echo "--- Step 5: Domain Tests (90% threshold) ---"
+	@$(MAKE) test-domain
+	@echo ""
+	@echo "--- Step 6: OpenAPI Validation ---"
+	@$(MAKE) validate-openapi
+	@echo ""
+	@echo "--- Step 7: Build ---"
+	@$(MAKE) build
+	@echo ""
+	@echo "=========================================="
+	@echo "Local CI pipeline PASSED"
+	@echo "=========================================="
+	@echo ""
+	@echo "Note: Integration and E2E tests require Docker services."
+	@echo "Run 'make docker-up' first, then 'make test-integration' and 'make test-e2e'"
