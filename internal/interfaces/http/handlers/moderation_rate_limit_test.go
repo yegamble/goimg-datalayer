@@ -183,7 +183,8 @@ func TestModerationRateLimitIntegration(t *testing.T) {
 	mockEventPub := new(MockEventPublisher)
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
-	metrics := middleware.NewMetricsCollector()
+	// Use singleton metrics collector to avoid panic if run alongside other tests
+	metrics := getTestMetricsCollector()
 
 	// 4. Create Handler
 	createReportHandler := commands.NewCreateReportHandler(
