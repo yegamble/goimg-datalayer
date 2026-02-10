@@ -139,9 +139,21 @@ make validate-openapi # Validate API spec (if changed)
 
 **Newman/Postman is mandatory** for all API endpoints:
 
-- **Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
+- **Collection**: `tests/e2e/postman/goimg-api.postman_collection.json` (290 tests across 20 categories)
 - **Environment**: `tests/e2e/postman/ci.postman_environment.json`
+- **Coverage**: ~100% endpoint coverage
 - **CI Integration**: E2E tests run automatically in GitHub Actions after build
+
+### Makefile Targets
+
+```bash
+make setup-e2e                      # One-time setup (creates test environment)
+make test-e2e                       # Run full E2E suite (290 tests)
+make test-e2e-folder FOLDER=Auth    # Run specific category
+make test-e2e-dry                   # Validate collection structure
+make test-e2e-report                # Generate HTML report
+make ci-local                       # Run full CI pipeline locally
+```
 
 ### When Adding New Features
 
@@ -189,11 +201,16 @@ docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 # Option 1: Use the pre-commit make target (RECOMMENDED)
 make pre-commit
 
-# Option 2: Run commands individually
+# Option 2: Run full CI pipeline locally (includes all checks + E2E tests)
+make ci-local
+
+# Option 3: Run commands individually
 go fmt ./... && go vet ./... && golangci-lint run
 go test -race ./...
 make validate-openapi
 make test-e2e  # Run Newman E2E tests (requires API server running)
 ```
+
+**Recommended**: Use `make ci-local` to run the complete CI pipeline locally before pushing.
 
 See `claude/agent_checklist.md` for the full verification checklist.

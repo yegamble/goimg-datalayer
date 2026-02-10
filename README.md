@@ -156,6 +156,42 @@ See [docs/deployment/environment_variables.md](docs/deployment/environment_varia
 
 See [claude/test_strategy.md](claude/test_strategy.md) for testing patterns.
 
+## E2E Testing
+
+**290 Postman E2E tests** across 20 categories provide comprehensive API validation.
+
+**Coverage**: ~100% endpoint coverage with tests for happy paths, error handling, authentication, authorization, and regression detection.
+
+### Running E2E Tests
+
+```bash
+# Setup (one-time, creates test environment)
+make setup-e2e
+
+# Run all E2E tests
+make test-e2e              # Full suite (290 tests)
+
+# Run specific category
+make test-e2e-folder FOLDER=Auth
+make test-e2e-folder FOLDER=Images
+make test-e2e-folder FOLDER=Albums
+
+# Dry run (validate collection structure)
+make test-e2e-dry
+
+# Generate detailed HTML report
+make test-e2e-report
+
+# Run full CI pipeline locally
+make ci-local              # Lint, test, E2E, validate OpenAPI
+```
+
+**Docker Compose Compatibility**: E2E tests support both standalone (`docker-compose`) and plugin (`docker compose`) commands.
+
+**Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
+
+See [tests/e2e/README.md](tests/e2e/README.md) for collection structure and test categories.
+
 ## Contributing
 
 1. Follow [claude/coding.md](claude/coding.md) for coding standards
