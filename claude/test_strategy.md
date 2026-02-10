@@ -20,7 +20,7 @@ This test strategy defines a comprehensive, multi-layered testing approach align
 
 ```
                     ┌─────────────────────┐
-                    │   E2E Tests         │  10-15% (~50-75 tests)
+                    │   E2E Tests         │  10-15% (290 tests ✅)
                     │   Newman/Postman    │  Full API workflows
                     │   Contract Tests    │  OpenAPI validation
                     ├─────────────────────┤
@@ -1136,8 +1136,34 @@ func TestAuthHandler_Login(t *testing.T) {
 
 ### Newman/Postman E2E Tests
 
+**Current Status**: ✅ 100% Coverage (290 tests across 20 categories)
+
+**Test Categories**:
+1. Authentication (Register, Login, Refresh, Logout)
+2. Two-Factor Authentication (Setup, Verify, Disable, Backup Codes)
+3. OAuth (Google, GitHub - Initiate, Callback, Link/Unlink)
+4. Images (Upload, Get, Update, Delete, List, Search)
+5. Albums (CRUD, Add/Remove Images, Nested Albums)
+6. Image Variants (Custom variants, Configs, Formats)
+7. Tags (Create, Popular, Trending, Search)
+8. Likes & Comments (Add/Remove, List, Moderation)
+9. Reports (Submit, Review, Resolve, Dismiss)
+10. User Bans (Ban, Unban, Status, List)
+11. NSFW Detection (Scan, List Flagged, Scan History)
+12. Groups (CRUD, Join/Leave, Roles, Settings)
+13. Group Albums (CRUD, Image Management)
+14. Group Invitations (Invite, Accept, Decline)
+15. User Follows (Follow, Unfollow, List)
+16. Activity Feeds (User timeline, Group feeds)
+17. Notifications (List, Mark Read, Unread Count)
+18. IPFS (Pin, Unpin, Status)
+19. Featured Picks (Feature/Unfeature, List)
+20. oEmbed & Previews (Rich preview generation)
+
+**Collection Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
+
 ```json
-// tests/e2e/postman/goimg-collection.json
+// tests/e2e/postman/goimg-api.postman_collection.json
 {
   "info": {
     "name": "goimg API Tests",

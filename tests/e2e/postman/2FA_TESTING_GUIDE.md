@@ -4,7 +4,9 @@ This guide explains how to run the Newman/Postman E2E tests for the Two-Factor A
 
 ## Test Coverage
 
-The 2FA test suite includes **13 comprehensive test requests** covering:
+The 2FA test suite includes **15 comprehensive test requests** covering:
+
+> **Updated: 2026-02-10** - Added 2FA Login Verify tests (2 tests) in Sprint 23.
 
 ### Happy Path Tests
 1. **Setup 2FA - Success**: Initiates 2FA setup and receives TOTP secret + backup codes
@@ -22,6 +24,10 @@ The 2FA test suite includes **13 comprehensive test requests** covering:
 11. **Disable 2FA - Not Enabled**: Tests disabling when not enabled (404/400)
 12. **Disable 2FA - Wrong Password**: Tests password validation (401 Unauthorized)
 13. **Regenerate Backup Codes - Wrong Password**: Tests password validation (401 Unauthorized)
+
+### 2FA Login Verify Tests (Added Sprint 23)
+14. **2FA Login Verify - No 2FA Setup**: Tests login verify without 2FA enabled (400/401)
+15. **2FA Login Verify - Invalid Code**: Tests login verify with invalid code (400/401)
 
 ## Test Organization
 
@@ -185,6 +191,7 @@ The following endpoints are tested:
 - `POST /api/v1/auth/2fa/disable`
 - `GET /api/v1/auth/2fa/status`
 - `POST /api/v1/auth/2fa/backup-codes/regenerate`
+- `POST /api/v1/auth/2fa/login-verify`
 
 ## Troubleshooting
 

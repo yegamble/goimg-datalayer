@@ -105,6 +105,59 @@ make lint && make test && make validate-openapi
 2.  **CI/CD Verification**: Passing all GitHub Actions CI/CD checks (Lint, Unit Tests, Integration Tests, E2E) is **mandatory** before merging.
 3.  **Regression Checks**: Agents must explicitly check for testing and product regressions. Do not remove critical functions.
 4.  **Robustness**: If a fix works due to a missing component or is flaky, the agent **must** continue working until the solution is robust and tests pass reliably.
+5.  **Local CI Checks Before Push**: Every agent **MUST** run `make agent-check` before pushing ANY commits. No exceptions. See [Agent CI Check Protocol](#agent-ci-check-protocol) below.
+
+## Agent CI Check Protocol
+
+> **CRITICAL**: This is a BLOCKING requirement. Agents that skip this step will cause CI failures and wasted time.
+
+### When to Run
+
+| Event | Required Check |
+|-------|---------------|
+| Before every `git push` | `make agent-check` (full) |
+| Before committing non-Go files only (JSON, MD, YAML) | `make agent-check-quick` (quick) |
+| After any code changes | `make agent-check` (full) |
+| Before creating a PR | `make agent-check` (full) |
+
+### How to Run
+
+```bash
+# MANDATORY: Run before every push
+make agent-check
+
+# Quick mode (non-Go changes only)
+make agent-check-quick
+
+# Full CI pipeline (when Go toolchain is available)
+make ci-local
+```
+
+### What It Checks
+
+1. **Postman Collection Validity** - JSON structure, test count
+2. **Environment File Validity** - CI environment variables
+3. **OpenAPI Spec** - Spec file present and readable
+4. **Go Formatting** - `go fmt` (full mode only)
+5. **Go Vet** - Static analysis (full mode only)
+6. **Lint** - golangci-lint (full mode only)
+7. **Build** - Go compilation (full mode only)
+8. **Common Issues** - Hardcoded secrets, orphan TODOs, debug prints
+9. **Git Status** - Uncommitted changes, branch info
+
+### If Checks Fail
+
+1. Read the failure output carefully
+2. Fix ALL failures before pushing
+3. Re-run `make agent-check` until all checks pass
+4. Only then proceed with `git push`
+
+### Sandbox Limitations
+
+In sandboxed environments where the Go toolchain cannot download dependencies:
+- Some Go checks may be skipped (marked as SKIP/WARN)
+- These will be caught by GitHub Actions CI
+- Non-Go checks (JSON, YAML, common issues) must still pass
 
 ## Mandatory Lint Before Push (Claude Agents)
 
@@ -139,9 +192,21 @@ make validate-openapi # Validate API spec (if changed)
 
 **Newman/Postman is mandatory** for all API endpoints:
 
-- **Location**: `tests/e2e/postman/goimg-api.postman_collection.json`
+- **Collection**: `tests/e2e/postman/goimg-api.postman_collection.json` (290 tests across 20 categories)
 - **Environment**: `tests/e2e/postman/ci.postman_environment.json`
+- **Coverage**: ~100% endpoint coverage
 - **CI Integration**: E2E tests run automatically in GitHub Actions after build
+
+### Makefile Targets
+
+```bash
+make setup-e2e                      # One-time setup (creates test environment)
+make test-e2e                       # Run full E2E suite (290 tests)
+make test-e2e-folder FOLDER=Auth    # Run specific category
+make test-e2e-dry                   # Validate collection structure
+make test-e2e-report                # Generate HTML report
+make ci-local                       # Run full CI pipeline locally
+```
 
 ### When Adding New Features
 
@@ -183,17 +248,42 @@ docker/               # Docker Compose with IPFS, Postgres, Redis, MinIO
 
 ## Before Every Commit
 
-> **Claude Agents: Run `make pre-commit` before every commit/push. This is MANDATORY.**
+> **Claude Agents: Run `make agent-check` before every push. This is MANDATORY and NON-NEGOTIABLE.**
 
 ```bash
-# Option 1: Use the pre-commit make target (RECOMMENDED)
-make pre-commit
+# MANDATORY: Agent CI check (ALWAYS run before pushing)
+make agent-check          # Full check (Go changes)
+make agent-check-quick    # Quick check (non-Go changes only)
 
-# Option 2: Run commands individually
+# RECOMMENDED: Full pre-commit checks (if Go toolchain available)
+make pre-commit           # go fmt + go vet + golangci-lint + govulncheck
+
+# OPTIONAL: Full CI pipeline locally
+make ci-local             # Full CI pipeline (lint + test + build)
+
+# OPTIONAL: Run commands individually
 go fmt ./... && go vet ./... && golangci-lint run
 go test -race ./...
 make validate-openapi
 make test-e2e  # Run Newman E2E tests (requires API server running)
 ```
+
+### Agent Push Sequence (REQUIRED)
+
+```bash
+# Step 1: Stage your changes
+git add <files>
+
+# Step 2: Run agent CI check (MANDATORY)
+make agent-check
+
+# Step 3: Only if Step 2 passes, commit
+git commit -m "your message"
+
+# Step 4: Push
+git push -u origin <branch>
+```
+
+**Failure to run `make agent-check` before push is a protocol violation.**
 
 See `claude/agent_checklist.md` for the full verification checklist.
