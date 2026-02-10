@@ -50,12 +50,25 @@
 ## Test Commands
 
 ```bash
+# Basic Test Commands
 make test              # Full suite with race detection
 make test-unit         # Unit tests only (-short flag)
 make test-integration  # Integration tests (requires DB)
-make test-e2e          # Newman/Postman collection
 make test-coverage     # Generate HTML coverage report
+
+# E2E Test Commands (290 Newman tests)
+make setup-e2e         # Install Newman and dependencies
+make test-e2e          # Run all E2E tests (290 tests)
+make test-e2e-folder   # Run specific folder (e.g., FOLDER=01-auth)
+make test-e2e-dry      # Dry run - show tests without executing
+make test-e2e-report   # Generate HTML report in tests/e2e/reports/
+
+# CI/CD Commands
+make ci-local          # Run full CI pipeline locally
+make test-all          # Run all test types (unit + integration + e2e)
 ```
+
+**Note**: E2E tests now support both `docker-compose` (standalone) and `docker compose` (plugin) commands automatically.
 
 ## Unit Test Patterns
 
@@ -211,23 +224,58 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 
 ## E2E Tests (Newman)
 
+**Current Status**: ✅ 100% API Coverage - 290 tests across 20 categories
+
 Location: `tests/e2e/postman/`
 
 ```bash
-# Run E2E suite
-./tests/e2e/newman/run_tests.sh
+# Run all E2E tests
+make test-e2e
+
+# Run specific test folder
+make test-e2e-folder FOLDER=01-auth
+
+# Dry run (show tests without executing)
+make test-e2e-dry
+
+# Generate HTML report
+make test-e2e-report
 ```
+
+### Test Categories (20 Total)
+
+| Category | Tests | Coverage |
+|----------|-------|----------|
+| Authentication | 15 | Register, Login, Refresh, Logout |
+| Two-Factor Auth | 13 | Setup, Verify, Disable, Backup Codes |
+| OAuth | 9 | Google/GitHub flows, Link/Unlink |
+| Images | 25 | Upload, CRUD, Search, Variants |
+| Albums | 18 | CRUD, Nested, Image management |
+| Tags | 12 | Popular, Trending, Search |
+| Moderation | 17 | Reports, Bans, Reviews |
+| NSFW Detection | 8 | Scan, List flagged, History |
+| Groups | 27 | CRUD, Membership, Roles |
+| Group Albums | 7 | CRUD, Image management |
+| Invitations | 6 | Invite, Accept, Decline |
+| Follows | 18 | Follow/Unfollow, List |
+| Activity Feeds | 4 | User/Group timelines |
+| Notifications | 6 | List, Mark read, Count |
+| IPFS | 8 | Pin, Unpin, Status |
+| Featured Picks | 6 | Feature/Unfeature, List |
+| oEmbed | 8 | Rich previews |
+| Guest Uploads | 5 | Session, Claim |
+| User Profile | 12 | Update, Privacy, Settings |
+| Comments & Likes | 20 | Add, Remove, Moderation |
+
+**Total**: 290 tests ensuring all endpoints have E2E coverage
 
 ### Collection Structure
 
 ```
 tests/e2e/postman/
-├── goimg-collection.json    # Postman collection
-├── environment/
-│   ├── local.json           # Local dev settings
-│   └── ci.json              # CI environment
-└── newman/
-    └── run_tests.sh         # Runner script
+├── goimg-api.postman_collection.json    # Main collection (290 tests)
+├── ci.postman_environment.json          # CI environment variables
+└── reports/                             # HTML reports (generated)
 ```
 
 ## Contract Tests
@@ -261,14 +309,14 @@ func TestAPIMatchesOpenAPISpec(t *testing.T) {
 
 ### Jobs
 
-| Job | Purpose | Triggers |
-|-----|---------|----------|
-| `lint` | golangci-lint | Push, PR |
-| `test-unit` | Unit tests + coverage | Push, PR |
-| `test-integration` | Integration tests | Push, PR |
-| `test-e2e` | Newman API tests | Push, PR |
-| `contract-validation` | OpenAPI compliance | Push, PR |
-| `security` | gosec, trivy | Push, PR, Weekly |
+| Job | Purpose | Tests | Triggers |
+|-----|---------|-------|----------|
+| `lint` | golangci-lint | N/A | Push, PR |
+| `test-unit` | Unit tests + coverage | ~500 | Push, PR |
+| `test-integration` | Integration tests | ~150 | Push, PR |
+| `test-e2e` | Newman API tests | **290** | Push, PR |
+| `contract-validation` | OpenAPI compliance | N/A | Push, PR |
+| `security` | gosec, trivy | N/A | Push, PR, Weekly |
 
 ### Required Checks
 

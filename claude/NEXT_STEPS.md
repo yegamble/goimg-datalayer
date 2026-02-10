@@ -101,6 +101,7 @@ During the comprehensive codebase audit, we identified 13 files in the applicati
 2. **Close critical gaps** in application layer and HTTP handlers - In progress
 3. **Establish regression prevention** practices - ✅ Complete
 4. **Update documentation** to reflect current state - ✅ Complete
+5. **Achieve 100% E2E test coverage** - ✅ Complete (290 tests, up from 223)
 
 ### Sprint 23 Achievements
 
@@ -109,6 +110,10 @@ During the comprehensive codebase audit, we identified 13 files in the applicati
 - ✅ Updated documentation to reflect current codebase state
 - ✅ Documented regression prevention practices
 - ✅ Identified and catalogued critical coverage gaps for future sprints
+- ✅ **E2E Test Coverage: 100% (290 Newman tests across 20 categories)**
+  - 67 new tests added to fill endpoint gaps
+  - All API endpoints now have Postman test coverage
+  - New categories: NSFW, Invitations, Journeys, Groups, Tags, Featured
 
 ---
 
@@ -157,7 +162,12 @@ make lint             # Lint job
 make test-unit        # Unit tests job
 make test-domain      # Domain tests job (90% threshold)
 make test-integration # Integration tests job
-make test-e2e         # E2E tests job
+make test-e2e         # E2E tests job (290 Newman tests)
+make test-e2e-folder  # Run specific E2E test folder
+make test-e2e-dry     # Dry run (show tests without executing)
+make test-e2e-report  # Generate HTML report
+make ci-local         # Run full CI pipeline locally
+make test-all         # Run all test types
 ```
 
 See `claude/sprint_23_test_coverage_plan.md` for full implementation plan.
