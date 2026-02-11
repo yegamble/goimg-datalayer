@@ -146,7 +146,7 @@ test-e2e:
 		exit 1; \
 	fi
 	@set -e; \
-		API_HEALTH_URL="http://localhost:8080/api/v1/health"; \
+		API_HEALTH_URL="http://localhost:8080/health/ready"; \
 		STARTED_API=0; \
 		API_PID=""; \
 		cleanup() { \
@@ -229,7 +229,7 @@ test-e2e-full:
 		exit 1; \
 	fi
 	@set -e; \
-		API_HEALTH_URL="http://localhost:8080/api/v1/health"; \
+		API_HEALTH_URL="http://localhost:8080/health/ready"; \
 		STARTED_API=0; \
 		API_PID=""; \
 		cleanup() { \
