@@ -148,11 +148,20 @@ func NewRouter(
 		r.Handle("/metrics", promhttp.Handler())
 
 		// Public auth routes (no authentication required)
-		// Most auth routes are public, but guest session creation is rate-limited
+		// Most auth routes are public, but sensitive operations are rate-limited
 		if authHandler != nil {
 			r.Route("/auth", func(r chi.Router) {
-				r.Post("/register", authHandler.Register)
-				r.Post("/login", authHandler.Login)
+				// Apply login rate limiting (5 req/min per IP) to prevent brute force
+				if middlewareConfig.RateLimiterConfig != nil {
+					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/login", authHandler.Login)
+					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/register", authHandler.Register)
+				} else {
+					r.Post("/login", authHandler.Login)
+					r.Post("/register", authHandler.Register)
+				}
+
 				r.Post("/refresh", authHandler.Refresh)
 
 				// Guest session creation with IP-based rate limiting (10/hour per IP)
