@@ -739,10 +739,18 @@ func main() {
 		log.Logger,
 	)
 
+	// Rate Limiter
+	var rateLimiterConfig *middleware.RateLimiterConfig
+	if rdbClient != nil {
+		cfg := middleware.DefaultRateLimiterConfig(rdbClient, log.Logger)
+		rateLimiterConfig = &cfg
+	}
+
 	middlewareConfig := handlers.MiddlewareConfig{
-		Logger:         log.Logger,
-		JWTService:     jwtServiceImpl,
-		TokenBlacklist: tokenBlacklistImpl,
+		Logger:            log.Logger,
+		JWTService:        jwtServiceImpl,
+		TokenBlacklist:    tokenBlacklistImpl,
+		RateLimiterConfig: rateLimiterConfig,
 	}
 
 	router := handlers.NewRouter(

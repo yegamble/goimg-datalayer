@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -358,7 +359,11 @@ func NewRouter(
 			// Mount image routes
 			// Note: Upload endpoint should have special rate limiting applied at handler level
 			if imageHandler != nil {
-				r.Mount("/images", imageHandler.Routes())
+				var uploadRateLimiter func(http.Handler) http.Handler
+				if middlewareConfig.RateLimiterConfig != nil {
+					uploadRateLimiter = middleware.UploadRateLimiter(*middlewareConfig.RateLimiterConfig)
+				}
+				r.Mount("/images", imageHandler.Routes(uploadRateLimiter))
 			}
 
 			// Mount album routes
