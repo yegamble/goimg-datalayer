@@ -89,12 +89,17 @@ func NewImageHandler(
 //
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered
 // separately in router.go with optional authentication.
-func (h *ImageHandler) Routes() chi.Router {
+func (h *ImageHandler) Routes(uploadRateLimiter func(http.Handler) http.Handler) chi.Router {
 	r := chi.NewRouter()
 
 	// All routes require authentication - applied at router level
 	// Upload route has special rate limiting
-	r.Post("/", h.Upload)
+	if uploadRateLimiter != nil {
+		r.With(uploadRateLimiter).Post("/", h.Upload)
+	} else {
+		r.Post("/", h.Upload)
+	}
+
 	r.Get("/", h.List)
 	r.Get("/search", h.Search)
 	r.Get("/{imageID}", h.Get)
