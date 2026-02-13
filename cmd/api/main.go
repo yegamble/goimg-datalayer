@@ -652,6 +652,7 @@ func main() {
 		listImagesHandler,
 		searchImagesHandler,
 		storageInfra,
+		os.Getenv("BASE_URL"),
 		log.Logger,
 	)
 

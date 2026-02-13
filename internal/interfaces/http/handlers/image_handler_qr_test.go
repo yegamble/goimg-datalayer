@@ -31,6 +31,7 @@ func TestImageHandler_GetImageQRCode_DefaultSize(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
+		"",
 		logger,
 	)
 
@@ -59,6 +60,7 @@ func TestImageHandler_GetImageQRCode_SizeOutOfRange(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		nil, nil, nil, nil,
+		"",
 		logger,
 	)
 
@@ -88,6 +90,7 @@ func TestImageHandler_GetImageQRCode_InvalidImageID(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		nil, nil, nil, nil,
+		"",
 		logger,
 	)
 
@@ -117,6 +120,7 @@ func TestImageHandler_GetImageQRCode_ImageNotFound(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
+		"",
 		logger,
 	)
 
