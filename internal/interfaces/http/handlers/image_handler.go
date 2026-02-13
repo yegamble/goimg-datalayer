@@ -46,6 +46,7 @@ type ImageHandler struct {
 	listImages            *queries.ListImagesHandler
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
+	baseURL               string
 	logger                zerolog.Logger
 }
 
@@ -66,6 +67,7 @@ func NewImageHandler(
 	listImages *queries.ListImagesHandler,
 	searchImages *queries.SearchImagesHandler,
 	storage StorageProvider,
+	baseURL string,
 	logger zerolog.Logger,
 ) *ImageHandler {
 	return &ImageHandler{
@@ -77,6 +79,7 @@ func NewImageHandler(
 		listImages:            listImages,
 		searchImages:          searchImages,
 		storage:               storage,
+		baseURL:               strings.TrimRight(baseURL, "/"),
 		logger:                logger,
 	}
 }
@@ -953,7 +956,10 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Generate QR for preview URL.
-	baseURL := inferBaseURLFromRequest(r)
+	baseURL := h.baseURL
+	if baseURL == "" {
+		baseURL = inferBaseURLFromRequest(r)
+	}
 	previewURL := fmt.Sprintf("%s/images/%s/preview", baseURL, image.ID)
 
 	pngData, err := generateQRCodePNG(previewURL, qrSize)

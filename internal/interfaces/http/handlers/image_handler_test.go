@@ -96,6 +96,7 @@ func TestImageHandler_Search_CommaSeparatedTags(t *testing.T) {
 		nil, nil, nil, nil, nil, nil,
 		searchHandler,
 		nil, // StorageProvider not needed for Search
+		"",
 		zerolog.Nop(),
 	)
 
@@ -128,6 +129,7 @@ func TestImageHandler_Search_SingleTag(t *testing.T) {
 		nil, nil, nil, nil, nil, nil,
 		searchHandler,
 		nil,
+		"",
 		zerolog.Nop(),
 	)
 
@@ -158,6 +160,7 @@ func TestImageHandler_Search_TagsWithSpaces(t *testing.T) {
 		nil, nil, nil, nil, nil, nil,
 		searchHandler,
 		nil,
+		"",
 		zerolog.Nop(),
 	)
 
@@ -194,6 +197,7 @@ func TestImageHandler_GetImageQRCode_PublicImage(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
+		"",
 		logger,
 	)
 
@@ -225,6 +229,7 @@ func TestImageHandler_GetImageQRCode_PrivateImage(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
+		"",
 		logger,
 	)
 
@@ -243,6 +248,7 @@ func TestImageHandler_GetImageQRCode_InvalidSize(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		nil, nil, nil, nil,
+		"",
 		logger,
 	)
 

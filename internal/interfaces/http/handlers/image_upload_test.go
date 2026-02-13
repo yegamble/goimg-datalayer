@@ -154,7 +154,7 @@ func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 	// Setup Handler
 	uploadHandler := commands.NewUploadImageHandler(mockRepo, mockAppStorage, mockJobEnqueuer, mockEventPublisher, &logger)
 	imageHandler := NewImageHandler(
-		uploadHandler, nil, nil, nil, nil, nil, nil, mockStorage, logger,
+		uploadHandler, nil, nil, nil, nil, nil, nil, mockStorage, "", logger,
 	)
 
 	// Setup Context with User
