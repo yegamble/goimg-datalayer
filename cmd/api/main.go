@@ -740,10 +740,22 @@ func main() {
 		log.Logger,
 	)
 
+	// Initialize metrics collector early to share with rate limiter
+	metricsCollector := middleware.NewMetricsCollector()
+
+	// Initialize rate limiter if Redis is available
+	var rateLimiterConfig *middleware.RateLimiterConfig
+	if rdbClient != nil {
+		cfg := middleware.DefaultRateLimiterConfig(rdbClient, log.Logger)
+		cfg.MetricsCollector = metricsCollector
+		rateLimiterConfig = &cfg
+	}
+
 	middlewareConfig := handlers.MiddlewareConfig{
-		Logger:         log.Logger,
-		JWTService:     jwtServiceImpl,
-		TokenBlacklist: tokenBlacklistImpl,
+		Logger:            log.Logger,
+		JWTService:        jwtServiceImpl,
+		TokenBlacklist:    tokenBlacklistImpl,
+		RateLimiterConfig: rateLimiterConfig,
 	}
 
 	router := handlers.NewRouter(
@@ -770,7 +782,7 @@ func main() {
 		groupHandler,
 		groupAlbumHandler,
 		groupImageHandler,
-		middleware.NewMetricsCollector(),
+		metricsCollector,
 		middlewareConfig,
 		false,
 	)
