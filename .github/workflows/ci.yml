@@ -559,11 +559,11 @@ jobs:
 
   # ============================================================================
   # Build Verification - Ensure the project builds successfully
-  # Only runs after tests pass to save CI minutes
+  # Optimization: Runs in parallel with tests to speed up feedback loop
   # ============================================================================
   build:
     name: Build
-    needs: [lint, test-unit, test-integration, domain-tests]
+    needs: [lint]
     timeout-minutes: 15
 
     strategy:
@@ -594,12 +594,10 @@ jobs:
 
           mkdir -p bin
 
-          for dir in cmd/*; do
-            if [ -d "$dir" ]; then
-              echo "Building $dir..."
-              go build -cover -o bin/ -v -trimpath -ldflags="${LDFLAGS}" "./$dir"
-            fi
-          done
+          # Build all commands in cmd/ using Go's internal parallel build
+          # This is faster than iterating with a loop and cleaner
+          echo "Building binaries..."
+          go build -cover -o bin/ -v -trimpath -ldflags="${LDFLAGS}" ./cmd/...
 
           # Build goose migration tool
           echo "Building goose..."
