@@ -34,6 +34,7 @@ type TestSuite struct {
 	EventPublisher  *MockEventPublisher
 	IPFSService     *MockIPFSService
 	StorageProvider *MockStorageProvider
+	Validator       *MockImageValidator
 	Logger          zerolog.Logger
 }
 
@@ -48,7 +49,8 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		EventPublisher:  new(MockEventPublisher),
 		IPFSService:     new(MockIPFSService),
 		StorageProvider: new(MockStorageProvider), // Use the specific mock type
-		Logger:          zerolog.Nop(),            // No-op logger for tests
+		Validator:       new(MockImageValidator),
+		Logger:          zerolog.Nop(), // No-op logger for tests
 	}
 }
 
@@ -62,6 +64,7 @@ func (s *TestSuite) AssertExpectations(t *testing.T) {
 	s.EventPublisher.AssertExpectations(t)
 	s.IPFSService.AssertExpectations(t)
 	s.StorageProvider.AssertExpectations(t)
+	s.Validator.AssertExpectations(t)
 }
 
 // ValidUserIDParsed returns a parsed UserID for testing.

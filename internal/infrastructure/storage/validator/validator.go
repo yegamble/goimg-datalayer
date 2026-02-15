@@ -168,6 +168,21 @@ func (v *Validator) Validate(ctx context.Context, data []byte, _ string) (*Valid
 	return result, nil
 }
 
+// ValidateImage performs full validation on the image data.
+// It implements the gallery.ImageValidator interface.
+func (v *Validator) ValidateImage(ctx context.Context, data []byte, filename string) error {
+	result, err := v.Validate(ctx, data, filename)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid {
+		return fmt.Errorf("validation failed: %s", strings.Join(result.Errors, "; "))
+	}
+
+	return nil
+}
+
 // validateSize checks if the file size is within limits.
 func (v *Validator) validateSize(result *ValidationResult) error {
 	if result.FileSize > v.config.MaxFileSize {

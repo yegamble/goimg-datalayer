@@ -77,6 +77,14 @@ type JobEnqueuer interface {
 	EnqueueImageCleanup(ctx context.Context, imageID, storageProvider string, keys []string) error
 }
 
+// ImageValidator validates an image file before processing.
+// This includes MIME type checks, magic byte verification, and malware scanning.
+type ImageValidator interface {
+	// ValidateImage performs full validation on the image data.
+	// Returns nil if the image is valid, or an error if validation fails.
+	ValidateImage(ctx context.Context, data []byte, filename string) error
+}
+
 // IPFSService provides IPFS storage operations.
 // This interface is defined in the application layer and implemented
 // in the infrastructure layer (internal/infrastructure/storage/ipfs).
