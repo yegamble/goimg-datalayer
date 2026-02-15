@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -42,6 +43,7 @@ type UploadImageResult struct {
 type UploadImageHandler struct {
 	images         gallery.ImageRepository
 	storage        appgallery.StorageProvider
+	validator      appgallery.ImageValidator
 	jobEnqueuer    appgallery.JobEnqueuer
 	eventPublisher appgallery.EventPublisher
 	logger         *zerolog.Logger
@@ -51,6 +53,7 @@ type UploadImageHandler struct {
 func NewUploadImageHandler(
 	images gallery.ImageRepository,
 	storage appgallery.StorageProvider,
+	validator appgallery.ImageValidator,
 	jobEnqueuer appgallery.JobEnqueuer,
 	eventPublisher appgallery.EventPublisher,
 	logger *zerolog.Logger,
@@ -58,6 +61,7 @@ func NewUploadImageHandler(
 	return &UploadImageHandler{
 		images:         images,
 		storage:        storage,
+		validator:      validator,
 		jobEnqueuer:    jobEnqueuer,
 		eventPublisher: eventPublisher,
 		logger:         logger,
@@ -100,7 +104,25 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 		return nil, err
 	}
 
-	// 4. Generate image ID and storage key
+	// 3. Read file content for validation and storage
+	fileBytes, err := io.ReadAll(cmd.FileContent)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to read file content")
+		return nil, fmt.Errorf("read file: %w", err)
+	}
+
+	// 4. Validate image (magic bytes, malware scan)
+	if h.validator != nil {
+		if err := h.validator.ValidateImage(ctx, fileBytes, cmd.Filename); err != nil {
+			h.logger.Warn().
+				Err(err).
+				Str("filename", cmd.Filename).
+				Msg("image validation failed")
+			return nil, fmt.Errorf("image validation failed: %w", err)
+		}
+	}
+
+	// 5. Generate image ID and storage key
 	imageID := h.images.NextID()
 	storageKey := fmt.Sprintf("images/%s/%s/original", ownerID.String(), imageID.String())
 
@@ -108,7 +130,7 @@ func (h *UploadImageHandler) Handle(ctx context.Context, cmd UploadImageCommand)
 	opts := appgallery.PutOptions{
 		ContentType: cmd.MimeType,
 	}
-	if err := h.storage.Put(ctx, storageKey, cmd.FileContent, cmd.FileSize, opts); err != nil {
+	if err := h.storage.Put(ctx, storageKey, bytes.NewReader(fileBytes), int64(len(fileBytes)), opts); err != nil {
 		h.logger.Error().
 			Err(err).
 			Str("image_id", imageID.String()).

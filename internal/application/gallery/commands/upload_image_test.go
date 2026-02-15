@@ -42,6 +42,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				Height:      testhelpers.ValidHeight,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Mock Validator
+				suite.Validator.On("ValidateImage", mock.Anything, mock.MatchedBy(func([]byte) bool { return true }), mock.Anything).Return(nil).Once()
+
 				// Mock NextID
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
@@ -195,6 +198,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				Height:      testhelpers.ValidHeight,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Mock Validator
+				suite.Validator.On("ValidateImage", mock.Anything, mock.MatchedBy(func([]byte) bool { return true }), testhelpers.ValidFilename).Return(nil).Once()
+
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
 				suite.StorageProvider.On("Provider").Return("local").Maybe()
@@ -224,6 +230,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				Height:      testhelpers.ValidHeight,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Mock Validator
+				suite.Validator.On("ValidateImage", mock.Anything, mock.MatchedBy(func([]byte) bool { return true }), testhelpers.ValidFilename).Return(nil).Once()
+
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
 				suite.StorageProvider.On("Provider").Return("local").Maybe()
@@ -256,6 +265,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				Height: testhelpers.ValidHeight,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Mock Validator
+				suite.Validator.On("ValidateImage", mock.Anything, mock.MatchedBy(func([]byte) bool { return true }), testhelpers.ValidFilename).Return(nil).Once()
+
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
 				suite.StorageProvider.On("Provider").Return("local").Maybe()
@@ -282,6 +294,9 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 				Height:      testhelpers.ValidHeight,
 			},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Mock Validator
+				suite.Validator.On("ValidateImage", mock.Anything, mock.MatchedBy(func([]byte) bool { return true }), testhelpers.ValidFilename).Return(nil).Once()
+
 				imageID := testhelpers.ValidImageIDParsed()
 				suite.ImageRepo.On("NextID").Return(imageID).Once()
 				suite.StorageProvider.On("Provider").Return("local").Maybe()
@@ -337,6 +352,31 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			},
 		},
 		{
+			name: "validation failure",
+			cmd: commands.UploadImageCommand{
+				UserID:      testhelpers.ValidUserID,
+				FileContent: testhelpers.ValidFileReader(),
+				FileSize:    testhelpers.ValidFileSize,
+				Filename:    testhelpers.ValidFilename,
+				MimeType:    testhelpers.ValidMimeType,
+				Width:       testhelpers.ValidWidth,
+				Height:      testhelpers.ValidHeight,
+			},
+			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
+				// Validator returns error
+				suite.Validator.On("ValidateImage", mock.Anything, mock.Anything, testhelpers.ValidFilename).
+					Return(fmt.Errorf("malware detected")).Once()
+			},
+			wantErr: nil,
+			assert: func(t *testing.T, suite *testhelpers.TestSuite, result *commands.UploadImageResult, err error) {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "image validation failed")
+				assert.Contains(t, err.Error(), "malware detected")
+				assert.Nil(t, result)
+				suite.AssertExpectations(t)
+			},
+		},
+		{
 			name: "job enqueueing failure",
 			cmd: commands.UploadImageCommand{
 				UserID:      testhelpers.ValidUserID,
@@ -385,6 +425,7 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 			handler := commands.NewUploadImageHandler(
 				suite.ImageRepo,
 				suite.StorageProvider, // Use StorageProvider which is compatible with the interface
+				suite.Validator,
 				suite.JobEnqueuer,
 				suite.EventPublisher,
 				&suite.Logger,
@@ -413,10 +454,12 @@ func TestUploadImageHandler_Handle(t *testing.T) {
 // BenchmarkUploadImageHandler_Handle benchmarks the upload handler.
 func BenchmarkUploadImageHandler_Handle(b *testing.B) {
 	storageProvider := new(testhelpers.MockStorageProvider)
+	validator := new(testhelpers.MockImageValidator)
 	suite := &testhelpers.TestSuite{
 		ImageRepo:       new(testhelpers.MockImageRepository),
 		Storage:         new(testhelpers.MockStorage),
 		StorageProvider: storageProvider,
+		Validator:       validator,
 		JobEnqueuer:     new(testhelpers.MockJobEnqueuer),
 		EventPublisher:  new(testhelpers.MockEventPublisher),
 		Logger:          zerolog.Nop(),
@@ -429,10 +472,12 @@ func BenchmarkUploadImageHandler_Handle(b *testing.B) {
 	suite.ImageRepo.On("Save", mock.Anything, mock.Anything).Return(nil)
 	suite.EventPublisher.On("Publish", mock.Anything, mock.Anything).Return(nil).Maybe()
 	suite.JobEnqueuer.On("EnqueueImageProcessing", mock.Anything, imageID.String()).Return(nil)
+	validator.On("ValidateImage", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	handler := commands.NewUploadImageHandler(
 		suite.ImageRepo,
 		suite.StorageProvider,
+		suite.Validator,
 		suite.JobEnqueuer,
 		suite.EventPublisher,
 		&suite.Logger,

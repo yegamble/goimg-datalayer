@@ -38,10 +38,12 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/security/nsfw"
 	appstorage "github.com/yegamble/goimg-datalayer/internal/infrastructure/storage"
 	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/local"
+	"github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/validator"
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/handlers"
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
@@ -161,6 +163,20 @@ func main() {
 	}
 	storage := &storageAdapter{Store: localStorage}
 	storageInfra := &storageInfraAdapter{Store: localStorage}
+
+	// Security - ClamAV
+	clamavConfig := clamav.DefaultConfig()
+	if addr := os.Getenv("CLAMAV_ADDRESS"); addr != "" {
+		clamavConfig.TCPAddress = addr
+	}
+	clamavClient, err := clamav.NewClient(clamavConfig)
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to initialize ClamAV client (malware scanning disabled)")
+	}
+
+	// Validator
+	validatorConfig := validator.DefaultConfig()
+	imageValidator := validator.New(validatorConfig, clamavClient)
 
 	// Security - TOTP
 	encryptor, err := security.NewSecretEncryptorFromBase64(encryptionKey)
@@ -362,7 +378,7 @@ func main() {
 
 	// Gallery Context
 	uploadImageHandler := gallerycommands.NewUploadImageHandler(
-		imageRepo, storage, jobEnqueuer, galEventPub, &log.Logger,
+		imageRepo, storage, imageValidator, jobEnqueuer, galEventPub, &log.Logger,
 	)
 	updateImageHandler := gallerycommands.NewUpdateImageHandler(imageRepo, galEventPub, &log.Logger)
 	deleteImageHandler := gallerycommands.NewDeleteImageHandler(
@@ -534,7 +550,7 @@ func main() {
 		db,
 		redisClientWrapper,
 		storageInfra,
-		nil, // clamav
+		clamavClient,
 		log.Logger,
 	)
 

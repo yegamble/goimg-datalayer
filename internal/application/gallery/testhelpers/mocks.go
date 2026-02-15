@@ -514,3 +514,13 @@ func (m *MockIPFSService) GatewayURL(cid string) string {
 	args := m.Called(cid)
 	return args.String(0)
 }
+
+// MockImageValidator is a mock implementation of gallery.ImageValidator.
+type MockImageValidator struct {
+	mock.Mock
+}
+
+func (m *MockImageValidator) ValidateImage(ctx context.Context, data []byte, filename string) error {
+	args := m.Called(ctx, data, filename)
+	return args.Error(0)
+}
