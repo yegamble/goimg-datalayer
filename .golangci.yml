@@ -1,8 +1,6 @@
 # golangci-lint configuration for goimg-datalayer
 # Run: golangci-lint run --config=.golangci.yml
 
-version: 2
-
 run:
   # Timeout for analysis
   timeout: 5m
@@ -95,7 +93,7 @@ linters:
     - makezero      # Find slice declarations with non-zero initial length
     - mirror        # Reports wrong mirror patterns of bytes/strings usage
     - misspell      # Find commonly misspelled English words
-    - mnd           # Detect magic numbers (replaces gomnd)
+    - gomnd         # Detect magic numbers
     - musttag       # Enforce field tags in (un)marshaled structs
     - nakedret      # Find naked returns in functions greater than a specified length
     - nestif        # Report deeply nested if statements
@@ -153,7 +151,7 @@ linters:
           - maintidx
           - wrapcheck
           - lll
-          - mnd
+          - gomnd
           - nestif
           - thelper
           - testifylint
@@ -171,7 +169,7 @@ linters:
           - funlen
           - cyclop
           - maintidx
-          - mnd
+          - gomnd
           - dupl
           - goconst
           - nestif
@@ -187,7 +185,7 @@ linters:
           - maintidx
           - dupl
           - errcheck
-          - mnd
+          - gomnd
           - goconst
           - revive
           - wrapcheck
@@ -262,8 +260,8 @@ linters-settings:
     min-occurrences: 3
     ignore-tests: true
 
-  # mnd: magic numbers (replaces gomnd)
-  mnd:
+  # gomnd: magic numbers
+  gomnd:
     checks:
       - argument
       - case
