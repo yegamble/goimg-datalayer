@@ -14,9 +14,19 @@ on:
       - main
       - develop
       - 'claude/*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '**.txt'
   pull_request:
     branches:
       - "**"
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '**.txt'
 
 # Cancel in-progress runs on new commits to the same PR
 concurrency:
