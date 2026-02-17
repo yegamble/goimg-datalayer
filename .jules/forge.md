@@ -22,3 +22,8 @@
 **Issue:** Security scanning jobs were failing with billing/resource exhaustion errors ("spending limit") because they were running on every push, even for non-code changes.
 **Root Cause:** The `security.yml` workflow triggers were too broad (`branches: "**"`), triggering heavy scans (Trivy, GoSec, SBOM) unnecessarily.
 **Fix:** Added `paths-ignore` to `security.yml` to skip scans for documentation files (`**.md`, `docs/**`, `LICENSE`, `**.txt`). Kept triggers strict for PRs to main/develop but reduced noise from doc-only commits.
+
+## 2026-02-17 - CI Build Job Cost Optimization
+**Issue:** The main `ci.yml` workflow was failing due to spending limits, exacerbated by running builds on both `ubuntu-latest` and `macos-latest`.
+**Root Cause:** The `build` job used a matrix strategy including `macos-latest`, which consumes GitHub Actions minutes at a 10x rate compared to Linux runners.
+**Fix:** Removed the `matrix` strategy and `macos-latest` from the `build` job, standardizing on `ubuntu-latest`. This significantly reduces the billing impact while maintaining verification for the primary target environment (Linux containers).

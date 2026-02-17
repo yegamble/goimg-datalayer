@@ -580,12 +580,7 @@ jobs:
     needs: [lint, test-unit, test-integration, domain-tests]
     timeout-minutes: 15
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -624,7 +619,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: binaries-${{ matrix.os }}
+          name: binaries-ubuntu-latest
           path: bin/
           retention-days: 1
 
