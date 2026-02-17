@@ -19,6 +19,23 @@ import (
 // validate is the global validator instance for request validation.
 var validate = validator.New()
 
+// DecodeJSONBody decodes JSON request body into the provided struct.
+// It limits the request body size to 1MB to prevent DoS.
+// It does NOT perform struct validation.
+func DecodeJSONBody(r *http.Request, v interface{}) error {
+	// Limit JSON payloads to 1MB to prevent memory exhaustion DoS
+	r.Body = http.MaxBytesReader(nil, r.Body, 1048576) // 1MB
+
+	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			return fmt.Errorf("request body too large (limit 1MB)")
+		}
+		return fmt.Errorf("decode json: %w", err)
+	}
+	return nil
+}
+
 // DecodeJSON decodes JSON request body into the provided struct and validates it.
 // Returns an error if JSON decoding or validation fails.
 //
@@ -30,8 +47,8 @@ var validate = validator.New()
 //	    return
 //	}
 func DecodeJSON[T any](r *http.Request, v *T) error {
-	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
-		return fmt.Errorf("decode json: %w", err)
+	if err := DecodeJSONBody(r, v); err != nil {
+		return err
 	}
 
 	// Validate the decoded struct using go-playground/validator

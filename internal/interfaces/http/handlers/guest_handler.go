@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -92,7 +91,7 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 
 	// Parse request body
 	var req ClaimGuestImageRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := DecodeJSONBody(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("failed to decode claim request body")
 		middleware.WriteError(w, r, http.StatusBadRequest, "invalid_request", "Invalid request body")
 		return
@@ -127,9 +126,7 @@ func (h *GuestHandler) ClaimImage(w http.ResponseWriter, r *http.Request) {
 		Message:       result.Message,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	if err := EncodeJSON(w, http.StatusOK, resp); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode claim response")
 	}
 }
