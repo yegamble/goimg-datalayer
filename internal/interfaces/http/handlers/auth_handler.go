@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -269,7 +268,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// 2. Decode logout request (both fields are optional)
 	var req LogoutRequest
 	// Use custom decoding without validation since both fields are optional
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil && err != io.EOF {
+	// DecodeJSONBody limits the request body size to 1MB
+	if err := DecodeJSONBody(r, &req); err != nil && !errors.Is(err, io.EOF) {
 		h.logger.Debug().Err(err).Msg("invalid logout request")
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,

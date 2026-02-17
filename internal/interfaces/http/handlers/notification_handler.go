@@ -217,7 +217,7 @@ func (h *NotificationHandler) MarkAsRead(w http.ResponseWriter, r *http.Request)
 
 	// 2. Parse request body
 	var req MarkAsReadRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := DecodeJSONBody(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid request body in mark as read")
 		middleware.WriteError(w, r,
 			http.StatusBadRequest,
