@@ -17,3 +17,8 @@
 **Issue:** The CI job `openapi-validation` was passing successfully even when `make generate` failed due to missing tools, masking code drift between the OpenAPI spec and generated code.
 **Root Cause:** The pipeline used `make generate || echo ...` to suppress failures, and `oapi-codegen` was not installed in the CI environment.
 **Fix:** Installed `oapi-codegen@v2.5.1` in the CI job and removed error suppression for `make generate` to ensure the job fails on generation errors. Also updated `Makefile` to use `$(go env GOPATH)/bin` for better portability.
+
+## 2026-02-17 - Security Scan Resource Exhaustion
+**Issue:** Security scanning jobs were failing with billing/resource exhaustion errors ("spending limit") because they were running on every push, even for non-code changes.
+**Root Cause:** The `security.yml` workflow triggers were too broad (`branches: "**"`), triggering heavy scans (Trivy, GoSec, SBOM) unnecessarily.
+**Fix:** Added `paths-ignore` to `security.yml` to skip scans for documentation files (`**.md`, `docs/**`, `LICENSE`, `**.txt`). Kept triggers strict for PRs to main/develop but reduced noise from doc-only commits.
