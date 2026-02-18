@@ -958,13 +958,7 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	// 4. Generate QR for preview URL.
 	baseURL := h.baseURL
 	if baseURL == "" {
-		h.logger.Error().Msg("BASE_URL not configured, cannot generate QR code securely")
-		middleware.WriteError(w, r,
-			http.StatusInternalServerError,
-			"Internal Server Error",
-			"QR code generation unavailable due to server configuration",
-		)
-		return
+		baseURL = inferBaseURLFromRequest(r)
 	}
 	previewURL := fmt.Sprintf("%s/images/%s/preview", baseURL, image.ID)
 
@@ -1159,6 +1153,26 @@ func generateQRCodePNG(content string, size int) ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// inferBaseURLFromRequest builds an absolute base URL from request metadata.
+func inferBaseURLFromRequest(r *http.Request) string {
+	// Prefer forwarded headers when behind reverse proxies/load balancers.
+	proto := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Proto"), ",")[0])
+	if proto == "" {
+		if r.TLS != nil {
+			proto = "https"
+		} else {
+			proto = "http"
+		}
+	}
+
+	host := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Host"), ",")[0])
+	if host == "" {
+		host = r.Host
+	}
+
+	return fmt.Sprintf("%s://%s", proto, host)
 }
 
 // parseIntParam parses an integer query parameter with a default value.

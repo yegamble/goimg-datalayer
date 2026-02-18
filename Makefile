@@ -59,7 +59,7 @@ help:
 
 # Go version check - enforces minimum Go 1.25
 GO_VERSION_MIN := 1.25
-GO_VERSION_CURRENT := $(shell go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
+GO_VERSION_CURRENT := $(shell GOTOOLCHAIN=local go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
 GO_VERSION_OK := $(shell printf '%s\n%s' "$(GO_VERSION_MIN)" "$(GO_VERSION_CURRENT)" | sort -V | head -n1)
 
 check-go-version:
