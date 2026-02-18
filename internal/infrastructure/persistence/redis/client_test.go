@@ -98,24 +98,17 @@ func TestNewClient_ConnectionFailure(t *testing.T) {
 }
 
 // Integration tests - require Redis to be running
-// Skip if Redis is not available
+// Uses testcontainers to spin up ephemeral Redis instance
 
 func getTestClient(t *testing.T) *Client {
 	t.Helper()
 
-	cfg := Config{
-		Host:     "localhost",
-		Port:     6379,
-		DB:       15, // Use a different DB for tests
-		PoolSize: 5,
-		MinIdle:  2,
-		MaxRetry: 2,
-		Timeout:  2 * time.Second,
-	}
+	// Spin up Redis container
+	cfg := setupRedisContainer(t)
 
 	client, err := NewClient(cfg)
 	if err != nil {
-		t.Skipf("Skipping integration test: Redis not available: %v", err)
+		t.Fatalf("Failed to create Redis client: %v", err)
 	}
 
 	return client
