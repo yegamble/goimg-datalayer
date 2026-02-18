@@ -350,25 +350,25 @@ func TestClient_TTL(t *testing.T) {
 			// Setup
 			tt.setup(key)
 
-		// Get TTL
-		ttl, err := client.TTL(ctx, key)
-		require.NoError(t, err)
+			// Get TTL
+			ttl, err := client.TTL(ctx, key)
+			require.NoError(t, err)
 
-		if tt.expectedTTL < 0 {
-			// go-redis may surface TTL sentinels as either seconds or raw duration units.
-			// Accept both forms for "missing key" (-2) and "no expiration" (-1).
-			if tt.expectedTTL == -2*time.Second {
-				assert.Contains(t, []time.Duration{-2 * time.Second, -2 * time.Nanosecond}, ttl)
-			} else if tt.expectedTTL == -1*time.Second {
-				assert.Contains(t, []time.Duration{-1 * time.Second, -1 * time.Nanosecond}, ttl)
+			if tt.expectedTTL < 0 {
+				// go-redis may surface TTL sentinels as either seconds or raw duration units.
+				// Accept both forms for "missing key" (-2) and "no expiration" (-1).
+				if tt.expectedTTL == -2*time.Second {
+					assert.Contains(t, []time.Duration{-2 * time.Second, -2 * time.Nanosecond}, ttl)
+				} else if tt.expectedTTL == -1*time.Second {
+					assert.Contains(t, []time.Duration{-1 * time.Second, -1 * time.Nanosecond}, ttl)
+				} else {
+					assert.Equal(t, tt.expectedTTL, ttl)
+				}
 			} else {
-				assert.Equal(t, tt.expectedTTL, ttl)
+				// For positive TTLs, check it's within a reasonable range
+				assert.Greater(t, ttl, time.Duration(0))
+				assert.LessOrEqual(t, ttl, tt.expectedTTL)
 			}
-		} else {
-			// For positive TTLs, check it's within a reasonable range
-			assert.Greater(t, ttl, time.Duration(0))
-			assert.LessOrEqual(t, ttl, tt.expectedTTL)
-		}
 		})
 	}
 }
