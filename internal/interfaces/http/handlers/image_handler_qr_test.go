@@ -143,4 +143,3 @@ func TestGenerateQRCodePNG(t *testing.T) {
 	assert.Equal(t, 300, decoded.Bounds().Dx())
 	assert.Equal(t, 300, decoded.Bounds().Dy())
 }
-
