@@ -1,8 +1,8 @@
 module github.com/yegamble/goimg-datalayer
 
-go 1.25
+go 1.24.0
 
-toolchain go1.25.5
+toolchain go1.24.3
 
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
