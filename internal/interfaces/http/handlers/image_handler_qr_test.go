@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"crypto/tls"
 	"image/png"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +30,7 @@ func TestImageHandler_GetImageQRCode_DefaultSize(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
-		"",
+		"https://api.example.com",
 		logger,
 	)
 
@@ -60,7 +59,7 @@ func TestImageHandler_GetImageQRCode_SizeOutOfRange(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		nil, nil, nil, nil,
-		"",
+		"https://api.example.com",
 		logger,
 	)
 
@@ -90,7 +89,7 @@ func TestImageHandler_GetImageQRCode_InvalidImageID(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		nil, nil, nil, nil,
-		"",
+		"https://api.example.com",
 		logger,
 	)
 
@@ -120,7 +119,7 @@ func TestImageHandler_GetImageQRCode_ImageNotFound(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
-		"",
+		"https://api.example.com",
 		logger,
 	)
 
@@ -143,45 +142,4 @@ func TestGenerateQRCodePNG(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 300, decoded.Bounds().Dx())
 	assert.Equal(t, 300, decoded.Bounds().Dy())
-}
-
-func TestInferBaseURLFromRequest(t *testing.T) {
-	testCases := []struct {
-		name  string
-		setup func(*http.Request)
-		want  string
-	}{
-		{
-			name: "forwarded headers take precedence",
-			setup: func(req *http.Request) {
-				req.Host = "internal.local:8080"
-				req.Header.Set("X-Forwarded-Proto", "https,http")
-				req.Header.Set("X-Forwarded-Host", "cdn.example.com,internal.local:8080")
-			},
-			want: "https://cdn.example.com",
-		},
-		{
-			name: "tls fallback uses https",
-			setup: func(req *http.Request) {
-				req.Host = "secure.example.com"
-				req.TLS = &tls.ConnectionState{}
-			},
-			want: "https://secure.example.com",
-		},
-		{
-			name: "default fallback uses request host with http",
-			setup: func(req *http.Request) {
-				req.Host = "localhost:8080"
-			},
-			want: "http://localhost:8080",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/images/any/qr", nil)
-			tc.setup(req)
-			assert.Equal(t, tc.want, inferBaseURLFromRequest(req))
-		})
-	}
 }
