@@ -36,7 +36,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(registerHandler, nil, nil, nil, nil, logger)
+		authHandler := handlers.NewAuthHandler(registerHandler, nil, nil, nil, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.RegisterRequest{
 			Email:    "test@example.com",
@@ -76,7 +76,7 @@ func TestAuthHandler_Register(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(registerHandler, nil, nil, nil, nil, logger)
+		authHandler := handlers.NewAuthHandler(registerHandler, nil, nil, nil, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.RegisterRequest{
 			Email:    "existing@example.com",
@@ -123,7 +123,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(nil, loginHandler, nil, nil, nil, logger)
+		authHandler := handlers.NewAuthHandler(nil, loginHandler, nil, nil, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.LoginRequest{
 			Email:    "test@example.com",
@@ -175,7 +175,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(nil, loginHandler, nil, nil, nil, logger)
+		authHandler := handlers.NewAuthHandler(nil, loginHandler, nil, nil, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.LoginRequest{
 			Email:    "test@example.com",
@@ -223,7 +223,7 @@ func TestAuthHandler_Refresh(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(nil, nil, refreshHandler, nil, nil, logger)
+		authHandler := handlers.NewAuthHandler(nil, nil, refreshHandler, nil, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.RefreshRequest{
 			RefreshToken: "valid_refresh_token",
@@ -285,7 +285,7 @@ func TestAuthHandler_Logout(t *testing.T) {
 			&logger,
 		)
 
-		authHandler := handlers.NewAuthHandler(nil, nil, nil, logoutHandler, nil, logger)
+		authHandler := handlers.NewAuthHandler(nil, nil, nil, logoutHandler, nil, nil, nil, nil, nil, logger)
 
 		reqBody := handlers.LogoutRequest{
 			RefreshToken: "refresh_token",
@@ -296,10 +296,9 @@ func TestAuthHandler_Logout(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer access_token")
 		rr := httptest.NewRecorder()
 
-		// Inject user context
 		userID := uuid.New()
 		sessionID := uuid.New()
-		ctx := middleware.SetUserContext(req.Context(), userID, "test@example.com", "user", sessionID, false)
+		ctx := middleware.SetUserContext(req.Context(), userID, "test@example.com", "user", sessionID, false, true)
 		req = req.WithContext(ctx)
 
 		mockJWT.On("ExtractTokenID", "access_token").Return("jti", nil)

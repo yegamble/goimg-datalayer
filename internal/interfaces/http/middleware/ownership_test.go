@@ -15,7 +15,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-// MockOwnershipChecker is a mock implementation of OwnershipChecker.
 type MockOwnershipChecker struct {
 	mock.Mock
 }
@@ -37,11 +36,9 @@ func TestRequireOwnership_Success(t *testing.T) {
 	userID := uuid.New()
 	resourceID := uuid.New()
 
-	// Setup mocks
 	mockChecker.On("ExistsByID", mock.Anything, resourceID).Return(true, nil)
 	mockChecker.On("CheckOwnership", mock.Anything, userID, resourceID).Return(true, nil)
 
-	// Create middleware
 	cfg := middleware.OwnershipConfig{
 		ResourceType: middleware.ResourceTypeImage,
 		Checker:      mockChecker,
@@ -55,24 +52,19 @@ func TestRequireOwnership_Success(t *testing.T) {
 		_, _ = w.Write([]byte("success"))
 	}))
 
-	// Create request
 	req := httptest.NewRequest(http.MethodGet, "/images/"+resourceID.String(), nil)
 
-	// Setup chi URL params
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	// Set user context
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
-	// Execute
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "success", rr.Body.String())
 	mockChecker.AssertExpectations(t)
@@ -95,7 +87,6 @@ func TestRequireOwnership_NoUserContext(t *testing.T) {
 		t.Fatal("handler should not be called")
 	}))
 
-	// Create request WITHOUT user context
 	req := httptest.NewRequest(http.MethodGet, "/images/"+resourceID.String(), nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("imageID", resourceID.String())
@@ -104,7 +95,6 @@ func TestRequireOwnership_NoUserContext(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 }
 
@@ -125,20 +115,17 @@ func TestRequireOwnership_MissingResourceID(t *testing.T) {
 		t.Fatal("handler should not be called")
 	}))
 
-	// Create request WITHOUT resource ID in URL
 	req := httptest.NewRequest(http.MethodGet, "/images", nil)
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
-	// Add empty route context
 	rctx := chi.NewRouteContext()
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
@@ -159,20 +146,18 @@ func TestRequireOwnership_InvalidResourceID(t *testing.T) {
 		t.Fatal("handler should not be called")
 	}))
 
-	// Create request with INVALID resource ID
 	req := httptest.NewRequest(http.MethodGet, "/images/invalid-uuid", nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("imageID", "invalid-uuid")
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
@@ -183,7 +168,6 @@ func TestRequireOwnership_ResourceNotFound(t *testing.T) {
 	userID := uuid.New()
 	resourceID := uuid.New()
 
-	// Setup mocks - resource does not exist
 	mockChecker.On("ExistsByID", mock.Anything, resourceID).Return(false, nil)
 
 	cfg := middleware.OwnershipConfig{
@@ -202,14 +186,13 @@ func TestRequireOwnership_ResourceNotFound(t *testing.T) {
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 	mockChecker.AssertExpectations(t)
 }
@@ -221,7 +204,6 @@ func TestRequireOwnership_NotOwner(t *testing.T) {
 	userID := uuid.New()
 	resourceID := uuid.New()
 
-	// Setup mocks - resource exists but user is not owner
 	mockChecker.On("ExistsByID", mock.Anything, resourceID).Return(true, nil)
 	mockChecker.On("CheckOwnership", mock.Anything, userID, resourceID).Return(false, nil)
 
@@ -242,14 +224,13 @@ func TestRequireOwnership_NotOwner(t *testing.T) {
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusForbidden, rr.Code)
 	mockChecker.AssertExpectations(t)
 }
@@ -261,7 +242,6 @@ func TestRequireOwnership_AdminBypass(t *testing.T) {
 	userID := uuid.New()
 	resourceID := uuid.New()
 
-	// Setup mocks - only check existence, not ownership
 	mockChecker.On("ExistsByID", mock.Anything, resourceID).Return(true, nil)
 
 	cfg := middleware.OwnershipConfig{
@@ -269,7 +249,7 @@ func TestRequireOwnership_AdminBypass(t *testing.T) {
 		Checker:      mockChecker,
 		URLParam:     "imageID",
 		Logger:       logger,
-		AllowAdmins:  true, // Admin bypass enabled
+		AllowAdmins:  true,
 	}
 
 	handler := middleware.RequireOwnership(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -282,19 +262,16 @@ func TestRequireOwnership_AdminBypass(t *testing.T) {
 	rctx.URLParams.Add("imageID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	// Set user context with ADMIN role
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "admin access", rr.Body.String())
 	mockChecker.AssertExpectations(t)
-	// CheckOwnership should NOT be called for admins
 	mockChecker.AssertNotCalled(t, "CheckOwnership", mock.Anything, mock.Anything, mock.Anything)
 }
 
@@ -305,7 +282,6 @@ func TestRequireOwnership_ModeratorBypass(t *testing.T) {
 	userID := uuid.New()
 	resourceID := uuid.New()
 
-	// Setup mocks - only check existence
 	mockChecker.On("ExistsByID", mock.Anything, resourceID).Return(true, nil)
 
 	cfg := middleware.OwnershipConfig{
@@ -313,7 +289,7 @@ func TestRequireOwnership_ModeratorBypass(t *testing.T) {
 		Checker:         mockChecker,
 		URLParam:        "commentID",
 		Logger:          logger,
-		AllowModerators: true, // Moderator bypass enabled
+		AllowModerators: true,
 	}
 
 	handler := middleware.RequireOwnership(cfg)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -326,15 +302,13 @@ func TestRequireOwnership_ModeratorBypass(t *testing.T) {
 	rctx.URLParams.Add("commentID", resourceID.String())
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	// Set user context with MODERATOR role
-	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", uuid.New(), false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", uuid.New(), false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "moderator access", rr.Body.String())
 	mockChecker.AssertExpectations(t)

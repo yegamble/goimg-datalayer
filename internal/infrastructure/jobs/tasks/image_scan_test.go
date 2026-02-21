@@ -264,6 +264,8 @@ func TestImageScanHandler_ProcessTask_MalwareDetected(t *testing.T) {
 		userID, emailVal, usernameVal, passwordVal,
 		identity.RoleUser, identity.StatusActive, "User", "", 0,
 		time.Now(), time.Now(), identity.UserTypeRegistered, nil, nil,
+		false,
+		nil,
 	)
 
 	metadata, _ := gallery.NewImageMetadata("Title", "Desc", filename, "image/jpeg", 100, 100, 100, storageKey, "local")

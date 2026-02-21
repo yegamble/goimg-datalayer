@@ -1,9 +1,9 @@
 # User Story Gap Analysis & Integration Testing Plan
 
 Created: 2026-02-21
-Status: PENDING
+Status: VERIFIED
 Approved: Yes
-Iterations: 0
+Iterations: 1
 Worktree: No
 
 > **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
@@ -174,15 +174,18 @@ Command handlers in the application layer must not import the infrastructure ema
 
 - [x] Task 1: Create IPFS testcontainer helper
 - [x] Task 2: Write IPFS client integration tests
-- [ ] Task 3: Write IPFS orchestrator integration tests
-- [ ] Task 4: Create SMTP testcontainer helper + integration tests
-- [ ] Task 5: Create S3/MinIO shared testcontainer helper
-- [ ] Task 6: Verify image download endpoint
-- [ ] Task 7: Implement password reset flow
-- [ ] Task 8: Implement email verification flow
-- [ ] Task 9: Update Postman E2E collection for auth endpoints
+- [x] Task 3: Write IPFS orchestrator integration tests
+- [x] Task 4: Create SMTP testcontainer helper + integration tests
+- [x] Task 5: Create S3/MinIO shared testcontainer helper
+- [x] Task 6: Verify image download endpoint
+- [x] Task 7: Implement password reset flow
+- [x] Task 8: Implement email verification flow
+- [x] Task 9: Update Postman E2E collection for auth endpoints
+- [x] Task 10: [MISSING] Enforce email verification in upload/comment/group-create handlers
 
-**Total Tasks:** 9 | **Completed:** 2 | **Remaining:** 7
+**Total Tasks:** 10 | **Completed:** 10 | **Remaining:** 0
+
+> Extended 2026-02-21: Task 10 added for missing email verification enforcement found during verification
 
 ## Implementation Tasks
 
@@ -564,6 +567,48 @@ Command handlers in the application layer must not import the infrastructure ema
 
 - `make test-e2e-dry` — validates collection JSON structure
 - `make agent-check` — full validation passes
+
+---
+
+### Task 10: [MISSING] Enforce Email Verification in Upload/Comment/Group-Create Handlers
+
+**Objective:** Add `EmailVerified` to JWT claims and `UserContext`, then enforce email verification in image upload, comment creation, and group creation handlers (returning 403 for unverified users). This was a Task 8 DoD criterion that was not implemented.
+
+**Dependencies:** Task 8
+
+**Files:**
+
+- Modify: `internal/infrastructure/security/jwt/` — add `email_verified` claim to access tokens
+- Modify: `internal/interfaces/http/middleware/context.go` — add `EmailVerifiedKey` context key and `SetUserContext` param
+- Modify: `internal/interfaces/http/middleware/auth.go` — extract `email_verified` claim and set in context
+- Modify: `internal/interfaces/http/handlers/helpers.go` — add `EmailVerified` field to `UserContext` struct
+- Modify: `internal/interfaces/http/handlers/image_upload_handler.go` — check `EmailVerified`, return 403 if false
+- Modify: `internal/interfaces/http/handlers/social_handler.go` or comment handler — check `EmailVerified` for comment creation
+- Modify: `internal/interfaces/http/handlers/group_handler.go` — check `EmailVerified` for group creation
+- Modify: test files for affected handlers
+
+**Key Decisions / Notes:**
+
+- Unverified users can still login and browse. Only upload, comment creation, and group creation are restricted.
+- The `email_verified` field comes from the User domain entity (already has `EmailVerified()` method)
+- JWT token generation must include `email_verified` claim from user entity
+- Follow existing pattern: check after `GetUserFromContext()`, before business logic
+
+**Definition of Done:**
+
+- [ ] `UserContext` struct has `EmailVerified bool` field
+- [ ] JWT access tokens include `email_verified` claim
+- [ ] `SetUserContext` and auth middleware propagate `EmailVerified`
+- [ ] `POST /images` (upload) returns 403 with "Email verification required" for unverified users
+- [ ] `POST /images/{id}/comments` returns 403 for unverified users
+- [ ] `POST /groups` returns 403 for unverified users
+- [ ] Unit tests verify 403 behavior for each handler
+- [ ] Existing tests still pass (verified users work normally)
+
+**Verify:**
+
+- `go test ./internal/interfaces/http/... -run TestUpload` — upload tests pass
+- `make lint && make test` — full suite passes
 
 ---
 

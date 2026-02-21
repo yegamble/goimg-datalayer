@@ -18,11 +18,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-// ============================================================================
-// Mock Implementations
-// ============================================================================
 
-// MockJWTService is a mock implementation of JWTServiceInterface.
 type MockJWTService struct {
 	mock.Mock
 }
@@ -40,7 +36,6 @@ func (m *MockJWTService) ExtractTokenID(tokenString string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-// MockTokenBlacklist is a mock implementation of TokenBlacklistInterface.
 type MockTokenBlacklist struct {
 	mock.Mock
 }
@@ -51,13 +46,8 @@ func (m *MockTokenBlacklist) IsBlacklisted(ctx context.Context, tokenID string) 
 }
 
 // Note: MetricsCollector is optional in AuthConfig, so we use nil in most tests.
-// When metrics collection needs to be verified, we can create a real instance.
 
-// ============================================================================
-// Test Helpers
-// ============================================================================
 
-// createValidClaims creates a valid set of JWT claims for testing.
 func createValidClaims() *jwt.Claims {
 	userID := uuid.New()
 	sessionID := uuid.New()
@@ -71,14 +61,10 @@ func createValidClaims() *jwt.Claims {
 	}
 }
 
-// ============================================================================
-// JWTAuth Middleware Tests
-// ============================================================================
 
 func TestJWTAuth_ValidToken_Success(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -101,7 +87,6 @@ func TestJWTAuth_ValidToken_Success(t *testing.T) {
 
 	authMiddleware := middleware.JWTAuth(cfg)
 
-	// Create test handler that verifies context was set
 	var contextUserID uuid.UUID
 	var contextEmail string
 	var contextRole string
@@ -122,14 +107,11 @@ func TestJWTAuth_ValidToken_Success(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "success", rr.Body.String())
 
-	// Verify context was populated correctly
 	assert.Equal(t, claims.UserID, contextUserID.String())
 	assert.Equal(t, claims.Email, contextEmail)
 	assert.Equal(t, claims.Role, contextRole)
@@ -141,7 +123,6 @@ func TestJWTAuth_ValidToken_Success(t *testing.T) {
 func TestJWTAuth_MissingAuthorizationHeader_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -163,16 +144,13 @@ func TestJWTAuth_MissingAuthorizationHeader_Returns401(t *testing.T) {
 	wrappedHandler := authMiddleware(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected", nil)
-	// No Authorization header set
 	ctx := middleware.SetRequestID(req.Context(), "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 	assert.Equal(t, "application/problem+json", rr.Header().Get("Content-Type"))
 
@@ -191,7 +169,6 @@ func TestJWTAuth_MissingAuthorizationHeader_Returns401(t *testing.T) {
 func TestJWTAuth_InvalidHeaderFormat_NoBearerPrefix_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -199,7 +176,7 @@ func TestJWTAuth_InvalidHeaderFormat_NoBearerPrefix_Returns401(t *testing.T) {
 	cfg := middleware.AuthConfig{
 		JWTService:       mockJWT,
 		TokenBlacklist:   mockBlacklist,
-		MetricsCollector: nil, // Metrics optional
+		MetricsCollector: nil,
 		Logger:           logger,
 		Optional:         false,
 	}
@@ -219,10 +196,8 @@ func TestJWTAuth_InvalidHeaderFormat_NoBearerPrefix_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -235,7 +210,6 @@ func TestJWTAuth_InvalidHeaderFormat_NoBearerPrefix_Returns401(t *testing.T) {
 func TestJWTAuth_MalformedHeader_SinglePart_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -263,10 +237,8 @@ func TestJWTAuth_MalformedHeader_SinglePart_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -279,7 +251,6 @@ func TestJWTAuth_MalformedHeader_SinglePart_Returns401(t *testing.T) {
 func TestJWTAuth_EmptyToken_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -307,10 +278,8 @@ func TestJWTAuth_EmptyToken_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -323,7 +292,6 @@ func TestJWTAuth_EmptyToken_Returns401(t *testing.T) {
 func TestJWTAuth_BlacklistedToken_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -357,10 +325,8 @@ func TestJWTAuth_BlacklistedToken_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -371,14 +337,12 @@ func TestJWTAuth_BlacklistedToken_Returns401(t *testing.T) {
 
 	mockJWT.AssertExpectations(t)
 	mockBlacklist.AssertExpectations(t)
-	// ValidateToken should NOT be called for blacklisted token
 	mockJWT.AssertNotCalled(t, "ValidateToken", mock.Anything)
 }
 
 func TestJWTAuth_BlacklistCheckError_Returns500(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -413,10 +377,8 @@ func TestJWTAuth_BlacklistCheckError_Returns500(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -432,7 +394,6 @@ func TestJWTAuth_BlacklistCheckError_Returns500(t *testing.T) {
 func TestJWTAuth_ExpiredToken_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -468,10 +429,8 @@ func TestJWTAuth_ExpiredToken_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -487,7 +446,6 @@ func TestJWTAuth_ExpiredToken_Returns401(t *testing.T) {
 func TestJWTAuth_InvalidSignature_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -523,10 +481,8 @@ func TestJWTAuth_InvalidSignature_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -542,7 +498,6 @@ func TestJWTAuth_InvalidSignature_Returns401(t *testing.T) {
 func TestJWTAuth_WrongTokenType_RefreshInsteadOfAccess_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -551,7 +506,7 @@ func TestJWTAuth_WrongTokenType_RefreshInsteadOfAccess_Returns401(t *testing.T) 
 	tokenID := "token-id"
 
 	claims := createValidClaims()
-	claims.TokenType = jwt.TokenTypeRefresh // Wrong token type!
+	claims.TokenType = jwt.TokenTypeRefresh
 
 	mockJWT.On("ExtractTokenID", tokenString).Return(tokenID, nil)
 	mockBlacklist.On("IsBlacklisted", mock.Anything, tokenID).Return(false, nil)
@@ -580,10 +535,8 @@ func TestJWTAuth_WrongTokenType_RefreshInsteadOfAccess_Returns401(t *testing.T) 
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -599,7 +552,6 @@ func TestJWTAuth_WrongTokenType_RefreshInsteadOfAccess_Returns401(t *testing.T) 
 func TestJWTAuth_InvalidUserID_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -608,7 +560,7 @@ func TestJWTAuth_InvalidUserID_Returns401(t *testing.T) {
 	tokenID := "token-id"
 
 	claims := createValidClaims()
-	claims.UserID = "not-a-valid-uuid" // Invalid UUID
+	claims.UserID = "not-a-valid-uuid"
 
 	mockJWT.On("ExtractTokenID", tokenString).Return(tokenID, nil)
 	mockBlacklist.On("IsBlacklisted", mock.Anything, tokenID).Return(false, nil)
@@ -637,10 +589,8 @@ func TestJWTAuth_InvalidUserID_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -656,7 +606,6 @@ func TestJWTAuth_InvalidUserID_Returns401(t *testing.T) {
 func TestJWTAuth_InvalidSessionID_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -665,7 +614,7 @@ func TestJWTAuth_InvalidSessionID_Returns401(t *testing.T) {
 	tokenID := "token-id"
 
 	claims := createValidClaims()
-	claims.SessionID = "invalid-session-id" // Invalid UUID
+	claims.SessionID = "invalid-session-id"
 
 	mockJWT.On("ExtractTokenID", tokenString).Return(tokenID, nil)
 	mockBlacklist.On("IsBlacklisted", mock.Anything, tokenID).Return(false, nil)
@@ -694,10 +643,8 @@ func TestJWTAuth_InvalidSessionID_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -713,7 +660,6 @@ func TestJWTAuth_InvalidSessionID_Returns401(t *testing.T) {
 func TestJWTAuth_OptionalMode_MissingToken_PassesThrough(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -723,13 +669,12 @@ func TestJWTAuth_OptionalMode_MissingToken_PassesThrough(t *testing.T) {
 		TokenBlacklist:   mockBlacklist,
 		MetricsCollector: nil,
 		Logger:           logger,
-		Optional:         true, // Optional authentication
+		Optional:         true,
 	}
 
 	authMiddleware := middleware.JWTAuth(cfg)
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify no user context is set
 		_, ok := middleware.GetUserID(r.Context())
 		assert.False(t, ok, "no user context should be set")
 
@@ -740,20 +685,16 @@ func TestJWTAuth_OptionalMode_MissingToken_PassesThrough(t *testing.T) {
 	wrappedHandler := authMiddleware(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/public", nil)
-	// No Authorization header
 	ctx := middleware.SetRequestID(req.Context(), "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "public access", rr.Body.String())
 
-	// No JWT service methods should be called
 	mockJWT.AssertNotCalled(t, "ValidateToken", mock.Anything)
 	mockJWT.AssertNotCalled(t, "ExtractTokenID", mock.Anything)
 	mockBlacklist.AssertNotCalled(t, "IsBlacklisted", mock.Anything, mock.Anything)
@@ -762,7 +703,6 @@ func TestJWTAuth_OptionalMode_MissingToken_PassesThrough(t *testing.T) {
 func TestJWTAuth_OptionalMode_InvalidToken_PassesThrough(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -772,7 +712,7 @@ func TestJWTAuth_OptionalMode_InvalidToken_PassesThrough(t *testing.T) {
 		TokenBlacklist:   mockBlacklist,
 		MetricsCollector: nil,
 		Logger:           logger,
-		Optional:         true, // Optional authentication
+		Optional:         true,
 	}
 
 	authMiddleware := middleware.JWTAuth(cfg)
@@ -791,10 +731,8 @@ func TestJWTAuth_OptionalMode_InvalidToken_PassesThrough(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "public access", rr.Body.String())
 }
@@ -802,7 +740,6 @@ func TestJWTAuth_OptionalMode_InvalidToken_PassesThrough(t *testing.T) {
 func TestJWTAuth_ExtractTokenIDError_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -835,10 +772,8 @@ func TestJWTAuth_ExtractTokenIDError_Returns401(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -850,14 +785,10 @@ func TestJWTAuth_ExtractTokenIDError_Returns401(t *testing.T) {
 	mockJWT.AssertExpectations(t)
 }
 
-// ============================================================================
-// RequireRole Middleware Tests
-// ============================================================================
 
 func TestRequireRole_UserHasRequiredRole_PassesThrough(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireRole(logger, nil, "admin")
@@ -871,19 +802,16 @@ func TestRequireRole_UserHasRequiredRole_PassesThrough(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin", nil)
 
-	// Set user context with admin role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "admin access granted", rr.Body.String())
 }
@@ -891,7 +819,6 @@ func TestRequireRole_UserHasRequiredRole_PassesThrough(t *testing.T) {
 func TestRequireRole_UserLacksRequiredRole_Returns403(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireRole(logger, nil, "admin")
@@ -904,19 +831,16 @@ func TestRequireRole_UserLacksRequiredRole_Returns403(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin", nil)
 
-	// Set user context with 'user' role (not admin)
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusForbidden, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -930,7 +854,6 @@ func TestRequireRole_UserLacksRequiredRole_Returns403(t *testing.T) {
 func TestRequireRole_NoUserContext_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireRole(logger, nil, "admin")
@@ -942,16 +865,13 @@ func TestRequireRole_NoUserContext_Returns401(t *testing.T) {
 	wrappedHandler := roleMiddleware(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin", nil)
-	// No user context set (middleware not placed after JWTAuth)
 	ctx := middleware.SetRequestID(req.Context(), "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -962,14 +882,10 @@ func TestRequireRole_NoUserContext_Returns401(t *testing.T) {
 	assert.Contains(t, problem.Detail, "User role not found in context")
 }
 
-// ============================================================================
-// RequireAnyRole Middleware Tests
-// ============================================================================
 
 func TestRequireAnyRole_UserHasFirstAllowedRole_PassesThrough(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireAnyRole(logger, nil, "moderator", "admin")
@@ -983,19 +899,16 @@ func TestRequireAnyRole_UserHasFirstAllowedRole_PassesThrough(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/moderate", nil)
 
-	// Set user context with moderator role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", sessionID, false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "mod@example.com", "moderator", sessionID, false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "moderator access granted", rr.Body.String())
 }
@@ -1003,7 +916,6 @@ func TestRequireAnyRole_UserHasFirstAllowedRole_PassesThrough(t *testing.T) {
 func TestRequireAnyRole_UserHasSecondAllowedRole_PassesThrough(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireAnyRole(logger, nil, "moderator", "admin")
@@ -1017,19 +929,16 @@ func TestRequireAnyRole_UserHasSecondAllowedRole_PassesThrough(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/moderate", nil)
 
-	// Set user context with admin role
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "admin@example.com", "admin", sessionID, false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Equal(t, "admin access granted", rr.Body.String())
 }
@@ -1037,7 +946,6 @@ func TestRequireAnyRole_UserHasSecondAllowedRole_PassesThrough(t *testing.T) {
 func TestRequireAnyRole_UserHasNoneOfAllowedRoles_Returns403(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireAnyRole(logger, nil, "moderator", "admin")
@@ -1050,19 +958,16 @@ func TestRequireAnyRole_UserHasNoneOfAllowedRoles_Returns403(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/moderate", nil)
 
-	// Set user context with 'user' role (neither moderator nor admin)
 	userID := uuid.New()
 	sessionID := uuid.New()
-	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false)
+	ctx := middleware.SetUserContext(req.Context(), userID, "user@example.com", "user", sessionID, false, true)
 	ctx = middleware.SetRequestID(ctx, "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusForbidden, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -1076,7 +981,6 @@ func TestRequireAnyRole_UserHasNoneOfAllowedRoles_Returns403(t *testing.T) {
 func TestRequireAnyRole_NoUserContext_Returns401(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	logger := zerolog.Nop()
 
 	roleMiddleware := middleware.RequireAnyRole(logger, nil, "moderator", "admin")
@@ -1088,16 +992,13 @@ func TestRequireAnyRole_NoUserContext_Returns401(t *testing.T) {
 	wrappedHandler := roleMiddleware(testHandler)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/moderate", nil)
-	// No user context set
 	ctx := middleware.SetRequestID(req.Context(), "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 
 	var problem middleware.ProblemDetails
@@ -1108,14 +1009,10 @@ func TestRequireAnyRole_NoUserContext_Returns401(t *testing.T) {
 	assert.Contains(t, problem.Detail, "User role not found in context")
 }
 
-// ============================================================================
-// Edge Case Tests
-// ============================================================================
 
 func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -1144,7 +1041,6 @@ func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 
 	wrappedHandler := authMiddleware(testHandler)
 
-	// Test different case variations
 	testCases := []string{
 		"Bearer " + tokenString,
 		"bearer " + tokenString,
@@ -1163,10 +1059,8 @@ func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			// Act
 			wrappedHandler.ServeHTTP(rr, req)
 
-			// Assert
 			assert.Equal(t, http.StatusOK, rr.Code)
 		})
 	}
@@ -1175,7 +1069,6 @@ func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 func TestJWTAuth_RFC7807ErrorFormat(t *testing.T) {
 	t.Parallel()
 
-	// Arrange
 	mockJWT := new(MockJWTService)
 	mockBlacklist := new(MockTokenBlacklist)
 	logger := zerolog.Nop()
@@ -1197,16 +1090,13 @@ func TestJWTAuth_RFC7807ErrorFormat(t *testing.T) {
 	wrappedHandler := authMiddleware(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected", nil)
-	// No Authorization header
 	ctx := middleware.SetRequestID(req.Context(), "test-request-id")
 	req = req.WithContext(ctx)
 
 	rr := httptest.NewRecorder()
 
-	// Act
 	wrappedHandler.ServeHTTP(rr, req)
 
-	// Assert
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 	assert.Equal(t, "application/problem+json", rr.Header().Get("Content-Type"))
 
@@ -1214,7 +1104,6 @@ func TestJWTAuth_RFC7807ErrorFormat(t *testing.T) {
 	err := json.NewDecoder(rr.Body).Decode(&problem)
 	require.NoError(t, err)
 
-	// Verify RFC 7807 structure
 	assert.NotEmpty(t, problem.Type, "type field should be present")
 	assert.NotEmpty(t, problem.Title, "title field should be present")
 	assert.NotZero(t, problem.Status, "status field should be present")
@@ -1223,7 +1112,6 @@ func TestJWTAuth_RFC7807ErrorFormat(t *testing.T) {
 	assert.NotEmpty(t, problem.TraceID, "traceId field should be present")
 	assert.NotEmpty(t, problem.Timestamp, "timestamp field should be present")
 
-	// Verify correct values
 	assert.Equal(t, "/api/v1/protected", problem.Instance)
 	assert.Equal(t, "test-request-id", problem.TraceID)
 	assert.Contains(t, problem.Type, "https://api.goimg.dev/problems")

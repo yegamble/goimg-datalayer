@@ -13,7 +13,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-// Test constants.
 const (
 	ValidUserID            = "550e8400-e29b-41d4-a716-446655440000"
 	ValidImageID           = "7c9e6679-7425-40de-944b-e07fc1f90ae7"
@@ -23,10 +22,9 @@ const (
 	ValidMimeType          = "image/jpeg"
 	ValidWidth             = 1920
 	ValidHeight            = 1080
-	ValidFileSize    int64 = 512000 // 500KB
+	ValidFileSize    int64 = 512000
 )
 
-// TestSuite provides mock dependencies for testing.
 type TestSuite struct {
 	ImageRepo       *MockImageRepository
 	Storage         *MockStorage
@@ -37,7 +35,6 @@ type TestSuite struct {
 	Logger          zerolog.Logger
 }
 
-// NewTestSuite creates a new test suite with mocked dependencies.
 func NewTestSuite(t *testing.T) *TestSuite {
 	t.Helper()
 
@@ -47,12 +44,11 @@ func NewTestSuite(t *testing.T) *TestSuite {
 		JobEnqueuer:     new(MockJobEnqueuer),
 		EventPublisher:  new(MockEventPublisher),
 		IPFSService:     new(MockIPFSService),
-		StorageProvider: new(MockStorageProvider), // Use the specific mock type
-		Logger:          zerolog.Nop(),            // No-op logger for tests
+		StorageProvider: new(MockStorageProvider),
+		Logger:          zerolog.Nop(),
 	}
 }
 
-// AssertExpectations verifies all mock expectations were met.
 func (s *TestSuite) AssertExpectations(t *testing.T) {
 	t.Helper()
 
@@ -64,19 +60,16 @@ func (s *TestSuite) AssertExpectations(t *testing.T) {
 	s.StorageProvider.AssertExpectations(t)
 }
 
-// ValidUserIDParsed returns a parsed UserID for testing.
 func ValidUserIDParsed() identity.UserID {
 	userID, _ := identity.ParseUserID(ValidUserID)
 	return userID
 }
 
-// ValidImageIDParsed returns a parsed ImageID for testing.
 func ValidImageIDParsed() gallery.ImageID {
 	imageID, _ := gallery.ParseImageID(ValidImageID)
 	return imageID
 }
 
-// ValidImage creates a valid Image aggregate for testing.
 func ValidImage(t *testing.T) *gallery.Image {
 	t.Helper()
 
@@ -86,16 +79,13 @@ func ValidImage(t *testing.T) *gallery.Image {
 	image, err := gallery.NewImage(ownerID, metadata)
 	require.NoError(t, err)
 
-	// Mark as active so it's viewable
 	require.NoError(t, image.MarkAsActive())
 
-	// Set visibility to public for easier testing
 	require.NoError(t, image.UpdateVisibility(gallery.VisibilityPublic))
 
 	return image
 }
 
-// ValidImageMetadata creates valid ImageMetadata for testing.
 func ValidImageMetadata(t *testing.T) gallery.ImageMetadata {
 	t.Helper()
 
@@ -115,13 +105,10 @@ func ValidImageMetadata(t *testing.T) gallery.ImageMetadata {
 	return metadata
 }
 
-// ValidFileReader returns a mock file reader for testing uploads.
 func ValidFileReader() io.Reader {
-	// Return a reader with some fake JPEG data
 	return bytes.NewReader(make([]byte, ValidFileSize))
 }
 
-// ValidTag creates a valid Tag for testing.
 func ValidTag(t *testing.T, name string) gallery.Tag {
 	t.Helper()
 
@@ -131,16 +118,13 @@ func ValidTag(t *testing.T, name string) gallery.Tag {
 	return tag
 }
 
-// ValidIPFSCID is a valid CIDv0 for testing (46 characters).
 const ValidIPFSCID = "QmTzQ1JRkWErjk39mryYw2WVPhE8u1S6aLNpT3EEDwzJ1X"
 
-// ValidImageWithIPFS creates a valid Image aggregate with IPFS metadata for testing.
 func ValidImageWithIPFS(t *testing.T) *gallery.Image {
 	t.Helper()
 
 	image := ValidImage(t)
 
-	// Add IPFS metadata
 	pinnedAt := ValidTimestamp()
 	ipfsMeta, err := gallery.NewIPFSMetadata(
 		ValidIPFSCID,
@@ -153,7 +137,6 @@ func ValidImageWithIPFS(t *testing.T) *gallery.Image {
 	return image
 }
 
-// ValidAlbum creates a valid Album aggregate for testing.
 func ValidAlbum(t *testing.T) *gallery.Album {
 	t.Helper()
 
@@ -161,23 +144,19 @@ func ValidAlbum(t *testing.T) *gallery.Album {
 	album, err := gallery.NewAlbum(ownerID, "Test Album")
 	require.NoError(t, err)
 
-	// Set description and visibility
 	require.NoError(t, album.UpdateDescription("Test album description"))
 	require.NoError(t, album.UpdateVisibility(gallery.VisibilityPublic))
 
 	return album
 }
 
-// ValidAlbumID returns a valid album ID string for testing.
 const ValidAlbumID = "8c9e6679-7425-40de-944b-e07fc1f90ae8"
 
-// ValidAlbumIDParsed returns a parsed AlbumID for testing.
 func ValidAlbumIDParsed() gallery.AlbumID {
 	albumID, _ := gallery.ParseAlbumID(ValidAlbumID)
 	return albumID
 }
 
-// ValidComment creates a valid Comment aggregate for testing.
 func ValidComment(t *testing.T) *gallery.Comment {
 	t.Helper()
 
@@ -189,16 +168,13 @@ func ValidComment(t *testing.T) *gallery.Comment {
 	return comment
 }
 
-// ValidCommentID returns a valid comment ID string for testing.
 const ValidCommentID = "9c9e6679-7425-40de-944b-e07fc1f90ae9"
 
-// ValidCommentIDParsed returns a parsed CommentID for testing.
 func ValidCommentIDParsed() gallery.CommentID {
 	commentID, _ := gallery.ParseCommentID(ValidCommentID)
 	return commentID
 }
 
-// ValidUser creates a valid User aggregate for testing.
 func ValidUser(t *testing.T) *identity.User {
 	t.Helper()
 
@@ -209,7 +185,7 @@ func ValidUser(t *testing.T) *identity.User {
 	username, err := identity.NewUsername("testuser")
 	require.NoError(t, err)
 
-	passwordHash, err := identity.NewPasswordHash("$2a$10$N9qo8uLOickgx2ZMRZoMye7WdZGIsgbRJHaC0G/YLnQ5zt1g/K7i2") // "password"
+	passwordHash, err := identity.NewPasswordHash("$2a$10$N9qo8uLOickgx2ZMRZoMye7WdZGIsgbRJHaC0G/YLnQ5zt1g/K7i2")
 	require.NoError(t, err)
 
 	user := identity.ReconstructUser(
@@ -227,12 +203,13 @@ func ValidUser(t *testing.T) *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		false,
+		nil,
 	)
 
 	return user
 }
 
-// ValidModeratorUser creates a valid User aggregate with moderator role for testing.
 func ValidModeratorUser(t *testing.T) *identity.User {
 	t.Helper()
 
@@ -261,12 +238,13 @@ func ValidModeratorUser(t *testing.T) *identity.User {
 		identity.UserTypeRegistered,
 		nil,
 		nil,
+		false,
+		nil,
 	)
 
 	return user
 }
 
-// ValidTimestamp returns a valid timestamp for testing.
 func ValidTimestamp() time.Time {
 	return time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 }

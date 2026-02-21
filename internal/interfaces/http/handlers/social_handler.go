@@ -10,8 +10,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-// SocialHandler handles social interaction endpoints (likes, comments).
-// It delegates to application layer command and query handlers for business logic.
 type SocialHandler struct {
 	likeImage          *commands.LikeImageHandler
 	unlikeImage        *commands.UnlikeImageHandler
@@ -22,7 +20,6 @@ type SocialHandler struct {
 	logger             zerolog.Logger
 }
 
-// NewSocialHandler creates a new SocialHandler with the given dependencies.
 func NewSocialHandler(
 	likeImage *commands.LikeImageHandler,
 	unlikeImage *commands.UnlikeImageHandler,
@@ -43,25 +40,10 @@ func NewSocialHandler(
 	}
 }
 
-// LikeImage handles POST /api/v1/images/{imageID}/like
-// Likes an image.
-//
-// Path parameters:
-//   - imageID: UUID of the image to like
-//
-// Response: 200 OK with {liked: true, like_count: N}
-// Errors:
-//   - 400: Invalid image ID format
-//   - 401: Not authenticated
-//   - 403: Image is not accessible to user
-//   - 404: Image not found
-//   - 500: Internal server error
-//
 //nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user context
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in like handler")
@@ -73,7 +55,6 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Extract image ID from path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
 		middleware.WriteError(w, r,
@@ -84,20 +65,17 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Build like command
 	cmd := commands.LikeImageCommand{
 		UserID:  userCtx.UserID.String(),
 		ImageID: imageID,
 	}
 
-	// 4. Execute like command
 	result, err := h.likeImage.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "like image")
 		return
 	}
 
-	// 5. Return success response with like status and count
 	h.logger.Info().
 		Str("image_id", imageID).
 		Str("user_id", userCtx.UserID.String()).
@@ -114,24 +92,10 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UnlikeImage handles DELETE /api/v1/images/{imageID}/like
-// Removes a like from an image.
-//
-// Path parameters:
-//   - imageID: UUID of the image to unlike
-//
-// Response: 200 OK with {liked: false, like_count: N}
-// Errors:
-//   - 400: Invalid image ID format
-//   - 401: Not authenticated
-//   - 404: Image not found
-//   - 500: Internal server error
-//
 //nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user context
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in unlike handler")
@@ -143,7 +107,6 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Extract image ID from path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
 		middleware.WriteError(w, r,
@@ -154,20 +117,17 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Build unlike command
 	cmd := commands.UnlikeImageCommand{
 		UserID:  userCtx.UserID.String(),
 		ImageID: imageID,
 	}
 
-	// 4. Execute unlike command
 	result, err := h.unlikeImage.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "unlike image")
 		return
 	}
 
-	// 5. Return success response with like status and count
 	h.logger.Info().
 		Str("image_id", imageID).
 		Str("user_id", userCtx.UserID.String()).
@@ -184,26 +144,10 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddComment handles POST /api/v1/images/{imageID}/comments
-// Adds a comment to an image.
-//
-// Path parameters:
-//   - imageID: UUID of the image to comment on
-//
-// Request: AddCommentRequest JSON body
-// Response: 201 Created with CommentResponse
-// Errors:
-//   - 400: Invalid request data
-//   - 401: Not authenticated
-//   - 403: Image is not accessible to user
-//   - 404: Image not found
-//   - 500: Internal server error
-//
 //nolint:funlen // HTTP handler with validation and response.
 func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user context
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in add comment handler")
@@ -215,7 +159,15 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Extract image ID from path
+	if !userCtx.EmailVerified {
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Email verification required to post comments",
+		)
+		return
+	}
+
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
 		middleware.WriteError(w, r,
@@ -226,7 +178,6 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Decode request body
 	var req AddCommentRequest
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid add comment request")
@@ -240,21 +191,18 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Build add comment command
 	cmd := commands.AddCommentCommand{
 		UserID:  userCtx.UserID.String(),
 		ImageID: imageID,
 		Content: req.Content,
 	}
 
-	// 5. Execute add comment command
 	commentID, err := h.addComment.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "add comment")
 		return
 	}
 
-	// 6. Return created comment
 	h.logger.Info().
 		Str("comment_id", commentID).
 		Str("image_id", imageID).
@@ -273,25 +221,10 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteComment handles DELETE /api/v1/comments/{commentID}
-// Deletes a comment.
-//
-// Path parameters:
-//   - commentID: UUID of the comment to delete
-//
-// Response: 204 No Content
-// Errors:
-//   - 400: Invalid comment ID format
-//   - 401: Not authenticated
-//   - 403: User is not the comment author (or admin/moderator)
-//   - 404: Comment not found
-//   - 500: Internal server error
-//
 //nolint:dupl // Standard authenticated handler pattern - duplication is intentional for clarity
 func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user context
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete comment handler")
@@ -303,7 +236,6 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Extract comment ID from path
 	commentID := GetPathParam(r, "commentID")
 	if commentID == "" {
 		middleware.WriteError(w, r,
@@ -314,19 +246,16 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Build delete command
 	cmd := commands.DeleteCommentCommand{
 		UserID:    userCtx.UserID.String(),
 		CommentID: commentID,
 	}
 
-	// 4. Execute delete command
 	if err := h.deleteComment.Handle(ctx, cmd); err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete comment")
 		return
 	}
 
-	// 5. Return 204 No Content
 	h.logger.Info().
 		Str("comment_id", commentID).
 		Str("user_id", userCtx.UserID.String()).
@@ -335,30 +264,10 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListImageComments handles GET /api/v1/images/{imageID}/comments
-// Lists all comments for an image with pagination.
-//
-// Path parameters:
-//   - imageID: UUID of the image
-//
-// Query parameters:
-//   - page: Page number, 1-indexed (default: 1)
-//   - per_page: Items per page, max 100 (default: 20)
-//   - sort_order: Sort order: newest, oldest (default: oldest)
-//
-// Response: 200 OK with PaginatedCommentsResponse
-// Errors:
-//   - 400: Invalid parameters
-//   - 404: Image not found
-//   - 500: Internal server error
-//
-// and response mapping
-//
 //nolint:funlen,cyclop // HTTP handler with pagination, validation, and response mapping.
 func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract image ID from path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
 		middleware.WriteError(w, r,
@@ -369,7 +278,6 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// 2. Parse query parameters
 	queryParams := r.URL.Query()
 
 	page, err := parseIntParam(queryParams.Get("page"), 1)
@@ -390,7 +298,6 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		sortOrder = "oldest"
 	}
 
-	// 3. Build query
 	query := queries.ListImageCommentsQuery{
 		ImageID:   imageID,
 		Page:      page,
@@ -398,14 +305,12 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		SortOrder: sortOrder,
 	}
 
-	// 4. Execute query
 	result, err := h.listImageComments.Handle(ctx, query)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "list image comments")
 		return
 	}
 
-	// 5. Convert comments to DTOs
 	commentDTOs := make([]CommentDTO, 0, len(result.Comments))
 	for _, comment := range result.Comments {
 		commentDTOs = append(commentDTOs, CommentDTO{
@@ -417,7 +322,6 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 		})
 	}
 
-	// 6. Return paginated results
 	h.logger.Debug().
 		Str("image_id", imageID).
 		Int("page", page).
@@ -438,27 +342,10 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// GetUserLikedImages handles GET /api/v1/users/{userID}/likes
-// Retrieves all images liked by a user.
-//
-// Path parameters:
-//   - userID: UUID of the user
-//
-// Query parameters:
-//   - page: Page number, 1-indexed (default: 1)
-//   - per_page: Items per page, max 100 (default: 20)
-//
-// Response: 200 OK with PaginatedImagesResponse
-// Errors:
-//   - 400: Invalid parameters
-//   - 404: User not found
-//   - 500: Internal server error
-//
 //nolint:funlen // HTTP handler with validation and response.
 func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
 		middleware.WriteError(w, r,
@@ -469,7 +356,6 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// 2. Parse query parameters
 	queryParams := r.URL.Query()
 
 	page, err := parseIntParam(queryParams.Get("page"), 1)
@@ -485,31 +371,26 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 		perPage = maxPerPage
 	}
 
-	// 3. Build query
 	query := queries.GetUserLikedImagesQuery{
 		UserID:  userID,
 		Page:    page,
 		PerPage: perPage,
 	}
 
-	// 4. Execute query
 	result, err := h.getUserLikedImages.Handle(ctx, query)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "get user liked images")
 		return
 	}
 
-	// 5. Convert domain entities to DTOs
 	imageDTOs := make([]ImageDTO, 0, len(result.Images))
 	for _, img := range result.Images {
 		imageDTOs = append(imageDTOs, *queries.ImageToDTO(img))
 	}
 
-	// 6. Convert to pagination result format
 	offset := (page - 1) * perPage
 	hasMore := int64(offset+perPage) < result.Total
 
-	// 7. Return paginated results
 	h.logger.Debug().
 		Str("user_id", userID).
 		Int("page", page).
@@ -531,14 +412,12 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// mapErrorAndRespond maps application/domain errors to HTTP responses.
 func (h *SocialHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request, err error, operation string) {
 	h.logger.Error().
 		Err(err).
 		Str("operation", operation).
 		Msg("social operation failed")
 
-	// Simplified error mapping - expand based on actual domain errors
 	middleware.WriteError(w, r,
 		http.StatusInternalServerError,
 		"Internal Server Error",

@@ -9,8 +9,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
 )
 
-// Guest User Tests
-
 func TestNewGuestUser(t *testing.T) {
 	t.Parallel()
 
@@ -31,15 +29,12 @@ func TestNewGuestUser(t *testing.T) {
 		assert.NotNil(t, user.ExpiresAt())
 		assert.False(t, user.IsExpired())
 
-		// Username should start with "guest_"
 		assert.Contains(t, user.Username().String(), "guest_")
 
-		// Should have an expiration time (30 days from now)
 		expectedExpiry := time.Now().Add(30 * 24 * time.Hour)
 		assert.True(t, user.ExpiresAt().After(time.Now()))
 		assert.True(t, user.ExpiresAt().Before(expectedExpiry.Add(1*time.Minute)))
 
-		// Should emit guest created event
 		events := user.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.guest.created", events[0].EventType())
@@ -106,6 +101,8 @@ func TestUser_IsExpired(t *testing.T) {
 			UserTypeGuest,
 			&ipAddress,
 			&pastExpiry,
+			false,
+			nil,
 		)
 
 		assert.True(t, user.IsExpired())
@@ -147,7 +144,6 @@ func TestUser_ConvertToRegistered(t *testing.T) {
 		assert.Nil(t, guest.IPAddress())
 		assert.Nil(t, guest.ExpiresAt())
 
-		// Should emit conversion event
 		events := guest.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.guest.converted", events[0].EventType())
@@ -171,8 +167,6 @@ func TestUser_ConvertToRegistered(t *testing.T) {
 	})
 }
 
-// 2FA Tests
-
 func TestUser_TOTPSecret(t *testing.T) {
 	t.Parallel()
 
@@ -194,6 +188,8 @@ func TestUser_TOTPSecret(t *testing.T) {
 		nil,
 		UserTypeRegistered,
 		nil,
+		nil,
+		false,
 		nil,
 	)
 
@@ -220,6 +216,8 @@ func TestUser_IsTOTPEnabled(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 
 		assert.True(t, user.IsTOTPEnabled())
@@ -250,6 +248,8 @@ func TestUser_IsTOTPSetupPending(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 
 		assert.True(t, user.IsTOTPSetupPending())
@@ -300,7 +300,6 @@ func TestUser_EnableTOTP(t *testing.T) {
 		_ = user.SetupTOTP(encryptedSecret)
 		user.ClearEvents()
 
-		// Generate backup codes for 2FA
 		_, backupCodes, _ := GenerateBackupCodes()
 
 		err := user.EnableTOTP(backupCodes)
@@ -309,7 +308,6 @@ func TestUser_EnableTOTP(t *testing.T) {
 		assert.True(t, user.IsTOTPEnabled())
 		assert.False(t, user.IsTOTPSetupPending())
 
-		// Should emit TOTP enabled event
 		events := user.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.user.totp_enabled", events[0].EventType())
@@ -333,7 +331,6 @@ func TestUser_EnableTOTP(t *testing.T) {
 func TestUser_DisableTOTP(t *testing.T) {
 	t.Parallel()
 
-	// Setup user with enabled TOTP
 	secret := ReconstructTOTPSecret(
 		[]byte("secret"), "goimg", "user@example.com", true, time.Now(),
 	)
@@ -343,6 +340,8 @@ func TestUser_DisableTOTP(t *testing.T) {
 		time.Now(), time.Now(),
 		&secret, nil, nil,
 		UserTypeRegistered, nil, nil,
+		false,
+		nil,
 	)
 
 	user.ClearEvents()
@@ -352,13 +351,10 @@ func TestUser_DisableTOTP(t *testing.T) {
 
 	assert.False(t, user.IsTOTPEnabled())
 
-	// Should emit TOTP disabled event
 	events := user.Events()
 	assert.Len(t, events, 1)
 	assert.Equal(t, "identity.user.totp_disabled", events[0].EventType())
 }
-
-// Backup Code Tests
 
 func TestUser_BackupCodes(t *testing.T) {
 	t.Parallel()
@@ -370,6 +366,8 @@ func TestUser_BackupCodes(t *testing.T) {
 		time.Now(), time.Now(),
 		nil, codes, nil,
 		UserTypeRegistered, nil, nil,
+		false,
+		nil,
 	)
 
 	assert.Len(t, user.BackupCodes(), 10)
@@ -381,7 +379,6 @@ func TestUser_RegenerateBackupCodes(t *testing.T) {
 	t.Run("successfully regenerates backup codes when TOTP enabled", func(t *testing.T) {
 		t.Parallel()
 
-		// Setup user with TOTP enabled
 		secret := ReconstructTOTPSecret(
 			[]byte("secret"), "goimg", "user@example.com", true, time.Now(),
 		)
@@ -391,10 +388,11 @@ func TestUser_RegenerateBackupCodes(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 		user.ClearEvents()
 
-		// Generate new codes
 		_, newCodes, _ := GenerateBackupCodes()
 
 		err := user.RegenerateBackupCodes(newCodes)
@@ -402,7 +400,6 @@ func TestUser_RegenerateBackupCodes(t *testing.T) {
 
 		assert.Len(t, user.BackupCodes(), 10)
 
-		// Should emit event
 		events := user.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.user.backup_codes_regenerated", events[0].EventType())
@@ -438,13 +435,14 @@ func TestUser_UseBackupCode(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, codes, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 		user.ClearEvents()
 
 		err := user.UseBackupCode(plaintext[0])
 		require.NoError(t, err)
 
-		// Should emit event
 		events := user.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.user.backup_code_used", events[0].EventType())
@@ -463,6 +461,8 @@ func TestUser_UseBackupCode(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, codes, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 
 		err := user.UseBackupCode("INVALID")
@@ -483,17 +483,15 @@ func TestUser_UnusedBackupCodeCount(t *testing.T) {
 		time.Now(), time.Now(),
 		&secret, codes, nil,
 		UserTypeRegistered, nil, nil,
+		false,
+		nil,
 	)
 
-	// All unused initially
 	assert.Equal(t, 10, user.UnusedBackupCodeCount())
 
-	// Use one code
 	_ = user.UseBackupCode(plaintext[0])
 	assert.Equal(t, 9, user.UnusedBackupCodeCount())
 }
-
-// Device Tests
 
 func TestUser_Devices(t *testing.T) {
 	t.Parallel()
@@ -505,6 +503,8 @@ func TestUser_Devices(t *testing.T) {
 		time.Now(), time.Now(),
 		nil, nil, []DeviceFingerprint{device},
 		UserTypeRegistered, nil, nil,
+		false,
+		nil,
 	)
 
 	assert.Len(t, user.Devices(), 1)
@@ -528,10 +528,9 @@ func TestUser_TrackDevice(t *testing.T) {
 		fingerprint := NewDeviceFingerprint(ipAddress, userAgent)
 		isTrusted := user.TrackDevice(fingerprint)
 
-		assert.False(t, isTrusted) // New device is not trusted
+		assert.False(t, isTrusted)
 		assert.Len(t, user.Devices(), 1)
 
-		// Should emit unusual login event for new device
 		events := user.Events()
 		assert.Len(t, events, 1)
 		assert.Equal(t, "identity.user.unusual_login", events[0].EventType())
@@ -548,18 +547,16 @@ func TestUser_TrackDevice(t *testing.T) {
 		ipAddress := "192.168.1.1"
 		userAgent := "Mozilla/5.0"
 
-		// Track once
 		fingerprint := NewDeviceFingerprint(ipAddress, userAgent)
 		_ = user.TrackDevice(fingerprint)
 		user.ClearEvents()
 
-		// Track again
 		fingerprint2 := NewDeviceFingerprint(ipAddress, userAgent)
 		isTrusted := user.TrackDevice(fingerprint2)
 
-		assert.False(t, isTrusted) // Existing device still not trusted until explicitly trusted
+		assert.False(t, isTrusted)
 		assert.Len(t, user.Devices(), 1)
-		assert.Len(t, user.Events(), 0) // No event for known device
+		assert.Len(t, user.Events(), 0)
 	})
 }
 
@@ -584,7 +581,6 @@ func TestUser_TrustDevice(t *testing.T) {
 	err := user.TrustDevice(fingerprintHash)
 	require.NoError(t, err)
 
-	// Should emit device trusted event
 	events := user.Events()
 	assert.Len(t, events, 1)
 	assert.Equal(t, "identity.user.device_trusted", events[0].EventType())
@@ -674,6 +670,8 @@ func TestUser_Requires2FA(t *testing.T) {
 			time.Now(), time.Now(),
 			&secret, nil, nil,
 			UserTypeRegistered, nil, nil,
+			false,
+			nil,
 		)
 
 		assert.True(t, user.Requires2FA())
@@ -691,8 +689,6 @@ func TestUser_Requires2FA(t *testing.T) {
 	})
 }
 
-// Notification Preference Tests
-
 func TestUser_NotificationPreferences(t *testing.T) {
 	t.Parallel()
 
@@ -703,7 +699,7 @@ func TestUser_NotificationPreferences(t *testing.T) {
 
 	prefs := user.NotificationPreferences()
 	assert.NotNil(t, prefs)
-	assert.False(t, prefs.EmailEnabled()) // Default is disabled
+	assert.False(t, prefs.EmailEnabled())
 }
 
 func TestUser_UpdateNotificationPreferences(t *testing.T) {
@@ -728,8 +724,6 @@ func TestUser_UpdateNotificationPreferences(t *testing.T) {
 	assert.True(t, prefs.EmailEnabled())
 	assert.Equal(t, DigestImmediate, prefs.DigestFrequency())
 }
-
-// Additional Accessor Tests
 
 func TestUser_PasswordHash(t *testing.T) {
 	t.Parallel()

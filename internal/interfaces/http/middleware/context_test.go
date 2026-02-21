@@ -318,10 +318,10 @@ func TestSetUserContext(t *testing.T) {
 	email := "test@example.com"
 	role := "admin"
 	twofaVerified := true
+	emailVerified := true
 
-	ctx := SetUserContext(context.Background(), userID, email, role, sessionID, twofaVerified)
+	ctx := SetUserContext(context.Background(), userID, email, role, sessionID, twofaVerified, emailVerified)
 
-	// Verify all values are set correctly
 	retrievedUserID, ok := GetUserID(ctx)
 	require.True(t, ok)
 	assert.Equal(t, userID, retrievedUserID)
@@ -341,6 +341,10 @@ func TestSetUserContext(t *testing.T) {
 	retrieved2FA, ok := Get2FAVerified(ctx)
 	require.True(t, ok)
 	assert.Equal(t, twofaVerified, retrieved2FA)
+
+	retrievedEmailVerified, ok := GetEmailVerified(ctx)
+	require.True(t, ok)
+	assert.Equal(t, emailVerified, retrievedEmailVerified)
 }
 
 func TestMustGetUserID(t *testing.T) {

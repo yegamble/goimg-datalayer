@@ -2,39 +2,78 @@ package identity
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
-// UserRepository defines the interface for persisting and retrieving User aggregates.
-// Implementations should be provided in the infrastructure layer.
+var ErrTokenNotFound = errors.New("token not found")
+
+var ErrTokenExpiredDomain = errors.New("token has expired")
+
+var ErrTokenAlreadyUsed = errors.New("token has already been used")
+
+type PasswordResetToken struct {
+	ID        string
+	UserID    UserID
+	Token     string
+	ExpiresAt time.Time
+	UsedAt    *time.Time
+	CreatedAt time.Time
+}
+
+func (t *PasswordResetToken) IsExpired() bool {
+	return time.Now().UTC().After(t.ExpiresAt)
+}
+
+func (t *PasswordResetToken) IsUsed() bool {
+	return t.UsedAt != nil
+}
+
+type EmailVerificationToken struct {
+	ID        string
+	UserID    UserID
+	Token     string
+	ExpiresAt time.Time
+	UsedAt    *time.Time
+	CreatedAt time.Time
+}
+
+func (t *EmailVerificationToken) IsExpired() bool {
+	return time.Now().UTC().After(t.ExpiresAt)
+}
+
+func (t *EmailVerificationToken) IsUsed() bool {
+	return t.UsedAt != nil
+}
+
+type TokenRepository interface {
+	CreatePasswordResetToken(ctx context.Context, userID UserID, expiresAt time.Time) (string, error)
+
+	FindValidPasswordResetToken(ctx context.Context, token string) (*PasswordResetToken, error)
+
+	MarkPasswordResetTokenUsed(ctx context.Context, token string) error
+
+	InvalidateAllPasswordResetTokens(ctx context.Context, userID UserID) error
+
+	CreateEmailVerificationToken(ctx context.Context, userID UserID, expiresAt time.Time) (string, error)
+
+	FindValidEmailVerificationToken(ctx context.Context, token string) (*EmailVerificationToken, error)
+
+	MarkEmailVerificationTokenUsed(ctx context.Context, token string) error
+}
+
 type UserRepository interface {
-	// NextID generates the next available UserID.
-	// This is primarily used for pre-generating IDs when needed.
 	NextID() UserID
 
-	// FindByID retrieves a user by their unique ID.
-	// Returns ErrUserNotFound if the user does not exist.
 	FindByID(ctx context.Context, id UserID) (*User, error)
 
-	// FindByEmail retrieves a user by their email address.
-	// Returns ErrUserNotFound if no user with that email exists.
 	FindByEmail(ctx context.Context, email Email) (*User, error)
 
-	// FindByUsername retrieves a user by their username.
-	// Returns ErrUserNotFound if no user with that username exists.
 	FindByUsername(ctx context.Context, username Username) (*User, error)
 
-	// Save persists a user to the repository.
-	// If the user already exists, it is updated; otherwise, it is created.
 	Save(ctx context.Context, user *User) error
 
-	// Delete removes a user from the repository.
-	// This should typically be a soft delete (status change) rather than hard delete.
 	Delete(ctx context.Context, id UserID) error
 
-	// FindExpiredGuests retrieves all guest users whose expiration date has passed.
-	// Used by cleanup jobs to remove expired guest accounts.
-	// The asOf parameter specifies the cutoff time (typically time.Now().UTC()).
-	// The limit parameter prevents loading too many records at once.
 	FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*User, error)
 }

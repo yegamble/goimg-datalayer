@@ -286,6 +286,79 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /auth/forgot-password:
+    post:
+      tags: [auth]
+      summary: Request password reset
+      description: |
+        Send a password reset email to the user. Always returns 200 regardless
+        of whether the email exists (anti-enumeration protection).
+      operationId: forgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Password reset email sent (or silently ignored if email not found)
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /auth/reset-password:
+    post:
+      tags: [auth]
+      summary: Reset password
+      description: |
+        Reset the user's password using a valid reset token received by email.
+        On success all existing sessions are revoked for security.
+      operationId: resetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token:
+                  type: string
+                  description: Password reset token from the email link
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 12
+                  maxLength: 128
+                  example: NewSecurePassword123!
+      responses:
+        '204':
+          description: Password reset successfully
+        '400':
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   # ==================== Two-Factor Authentication ====================
   /auth/2fa/setup:
     post:
@@ -2059,6 +2132,73 @@ paths:
           description: QR code generation failed
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /images/{id}/download:
+    get:
+      tags: [images]
+      summary: Download original image
+      description: |
+        Download the original image file as an attachment.
+
+        Public images can be downloaded without authentication.
+        Private images require authentication and ownership or admin access.
+
+        The response includes `Content-Disposition: attachment` to trigger
+        a browser download dialog with the original filename.
+      operationId: downloadImage
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ImageIdParam'
+      responses:
+        '200':
+          description: Image file streamed as attachment
+          headers:
+            Content-Disposition:
+              description: 'attachment; filename="<original-filename>"'
+              schema:
+                type: string
+            Content-Length:
+              description: File size in bytes
+              schema:
+                type: integer
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/gif:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Authentication required for private image
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Image not found or access denied
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 

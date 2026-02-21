@@ -1,4 +1,3 @@
-// Package jwt provides JWT token generation and validation services.
 package jwt
 
 import (
@@ -13,60 +12,51 @@ import (
 	"github.com/google/uuid"
 )
 
-// TokenType represents the type of JWT token.
 type TokenType string
 
 const (
-	// TokenTypeAccess represents an access token used for API authentication.
-	TokenTypeAccess TokenType = "access"
-	// TokenTypeRefresh represents a refresh token used for obtaining new access tokens.
+	TokenTypeAccess  TokenType = "access"
 	TokenTypeRefresh TokenType = "refresh"
 
-	// JWT configuration defaults and constraints.
-	defaultAccessTTL = 15 * time.Minute // Default access token TTL
-	minKeySize       = 4096             // Minimum RSA key size in bits (OWASP 2024)
+	defaultAccessTTL = 15 * time.Minute
+	minKeySize       = 4096
 )
 
-// Config holds JWT service configuration.
 type Config struct {
-	PrivateKeyPath string        // Path to RSA private key file (PEM format)
-	PublicKeyPath  string        // Path to RSA public key file (PEM format)
-	AccessTTL      time.Duration // Access token time-to-live (default: 15 minutes)
-	RefreshTTL     time.Duration // Refresh token time-to-live (default: 7 days)
-	Issuer         string        // Token issuer (default: "goimg-api")
+	PrivateKeyPath string
+	PublicKeyPath  string
+	AccessTTL      time.Duration
+	RefreshTTL     time.Duration
+	Issuer         string
 }
 
-// DefaultConfig returns a Config with secure defaults.
 func DefaultConfig() Config {
 	return Config{
 		PrivateKeyPath: "",
 		PublicKeyPath:  "",
 		AccessTTL:      defaultAccessTTL,
-		RefreshTTL:     7 * 24 * time.Hour, // 7 days
+		RefreshTTL:     7 * 24 * time.Hour,
 		Issuer:         "goimg-api",
 	}
 }
 
-// Claims represents the JWT claims for goimg tokens.
 type Claims struct {
-	UserID        string    `json:"user_id"`                  // User UUID
-	Email         string    `json:"email"`                    // User email
-	Role          string    `json:"role"`                     // User role (user, moderator, admin)
-	SessionID     string    `json:"session_id"`               // Session UUID for token family tracking
-	TokenType     TokenType `json:"token_type"`               // Type of token (access or refresh)
-	TwoFAVerified bool      `json:"twofa_verified,omitempty"` // Session elevation status (Sprint 11)
+	UserID        string    `json:"user_id"`
+	Email         string    `json:"email"`
+	Role          string    `json:"role"`
+	SessionID     string    `json:"session_id"`
+	TokenType     TokenType `json:"token_type"`
+	TwoFAVerified bool      `json:"twofa_verified,omitempty"`
+	EmailVerified bool      `json:"email_verified,omitempty"`
 	jwt.RegisteredClaims
 }
 
-// Service handles JWT token generation and validation using RS256 algorithm.
 type Service struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	config     Config
 }
 
-// NewService creates a new JWT service with the given configuration.
-// It loads RSA key pairs from the specified paths and validates them.
 func NewService(cfg Config) (*Service, error) {
 	if cfg.Issuer == "" {
 		return nil, fmt.Errorf("jwt issuer cannot be empty")
@@ -88,19 +78,16 @@ func NewService(cfg Config) (*Service, error) {
 		return nil, fmt.Errorf("jwt public key path cannot be empty")
 	}
 
-	// Load private key
 	privateKey, err := loadPrivateKey(cfg.PrivateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load private key: %w", err)
 	}
 
-	// Load public key
 	publicKey, err := loadPublicKey(cfg.PublicKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load public key: %w", err)
 	}
 
-	// Validate key size (must be at least 4096 bits for security)
 	if privateKey.N.BitLen() < minKeySize {
 		return nil, fmt.Errorf("private key must be at least %d bits (got %d bits)", minKeySize, privateKey.N.BitLen())
 	}
@@ -112,8 +99,6 @@ func NewService(cfg Config) (*Service, error) {
 	}, nil
 }
 
-// GenerateAccessToken generates a new access token for the given user.
-//
 //nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
@@ -147,7 +132,7 @@ func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (st
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ID:        uuid.New().String(), // Unique token ID (jti) for blacklisting
+			ID:        uuid.New().String(),
 		},
 	}
 
@@ -161,9 +146,6 @@ func (s *Service) GenerateAccessToken(userID, email, role, sessionID string) (st
 	return signedToken, nil
 }
 
-// GenerateElevatedAccessToken generates an access token with 2FA verification flag set to true.
-// This is used after successful 2FA verification during login to create an elevated session.
-// Elevated tokens allow access to sensitive operations (password change, 2FA disable, account deletion).
 func (s *Service) GenerateElevatedAccessToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
 		return "", fmt.Errorf("user id cannot be empty")
@@ -190,14 +172,14 @@ func (s *Service) GenerateElevatedAccessToken(userID, email, role, sessionID str
 		Role:          role,
 		SessionID:     sessionID,
 		TokenType:     TokenTypeAccess,
-		TwoFAVerified: true, // Mark session as elevated
+		TwoFAVerified: true,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    s.config.Issuer,
 			Subject:   userID,
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ID:        uuid.New().String(), // Unique token ID (jti) for blacklisting
+			ID:        uuid.New().String(),
 		},
 	}
 
@@ -211,8 +193,6 @@ func (s *Service) GenerateElevatedAccessToken(userID, email, role, sessionID str
 	return signedToken, nil
 }
 
-// GenerateRefreshToken generates a new refresh token for the given user.
-//
 //nolint:dupl // Access and refresh token generation are intentionally similar but distinct
 func (s *Service) GenerateRefreshToken(userID, email, role, sessionID string) (string, error) {
 	if userID == "" {
@@ -246,7 +226,7 @@ func (s *Service) GenerateRefreshToken(userID, email, role, sessionID string) (s
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ID:        uuid.New().String(), // Unique token ID (jti)
+			ID:        uuid.New().String(),
 		},
 	}
 
@@ -260,15 +240,12 @@ func (s *Service) GenerateRefreshToken(userID, email, role, sessionID string) (s
 	return signedToken, nil
 }
 
-// ValidateToken validates a JWT token and returns its claims.
-// Returns an error if the token is invalid, expired, or has an invalid signature.
 func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	if tokenString == "" {
 		return nil, fmt.Errorf("token cannot be empty")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Verify signing method
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -287,7 +264,6 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, fmt.Errorf("invalid claims type")
 	}
 
-	// Verify issuer
 	if claims.Issuer != s.config.Issuer {
 		return nil, fmt.Errorf("invalid issuer: expected %s, got %s", s.config.Issuer, claims.Issuer)
 	}
@@ -295,14 +271,11 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-// ExtractTokenID extracts the JWT ID (jti) from a token without full validation.
-// This is useful for blacklist checks before full validation.
 func (s *Service) ExtractTokenID(tokenString string) (string, error) {
 	if tokenString == "" {
 		return "", fmt.Errorf("token cannot be empty")
 	}
 
-	// Parse without validation to extract claims
 	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &Claims{})
 	if err != nil {
 		return "", fmt.Errorf("failed to parse token: %w", err)
@@ -320,14 +293,11 @@ func (s *Service) ExtractTokenID(tokenString string) (string, error) {
 	return claims.ID, nil
 }
 
-// GetTokenExpiration extracts the expiration time from a token without full validation.
-// This is useful for determining blacklist TTL.
 func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 	if tokenString == "" {
 		return time.Time{}, fmt.Errorf("token cannot be empty")
 	}
 
-	// Parse without validation to extract claims
 	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &Claims{})
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to parse token: %w", err)
@@ -345,9 +315,7 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 	return claims.ExpiresAt.Time, nil
 }
 
-// loadPrivateKey loads an RSA private key from a PEM file.
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	// #nosec G304 // File path comes from trusted configuration, not user input
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
@@ -362,13 +330,11 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 		return nil, fmt.Errorf("unexpected key type: %s", block.Type)
 	}
 
-	// Try parsing as PKCS#1 first
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err == nil {
 		return privateKey, nil
 	}
 
-	// Try parsing as PKCS#8
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse private key: %w", err)
@@ -382,9 +348,7 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 	return rsaKey, nil
 }
 
-// loadPublicKey loads an RSA public key from a PEM file.
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
-	// #nosec G304 // File path comes from trusted configuration, not user input
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)
@@ -399,7 +363,6 @@ func loadPublicKey(path string) (*rsa.PublicKey, error) {
 		return nil, fmt.Errorf("unexpected key type: %s", block.Type)
 	}
 
-	// Try parsing as PKIX first
 	key, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err == nil {
 		rsaKey, ok := key.(*rsa.PublicKey)
@@ -409,7 +372,6 @@ func loadPublicKey(path string) (*rsa.PublicKey, error) {
 		return rsaKey, nil
 	}
 
-	// Try parsing as PKCS#1
 	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: %w", err)

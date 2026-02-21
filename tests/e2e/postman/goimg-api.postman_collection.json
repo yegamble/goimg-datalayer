@@ -1038,6 +1038,188 @@
           }
         },
         {
+          "name": "Forgot Password - Success (Anti-Enumeration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty (anti-enumeration)', function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"nonexistent@example.com\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reset Password - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 for invalid token', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 problem format', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('title');",
+                  "    pm.expect(body).to.have.property('status');",
+                  "    pm.expect(body.status).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"token\": \"invalid-token-that-does-not-exist\", \"new_password\": \"NewSecurePass123!\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Email - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 for invalid token', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response follows RFC 7807 problem format', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('title');",
+                  "    pm.expect(body).to.have.property('status');",
+                  "    pm.expect(body.status).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"token\": \"invalid-verification-token\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resend Verification - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty (fire-and-forget)', function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Response has X-Request-ID header', function () {",
+                  "    pm.response.to.have.header('X-Request-ID');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "resend-verification"
+              ]
+            }
+          }
+        },
+        {
           "name": "2FA",
           "description": "Two-Factor Authentication tests covering setup, verification, status, backup codes, and disabling",
           "item": [
@@ -9069,8 +9251,8 @@
                       "    pm.expect(jsonData).to.have.property('id');",
                       "    pm.expect(jsonData).to.have.property('content');",
                       "    // Verify Unicode characters preserved",
-                      "    pm.expect(jsonData.content).to.include('😍');",
-                      "    pm.expect(jsonData.content).to.include('日本語');",
+                      "    pm.expect(jsonData.content).to.include('\ud83d\ude0d');",
+                      "    pm.expect(jsonData.content).to.include('\u65e5\u672c\u8a9e');",
                       "});",
                       "",
                       "pm.test('Response has X-Request-ID header', function () {",
@@ -9095,7 +9277,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"content\": \"Amazing shot! 😍 素晴らしい写真！ 日本語 test @user #photo\"\n}"
+                  "raw": "{\n  \"content\": \"Amazing shot! \ud83d\ude0d \u7d20\u6674\u3089\u3057\u3044\u5199\u771f\uff01 \u65e5\u672c\u8a9e test @user #photo\"\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/images/{{socialTestImageId}}/comments",

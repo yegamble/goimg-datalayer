@@ -15,8 +15,6 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
-// GroupHandler handles group-related HTTP endpoints.
-// It delegates to application layer command and query handlers for business logic.
 type GroupHandler struct {
 	createGroup          *commands.CreateGroupHandler
 	updateGroup          *commands.UpdateGroupHandler
@@ -39,8 +37,6 @@ type GroupHandler struct {
 	logger               zerolog.Logger
 }
 
-// NewGroupHandler creates a new GroupHandler with the given dependencies.
-// All dependencies are injected via constructor for testability.
 func NewGroupHandler(
 	createGroup *commands.CreateGroupHandler,
 	updateGroup *commands.UpdateGroupHandler,
@@ -85,56 +81,51 @@ func NewGroupHandler(
 	}
 }
 
-// PublicRoutes returns group routes that don't require authentication.
-// These can be mounted directly under /api/v1/groups in the public section.
 func (h *GroupHandler) PublicRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	// Public routes (no authentication required)
-	r.Get("/", h.ListPublicGroups)             // List discoverable groups
-	r.Get("/search", h.SearchGroups)           // Search groups
-	r.Get("/{groupID}", h.GetGroup)            // Get group by ID
-	r.Get("/by-slug/{slug}", h.GetGroupBySlug) // Get group by slug
+	r.Get("/", h.ListPublicGroups)
+	r.Get("/search", h.SearchGroups)
+	r.Get("/{groupID}", h.GetGroup)
+	r.Get("/by-slug/{slug}", h.GetGroupBySlug)
 
 	return r
 }
 
-// ProtectedRoutes returns group routes that require authentication.
-// These should be mounted under /api/v1/groups in the protected section.
 func (h *GroupHandler) ProtectedRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	// Group CRUD routes (require authentication)
-	r.Post("/", h.CreateGroup)            // Create group
-	r.Put("/{groupID}", h.UpdateGroup)    // Update group (admin+)
-	r.Delete("/{groupID}", h.DeleteGroup) // Delete group (owner only)
+	r.Post("/", h.CreateGroup)
+	r.Put("/{groupID}", h.UpdateGroup)
+	r.Delete("/{groupID}", h.DeleteGroup)
 
-	// Membership routes (require authentication)
-	r.Post("/{groupID}/join", h.JoinGroup)     // Join group
-	r.Delete("/{groupID}/leave", h.LeaveGroup) // Leave group
-	r.Get("/{groupID}/members", h.ListMembers) // List group members
+	r.Post("/{groupID}/join", h.JoinGroup)
+	r.Delete("/{groupID}/leave", h.LeaveGroup)
+	r.Get("/{groupID}/members", h.ListMembers)
 
-	// Member management routes (admin+ only)
-	r.Put("/{groupID}/members/{userID}/role", h.UpdateMemberRole) // Update role
-	r.Delete("/{groupID}/members/{userID}", h.RemoveMember)       // Remove member
-	r.Post("/{groupID}/members/{userID}/ban", h.BanMember)        // Ban member
+	r.Put("/{groupID}/members/{userID}/role", h.UpdateMemberRole)
+	r.Delete("/{groupID}/members/{userID}", h.RemoveMember)
+	r.Post("/{groupID}/members/{userID}/ban", h.BanMember)
 
-	// Invitation routes
-	r.Post("/{groupID}/invitations", h.CreateInvitation)        // Create invitation (admin/owner+)
-	r.Get("/{groupID}/invitations", h.ListInvitations)          // List pending invitations (admin/owner+)
-	r.Post("/invitations/{token}/accept", h.AcceptInvitation)   // Accept invitation (any auth user)
-	r.Post("/invitations/{token}/decline", h.DeclineInvitation) // Decline invitation (any auth user)
+	r.Post("/{groupID}/invitations", h.CreateInvitation)
+	r.Get("/{groupID}/invitations", h.ListInvitations)
+	r.Post("/invitations/{token}/accept", h.AcceptInvitation)
+	r.Post("/invitations/{token}/decline", h.DeclineInvitation)
 
 	return r
 }
 
-// CreateGroup handles POST /api/v1/groups
 func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in create group handler")
 		middleware.WriteError(w, r, http.StatusUnauthorized, "Unauthorized", "Authentication required")
+		return
+	}
+
+	if !userCtx.EmailVerified {
+		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Email verification required to create groups")
 		return
 	}
 
@@ -175,7 +166,6 @@ func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetGroup handles GET /api/v1/groups/{groupID}
 func (h *GroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	groupIDStr := GetPathParam(r, "groupID")
@@ -205,7 +195,6 @@ func (h *GroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetGroupBySlug handles GET /api/v1/groups/by-slug/{slug}
 func (h *GroupHandler) GetGroupBySlug(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	slugStr := GetPathParam(r, "slug")
@@ -235,7 +224,6 @@ func (h *GroupHandler) GetGroupBySlug(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UpdateGroup handles PUT /api/v1/groups/{groupID}
 func (h *GroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -288,7 +276,6 @@ func (h *GroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteGroup handles DELETE /api/v1/groups/{groupID}
 func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -318,7 +305,6 @@ func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 		OwnerID: ownerID,
 	}
 
-	// 5. Execute delete command
 	err = h.deleteGroup.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "delete group")
@@ -329,7 +315,6 @@ func (h *GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListPublicGroups handles GET /api/v1/groups
 func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	queryParams := r.URL.Query()
@@ -407,7 +392,6 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// SearchGroups handles GET /api/v1/groups/search
 func (h *GroupHandler) SearchGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	queryParams := r.URL.Query()
@@ -458,7 +442,6 @@ func (h *GroupHandler) SearchGroups(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// JoinGroup handles POST /api/v1/groups/{groupID}/join
 func (h *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -501,7 +484,6 @@ func (h *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// LeaveGroup handles DELETE /api/v1/groups/{groupID}/leave
 func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -531,7 +513,6 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 		UserID:  userID,
 	}
 
-	// 5. Execute leave command
 	err = h.leaveGroup.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "leave group")
@@ -542,7 +523,6 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListMembers handles GET /api/v1/groups/{groupID}/members
 func (h *GroupHandler) ListMembers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	groupIDStr := GetPathParam(r, "groupID")
@@ -615,7 +595,6 @@ func (h *GroupHandler) ListMembers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// UpdateMemberRole handles PUT /api/v1/groups/{groupID}/members/{userID}/role
 func (h *GroupHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -682,7 +661,6 @@ func (h *GroupHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// RemoveMember handles DELETE /api/v1/groups/{groupID}/members/{userID}
 func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -721,7 +699,6 @@ func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		TargetID: targetID,
 	}
 
-	// 6. Execute command
 	err = h.removeMember.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "remove member")
@@ -732,7 +709,6 @@ func (h *GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// BanMember handles POST /api/v1/groups/{groupID}/members/{userID}/ban
 func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -780,14 +756,12 @@ func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 		Reason:   req.Reason,
 	}
 
-	// 7. Execute command
 	err = h.banMember.Handle(ctx, cmd)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "ban member")
 		return
 	}
 
-	// 8. Return 204 No Content
 	h.logger.Info().
 		Str("group_id", groupIDStr).
 		Str("actor_id", userCtx.UserID.String()).
@@ -797,7 +771,6 @@ func (h *GroupHandler) BanMember(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GetUserGroups is a convenience method for mounting under /api/v1/me/groups.
 func (h *GroupHandler) GetUserGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -854,11 +827,6 @@ func (h *GroupHandler) GetUserGroups(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ============================================================================
-// Invitation Handlers (Sprint 20)
-// ============================================================================
-
-// CreateInvitation handles POST /api/v1/groups/{groupID}/invitations
 func (h *GroupHandler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -881,7 +849,6 @@ func (h *GroupHandler) CreateInvitation(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Validate exactly one of email/userID
 	if (req.Email == nil && req.UserID == nil) || (req.Email != nil && req.UserID != nil) {
 		middleware.WriteError(w, r, http.StatusBadRequest, "Bad Request", "Must provide either email or user_id")
 		return
@@ -923,7 +890,6 @@ func (h *GroupHandler) CreateInvitation(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// ListInvitations handles GET /api/v1/groups/{groupID}/invitations
 func (h *GroupHandler) ListInvitations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	groupIDStr := GetPathParam(r, "groupID")
@@ -968,7 +934,6 @@ func (h *GroupHandler) ListInvitations(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AcceptInvitation handles POST /api/v1/groups/invitations/{token}/accept
 func (h *GroupHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -1008,7 +973,6 @@ func (h *GroupHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// DeclineInvitation handles POST /api/v1/groups/invitations/{token}/decline
 func (h *GroupHandler) DeclineInvitation(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx, err := GetUserFromContext(ctx)
@@ -1045,14 +1009,12 @@ func (h *GroupHandler) DeclineInvitation(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// mapErrorAndRespond maps application/domain errors to HTTP responses using RFC 7807 Problem Details.
 func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request, err error, operation string) {
 	h.logger.Error().
 		Err(err).
 		Str("operation", operation).
 		Msg("group operation failed")
 
-	// Map domain errors to HTTP status codes
 	switch {
 	case errors.Is(err, community.ErrGroupNotFound):
 		middleware.WriteError(w, r, http.StatusNotFound, "Not Found", "Group not found")
@@ -1089,7 +1051,6 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// Helper functions to map domain entities to DTOs
 func mapGroupToResponse(group *community.Group) GroupResponse {
 	resp := GroupResponse{
 		ID:          group.ID().String(),

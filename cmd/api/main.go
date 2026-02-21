@@ -51,25 +51,21 @@ const (
 	serverReadHeaderTimeout = 5 * time.Second
 	shutdownTimeout         = 5 * time.Second
 
-	// Default configuration values.
 	defaultSMTPPort      = 587
 	defaultSMTPRateLimit = 100
 	defaultSMTPTimeout   = 30 * time.Second
 	defaultAccessTTL     = 15 * time.Minute
 	defaultRefreshTTL    = 7 * 24 * time.Hour
 
-	// Constants
 	strTrue = "true"
 )
 
 func main() {
-	// 1. Setup Logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
 
 	log.Info().Msg("Starting goimg-datalayer API server...")
 
-	// 2. Load Configuration
 	dbConfig := postgres.ConfigFromEnv()
 	redisConfig := redis.DefaultConfig()
 	if pwd := os.Getenv("REDIS_PASSWORD"); pwd != "" {
@@ -90,8 +86,6 @@ func main() {
 		encryptionKey = keyBase64
 	}
 
-	// 3. Initialize Infrastructure
-	// Email
 	emailConfig := email.Config{
 		Host:        getEnv("SMTP_HOST", "localhost"),
 		Port:        getEnvInt("SMTP_PORT", defaultSMTPPort),
@@ -103,7 +97,6 @@ func main() {
 		RateLimit:   getEnvInt("SMTP_RATE_LIMIT", defaultSMTPRateLimit),
 		Enabled:     getEnv("SMTP_ENABLED", "false") == strTrue,
 	}
-	// Add timeout if needed, using default from Config struct if zero
 	if emailConfig.Timeout == 0 {
 		emailConfig.Timeout = defaultSMTPTimeout
 	}
@@ -111,12 +104,10 @@ func main() {
 	smtpSender, err := email.NewSMTPSender(emailConfig, log.Logger)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to initialize SMTP sender (email notifications disabled)")
-		// Create disabled sender if validation fails, to allow app startup
 		emailConfig.Enabled = false
 		smtpSender, _ = email.NewSMTPSender(emailConfig, log.Logger)
 	}
 
-	// Database
 	db, err := postgres.NewDB(dbConfig)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to connect to database (continuing in degraded mode)")
@@ -129,7 +120,6 @@ func main() {
 		}()
 	}
 
-	// Redis
 	redisClientWrapper, err := redis.NewClient(redisConfig)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to connect to Redis (continuing in degraded mode)")
@@ -147,7 +137,6 @@ func main() {
 		rdbClient = redisClientWrapper.UnderlyingClient()
 	}
 
-	// Storage
 	storageConfig := local.Config{
 		BasePath: os.Getenv("STORAGE_BASE_PATH"),
 		BaseURL:  os.Getenv("STORAGE_BASE_URL"),
@@ -162,11 +151,10 @@ func main() {
 	storage := &storageAdapter{Store: localStorage}
 	storageInfra := &storageInfraAdapter{Store: localStorage}
 
-	// Security - TOTP
 	encryptor, err := security.NewSecretEncryptorFromBase64(encryptionKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize secret encryptor")
-		return // Exit early as security is compromised without encryptor
+		return
 	}
 
 	totpConfig := security.DefaultTOTPConfig()
@@ -176,7 +164,6 @@ func main() {
 		return
 	}
 
-	// 4. Initialize Repositories
 	userRepo := postgres.NewUserRepository(db)
 	sessionRepo := postgres.NewSessionRepository(db)
 	imageRepo := postgres.NewImageRepository(db)
@@ -197,6 +184,7 @@ func main() {
 	totpRepo := postgres.NewTOTPRepository(db)
 	backupRepo := postgres.NewBackupCodeRepository(db)
 	oauthRepo := postgres.NewOAuthAccountRepository(db)
+	tokenRepo := postgres.NewTokenRepository(db)
 	followRepo := postgres.NewFollowRepository(db)
 	activityRepo := postgres.NewActivityRepository(db)
 	notifRepo := postgres.NewNotificationRepository(db)
@@ -204,7 +192,6 @@ func main() {
 	tagRepo := postgres.NewTagRepository(db)
 	featuredRepo := postgres.NewFeaturedPickRepository(db)
 
-	// 5. Initialize Services
 	ipfsService := &noOpIPFSService{}
 	notificationService := appnotification.NewNotificationService(notifRepo, userRepo, smtpSender, log.Logger)
 
@@ -260,7 +247,6 @@ func main() {
 	jobEnqueuer := &noOpJobEnqueuer{}
 	nsfwService := &noOpNSFWService{}
 
-	// Adapters for Application Layer
 	var jwtServiceApp appservices.JWTService
 	if jwtServiceImpl != nil {
 		jwtServiceApp = &identity.JWTServiceAdapter{Service: jwtServiceImpl}
@@ -276,9 +262,6 @@ func main() {
 	}
 	sessionStoreAppIdentity := &identity.SessionStoreAdapterIdentity{Repo: sessionRepo}
 
-	// 6. Initialize Application Handlers
-
-	// Identity Context
 	registerUserHandler := appcommands.NewRegisterUserHandler(userRepo, idEventPub, nil, &log.Logger)
 
 	loginHandler := appcommands.NewLoginHandler(
@@ -286,7 +269,7 @@ func main() {
 		jwtServiceApp,
 		refreshTokenServiceApp,
 		sessionStoreApp,
-		nil, // Metrics
+		nil,
 		&log.Logger,
 	)
 
@@ -315,12 +298,24 @@ func main() {
 		&log.Logger,
 	)
 
+	forgotPasswordHandler := appcommands.NewRequestPasswordResetHandler(
+		userRepo, tokenRepo, smtpSender, &log.Logger,
+	)
+	resetPasswordHandler := appcommands.NewResetPasswordHandler(
+		tokenRepo, userRepo, sessionStoreApp, log.Logger,
+	)
+	sendVerificationEmailHandler := appcommands.NewSendVerificationEmailHandler(
+		userRepo, tokenRepo, smtpSender, log.Logger,
+	)
+	verifyEmailHandler := appcommands.NewVerifyEmailHandler(
+		tokenRepo, userRepo, log.Logger,
+	)
+
 	getUserHandler := appqueries.NewGetUserHandler(userRepo)
 	updateUserHandler := appcommands.NewUpdateUserHandler(userRepo)
 	deleteUserHandler := appcommands.NewDeleteUserHandler(userRepo, sessionStoreAppIdentity)
 	getSessionsHandler := appqueries.NewGetUserSessionsHandler(sessionStoreAppIdentity)
 
-	// 2FA Handlers
 	setup2FAHandler := appcommands.NewSetup2FAHandler(userRepo, totpRepo, backupRepo, totpService, &log.Logger)
 	verify2FAHandler := appcommands.NewVerify2FAHandler(userRepo, totpRepo, totpService, &log.Logger)
 	disable2FAHandler := appcommands.NewDisable2FAHandler(userRepo, totpRepo, backupRepo, totpService, &log.Logger)
@@ -328,7 +323,6 @@ func main() {
 	verifyLoginHandler := appcommands.NewVerify2FALoginHandler(userRepo, totpRepo, jwtServiceApp, totpService, &log.Logger)
 	get2FAStatusHandler := appqueries.NewGet2FAStatusHandler(totpRepo, backupRepo, &log.Logger)
 
-	// OAuth Handlers
 	authOAuthHandler := appcommands.NewAuthenticateWithOAuthHandler(
 		userRepo, oauthRepo, oauthProviderFactory, jwtServiceApp,
 		refreshTokenServiceApp, sessionStoreApp, &log.Logger,
@@ -339,7 +333,6 @@ func main() {
 	unlinkOAuthHandler := appcommands.NewUnlinkOAuthAccountHandler(userRepo, oauthRepo, &log.Logger)
 	listOAuthAccountsHandler := appqueries.NewListOAuthAccountsHandler(oauthRepo, &log.Logger)
 
-	// Follow Handlers
 	followUserHandler := appcommands.NewFollowUserHandler(
 		followRepo, userRepo, notificationService, &log.Logger,
 	)
@@ -347,20 +340,16 @@ func main() {
 	getFollowersHandler := appqueries.NewGetFollowersHandler(followRepo, userRepo)
 	getFollowingHandler := appqueries.NewGetFollowingHandler(followRepo, userRepo)
 
-	// Activity Handler
 	getActivityFeedHandler := actqueries.NewGetActivityFeedHandler(activityRepo, userRepo)
 
-	// Notification Handlers
 	getNotificationsHandler := notifqueries.NewGetNotificationsHandler(notifRepo)
 	getUnreadCountHandler := notifqueries.NewGetUnreadCountHandler(notifRepo)
 	markNotificationsReadHandler := notifcommands.NewMarkNotificationsReadHandler(notifRepo, log.Logger)
 
-	// Guest Handlers
 	claimGuestImageHandler := gallerycommands.NewClaimGuestImageHandler(
 		imageRepo, userRepo, galEventPub, &log.Logger,
 	)
 
-	// Gallery Context
 	uploadImageHandler := gallerycommands.NewUploadImageHandler(
 		imageRepo, storage, jobEnqueuer, galEventPub, &log.Logger,
 	)
@@ -373,7 +362,6 @@ func main() {
 	listImagesHandler := galleryqueries.NewListImagesHandler(imageRepo, &log.Logger)
 	searchImagesHandler := galleryqueries.NewSearchImagesHandler(imageRepo)
 
-	// IPFS Handlers
 	pinImageHandler := gallerycommands.NewPinImageToIPFSHandler(
 		imageRepo, storage, ipfsService, galEventPub, &log.Logger,
 	)
@@ -382,7 +370,6 @@ func main() {
 	)
 	getIPFSStatusHandler := galleryqueries.NewGetImageIPFSStatusHandler(imageRepo, ipfsService, &log.Logger)
 
-	// Variant Config Handlers
 	createVarHandler := gallerycommands.NewCreateVariantConfigHandler(
 		variantRepo, userRepo, galEventPub, &log.Logger,
 	)
@@ -392,12 +379,10 @@ func main() {
 	listVarHandler := galleryqueries.NewListVariantConfigsHandler(variantRepo)
 	listPresetHandler := galleryqueries.NewListVariantConfigPresetsHandler(variantRepo)
 
-	// Tag Handlers
 	searchTagsHandler := galleryqueries.NewSearchTagsHandler(tagRepo, &log.Logger)
 	listPopularTagsHandler := galleryqueries.NewListPopularTagsHandler(tagRepo, &log.Logger)
 	listTrendingTagsHandler := galleryqueries.NewListTrendingTagsHandler(tagRepo, &log.Logger)
 
-	// Featured Handlers
 	featureImageHandler := gallerycommands.NewFeatureImageHandler(imageRepo, featuredRepo, log.Logger)
 	unfeatureImageHandler := gallerycommands.NewUnfeatureImageHandler(featuredRepo, log.Logger)
 	listFeaturedHandler := galleryqueries.NewListFeaturedImagesHandler(featuredRepo, imageRepo, log.Logger)
@@ -418,7 +403,6 @@ func main() {
 	getAlbumBreadcrumbHandler := galleryqueries.NewGetAlbumBreadcrumbHandler(albumRepo)
 	getAlbumChildrenHandler := galleryqueries.NewGetAlbumChildrenHandler(albumRepo)
 
-	// Social Context
 	likeImageHandler := gallerycommands.NewLikeImageHandler(
 		imageRepo, likeRepo, userRepo, galEventPub, &log.Logger,
 	)
@@ -435,7 +419,6 @@ func main() {
 	listImageCommentsHandler := galleryqueries.NewListImageCommentsHandler(commentRepo)
 	getUserLikedImagesHandler := galleryqueries.NewGetUserLikedImagesHandler(likeRepo, imageRepo)
 
-	// Moderation Context
 	createReportHandler := modcommands.NewCreateReportHandler(reportRepo, imageRepo, modEventPub, &log.Logger)
 	startReviewHandler := modcommands.NewStartReviewHandler(reportRepo, modEventPub, &log.Logger)
 	resolveReportHandler := modcommands.NewResolveReportHandler(reportRepo, modEventPub, &log.Logger)
@@ -454,7 +437,6 @@ func main() {
 	listNSFWFlaggedHandler := modqueries.NewListNSFWFlaggedHandler(nsfwRepo)
 	listNSFWScansByImageHandler := modqueries.NewListNSFWScansByImageHandler(nsfwRepo)
 
-	// Group Context
 	createGroupHandler := commcommands.NewCreateGroupHandler(
 		groupRepo, groupMemberRepo, commEventPub, &log.Logger,
 	)
@@ -495,7 +477,6 @@ func main() {
 	listUserGroupsHandler := commqueries.NewListUserGroupsHandler(groupMemberRepo)
 	listGroupInvitationsHandler := commqueries.NewListGroupInvitationsHandler(groupInvitationRepo)
 
-	// Group Album Handlers
 	createGroupAlbumHandler := commcommands.NewCreateGroupAlbumHandler(
 		groupRepo, groupMemberRepo, groupAlbumRepo, commEventPub, &log.Logger,
 	)
@@ -515,7 +496,6 @@ func main() {
 	getGroupAlbumHandler := commqueries.NewGetGroupAlbumHandler(groupRepo, groupAlbumRepo, groupMemberRepo)
 	listGroupAlbumsHandler := commqueries.NewListGroupAlbumsHandler(groupRepo, groupAlbumRepo, groupMemberRepo)
 
-	// Group Image Handlers
 	shareImageHandler := commcommands.NewShareImageToGroupHandler(
 		groupRepo, groupMemberRepo, groupImageRepo, groupActivityRepo, commEventPub, &log.Logger,
 	)
@@ -529,12 +509,11 @@ func main() {
 	listPendingImagesHandler := commqueries.NewListPendingGroupImagesHandler(groupImageRepo, groupMemberRepo)
 	listApprovedImagesHandler := commqueries.NewListApprovedGroupImagesHandler(groupImageRepo)
 
-	// 7. Initialize HTTP Handlers
 	healthHandler := handlers.NewHealthHandler(
 		db,
 		redisClientWrapper,
 		storageInfra,
-		nil, // clamav
+		nil,
 		log.Logger,
 	)
 
@@ -544,6 +523,10 @@ func main() {
 		refreshTokenHandler,
 		logoutHandler,
 		createGuestHandler,
+		forgotPasswordHandler,
+		resetPasswordHandler,
+		sendVerificationEmailHandler,
+		verifyEmailHandler,
 		log.Logger,
 	)
 
@@ -647,7 +630,7 @@ func main() {
 		uploadImageHandler,
 		updateImageHandler,
 		deleteImageHandler,
-		nil, // generateCustomVariant
+		nil,
 		getImageHandler,
 		listImagesHandler,
 		searchImagesHandler,
@@ -809,8 +792,6 @@ func main() {
 	log.Info().Msg("Server exited properly")
 }
 
-// --- Adapters ---
-
 type identityEventPublisher struct{}
 
 func (p *identityEventPublisher) Publish(_ context.Context, _ interface{}) error {
@@ -850,11 +831,10 @@ func (j *noOpJobEnqueuer) EnqueueImageScan(_ context.Context, _ string) error {
 type noOpNSFWService struct{}
 
 func (s *noOpNSFWService) Scan(_ context.Context, _ string) (*nsfw.ScanResult, error) {
-	// Return a safe mock result
 	return &nsfw.ScanResult{
 		Category: moderation.CategorySafe,
 		Score:    0.0,
-		Provider: moderation.ProviderSightEngine, // Assuming standard provider or mock
+		Provider: moderation.ProviderSightEngine,
 	}, nil
 }
 func (s *noOpNSFWService) ScanBytes(_ context.Context, _ []byte, _ string) (*nsfw.ScanResult, error) {
@@ -868,7 +848,7 @@ func (s *noOpNSFWService) IsAvailable(_ context.Context) bool {
 	return true
 }
 func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
-	return moderation.ProviderSightEngine // Return a valid provider enum
+	return moderation.ProviderSightEngine
 }
 
 type noOpIPFSService struct{}
@@ -899,7 +879,6 @@ func (s *storageAdapter) Put(
 	return nil
 }
 
-// storageInfraAdapter adapts local.Storage to storage.Storage interface.
 type storageInfraAdapter struct {
 	Store *local.Storage
 }
@@ -1045,7 +1024,6 @@ func (s *storageAdapter) Provider() string {
 	return s.Store.Provider()
 }
 
-// Helper functions for env vars.
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -1053,21 +1031,17 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// oauthProviderFactoryAdapter adapts security.OAuthProviderFactory to appcommands.OAuthProviderFactory.
 type oauthProviderFactoryAdapter struct {
 	factory *security.OAuthProviderFactory
 	configs map[domidentity.OAuthProvider]security.OAuthProviderConfig
 }
 
-// CreateProvider creates a new OAuth provider.
-//
 //nolint:ireturn // Adapter requires returning interface
 func (a *oauthProviderFactoryAdapter) CreateProvider(
 	pType domidentity.OAuthProvider,
 ) (appcommands.OAuthProvider, error) {
 	cfg, ok := a.configs[pType]
 	if !ok {
-		// Default config or error
 		cfg = security.OAuthProviderConfig{}
 	}
 	provider, err := a.factory.CreateProvider(pType, cfg)
@@ -1077,8 +1051,6 @@ func (a *oauthProviderFactoryAdapter) CreateProvider(
 	return provider, nil
 }
 
-// Encryptor returns the token encryptor.
-//
 //nolint:ireturn // Adapter requires returning interface
 func (a *oauthProviderFactoryAdapter) Encryptor() appcommands.TokenEncryptor {
 	return a.factory.Encryptor()

@@ -1,4 +1,3 @@
-// Package middleware provides HTTP security middleware for authentication, authorization, and request protection.
 package middleware
 
 import (
@@ -15,90 +14,37 @@ import (
 )
 
 const (
-	// Expected number of parts in Bearer token header.
-	bearerTokenParts = 2
-	// httpInternalServerError is the status code threshold for server errors.
+	bearerTokenParts        = 2
 	httpInternalServerError = 500
 )
 
-// JWTServiceInterface defines the interface for JWT token operations.
-// This allows for dependency injection and testing with mocks.
 type JWTServiceInterface interface {
 	ValidateToken(tokenString string) (*jwt.Claims, error)
 	ExtractTokenID(tokenString string) (string, error)
 }
 
-// TokenBlacklistInterface defines the interface for token blacklist operations.
 type TokenBlacklistInterface interface {
 	IsBlacklisted(ctx context.Context, tokenID string) (bool, error)
 }
 
-// AuthConfig holds configuration for JWT authentication middleware.
 type AuthConfig struct {
-	// JWTService handles token validation and signature verification.
 	JWTService JWTServiceInterface
 
-	// TokenBlacklist checks if tokens have been revoked (logout, security events).
 	TokenBlacklist TokenBlacklistInterface
 
-	// MetricsCollector records authentication metrics.
 	MetricsCollector *MetricsCollector
 
-	// Logger is used to log authentication events.
 	Logger zerolog.Logger
 
-	// Optional determines whether authentication is optional for this route.
-	// If true, missing or invalid tokens do not result in 401 error.
-	// The handler can check if a user is authenticated using GetUserID(ctx).
-	// Default: false (authentication required)
 	Optional bool
 }
 
-// JWTAuth creates a JWT authentication middleware with the given configuration.
-//
-// Authentication flow:
-// 1. Extract Bearer token from Authorization header
-// 2. Check if token is blacklisted (fast Redis lookup)
-// 3. Validate token signature and expiration (RS256 verification)
-// 4. Verify token type (must be "access" token, not "refresh")
-// 5. Set user context (user_id, email, role, session_id)
-//
-// Security considerations:
-// - Blacklist check before signature verification (performance optimization)
-// - Constant-time string comparison for token validation
-// - Logs all authentication failures for audit trail
-// - Returns 401 for missing/invalid tokens (unless Optional=true)
-// - Only accepts access tokens (refresh tokens rejected)
-//
-// Usage (required authentication):
-//
-//	cfg := middleware.AuthConfig{
-//	    JWTService: jwtService,
-//	    TokenBlacklist: blacklist,
-//	    Logger: logger,
-//	    Optional: false,
-//	}
-//	r.Group(func(r chi.Router) {
-//	    r.Use(middleware.JWTAuth(cfg))
-//	    r.Get("/protected", handler)
-//	})
-//
-// Usage (optional authentication):
-//
-//	cfg := middleware.AuthConfig{
-//	    JWTService: jwtService,
-//	    TokenBlacklist: blacklist,
-//	    Logger: logger,
-//	    Optional: true,
-//	}
-//	r.With(middleware.JWTAuth(cfg)).Get("/public-or-private", handler)
 func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			requestID := GetRequestID(ctx)
 
-			// Step 1: Extract and parse Bearer token
 			tokenString, err := extractBearerToken(r, cfg)
 			if err != nil {
 				if cfg.Optional {
@@ -109,29 +55,25 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Step 2: Extract token ID and check blacklist
 			_, err = checkTokenBlacklist(ctx, tokenString, cfg)
 			if err != nil {
 				logAndRespondAuthError(w, r, cfg, requestID, err)
 				return
 			}
 
-			// Step 3: Validate token and verify type
 			claims, err := validateTokenAndType(tokenString, cfg, requestID)
 			if err != nil {
 				logAndRespondAuthError(w, r, cfg, requestID, err)
 				return
 			}
 
-			// Step 4: Parse UUIDs from claims
 			userID, sessionID, err := parseClaimsUUIDs(claims, cfg.Logger, requestID)
 			if err != nil {
 				WriteError(w, r, http.StatusUnauthorized, "Unauthorized", "Invalid token claims")
 				return
 			}
 
-			// Step 5: Set user context and continue
-			ctx = SetUserContext(ctx, userID, claims.Email, claims.Role, sessionID, claims.TwoFAVerified)
+			ctx = SetUserContext(ctx, userID, claims.Email, claims.Role, sessionID, claims.TwoFAVerified, claims.EmailVerified)
 			cfg.Logger.Debug().
 				Str("event", "auth_success").
 				Str("user_id", claims.UserID).
@@ -146,7 +88,6 @@ func JWTAuth(cfg AuthConfig) func(http.Handler) http.Handler {
 	}
 }
 
-// authError represents an authentication error with event type and message.
 type authError struct {
 	event   string
 	message string
@@ -157,7 +98,6 @@ func (e *authError) Error() string {
 	return e.message
 }
 
-// extractBearerToken extracts and validates the Bearer token from the Authorization header.
 func extractBearerToken(r *http.Request, cfg AuthConfig) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
@@ -206,7 +146,6 @@ func extractBearerToken(r *http.Request, cfg AuthConfig) (string, error) {
 	return tokenString, nil
 }
 
-// checkTokenBlacklist extracts token ID and verifies it's not blacklisted.
 func checkTokenBlacklist(ctx context.Context, tokenString string, cfg AuthConfig) (string, error) {
 	tokenID, err := cfg.JWTService.ExtractTokenID(tokenString)
 	if err != nil {
@@ -243,7 +182,6 @@ func checkTokenBlacklist(ctx context.Context, tokenString string, cfg AuthConfig
 	return tokenID, nil
 }
 
-// validateTokenAndType validates the JWT token and verifies it's an access token.
 func validateTokenAndType(tokenString string, cfg AuthConfig, _ string) (*jwt.Claims, error) {
 	claims, err := cfg.JWTService.ValidateToken(tokenString)
 	if err != nil {
@@ -271,7 +209,6 @@ func validateTokenAndType(tokenString string, cfg AuthConfig, _ string) (*jwt.Cl
 	return claims, nil
 }
 
-// parseClaimsUUIDs parses and validates UUIDs from JWT claims.
 func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID string) (uuid.UUID, uuid.UUID, error) {
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
@@ -298,11 +235,9 @@ func parseClaimsUUIDs(claims *jwt.Claims, logger zerolog.Logger, requestID strin
 	return userID, sessionID, nil
 }
 
-// logAndRespondAuthError logs and responds with appropriate auth error.
 func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConfig, requestID string, err error) {
 	var authErr *authError
 	if !errors.As(err, &authErr) {
-		// Generic error handling
 		cfg.Logger.Error().
 			Err(err).
 			Str("request_id", requestID).
@@ -311,7 +246,6 @@ func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConf
 		return
 	}
 
-	// Log based on severity
 	if authErr.status >= httpInternalServerError {
 		cfg.Logger.Error().
 			Str("event", authErr.event).
@@ -329,7 +263,6 @@ func logAndRespondAuthError(w http.ResponseWriter, r *http.Request, cfg AuthConf
 	WriteError(w, r, authErr.status, getErrorTitle(authErr.status), authErr.message)
 }
 
-// getErrorTitle returns appropriate error title for HTTP status code.
 func getErrorTitle(status int) string {
 	switch status {
 	case http.StatusUnauthorized:
@@ -343,29 +276,6 @@ func getErrorTitle(status int) string {
 	}
 }
 
-// RequireRole creates a middleware that enforces role-based access control (RBAC).
-// This middleware must be placed AFTER JWTAuth middleware.
-//
-// Roles (from least to most privileged):
-// - "user": Regular user (can upload images, manage own content)
-// - "moderator": Can moderate content (review reports, flag images)
-// - "admin": Full administrative access (user management, system settings)
-//
-// Usage:
-//
-//	// Admin-only routes
-//	r.Group(func(r chi.Router) {
-//	    r.Use(middleware.JWTAuth(cfg))
-//	    r.Use(middleware.RequireRole(logger, collector, "admin"))
-//	    r.Get("/admin/users", handlers.Admin.ListUsers)
-//	})
-//
-//	// Moderator or admin routes
-//	r.Group(func(r chi.Router) {
-//	    r.Use(middleware.JWTAuth(cfg))
-//	    r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
-//	    r.Post("/images/{id}/moderate", handlers.Moderation.ModerateImage)
-//	})
 func RequireRole(
 	logger zerolog.Logger, metricsCollector *MetricsCollector, requiredRole string,
 ) func(http.Handler) http.Handler {
@@ -374,7 +284,6 @@ func RequireRole(
 			ctx := r.Context()
 			requestID := GetRequestID(ctx)
 
-			// Get user role from context (set by JWTAuth middleware)
 			role, ok := GetUserRole(ctx)
 			if !ok {
 				logger.Error().
@@ -391,11 +300,9 @@ func RequireRole(
 				return
 			}
 
-			// Check if user has required role
 			if role != requiredRole {
 				userID, _ := GetUserIDString(ctx)
 
-				// Record metrics
 				if metricsCollector != nil {
 					metricsCollector.RecordAuthorizationDenied(role, requiredRole)
 				}
@@ -422,12 +329,6 @@ func RequireRole(
 	}
 }
 
-// RequireAnyRole creates a middleware that accepts multiple roles (OR logic).
-// User must have at least one of the specified roles.
-//
-// Usage:
-//
-//	r.Use(middleware.RequireAnyRole(logger, collector, "moderator", "admin"))
 func RequireAnyRole(
 	logger zerolog.Logger, metricsCollector *MetricsCollector, allowedRoles ...string,
 ) func(http.Handler) http.Handler {
@@ -436,7 +337,6 @@ func RequireAnyRole(
 			ctx := r.Context()
 			requestID := GetRequestID(ctx)
 
-			// Get user role from context
 			role, ok := GetUserRole(ctx)
 			if !ok {
 				logger.Error().
@@ -453,7 +353,6 @@ func RequireAnyRole(
 				return
 			}
 
-			// Check if user has any of the allowed roles
 			for _, allowedRole := range allowedRoles {
 				if role == allowedRole {
 					next.ServeHTTP(w, r)
@@ -461,10 +360,8 @@ func RequireAnyRole(
 				}
 			}
 
-			// User doesn't have any of the required roles
 			userID, _ := GetUserIDString(ctx)
 
-			// Record metrics (use first allowed role as required permission)
 			requiredPermission := fmt.Sprintf("role:%v", allowedRoles)
 			if metricsCollector != nil {
 				metricsCollector.RecordAuthorizationDenied(role, requiredPermission)

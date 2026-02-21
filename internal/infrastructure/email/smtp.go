@@ -11,8 +11,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// SMTPSender implements email sending via SMTP protocol.
-// It supports both TLS and non-TLS connections, rate limiting, and configurable timeouts.
 type SMTPSender struct {
 	config  Config
 	auth    smtp.Auth
@@ -20,20 +18,16 @@ type SMTPSender struct {
 	logger  zerolog.Logger
 }
 
-// NewSMTPSender creates a new SMTP email sender with the given configuration.
-// Returns an error if the configuration is invalid.
 func NewSMTPSender(cfg Config, logger zerolog.Logger) (*SMTPSender, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid smtp config: %w", err)
 	}
 
-	// Create SMTP auth if credentials provided
 	var auth smtp.Auth
 	if cfg.Username != "" {
 		auth = smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
 	}
 
-	// Create rate limiter
 	limiter := NewRateLimiter(cfg.RateLimit, time.Hour)
 
 	return &SMTPSender{
@@ -44,15 +38,11 @@ func NewSMTPSender(cfg Config, logger zerolog.Logger) (*SMTPSender, error) {
 	}, nil
 }
 
-// Send sends an email with both HTML and plain text versions.
-// Returns ErrRateLimited if the rate limit has been exceeded.
-// Returns ErrSMTPDisabled if SMTP is disabled in configuration.
 func (s *SMTPSender) Send(ctx context.Context, to, subject, htmlBody, textBody string) error {
 	if !s.config.Enabled {
 		return ErrSMTPDisabled
 	}
 
-	// Check rate limit
 	if !s.limiter.Allow() {
 		s.logger.Warn().
 			Str("recipient", to).
@@ -60,10 +50,8 @@ func (s *SMTPSender) Send(ctx context.Context, to, subject, htmlBody, textBody s
 		return ErrRateLimited
 	}
 
-	// Build message
 	msg := s.buildMessage(to, subject, htmlBody, textBody)
 
-	// Send email
 	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
 
 	if s.config.UseTLS {
@@ -73,9 +61,7 @@ func (s *SMTPSender) Send(ctx context.Context, to, subject, htmlBody, textBody s
 	return s.sendPlain(ctx, addr, to, msg)
 }
 
-// sendTLS sends email over a TLS connection.
 func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) error {
-	// Create TLS connection with timeout
 	dialer := &net.Dialer{Timeout: s.config.Timeout}
 	//nolint:gosec // G402: TLS MinVersion is explicitly set to TLS 1.2
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{
@@ -87,21 +73,18 @@ func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) e
 	}
 	defer conn.Close()
 
-	// Create SMTP client
 	client, err := smtp.NewClient(conn, s.config.Host)
 	if err != nil {
 		return fmt.Errorf("smtp client: %w", err)
 	}
 	defer client.Close()
 
-	// Authenticate if credentials provided
 	if s.auth != nil {
 		if err := client.Auth(s.auth); err != nil {
 			return fmt.Errorf("smtp auth: %w", err)
 		}
 	}
 
-	// Send email
 	if err := client.Mail(s.config.FromAddress); err != nil {
 		return fmt.Errorf("smtp mail: %w", err)
 	}
@@ -134,8 +117,6 @@ func (s *SMTPSender) sendTLS(ctx context.Context, addr, to string, msg []byte) e
 	return nil
 }
 
-// sendPlain sends email over a plain SMTP connection (no TLS).
-// This should only be used for local development.
 func (s *SMTPSender) sendPlain(ctx context.Context, addr, to string, msg []byte) error {
 	err := smtp.SendMail(addr, s.auth, s.config.FromAddress, []string{to}, msg)
 	if err != nil {
@@ -149,8 +130,6 @@ func (s *SMTPSender) sendPlain(ctx context.Context, addr, to string, msg []byte)
 	return nil
 }
 
-// buildMessage constructs a MIME multipart email message with both HTML and plain text versions.
-// This ensures compatibility with all email clients.
 func (s *SMTPSender) buildMessage(to, subject, htmlBody, textBody string) []byte {
 	boundary := "----=_Part_0_1234567890.1234567890"
 
@@ -162,7 +141,6 @@ func (s *SMTPSender) buildMessage(to, subject, htmlBody, textBody string) []byte
 	msg += fmt.Sprintf("Content-Type: multipart/alternative; boundary=\"%s\"\r\n", boundary)
 	msg += "\r\n"
 
-	// Plain text version
 	msg += fmt.Sprintf("--%s\r\n", boundary)
 	msg += "Content-Type: text/plain; charset=utf-8\r\n"
 	msg += "Content-Transfer-Encoding: 7bit\r\n"
@@ -170,7 +148,6 @@ func (s *SMTPSender) buildMessage(to, subject, htmlBody, textBody string) []byte
 	msg += textBody
 	msg += "\r\n\r\n"
 
-	// HTML version
 	msg += fmt.Sprintf("--%s\r\n", boundary)
 	msg += "Content-Type: text/html; charset=utf-8\r\n"
 	msg += "Content-Transfer-Encoding: 7bit\r\n"
@@ -178,14 +155,11 @@ func (s *SMTPSender) buildMessage(to, subject, htmlBody, textBody string) []byte
 	msg += htmlBody
 	msg += "\r\n\r\n"
 
-	// End boundary
 	msg += fmt.Sprintf("--%s--\r\n", boundary)
 
 	return []byte(msg)
 }
 
-// SendNewFollowerEmail sends a notification when a user gains a new follower.
-// This is a convenience method that uses a predefined template.
 func (s *SMTPSender) SendNewFollowerEmail(ctx context.Context, recipientEmail, followerUsername string) error {
 	subject := fmt.Sprintf("%s started following you", followerUsername)
 
@@ -226,7 +200,6 @@ You can change your notification preferences in your account settings.
 	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
 }
 
-// SendMalwareDetectedEmail sends a notification when an uploaded file contains malware.
 func (s *SMTPSender) SendMalwareDetectedEmail(ctx context.Context, recipientEmail, username, filename string) error {
 	subject := "Security Alert: Malware Detected in Your Upload"
 
@@ -275,12 +248,79 @@ This is an automated security notification.
 	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
 }
 
-// IsEnabled returns true if SMTP sending is enabled.
+func (s *SMTPSender) SendPasswordResetEmail(ctx context.Context, recipientEmail, token string) error {
+	subject := "Reset your password"
+
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Password Reset</title></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #4a5568;">Reset Your Password</h2>
+        <p>We received a request to reset the password for your goimg account.</p>
+        <p>Use the following token to reset your password. It expires in 1 hour.</p>
+        <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; padding: 15px; margin: 20px 0; word-break: break-all;">
+            <code>%s</code>
+        </div>
+        <p>If you did not request a password reset, you can safely ignore this email.</p>
+        <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #718096;">This link expires in 1 hour.</p>
+    </div>
+</body>
+</html>
+`, token)
+
+	textBody := fmt.Sprintf(`Reset Your Password
+
+We received a request to reset your password.
+
+Your password reset token (expires in 1 hour):
+%s
+
+If you did not request a password reset, ignore this email.
+`, token)
+
+	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
+}
+
+func (s *SMTPSender) SendVerificationEmail(ctx context.Context, recipientEmail, token string) error {
+	subject := "Verify your email address"
+
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Verify Email</title></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #4a5568;">Verify Your Email</h2>
+        <p>Thank you for registering with goimg. Please verify your email address.</p>
+        <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; padding: 15px; margin: 20px 0; word-break: break-all;">
+            <code>%s</code>
+        </div>
+        <p>If you did not create an account, you can safely ignore this email.</p>
+        <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #718096;">This token expires in 24 hours.</p>
+    </div>
+</body>
+</html>
+`, token)
+
+	textBody := fmt.Sprintf(`Verify Your Email
+
+Please verify your email address using this token:
+%s
+
+If you did not create an account, ignore this email.
+`, token)
+
+	return s.Send(ctx, recipientEmail, subject, htmlBody, textBody)
+}
+
 func (s *SMTPSender) IsEnabled() bool {
 	return s.config.Enabled
 }
 
-// RemainingQuota returns the number of emails that can still be sent in the current window.
 func (s *SMTPSender) RemainingQuota() int {
 	return s.limiter.Remaining()
 }
