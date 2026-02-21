@@ -180,9 +180,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Str("ip_address", ipAddress).
 		Msg("user logged in successfully")
 
-	// Set refresh token cookie (HttpOnly)
-	h.setRefreshTokenCookie(w, r, authResponse.Tokens.RefreshToken)
-
 	if err := EncodeJSON(w, http.StatusOK, authResponse); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode login response")
 	}
@@ -201,27 +198,18 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Decode request
+	// 1. Decode and validate request
 	var req RefreshRequest
-	// Try to get token from cookie first
-	cookie, err := r.Cookie("refresh_token")
-	if err == nil && cookie.Value != "" {
-		req.RefreshToken = cookie.Value
-	}
-
-	// If not in cookie, check body
-	if req.RefreshToken == "" {
-		if err := DecodeJSON(r, &req); err != nil {
-			h.logger.Debug().Err(err).Msg("invalid refresh request")
-			validationErrors := FormatValidationErrors(err)
-			middleware.WriteErrorWithExtensions(w, r,
-				http.StatusBadRequest,
-				"Validation Failed",
-				"Invalid refresh token data",
-				validationErrors,
-			)
-			return
-		}
+	if err := DecodeJSON(r, &req); err != nil {
+		h.logger.Debug().Err(err).Msg("invalid refresh request")
+		validationErrors := FormatValidationErrors(err)
+		middleware.WriteErrorWithExtensions(w, r,
+			http.StatusBadRequest,
+			"Validation Failed",
+			"Invalid refresh token data",
+			validationErrors,
+		)
+		return
 	}
 
 	// 2. Extract client metadata for anomaly detection
@@ -245,9 +233,6 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info().
 		Str("ip_address", ipAddress).
 		Msg("token refreshed successfully")
-
-	// Set new refresh token cookie
-	h.setRefreshTokenCookie(w, r, tokenPair.RefreshToken)
 
 	if err := EncodeJSON(w, http.StatusOK, tokenPair); err != nil {
 		h.logger.Error().Err(err).Msg("failed to encode refresh response")
@@ -327,38 +312,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Str("logout_type", logType).
 		Msg("user logged out successfully")
 
-	// Clear refresh token cookie
-	h.deleteRefreshTokenCookie(w)
-
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// setRefreshTokenCookie sets the refresh token in a secure HttpOnly cookie.
-func (h *AuthHandler) setRefreshTokenCookie(w http.ResponseWriter, r *http.Request, refreshToken string) {
-	// Determine if we should use Secure cookies (HTTPS)
-	secure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Path:     "/api/v1/auth/refresh",
-		MaxAge:   7 * 24 * 60 * 60, // 7 days (matches default refresh token TTL)
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
-	})
-}
-
-// deleteRefreshTokenCookie clears the refresh token cookie.
-func (h *AuthHandler) deleteRefreshTokenCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    "",
-		Path:     "/api/v1/auth/refresh",
-		MaxAge:   -1,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
 }
 
 // mapErrorAndRespond maps application/domain errors to HTTP responses using RFC 7807 Problem Details.
