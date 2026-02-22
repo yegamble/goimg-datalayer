@@ -40,6 +40,10 @@ type RateLimiterConfig struct {
 	// Default: 5 requests per minute (prevents brute-force attacks)
 	LoginLimit int
 
+	// UploadLimit is the maximum uploads per window (per user).
+	// Default: 50 uploads per hour (prevents storage abuse)
+	UploadLimit int
+
 	// WindowSize is the time window for rate limiting.
 	// Default: 1 minute
 	WindowSize time.Duration
@@ -60,6 +64,7 @@ func DefaultRateLimiterConfig(redisClient *redis.Client, logger zerolog.Logger) 
 		GlobalLimit: defaultGlobalLimit,
 		AuthLimit:   defaultAuthLimit,
 		LoginLimit:  defaultLoginLimit,
+		UploadLimit: 50,
 		WindowSize:  time.Minute,
 		Logger:      logger,
 		TrustProxy:  false,
@@ -392,7 +397,10 @@ func setRateLimitHeaders(w http.ResponseWriter, info *RateLimitInfo) {
 //nolint:funlen // Rate limiting middleware with Redis.
 func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 	// Default upload limit: 50 uploads per hour
-	uploadLimit := 50
+	uploadLimit := cfg.UploadLimit
+	if uploadLimit <= 0 {
+		uploadLimit = 50
+	}
 	uploadWindow := time.Hour
 
 	return func(next http.Handler) http.Handler {
