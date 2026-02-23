@@ -168,8 +168,16 @@ func (m *userModel) toDomain() (*identity.User, error) {
         passwordHash,
         role,
         status,
+        m.DisplayName,
+        m.Bio,
+        m.InfectedFileCount,
         m.CreatedAt,
         m.UpdatedAt,
+        m.UserType,
+        m.IPAddress,
+        m.ExpiresAt,
+        m.EmailVerified,
+        m.EmailVerifiedAt,
     ), nil
 }
 
