@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-05 - CI Optimization: Removed Redundant Integration Services
+**Issue:** `test-integration` job was spinning up Postgres and Redis service containers that were completely ignored by the tests.
+**Root Cause:** Integration tests use `testcontainers-go` to manage their own ephemeral infrastructure, rendering the CI-level service definitions redundant and wasteful.
+**Fix:** Removed `services`, `env`, and setup steps from the CI job, relying solely on `testcontainers-go` for test infrastructure.
