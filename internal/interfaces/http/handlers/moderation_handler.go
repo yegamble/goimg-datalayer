@@ -679,7 +679,19 @@ func (h *ModerationHandler) UnbanUser(w http.ResponseWriter, r *http.Request) {
 func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Extract user ID from path
+	// 1. Extract user context
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("user context not found in get user ban status handler")
+		middleware.WriteError(w, r,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			"Authentication required",
+		)
+		return
+	}
+
+	// 2. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
 		middleware.WriteError(w, r,
@@ -690,19 +702,34 @@ func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// 2. Build query
+	// Authorization: Allow if requesting own status OR role is admin/moderator
+	if userCtx.UserID.String() != userID && userCtx.Role != "admin" && userCtx.Role != "moderator" {
+		h.logger.Warn().
+			Str("user_id", userCtx.UserID.String()).
+			Str("target_user_id", userID).
+			Str("role", userCtx.Role).
+			Msg("unauthorized attempt to view ban status")
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Insufficient permissions",
+		)
+		return
+	}
+
+	// 3. Build query
 	query := queries.GetUserBanStatusQuery{
 		UserID: userID,
 	}
 
-	// 3. Execute query
+	// 4. Execute query
 	result, err := h.getBanStatus.Handle(ctx, query)
 	if err != nil {
 		h.mapErrorAndRespond(w, r, err, "get user ban status")
 		return
 	}
 
-	// 4. Return result
+	// 5. Return result
 	h.logger.Debug().
 		Str("user_id", userID).
 		Bool("is_banned", result.IsBanned).
