@@ -59,10 +59,15 @@ func NewImageHandler(
 
 // Note: Authentication and rate limiting middleware should be applied at the router level.
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered in the image router.
-func (h *ImageHandler) Routes() chi.Router {
+func (h *ImageHandler) Routes(rateLimiterConfig *middleware.RateLimiterConfig) chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/", h.Upload)
+	if rateLimiterConfig != nil {
+		r.With(middleware.UploadRateLimiter(*rateLimiterConfig)).Post("/", h.Upload)
+	} else {
+		r.Post("/", h.Upload)
+	}
+
 	r.Get("/", h.List)
 	r.Get("/search", h.Search)
 	r.Get("/{imageID}", h.Get)
