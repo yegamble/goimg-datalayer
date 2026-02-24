@@ -134,7 +134,7 @@ func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 
 	uploadHandler := commands.NewUploadImageHandler(mockRepo, mockAppStorage, mockJobEnqueuer, mockEventPublisher, &logger)
 	imageHandler := NewImageHandler(
-		uploadHandler, nil, nil, nil, nil, nil, nil, mockStorage, "", logger,
+		uploadHandler, nil, nil, nil, nil, nil, nil, mockStorage, "", nil, logger,
 	)
 
 	userID := identity.NewUserID()

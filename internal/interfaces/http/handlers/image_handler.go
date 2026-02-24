@@ -24,6 +24,7 @@ type ImageHandler struct {
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
 	baseURL               string
+	rateLimiterConfig     *middleware.RateLimiterConfig
 	logger                zerolog.Logger
 }
 
@@ -41,6 +42,7 @@ func NewImageHandler(
 	searchImages *queries.SearchImagesHandler,
 	storage StorageProvider,
 	baseURL string,
+	rateLimiterConfig *middleware.RateLimiterConfig,
 	logger zerolog.Logger,
 ) *ImageHandler {
 	return &ImageHandler{
@@ -53,17 +55,18 @@ func NewImageHandler(
 		searchImages:          searchImages,
 		storage:               storage,
 		baseURL:               strings.TrimRight(baseURL, "/"),
+		rateLimiterConfig:     rateLimiterConfig,
 		logger:                logger,
 	}
 }
 
 // Note: Authentication and rate limiting middleware should be applied at the router level.
 // Note: The variant endpoint (/{imageID}/variants/{size}) is registered in the image router.
-func (h *ImageHandler) Routes(rateLimiterConfig *middleware.RateLimiterConfig) chi.Router {
+func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	if rateLimiterConfig != nil {
-		r.With(middleware.UploadRateLimiter(*rateLimiterConfig)).Post("/", h.Upload)
+	if h.rateLimiterConfig != nil {
+		r.With(middleware.UploadRateLimiter(*h.rateLimiterConfig)).Post("/", h.Upload)
 	} else {
 		r.Post("/", h.Upload)
 	}

@@ -31,6 +31,7 @@ func TestImageHandler_GetImageQRCode_HostHeaderInjection(t *testing.T) {
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
 		"", // No baseURL configured
+		nil,
 		logger,
 	)
 
@@ -85,6 +86,7 @@ func TestImageHandler_GetImageQRCode_SecureBaseURL(t *testing.T) {
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
 		secureBaseURL,
+		nil,
 		logger,
 	)
 
