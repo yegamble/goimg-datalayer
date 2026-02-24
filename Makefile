@@ -466,7 +466,7 @@ lint:
 generate:
 	@echo "Generating server code from OpenAPI spec..."
 	@mkdir -p internal/interfaces/http/generated
-	@PATH="$(PATH):/root/go/bin" oapi-codegen -config api/openapi/oapi-codegen.yaml api/openapi/openapi.yaml
+	@PATH="$$PATH:$$(go env GOPATH)/bin" oapi-codegen -config api/openapi/oapi-codegen.yaml api/openapi/openapi.yaml
 	@gofmt -w internal/interfaces/http/generated/
 	@echo "Code generation complete: internal/interfaces/http/generated/server.gen.go"
 
