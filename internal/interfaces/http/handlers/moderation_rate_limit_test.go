@@ -200,7 +200,7 @@ func TestModerationRateLimitIntegration(t *testing.T) {
 	)
 
 	// Other minimal handlers required by router
-	imageHandler := handlers.NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", nil, logger)
+	imageHandler := handlers.NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", logger)
 	albumHandler := handlers.NewAlbumHandler(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, logger)
 	healthHandler := handlers.NewHealthHandler(nil, nil, nil, nil, logger)
 

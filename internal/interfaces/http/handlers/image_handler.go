@@ -24,7 +24,6 @@ type ImageHandler struct {
 	searchImages          *queries.SearchImagesHandler
 	storage               StorageProvider
 	baseURL               string
-	rateLimiterConfig     *middleware.RateLimiterConfig
 	logger                zerolog.Logger
 }
 
@@ -42,7 +41,6 @@ func NewImageHandler(
 	searchImages *queries.SearchImagesHandler,
 	storage StorageProvider,
 	baseURL string,
-	rateLimiterConfig *middleware.RateLimiterConfig,
 	logger zerolog.Logger,
 ) *ImageHandler {
 	return &ImageHandler{
@@ -55,7 +53,6 @@ func NewImageHandler(
 		searchImages:          searchImages,
 		storage:               storage,
 		baseURL:               strings.TrimRight(baseURL, "/"),
-		rateLimiterConfig:     rateLimiterConfig,
 		logger:                logger,
 	}
 }
@@ -65,12 +62,7 @@ func NewImageHandler(
 func (h *ImageHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	if h.rateLimiterConfig != nil {
-		r.With(middleware.UploadRateLimiter(*h.rateLimiterConfig)).Post("/", h.Upload)
-	} else {
-		r.Post("/", h.Upload)
-	}
-
+	r.Post("/", h.Upload)
 	r.Get("/", h.List)
 	r.Get("/search", h.Search)
 	r.Get("/{imageID}", h.Get)

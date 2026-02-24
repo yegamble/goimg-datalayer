@@ -137,14 +137,6 @@ func main() {
 		rdbClient = redisClientWrapper.UnderlyingClient()
 	}
 
-	metricsCollector := middleware.NewMetricsCollector()
-	var rateLimiterConfig *middleware.RateLimiterConfig
-	if rdbClient != nil {
-		cfg := middleware.DefaultRateLimiterConfig(rdbClient, log.Logger)
-		cfg.MetricsCollector = metricsCollector
-		rateLimiterConfig = &cfg
-	}
-
 	storageConfig := local.Config{
 		BasePath: os.Getenv("STORAGE_BASE_PATH"),
 		BaseURL:  os.Getenv("STORAGE_BASE_URL"),
@@ -644,7 +636,6 @@ func main() {
 		searchImagesHandler,
 		storageInfra,
 		os.Getenv("BASE_URL"),
-		rateLimiterConfig,
 		log.Logger,
 	)
 
@@ -733,10 +724,9 @@ func main() {
 	)
 
 	middlewareConfig := handlers.MiddlewareConfig{
-		Logger:            log.Logger,
-		JWTService:        jwtServiceImpl,
-		TokenBlacklist:    tokenBlacklistImpl,
-		RateLimiterConfig: rateLimiterConfig,
+		Logger:         log.Logger,
+		JWTService:     jwtServiceImpl,
+		TokenBlacklist: tokenBlacklistImpl,
 	}
 
 	router := handlers.NewRouter(
@@ -763,7 +753,7 @@ func main() {
 		groupHandler,
 		groupAlbumHandler,
 		groupImageHandler,
-		metricsCollector,
+		middleware.NewMetricsCollector(),
 		middlewareConfig,
 		false,
 	)

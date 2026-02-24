@@ -46,7 +46,7 @@ func TestImageHandler_Upload_Returns403WhenEmailUnverified(t *testing.T) {
 	t.Parallel()
 
 	logger := zerolog.Nop()
-	imageHandler := NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", nil, logger)
+	imageHandler := NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/images", nil)
 	ctx := makeUnverifiedUserContext(req.Context())
@@ -62,7 +62,7 @@ func TestImageHandler_Upload_AllowsVerifiedUser(t *testing.T) {
 	t.Parallel()
 
 	logger := zerolog.Nop()
-	imageHandler := NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", nil, logger)
+	imageHandler := NewImageHandler(nil, nil, nil, nil, nil, nil, nil, nil, "", logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/images", nil)
 	ctx := makeVerifiedUserContext(req.Context())
