@@ -38,7 +38,7 @@ COPY . .
 # - -ldflags: Strip debug info, make static
 # - -trimpath: Remove local path information
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
+    -ldflags='-w -s' \
     -trimpath \
     -o /build/worker \
     ./cmd/worker
