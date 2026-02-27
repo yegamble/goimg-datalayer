@@ -239,8 +239,37 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # Service containers are now managed by testcontainers-go within the tests themselves.
-    # This ensures true isolation and reproducible environments.
+    # Service containers for integration tests
+    # NOTE: These containers cannot be shared with E2E tests due to GitHub Actions
+    # job isolation. Each job requires its own service containers.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: goimg_test
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: goimg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://goimg_test:test_password@localhost:5432/goimg_test?sslmode=disable
+      REDIS_URL: redis://localhost:6379/0
 
     steps:
       - name: Checkout code
@@ -256,6 +285,11 @@ jobs:
 
       - name: Verify dependencies
         run: go mod verify
+
+      - name: Setup database and run migrations
+        uses: ./.github/actions/setup-database
+        with:
+          database-url: ${{ env.DATABASE_URL }}
 
       - name: Run integration tests
         run: |
