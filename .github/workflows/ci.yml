@@ -498,6 +498,11 @@ jobs:
         with:
           file_glob: api/openapi/openapi.yaml
 
+      - name: Install oapi-codegen
+        if: steps.check_openapi.outputs.exists == 'true'
+        run: |
+          go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.1
+
       - name: Check for OpenAPI spec drift
         if: steps.check_openapi.outputs.exists == 'true'
         run: |
@@ -506,7 +511,7 @@ jobs:
           if [ -f "Makefile" ]; then
             if grep -q "generate" Makefile; then
               echo "Checking for OpenAPI drift..."
-              make generate || echo "No generate target or generation not required"
+              make generate
 
               # Check if any files were modified
               if ! git diff --quiet; then
