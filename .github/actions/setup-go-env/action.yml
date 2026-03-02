@@ -38,7 +38,10 @@ runs:
       run: |
         echo "/usr/local/bin" >> "$GITHUB_PATH"
         echo "/usr/bin" >> "$GITHUB_PATH"
-        ACT_NODE_BIN_DIR="$(ls -d /opt/acttoolcache/node/*/x64/bin 2>/dev/null | sort -V | tail -n 1 || echo "")"
+        # Temporarily disable exit on error for the ls command pipeline
+        set +e
+        ACT_NODE_BIN_DIR="$(ls -d /opt/acttoolcache/node/*/x64/bin 2>/dev/null | sort -V | tail -n 1)"
+        set -e
         if [ -n "$ACT_NODE_BIN_DIR" ]; then
           echo "$ACT_NODE_BIN_DIR" >> "$GITHUB_PATH"
         fi
