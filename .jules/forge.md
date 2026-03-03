@@ -15,5 +15,5 @@
 
 ## 2026-02-10 - Trivy Scan Failures
 **Issue:** Trivy vulnerability scans were failing in `security.yml` with fatal git errors and failing to install Trivy.
-**Root Cause:** `actions/checkout` lacked `fetch-depth: 0`, preventing Trivy from accessing git history for scans. Furthermore, `aquasecurity/trivy-action@0.28.0` requires `trivy-version: '0.55.2'` (the action uses this parameter, but may expect versions without 'v' prefix, or the action version itself requires an exact string like `v0.55.2`).
-**Fix:** Added `fetch-depth: 0` to `actions/checkout` in the `trivy` job. Added `trivy-version: '0.55.2'` to both `aquasecurity/trivy-action` invocations.
+**Root Cause:** `actions/checkout` lacked `fetch-depth: 0`, preventing Trivy from accessing git history for scans. Furthermore, `aquasecurity/trivy-action@0.28.0` requires `version: 'v0.55.2'` (not `trivy-version` which causes a failure for undefined input).
+**Fix:** Added `fetch-depth: 0` to `actions/checkout` in the `trivy` job. Added `version: 'v0.55.2'` to both `aquasecurity/trivy-action` invocations.
