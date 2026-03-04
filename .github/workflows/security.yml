@@ -116,6 +116,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
         uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
@@ -127,6 +129,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
           exit-code: '1'
+          trivy-version: '0.55.2'
         continue-on-error: true
         id: trivy-scan
 
@@ -139,6 +142,7 @@ jobs:
           output: 'trivy-${{ matrix.scan-type }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
+          trivy-version: '0.55.2'
         continue-on-error: true
 
       - name: Add Trivy results to summary
