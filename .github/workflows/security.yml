@@ -116,12 +116,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
         uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
+          trivy-version: '0.55.2'
           format: 'table'
           output: 'trivy-${{ matrix.scan-type }}-results.txt'
           severity: 'CRITICAL,HIGH,MEDIUM'
@@ -135,6 +138,7 @@ jobs:
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
+          trivy-version: '0.55.2'
           format: 'sarif'
           output: 'trivy-${{ matrix.scan-type }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'

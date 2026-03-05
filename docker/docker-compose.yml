@@ -38,7 +38,7 @@ services:
 
   # ClamAV Antivirus Scanner
   clamav:
-    image: clamav/clamav:1.4.1
+    image: clamav/clamav:1.4.3
     container_name: goimg-clamav
     ports:
       - "3310:3310"
