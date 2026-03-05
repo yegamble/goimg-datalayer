@@ -124,7 +124,7 @@ jobs:
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
-          version: '0.55.2'
+          version: 'v0.55.2'
           format: 'table'
           output: 'trivy-${{ matrix.scan-type }}-results.txt'
           severity: 'CRITICAL,HIGH,MEDIUM'
@@ -138,7 +138,7 @@ jobs:
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
-          version: '0.55.2'
+          version: 'v0.55.2'
           format: 'sarif'
           output: 'trivy-${{ matrix.scan-type }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
