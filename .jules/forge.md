@@ -15,8 +15,8 @@
 
 ## 2026-02-05 - Trivy Installation and Git Reference Failures
 **Issue:** `security.yml` Trivy jobs were failing to find the git commit or failing to install the scanner.
-**Root Cause:** The `actions/checkout` action didn't fetch enough git history by default (`fetch-depth: 1`), breaking Trivy's git repository scanning. In addition, the Trivy GitHub Action required the explicit parameter `trivy-version` instead of just `version` which was silently ignored.
-**Fix:** Added `fetch-depth: 0` to the checkout step before Trivy and explicitly specified `trivy-version: '0.55.2'`.
+**Root Cause:** The `actions/checkout` action didn't fetch enough git history by default (`fetch-depth: 1`), breaking Trivy's git repository scanning. In addition, the Trivy GitHub Action required the explicit parameter `version` instead of `trivy-version` which is an invalid input for this action version and will cause the check to fail.
+**Fix:** Added `fetch-depth: 0` to the checkout step before Trivy and explicitly specified `version: '0.55.2'`.
 
 ## 2026-02-05 - Bash Subshell Pipeline Failures in GitHub Actions
 **Issue:** The `setup-go-env` composite action failed when executing a wildcard `ls` inside command substitution `$(ls ... 2>/dev/null | ...)` because no matching files existed.
