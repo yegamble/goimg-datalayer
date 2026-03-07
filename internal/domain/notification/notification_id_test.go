@@ -30,7 +30,8 @@ func TestNotificationID(t *testing.T) {
 		id1 := notification.NewNotificationID()
 		id2 := notification.NewNotificationID()
 
-		assert.True(t, id1.Equals(id1))
+		id3 := id1
+		assert.True(t, id1.Equals(id3))
 		assert.False(t, id1.Equals(id2))
 	})
 }
