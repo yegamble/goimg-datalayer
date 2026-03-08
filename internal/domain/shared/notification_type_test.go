@@ -25,6 +25,7 @@ func TestNotificationType_RequiresEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, tt.nt.RequiresEmail())
 		})
 	}
@@ -46,6 +47,7 @@ func TestNotificationType_IsAdminOnly(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, tt.nt.IsAdminOnly())
 		})
 	}
@@ -67,6 +69,7 @@ func TestNotificationType_IsValid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.expected, tt.nt.IsValid())
 		})
 	}
