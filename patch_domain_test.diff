@@ -1,0 +1,8 @@
+--- internal/domain/shared/pagination.go
++++ internal/domain/shared/pagination.go
+@@ -0,0 +1,5 @@
++package shared
++
++func TestMe() bool {
++    return true
++}
