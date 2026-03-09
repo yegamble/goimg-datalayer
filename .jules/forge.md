@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - Trivy Action Missing Release Asset Errors
+**Issue:** `security.yml` workflows using `aquasecurity/trivy-action` were failing with missing release asset errors.
+**Root Cause:** The `version:` parameter was explicitly pinning Trivy to unavailable versions (like `v0.55.2`, `v0.56.0`, or `v0.58.2`), causing the action to fail to download the binary.
+**Fix:** Removed the `version:` parameter entirely from the `trivy-action` step to allow it to default to its stable embedded binary version, preventing pipeline failures.
