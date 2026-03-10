@@ -1,9 +1,9 @@
 package shared_test
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/yegamble/goimg-datalayer/internal/domain/shared"
+	"testing"
 )
 
 func TestNotificationType(t *testing.T) {

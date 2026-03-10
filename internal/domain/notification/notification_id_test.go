@@ -1,10 +1,10 @@
 package notification_test
 
 import (
-	"testing"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/yegamble/goimg-datalayer/internal/domain/notification"
+	"testing"
 )
 
 func TestNotificationID(t *testing.T) {
