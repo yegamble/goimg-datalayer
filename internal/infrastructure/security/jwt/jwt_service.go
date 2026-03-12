@@ -352,7 +352,9 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 }
 
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
-	keyData, err := os.ReadFile(path)
+	cleanPath := filepath.Clean(path)
+	// #nosec G304 // Path is securely provided by application configuration
+	keyData, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)
 	}
