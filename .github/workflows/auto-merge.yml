@@ -11,6 +11,7 @@ permissions:
 jobs:
   enable-auto-merge:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     # Attempt to target agent PRs based on actor or branch naming convention
     if: >
       github.actor == 'jules' ||
