@@ -120,7 +120,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@master # 0.28.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -134,7 +134,7 @@ jobs:
         id: trivy-scan
 
       - name: Generate SARIF output
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@master # 0.28.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
