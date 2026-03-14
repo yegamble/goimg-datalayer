@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - Missing CI Job Timeouts
+**Issue:** `ci.yml` (`ci-success` job) and `auto-merge.yml` (`enable-auto-merge` job) lacked `timeout-minutes` properties.
+**Root Cause:** The jobs were newly created or not subject to the strict standard for timeout enforcement in GitHub Actions configurations. This could result in jobs hanging indefinitely if an unexpected failure occurred (e.g., API hang).
+**Fix:** Added a `timeout-minutes: 5` property to both the `ci-success` job in `ci.yml` and the `enable-auto-merge` job in `auto-merge.yml` to ensure rapid failure and resource conservation.
