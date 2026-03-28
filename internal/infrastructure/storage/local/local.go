@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -284,7 +285,7 @@ func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
 	return &ObjectInfo{
 		Key:          key,
 		Size:         info.Size(),
-		ContentType:  detectContentType(key),
+		ContentType:  detectContentType(fullPath),
 		LastModified: info.ModTime(),
 		ETag:         etag,
 	}, nil
@@ -376,19 +377,23 @@ func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, 
 	}
 }
 
-// detectContentType returns the MIME type based on file extension.
-func detectContentType(key string) string {
-	ext := filepath.Ext(key)
-	switch ext {
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".png":
-		return "image/png"
-	case ".gif":
-		return "image/gif"
-	case ".webp":
-		return "image/webp"
-	default:
+// detectContentType returns the MIME type based on file content.
+func detectContentType(fullPath string) string {
+	// #nosec G304 // File path from internal method, already validated
+	file, err := os.Open(fullPath)
+	if err != nil {
 		return "application/octet-stream"
 	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	// Read the first 512 bytes for sniffing
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return "application/octet-stream"
+	}
+
+	return http.DetectContentType(buffer[:n])
 }

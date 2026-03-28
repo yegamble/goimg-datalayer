@@ -323,7 +323,7 @@ func TestStat_Success(t *testing.T) {
 	ctx := context.Background()
 
 	key := "stat-test.jpg"
-	testData := []byte("stat data")
+	testData := []byte("\xFF\xD8\xFF\xE0\x00\x10\x4A\x46\x49\x46\x00\x01")
 
 	err := storage.PutBytes(ctx, key, testData, PutOptions{})
 	require.NoError(t, err)
@@ -487,29 +487,33 @@ func TestValidateKey_Invalid(t *testing.T) {
 	}
 }
 
-// TestDetectContentType tests MIME type detection from extensions.
+// TestDetectContentType tests MIME type detection from content.
 func TestDetectContentType(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name     string
-		key      string
+		content  []byte
 		wantMIME string
 	}{
-		{"jpeg", "image.jpg", "image/jpeg"},
-		{"jpeg alternate", "image.jpeg", "image/jpeg"},
-		{"png", "image.png", "image/png"},
-		{"gif", "image.gif", "image/gif"},
-		{"webp", "image.webp", "image/webp"},
-		{"unknown", "file.txt", "application/octet-stream"},
-		{"no extension", "image", "application/octet-stream"},
+		{"jpeg", []byte("\xFF\xD8\xFF\xE0\x00\x10\x4A\x46\x49\x46\x00\x01"), "image/jpeg"},
+		{"png", []byte("\x89PNG\x0D\x0A\x1A\x0A"), "image/png"},
+		{"gif", []byte("GIF89a"), "image/gif"},
+		{"webp", []byte("RIFF\x00\x00\x00\x00WEBPVP"), "image/webp"},
+		{"unknown", []byte("Hello World"), "text/plain; charset=utf-8"},
+		{"empty", []byte{}, "text/plain; charset=utf-8"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mime := detectContentType(tt.key)
+			// Create a temporary file with the test content
+			tmpFile := filepath.Join(t.TempDir(), "testfile")
+			err := os.WriteFile(tmpFile, tt.content, 0600)
+			require.NoError(t, err)
+
+			mime := detectContentType(tmpFile)
 			assert.Equal(t, tt.wantMIME, mime)
 		})
 	}
