@@ -679,6 +679,12 @@ func (h *ModerationHandler) UnbanUser(w http.ResponseWriter, r *http.Request) {
 func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		middleware.WriteError(w, r, http.StatusUnauthorized, "Unauthorized", "Authentication required")
+		return
+	}
+
 	// 1. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
@@ -687,6 +693,11 @@ func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Requ
 			"Bad Request",
 			"Missing user ID",
 		)
+		return
+	}
+
+	if userCtx.Role != "admin" && userCtx.Role != "moderator" && userCtx.UserID.String() != userID {
+		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Insufficient permissions")
 		return
 	}
 
