@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// #nosec G101 // Variable names contain 'token' but do not store actual credentials.
 	sqlCreateEmailVerificationToken = `
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
