@@ -2,6 +2,7 @@ package community
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"fmt"
 )
@@ -57,8 +58,6 @@ func (t InvitationToken) IsEmpty() bool {
 // Equals returns true if this token equals the other token.
 // Uses constant-time comparison to prevent timing attacks.
 func (t InvitationToken) Equals(other InvitationToken) bool {
-	// crypto/subtle.ConstantTimeCompare would be ideal here,
-	// but for simplicity we use string comparison.
-	// The token is already long enough to make brute force infeasible.
-	return t.value == other.value
+	// Use constant-time comparison to prevent timing attacks.
+	return subtle.ConstantTimeCompare([]byte(t.value), []byte(other.value)) == 1
 }
