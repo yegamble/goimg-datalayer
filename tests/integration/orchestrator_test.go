@@ -69,7 +69,6 @@ func (m *inMemoryStorage) URL(key string) string { return "http://test/" + key }
 func (m *inMemoryStorage) PresignedURL(_ context.Context, key string, _ time.Duration) (string, error) {
 	return "http://test/" + key, nil
 }
-
 func (m *inMemoryStorage) Stat(_ context.Context, key string) (*storage.ObjectInfo, error) {
 	d, ok := m.data[key]
 	if !ok {

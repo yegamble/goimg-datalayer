@@ -305,6 +305,7 @@ func (r *OAuthAccountRepository) Save(ctx context.Context, account *identity.OAu
 		row.CreatedAt,
 		row.UpdatedAt,
 	)
+
 	if err != nil {
 		// Check for unique constraint violation
 		if pqErr, ok := err.(*pq.Error); ok {

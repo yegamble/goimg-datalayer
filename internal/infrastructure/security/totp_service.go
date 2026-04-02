@@ -178,6 +178,7 @@ func (s *TOTPService) ValidateCode(encryptedSecret []byte, code string) error {
 		Digits:    s.config.Digits,
 		Algorithm: s.config.Algorithm,
 	})
+
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrTOTPValidationFailed, err)
 	}
@@ -206,6 +207,7 @@ func (s *TOTPService) ValidateCodeWithSkew(encryptedSecret []byte, code string, 
 		Digits:    s.config.Digits,
 		Algorithm: s.config.Algorithm,
 	})
+
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrTOTPValidationFailed, err)
 	}

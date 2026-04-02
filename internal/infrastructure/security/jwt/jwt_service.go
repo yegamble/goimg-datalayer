@@ -318,7 +318,8 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 	cleanPath := filepath.Clean(path)
-	// #nosec G304 // Path is securely provided by application configuration
+	// #nosec G304 // Path is securely provided by application configuration during service initialization.
+	// Additional prefix checks are omitted here since keys may be loaded from various external volumes.
 	keyData, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
@@ -353,7 +354,8 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
 	cleanPath := filepath.Clean(path)
-	// #nosec G304 // Path is securely provided by application configuration
+	// #nosec G304 // Path is securely provided by application configuration during service initialization.
+	// Additional prefix checks are omitted here since keys may be loaded from various external volumes.
 	keyData, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)

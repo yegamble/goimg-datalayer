@@ -19,8 +19,10 @@ const (
 	scanBatchSize = 100
 )
 
-// ErrSessionNotFound indicates that the requested session key is not present.
-var ErrSessionNotFound = errors.New("session not found")
+var (
+	// ErrSessionNotFound indicates that the requested session key is not present.
+	ErrSessionNotFound = errors.New("session not found")
+)
 
 // Session represents user session metadata stored in Redis.
 type Session struct {

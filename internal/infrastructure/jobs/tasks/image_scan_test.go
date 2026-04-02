@@ -104,19 +104,15 @@ func (m *MockImageRepository) FindByIDs(ctx context.Context, ids []gallery.Image
 func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
-
 func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
-
 func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
@@ -143,7 +139,6 @@ type MockUserRepository struct {
 func (m *MockUserRepository) NextID() identity.UserID {
 	return identity.NewUserID()
 }
-
 func (m *MockUserRepository) FindByID(ctx context.Context, id identity.UserID) (*identity.User, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
@@ -151,28 +146,22 @@ func (m *MockUserRepository) FindByID(ctx context.Context, id identity.UserID) (
 	}
 	return args.Get(0).(*identity.User), args.Error(1)
 }
-
 func (m *MockUserRepository) FindByEmail(ctx context.Context, email identity.Email) (*identity.User, error) {
 	return nil, nil
 }
-
 func (m *MockUserRepository) FindByUsername(ctx context.Context, username identity.Username) (*identity.User, error) {
 	return nil, nil
 }
-
 func (m *MockUserRepository) Save(ctx context.Context, user *identity.User) error {
 	args := m.Called(ctx, user)
 	return args.Error(0)
 }
-
 func (m *MockUserRepository) Delete(ctx context.Context, id identity.UserID) error {
 	return nil
 }
-
 func (m *MockUserRepository) ExistsByID(ctx context.Context, id identity.UserID) (bool, error) {
 	return false, nil
 }
-
 func (m *MockUserRepository) FindExpiredGuests(ctx context.Context, asOf time.Time, limit int) ([]*identity.User, error) {
 	return nil, nil
 }
@@ -186,48 +175,37 @@ type MockNotificationRepository struct {
 func (m *MockNotificationRepository) NextID() domainnotification.NotificationID {
 	return domainnotification.NewNotificationID()
 }
-
 func (m *MockNotificationRepository) FindByID(ctx context.Context, id domainnotification.NotificationID) (*domainnotification.Notification, error) {
 	return nil, nil
 }
-
 func (m *MockNotificationRepository) FindByRecipient(ctx context.Context, recipientID identity.UserID, limit, offset int) ([]*domainnotification.Notification, error) {
 	return nil, nil
 }
-
 func (m *MockNotificationRepository) FindUnreadByRecipient(ctx context.Context, recipientID identity.UserID) ([]*domainnotification.Notification, error) {
 	return nil, nil
 }
-
 func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, recipientID identity.UserID) (int64, error) {
 	return 0, nil
 }
-
 func (m *MockNotificationRepository) CountUnread(ctx context.Context, recipientID identity.UserID) (int, error) {
 	return 0, nil
 }
-
 func (m *MockNotificationRepository) Save(ctx context.Context, notification *domainnotification.Notification) error {
 	args := m.Called(ctx, notification)
 	return args.Error(0)
 }
-
 func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, id domainnotification.NotificationID) error {
 	return nil
 }
-
 func (m *MockNotificationRepository) MarkManyAsRead(ctx context.Context, ids []domainnotification.NotificationID, recipientID identity.UserID) error {
 	return nil
 }
-
 func (m *MockNotificationRepository) MarkAllRead(ctx context.Context, recipientID identity.UserID) error {
 	return nil
 }
-
 func (m *MockNotificationRepository) MarkAllAsRead(ctx context.Context, recipientID identity.UserID) error {
 	return nil
 }
-
 func (m *MockNotificationRepository) Delete(ctx context.Context, id domainnotification.NotificationID) error {
 	return nil
 }

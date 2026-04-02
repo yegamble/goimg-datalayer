@@ -55,11 +55,9 @@ func (r *StubAlbumRepository) FindByOwner(ctx context.Context, ownerID identity.
 
 // Implement other interface methods with no-op or panic
 func (r *StubAlbumRepository) NextID() gallery.AlbumID { return gallery.NewAlbumID() }
-
 func (r *StubAlbumRepository) FindByID(ctx context.Context, id gallery.AlbumID) (*gallery.Album, error) {
 	return nil, nil
 }
-
 func (r *StubAlbumRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Album, int64, error) {
 	return nil, 0, nil
 }
@@ -68,15 +66,12 @@ func (r *StubAlbumRepository) Delete(ctx context.Context, id gallery.AlbumID) er
 func (r *StubAlbumRepository) ExistsByID(ctx context.Context, id gallery.AlbumID) (bool, error) {
 	return false, nil
 }
-
 func (r *StubAlbumRepository) FindChildren(ctx context.Context, parentID gallery.AlbumID) ([]*gallery.Album, error) {
 	return nil, nil
 }
-
 func (r *StubAlbumRepository) FindRootAlbumsByOwner(ctx context.Context, ownerID identity.UserID) ([]*gallery.Album, error) {
 	return nil, nil
 }
-
 func (r *StubAlbumRepository) FindAncestors(ctx context.Context, albumID gallery.AlbumID) ([]*gallery.Album, error) {
 	return nil, nil
 }
