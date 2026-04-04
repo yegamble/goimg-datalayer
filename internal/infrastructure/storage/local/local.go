@@ -316,7 +316,9 @@ func (s *Storage) fullPath(key string) (string, error) {
 	full := filepath.Join(s.basePath, cleanKey)
 
 	// Ensure the resolved path remains within basePath to prevent path traversal
-	if !strings.HasPrefix(full, s.basePath) {
+	// Add a trailing separator to prevent partial directory matching bypasses
+	basePathWithSep := filepath.Clean(s.basePath) + string(filepath.Separator)
+	if !strings.HasPrefix(full, basePathWithSep) && full != filepath.Clean(s.basePath) {
 		return "", errPathTraversal
 	}
 
