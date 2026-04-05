@@ -14,8 +14,6 @@ import (
 
 const (
 	// #nosec G101 // False positive: SQL query, not a hardcoded credential
-
-	// #nosec G101 // False positive: SQL query, not a hardcoded credential
 	sqlCreateEmailVerificationToken = `
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)

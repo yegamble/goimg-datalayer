@@ -1,4 +1,0 @@
-security:
-  ignore-unfixed: true
-  severity: ["CRITICAL", "HIGH", "MEDIUM"]
-  scanners: ["vuln"]
