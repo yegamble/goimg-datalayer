@@ -315,6 +315,7 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 	return claims.ExpiresAt.Time, nil
 }
 
+// #nosec G304 // False positive: the path is securely provided by application configuration
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 	keyData, err := os.ReadFile(path)
 	if err != nil {
@@ -348,6 +349,7 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 	return rsaKey, nil
 }
 
+// #nosec G304 // False positive: the path is securely provided by application configuration
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
 	keyData, err := os.ReadFile(path)
 	if err != nil {
