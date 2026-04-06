@@ -13,7 +13,7 @@
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
 
-## 2026-04-06 - PostgreSQL Health Check Failure in CI
-**Issue:** The integration and E2E testing jobs in `ci.yml` experienced failures during the service container initialization phase, specifically with PostgreSQL. The database health checks were intermittently failing or completely refusing connections.
-**Root Cause:** The PostgreSQL service configuration in `ci.yml` used the default health check command `--health-cmd pg_isready`. Without explicitly specifying the user, `pg_isready` defaulted to checking connection readiness as the `root` user, which was not created in the initialized database. This led to fatal `'role "root" does not exist'` errors instead of a clean readiness probe.
-**Fix:** Explicitly define the correct user for the health check probe by appending `-U <db_user>` to the command string. For instance, `--health-cmd "pg_isready -U goimg_test"`.
+## 2026-04-06 - Trivy Action Resolution Failure
+**Issue:** The security pipeline's Trivy vulnerability scan job consistently failed with the error `Unable to resolve action aquasecurity/setup-trivy@v0.2.1, unable to find version v0.2.1`.
+**Root Cause:** The `aquasecurity/trivy-action` version being used (v0.28.0 pinned via SHA) contained internal references to a deprecated/removed version of a dependency (`setup-trivy@v0.2.1`), causing GitHub Actions to fail resolving the action steps entirely before execution began. Additionally, the requested Trivy binary version `v0.55.2` is outdated.
+**Fix:** Update `aquasecurity/trivy-action` to a stable newer commit hash (`c1824fd6edce30d7ab345a9989de00bbd46ef284` corresponding to `v0.34.0`) that properly resolves its internal dependencies, and explicitly bump the requested Trivy binary `version` to `v0.69.3` to avoid download failures for deprecated binary releases.
