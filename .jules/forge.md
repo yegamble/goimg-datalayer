@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-04-06 - PostgreSQL Health Check Failure in CI
+**Issue:** The integration and E2E testing jobs in `ci.yml` experienced failures during the service container initialization phase, specifically with PostgreSQL. The database health checks were intermittently failing or completely refusing connections.
+**Root Cause:** The PostgreSQL service configuration in `ci.yml` used the default health check command `--health-cmd pg_isready`. Without explicitly specifying the user, `pg_isready` defaulted to checking connection readiness as the `root` user, which was not created in the initialized database. This led to fatal `'role "root" does not exist'` errors instead of a clean readiness probe.
+**Fix:** Explicitly define the correct user for the health check probe by appending `-U <db_user>` to the command string. For instance, `--health-cmd "pg_isready -U goimg_test"`.
