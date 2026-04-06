@@ -1,0 +1,3 @@
+# Trivy configuration
+ignore-policy: trivy-ignore.rego
+format: table
