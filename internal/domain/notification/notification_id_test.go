@@ -9,6 +9,8 @@ import (
 )
 
 func TestNotificationID(t *testing.T) {
+	t.Parallel()
+
 	t.Run("NewNotificationID", func(t *testing.T) {
 		t.Parallel()
 		id := NewNotificationID()
@@ -49,8 +51,9 @@ func TestNotificationID(t *testing.T) {
 	t.Run("Equals", func(t *testing.T) {
 		t.Parallel()
 		id1 := NewNotificationID()
+		id1Copy, _ := ParseNotificationID(id1.String())
 		id2 := NewNotificationID()
-		assert.True(t, id1.Equals(id1))
+		assert.True(t, id1.Equals(id1Copy))
 		assert.False(t, id1.Equals(id2))
 	})
 }
