@@ -4,8 +4,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -316,7 +318,8 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 }
 
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(path)
+	// #nosec G304 // Path is securely provided by application configuration
+	keyData, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
 	}
