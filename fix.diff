@@ -1,0 +1,11 @@
+--- tests/integration/user_repository_test.go
++++ tests/integration/user_repository_test.go
+@@ -293,6 +293,8 @@
+		identity.UserTypeGuest,
+		&ip,
+		&expiredTime,
++		false,
++		nil,
+	)
+
+	err = repo.Save(ctx, expiredGuest)
