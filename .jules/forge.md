@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-18 - Node Caching for E2E Tests
+**Issue:** E2E tests were re-installing Newman globally on every run, wasting CI minutes and bandwidth.
+**Root Cause:** `ci.yml` used `npm install -g` which is hard to cache effectively in GitHub Actions compared to `npm ci` with `package-lock.json`.
+**Fix:** Introduced `tests/e2e/package.json` and `package-lock.json`, switched to `npm ci`, and enabled `actions/setup-node` caching.
