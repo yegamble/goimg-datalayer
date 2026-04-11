@@ -29,7 +29,7 @@ func (m *MockBanRepositoryLocal) NextID() moderation.BanID {
 }
 
 func (m *MockBanRepositoryLocal) FindByID(ctx context.Context, id moderation.BanID) (*moderation.Ban, error) {
-	return nil, nil
+	return nil, moderation.ErrBanNotFound
 }
 
 func (m *MockBanRepositoryLocal) IsUserBanned(ctx context.Context, userID identity.UserID) (bool, error) {
@@ -38,7 +38,7 @@ func (m *MockBanRepositoryLocal) IsUserBanned(ctx context.Context, userID identi
 }
 
 func (m *MockBanRepositoryLocal) FindByUserID(ctx context.Context, userID identity.UserID) (*moderation.Ban, error) {
-	return nil, nil
+	return nil, moderation.ErrBanNotFound
 }
 
 func (m *MockBanRepositoryLocal) FindActiveBans(ctx context.Context) ([]*moderation.Ban, error) {
