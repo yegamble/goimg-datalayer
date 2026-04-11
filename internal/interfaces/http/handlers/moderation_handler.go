@@ -690,6 +690,26 @@ func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// 1.5 Enforce IDOR protection
+	userCtx, err := GetUserFromContext(ctx)
+	if err != nil {
+		middleware.WriteError(w, r,
+			http.StatusUnauthorized,
+			"Unauthorized",
+			"Authentication required",
+		)
+		return
+	}
+
+	if userCtx.UserID.String() != userID && userCtx.Role != "admin" && userCtx.Role != "moderator" {
+		middleware.WriteError(w, r,
+			http.StatusForbidden,
+			"Forbidden",
+			"Insufficient permissions to view this user's ban status",
+		)
+		return
+	}
+
 	// 2. Build query
 	query := queries.GetUserBanStatusQuery{
 		UserID: userID,
