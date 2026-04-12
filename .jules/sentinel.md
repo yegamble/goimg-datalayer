@@ -4,3 +4,7 @@
 **Vulnerability:** The application relied solely on the `Content-Type` header provided by the client to determine the file type of uploaded images.
 **Learning:** Trusting client headers for file type validation allows attackers to bypass restrictions by simply spoofing the header (e.g., sending an executable with `Content-Type: image/jpeg`).
 **Prevention:** Always use content-based detection (e.g., `http.DetectContentType` or magic bytes inspection) to verify the actual file type before processing or storing files.
+## 2025-04-12 - Fix Timing Attack in Invitation Token Comparison
+**Vulnerability:** The `Equals` method of `InvitationToken` in `internal/domain/community/invitation_token.go` used standard string equality (`==`) to compare tokens, making it susceptible to timing attacks where an attacker could theoretically infer the token byte by byte by analyzing the response time.
+**Learning:** Even internal security mechanisms like invitation tokens must employ constant-time comparison to thwart timing side channels, especially given their role in access control.
+**Prevention:** To prevent timing attacks when comparing sensitive tokens or hashes (e.g., invitation tokens), always use `crypto/subtle.ConstantTimeCompare` instead of standard string equality (`==`). Ensure arguments are cast to `[]byte` and explicitly check that the function returns `1` for a match.
