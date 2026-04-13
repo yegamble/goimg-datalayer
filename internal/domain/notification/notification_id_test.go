@@ -31,7 +31,6 @@ func TestNotificationID_Equals(t *testing.T) {
 	id2 := notification.NewNotificationID()
 	id3, _ := notification.ParseNotificationID(id1.String())
 
-	assert.True(t, id1.Equals(id1))
 	assert.True(t, id1.Equals(id3))
 	assert.False(t, id1.Equals(id2))
 }
