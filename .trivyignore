@@ -50,3 +50,20 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby daemon, not used by our API (we only use client)
+# Added: 2026-04-13
+# Review: When updating testcontainers or docker
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects plugin installation, not used by our application
+# Added: 2026-04-13
+# Review: When updating docker
+CVE-2026-33997
+
+# GHSA-xmrv-pmrh-hhx2 - aws-sdk-go-v2
+# Denial of service in eventstream, not used in our S3 integration
+# Added: 2026-04-13
+# Review: When updating aws sdk
+GHSA-xmrv-pmrh-hhx2
