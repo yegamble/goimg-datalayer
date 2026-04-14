@@ -79,7 +79,6 @@ func TestNotification(t *testing.T) {
 		assert.Equal(t, now, notif.CreatedAt())
 	})
 
-
 	t.Run("NewNotification handles invalid inputs", func(t *testing.T) {
 		_, err := notification.NewNotification(
 			identity.UserID{},
@@ -158,7 +157,6 @@ func TestNotification(t *testing.T) {
 		assert.Empty(t, notif.Events())
 	})
 
-
 	t.Run("MetadataRaw returns correct bytes", func(t *testing.T) {
 		id := notification.NewNotificationID()
 		now := time.Now()
@@ -210,5 +208,4 @@ func TestNotification(t *testing.T) {
 		)
 		assert.ErrorIs(t, badNotif.Validate(), notification.ErrInvalidNotificationType)
 	})
-
 }
