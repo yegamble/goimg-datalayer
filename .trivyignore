@@ -35,18 +35,17 @@
 # Note: Vulnerabilities with no available fix yet.
 # Monitor these and remove from ignore list when patches are available.
 
-# =============================================================================
-# Instructions for Adding Entries
-# =============================================================================
-#
-# 1. Always add a comment explaining why the vulnerability is ignored
-# 2. Include the date when the entry was added
-# 3. Add a review date or condition for re-evaluation
-# 4. Link to relevant issue or security review documentation
-#
-# Example:
-# # CVE-2024-12345 - golang.org/x/crypto
-# # Affects SSH parsing, not used in our application
-# # Added: 2025-12-04
-# # Review: When updating to Go 1.26
-# CVE-2024-12345
+# CVE-2026-34040 - github.com/docker/docker
+# Affects Moby daemon plugins; we only use docker engine client SDK for integration tests
+# Added: 2026-04-15
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects Moby daemon plugin installation; we only use docker engine client SDK for integration tests
+# Added: 2026-04-15
+CVE-2026-33997
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# Affects EventStream payload decoding; our S3 client usage does not decode EventStream APIs
+# Added: 2026-04-15
+GHSA-xmrv-pmrh-hhx2
