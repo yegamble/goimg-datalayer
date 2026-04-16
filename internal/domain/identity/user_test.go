@@ -468,3 +468,27 @@ func TestUser_ClearEvents(t *testing.T) {
 	user.ClearEvents()
 	assert.Empty(t, user.Events())
 }
+
+func TestUser_IncrementInfectedFileCount(t *testing.T) {
+	t.Parallel()
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, _ := identity.NewUser(email, username, passwordHash)
+	assert.Equal(t, 0, user.InfectedFileCount())
+	user.IncrementInfectedFileCount()
+	assert.Equal(t, 1, user.InfectedFileCount())
+}
+func TestUser_ChangeEmail(t *testing.T) {
+	t.Parallel()
+	email, _ := identity.NewEmail("test@example.com")
+	newEmail, _ := identity.NewEmail("new@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, _ := identity.NewUser(email, username, passwordHash)
+
+	err := user.ChangeEmail(newEmail)
+	require.NoError(t, err)
+	assert.Equal(t, newEmail, user.Email())
+	assert.False(t, user.EmailVerified())
+}

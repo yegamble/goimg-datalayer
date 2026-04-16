@@ -128,6 +128,7 @@ jobs:
           output: 'trivy-${{ matrix.scan-type }}-results.txt'
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
+          skip-setup-trivy: true
           exit-code: '1'
           version: 'v0.69.3'
         continue-on-error: true
@@ -142,6 +143,7 @@ jobs:
           output: 'trivy-${{ matrix.scan-type }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
+          skip-setup-trivy: true
           version: 'v0.69.3'
         continue-on-error: true
 
