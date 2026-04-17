@@ -28,25 +28,27 @@
 # Note: Add vulnerabilities that are confirmed false positives.
 # Explain why they don't apply to this project.
 
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# Affects EventStream which is not directly exposed to user input in S3 uploading context
+# Added: 2026-04-17
+# Review: When updating aws sdk
+GHSA-xmrv-pmrh-hhx2
+
+# CVE-2026-34040 - github.com/docker/docker
+# Affects Moby Authz bypass which does not affect our usage of testcontainers
+# Added: 2026-04-17
+# Review: When updating testcontainers
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects Moby Authz bypass which does not affect our usage of testcontainers
+# Added: 2026-04-17
+# Review: When updating testcontainers
+CVE-2026-33997
+
 # =============================================================================
 # Unfixable - Awaiting Upstream Patches
 # =============================================================================
 
 # Note: Vulnerabilities with no available fix yet.
 # Monitor these and remove from ignore list when patches are available.
-
-# =============================================================================
-# Instructions for Adding Entries
-# =============================================================================
-#
-# 1. Always add a comment explaining why the vulnerability is ignored
-# 2. Include the date when the entry was added
-# 3. Add a review date or condition for re-evaluation
-# 4. Link to relevant issue or security review documentation
-#
-# Example:
-# # CVE-2024-12345 - golang.org/x/crypto
-# # Affects SSH parsing, not used in our application
-# # Added: 2025-12-04
-# # Review: When updating to Go 1.26
-# CVE-2024-12345
