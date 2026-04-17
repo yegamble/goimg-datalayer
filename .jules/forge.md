@@ -13,7 +13,7 @@
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
 
-## 2026-04-17 - Pinned Production Compose Images
-**Issue:** Production compose file used unpinned images (`latest`, `stable`) for external services.
-**Root Cause:** The `docker-compose.prod.yml` relied on floating tags for dependencies like Grafana, Prometheus, Certbot, IPFS, and ClamAV.
-**Fix:** Pinned all external services in `docker-compose.prod.yml` to specific semantic versions to ensure reproducible deployments and prevent upstream updates from breaking production.
+## 2026-04-17 - GitHub Actions PATH Shadowing
+**Issue:** Go toolchain errors like `go: no such tool "covdata"` occurred during CI, and `go.mod` complained about missing Go versions despite `actions/setup-go` running.
+**Root Cause:** A step in `.github/actions/setup-go-env` was appending `/usr/bin` to `$GITHUB_PATH` *after* `setup-go` executed. Since GitHub Actions prepends values to the path, the older system Go binary shadowed the newly downloaded one.
+**Fix:** Moved the step that modifies `$GITHUB_PATH` to run *before* `actions/setup-go`.
