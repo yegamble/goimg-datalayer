@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-04-18 - Pinned Production Image Versions
+**Issue:** `docker-compose.prod.yml` was using `:latest` and `:stable` tags for external services like Certbot, Prometheus, Grafana, IPFS, and ClamAV.
+**Root Cause:** The production compose file lacked pinned semantic versions, which violates infrastructure best practices and risks unexpected production breakages from upstream changes.
+**Fix:** Pinned external services to specific semantic versions (e.g., `prom/prometheus:v2.53.5`) while leaving internal `goimg-*` images as `:latest` to support local deployment documentation workflows.
