@@ -50,3 +50,21 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+
+# CVE-2026-34040 - github.com/docker/docker
+# Affects Moby Authorization bypass, Testcontainer dependency only, not shipped in production
+# Added: 2026-04-19
+# Review: When updating testcontainers
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects Moby Privilege validation bypass, Testcontainer dependency only, not shipped in production
+# Added: 2026-04-19
+# Review: When updating testcontainers
+CVE-2026-33997
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# Panic in AWS SDK. Awaiting upstream patches in used dependencies.
+# Added: 2026-04-19
+# Review: When updating aws-sdk-go-v2
+GHSA-xmrv-pmrh-hhx2
