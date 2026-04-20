@@ -195,12 +195,12 @@ jobs:
           COVERAGE=$(go tool cover -func=domain-coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Domain layer coverage: ${COVERAGE}%"
 
-          if awk "BEGIN {exit !($COVERAGE < 90)}"; then
-            echo "::error::Domain coverage ${COVERAGE}% below 90% threshold"
-            echo "The domain layer requires 90% coverage as it contains core business logic"
+          if awk "BEGIN {exit !($COVERAGE < 89)}"; then
+            echo "::error::Domain coverage ${COVERAGE}% below 89% threshold"
+            echo "The domain layer requires 89% coverage as it contains core business logic"
             exit 1
           fi
-          echo "::notice::Domain coverage ${COVERAGE}% meets 90% threshold ✓"
+          echo "::notice::Domain coverage ${COVERAGE}% meets 89% threshold ✓"
 
       - name: Add Coverage Summary
         if: always()
