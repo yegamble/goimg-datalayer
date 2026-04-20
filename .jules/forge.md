@@ -22,3 +22,8 @@
 **Issue:** `go: no such tool "covdata"` errors occurred during CI testing.
 **Root Cause:** The `setup-go-env` composite action appended `/usr/local/bin` and `/usr/bin` to `$GITHUB_PATH` *after* running `actions/setup-go`. This caused the older system Go binary to shadow the newer downloaded Go binary (1.25.5), breaking tools that require the newer version.
 **Fix:** Moved the step that ensures node and system binary paths to run *before* `actions/setup-go`.
+
+## 2026-04-20 - Unresolvable Trivy Action
+**Issue:** `security.yml` failed at the Trivy step with error: `Unable to resolve action aquasecurity/setup-trivy...` or `trivy: command not found`.
+**Root Cause:** The `aquasecurity/trivy-action` was pinned to a broken version or commit hash. Additionally, when setup tools are skipped without a valid alternative binary, Trivy commands will fail.
+**Fix:** Pinned `aquasecurity/trivy-action` to a stable commit hash (`c1824fd6edce30d7ab345a9989de00bbd46ef284` for `v0.34.0`) and ensured a valid release tag like `version: 'v0.55.2'` is maintained inside the step `with:` block.
