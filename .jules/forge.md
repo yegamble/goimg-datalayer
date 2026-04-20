@@ -17,3 +17,8 @@
 **Issue:** Integration tests were flaky or failed to start because the PostgreSQL container health check failed.
 **Root Cause:** The health check command `--health-cmd pg_isready` runs as root by default, but the container initializes with `POSTGRES_USER: goimg_test`, causing `pg_isready` to fail with "role root does not exist".
 **Fix:** Explicitly specify the user in the health check command: `--health-cmd "pg_isready -U goimg_test"`.
+
+## 2026-04-20 - Composite Workflow PATH Shadowing
+**Issue:** `go: no such tool "covdata"` errors occurred during CI testing.
+**Root Cause:** The `setup-go-env` composite action appended `/usr/local/bin` and `/usr/bin` to `$GITHUB_PATH` *after* running `actions/setup-go`. This caused the older system Go binary to shadow the newer downloaded Go binary (1.25.5), breaking tools that require the newer version.
+**Fix:** Moved the step that ensures node and system binary paths to run *before* `actions/setup-go`.
