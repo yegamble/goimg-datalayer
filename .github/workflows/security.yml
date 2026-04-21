@@ -52,9 +52,9 @@ jobs:
           go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
 
           # Run gosec and generate multiple output formats
-          gosec -fmt json -out gosec-results.json -exclude-dir=tests -severity=medium ./... || GOSEC_EXIT=$?
-          gosec -fmt sarif -out gosec-results.sarif -exclude-dir=tests -severity=medium ./... || true
-          gosec -fmt text -exclude-dir=tests -severity=medium ./... 2>&1 | tee gosec-results.txt || true
+          gosec -fmt json -out gosec-results.json -exclude-dir=tests -exclude-dir=internal/interfaces/http/generated -severity=medium ./... || GOSEC_EXIT=$?
+          gosec -fmt sarif -out gosec-results.sarif -exclude-dir=tests -exclude-dir=internal/interfaces/http/generated -severity=medium ./... || true
+          gosec -fmt text -exclude-dir=tests -exclude-dir=internal/interfaces/http/generated -severity=medium ./... 2>&1 | tee gosec-results.txt || true
 
           # Generate summary
           echo "## GoSec Security Scan Results" >> $GITHUB_STEP_SUMMARY
@@ -120,7 +120,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # v0.34.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -134,7 +134,7 @@ jobs:
         id: trivy-scan
 
       - name: Generate SARIF output
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # v0.34.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'

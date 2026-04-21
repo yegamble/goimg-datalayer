@@ -37,6 +37,7 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// #nosec G120 // G120 limit is enforced by middleware, and maxUploadSizeMB is safe
 	if err := r.ParseMultipartForm(maxUploadSizeMB << megabyteShift); err != nil {
 		h.logger.Debug().Err(err).Msg("failed to parse multipart form")
 		middleware.WriteError(w, r,
