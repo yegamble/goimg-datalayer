@@ -18,6 +18,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware"
 )
 
+
 type MockJWTService struct {
 	mock.Mock
 }
@@ -46,6 +47,7 @@ func (m *MockTokenBlacklist) IsBlacklisted(ctx context.Context, tokenID string) 
 
 // Note: MetricsCollector is optional in AuthConfig, so we use nil in most tests.
 
+
 func createValidClaims() *jwt.Claims {
 	userID := uuid.New()
 	sessionID := uuid.New()
@@ -58,6 +60,7 @@ func createValidClaims() *jwt.Claims {
 		TokenType: jwt.TokenTypeAccess,
 	}
 }
+
 
 func TestJWTAuth_ValidToken_Success(t *testing.T) {
 	t.Parallel()
@@ -782,6 +785,7 @@ func TestJWTAuth_ExtractTokenIDError_Returns401(t *testing.T) {
 	mockJWT.AssertExpectations(t)
 }
 
+
 func TestRequireRole_UserHasRequiredRole_PassesThrough(t *testing.T) {
 	t.Parallel()
 
@@ -877,6 +881,7 @@ func TestRequireRole_NoUserContext_Returns401(t *testing.T) {
 	assert.Equal(t, "Unauthorized", problem.Title)
 	assert.Contains(t, problem.Detail, "User role not found in context")
 }
+
 
 func TestRequireAnyRole_UserHasFirstAllowedRole_PassesThrough(t *testing.T) {
 	t.Parallel()
@@ -1003,6 +1008,7 @@ func TestRequireAnyRole_NoUserContext_Returns401(t *testing.T) {
 	assert.Equal(t, "Unauthorized", problem.Title)
 	assert.Contains(t, problem.Detail, "User role not found in context")
 }
+
 
 func TestJWTAuth_BearerPrefix_CaseInsensitive(t *testing.T) {
 	t.Parallel()
