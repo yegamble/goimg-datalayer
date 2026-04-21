@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2025-05-19 - setup-go-env Path Shadowing
+**Issue:** GitHub Actions composite workflows failed with Go version mismatches (e.g., `go: no such tool "covdata"` and `go.mod requires go >= 1.25`) when run on local runners (like `act`).
+**Root Cause:** The `Ensure node and system binary paths (Linux)` step was appending system paths (like `/usr/bin`) to `$GITHUB_PATH` *after* the `actions/setup-go` step. This shadowed the downloaded Go binary with the older system Go binary.
+**Fix:** Moved the `Ensure node and system binary paths (Linux)` step to run *before* `actions/setup-go` in `.github/actions/setup-go-env/action.yml` so the downloaded Go binary takes precedence in the PATH.
