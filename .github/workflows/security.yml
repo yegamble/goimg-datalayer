@@ -130,6 +130,7 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           version: 'v0.69.3'
+          trivyignores: '.trivyignore'
         continue-on-error: true
         id: trivy-scan
 
