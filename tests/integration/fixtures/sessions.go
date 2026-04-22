@@ -28,8 +28,9 @@ func ValidSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	expiresAt := now.Add(7 * 24 * time.Hour) // 7 days from now
 
 	return &SessionFixture{
-		ID:               uuid.New(),
-		UserID:           userID,
+		ID:     uuid.New(),
+		UserID: userID,
+		// #nosec G101 // G101: This is a test fixture, not production credentials
 		RefreshToken:     "refresh-token-" + uuid.New().String(),
 		RefreshTokenHash: "hashed-refresh-token",
 		IPAddress:        "192.168.1.100",
@@ -48,8 +49,9 @@ func ExpiredSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	expiresAt := now.Add(-24 * time.Hour) // Expired 24 hours ago
 
 	return &SessionFixture{
-		ID:               uuid.New(),
-		UserID:           userID,
+		ID:     uuid.New(),
+		UserID: userID,
+		// #nosec G101 // G101: This is a test fixture, not production credentials
 		RefreshToken:     "expired-refresh-token-" + uuid.New().String(),
 		RefreshTokenHash: "hashed-expired-token",
 		IPAddress:        "192.168.1.100",
@@ -69,8 +71,9 @@ func RevokedSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	expiresAt := now.Add(6 * 24 * time.Hour)
 
 	return &SessionFixture{
-		ID:               uuid.New(),
-		UserID:           userID,
+		ID:     uuid.New(),
+		UserID: userID,
+		// #nosec G101 // G101: This is a test fixture, not production credentials
 		RefreshToken:     "revoked-refresh-token-" + uuid.New().String(),
 		RefreshTokenHash: "hashed-revoked-token",
 		IPAddress:        "192.168.1.100",
