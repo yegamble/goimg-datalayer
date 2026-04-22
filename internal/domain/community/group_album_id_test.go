@@ -66,7 +66,8 @@ func TestGroupAlbumID_Equals(t *testing.T) {
 
 	assert.False(t, id1.Equals(id2))
 	assert.True(t, id1.Equals(id3))
-	assert.True(t, id1.Equals(id1)) // Add self-comparison test for coverage
+	id1Copy := id1
+	assert.True(t, id1.Equals(id1Copy)) // Add self-comparison test for coverage
 }
 
 func TestGroupAlbumID_IsZero(t *testing.T) {

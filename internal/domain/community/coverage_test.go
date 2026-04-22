@@ -155,7 +155,8 @@ func TestGroupImageStatus(t *testing.T) {
 	assert.True(t, community.GroupImageID{}.IsZero())
 	assert.False(t, id1.Equals(id2))
 	assert.True(t, id1.Equals(id3))
-	assert.True(t, id1.Equals(id1))
+	id1Copy := id1
+	assert.True(t, id1.Equals(id1Copy))
 	assert.NotEmpty(t, id1.String())
 	_, err := community.ParseGroupImageID("invalid")
 	assert.Error(t, err)
