@@ -387,6 +387,10 @@ func TestInvitationToken(t *testing.T) {
 
 	_, err = community.ParseInvitationToken("short")
 	assert.Error(t, err)
+
+	token2, err := community.NewInvitationToken()
+	require.NoError(t, err)
+	assert.False(t, token.Equals(token2))
 }
 
 func TestMembershipID(t *testing.T) {
