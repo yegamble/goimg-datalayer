@@ -398,7 +398,7 @@ jobs:
       - name: Scan SBOM with Grype
         run: |
           # Install Grype (pinned)
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.105.0
+          for i in 1 2 3; do curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.84.0 && break || sleep 5; done
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### SBOM Vulnerability Scan (Grype)" >> $GITHUB_STEP_SUMMARY
