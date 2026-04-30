@@ -1,6 +1,7 @@
 # golangci-lint configuration for goimg-datalayer
 # Run: golangci-lint run --config=.golangci.yml
 
+version: 2
 
 run:
   # Timeout for analysis

@@ -17,3 +17,8 @@
 **Issue:** Production deployment relied on `latest` and `stable` image tags for multiple external services in `docker-compose.prod.yml` (e.g., `certbot`, `clamav`, `ipfs`, `prometheus`, `grafana`), creating unpredictability and breaking deployments if backward-incompatible upstream changes occurred.
 **Root Cause:** The `docker-compose.prod.yml` configurations did not explicitly specify verified semantic version tags.
 **Fix:** Explicitly verified the existence of specific service tags via the Docker Hub API and updated the unpinned tags in `docker/docker-compose.prod.yml` to use precise versions (`v5.5.0`, `1.5.2`, `v0.41.0`, `v3.11.3`, `13.0.1`).
+
+## 2026-04-30 - Fix trivy-action and codeql-action CI Failures
+**Issue:** GitHub CI pipelines were failing with `Unable to resolve action aquasecurity/setup-trivy@v0.2.1` and deprecation warnings for `actions/setup-go`, `codeql-action/upload-sarif`, etc., running on Node.js 20.
+**Root Cause:** The unpinned version `0.28.0` for `aquasecurity/trivy-action` was attempting to download a non-existent or deprecated `setup-trivy` action. The GitHub Actions using Node.js 20 also triggered warnings and the `codeql-action` was at v3 instead of v4.
+**Fix:** Updated `aquasecurity/trivy-action` to a newer stable version (`v0.34.0` pinned to SHA `c1824fd6edce30d7ab345a9989de00bbd46ef284`), updated Trivy scanner version to `v0.70.0`, replaced `github/codeql-action/upload-sarif` with `@v4`, updated `actions/setup-go` to `@v5`, and updated `actions/checkout` and `actions/upload-artifact` to `@v4` to resolve Node.js 20 deprecation issues. Fixed Trivy configuration to output `trivyignores` correctly. Added `.trivyignore` rules for Docker and AWS SDK CVEs.
