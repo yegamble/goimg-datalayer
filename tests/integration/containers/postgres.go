@@ -39,7 +39,7 @@ func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer
 				skipDockerUnavailable(t, r)
 				return
 			}
-			panic(r)
+			panic(r) //nolint:forbidigo
 		}
 	}()
 
