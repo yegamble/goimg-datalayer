@@ -2701,6 +2701,7 @@ func (response ListAlbums200JSONResponse) VisitListAlbumsResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2718,6 +2719,7 @@ func (response CreateAlbum201JSONResponse) VisitCreateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2727,6 +2729,7 @@ func (response CreateAlbum400JSONResponse) VisitCreateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2736,6 +2739,7 @@ func (response CreateAlbum401JSONResponse) VisitCreateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2761,6 +2765,7 @@ func (response DeleteAlbum401JSONResponse) VisitDeleteAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2770,6 +2775,7 @@ func (response DeleteAlbum403JSONResponse) VisitDeleteAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2779,6 +2785,7 @@ func (response DeleteAlbum404JSONResponse) VisitDeleteAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2797,6 +2804,7 @@ func (response GetAlbum200JSONResponse) VisitGetAlbumResponse(w http.ResponseWri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2806,6 +2814,7 @@ func (response GetAlbum404JSONResponse) VisitGetAlbumResponse(w http.ResponseWri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2824,6 +2833,7 @@ func (response UpdateAlbum200JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2833,6 +2843,7 @@ func (response UpdateAlbum400JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2842,6 +2853,7 @@ func (response UpdateAlbum401JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2851,6 +2863,7 @@ func (response UpdateAlbum403JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2860,6 +2873,7 @@ func (response UpdateAlbum404JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2880,6 +2894,7 @@ func (response AddImagesToAlbum200JSONResponse) VisitAddImagesToAlbumResponse(w 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2889,6 +2904,7 @@ func (response AddImagesToAlbum400JSONResponse) VisitAddImagesToAlbumResponse(w 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2898,6 +2914,7 @@ func (response AddImagesToAlbum401JSONResponse) VisitAddImagesToAlbumResponse(w 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2907,6 +2924,7 @@ func (response AddImagesToAlbum403JSONResponse) VisitAddImagesToAlbumResponse(w 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2916,6 +2934,7 @@ func (response AddImagesToAlbum404JSONResponse) VisitAddImagesToAlbumResponse(w 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2942,6 +2961,7 @@ func (response RemoveImageFromAlbum401JSONResponse) VisitRemoveImageFromAlbumRes
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2951,6 +2971,7 @@ func (response RemoveImageFromAlbum403JSONResponse) VisitRemoveImageFromAlbumRes
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2960,6 +2981,7 @@ func (response RemoveImageFromAlbum404JSONResponse) VisitRemoveImageFromAlbumRes
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2977,6 +2999,7 @@ func (response LoginUser200JSONResponse) VisitLoginUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2986,6 +3009,7 @@ func (response LoginUser401JSONResponse) VisitLoginUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -2995,6 +3019,7 @@ func (response LoginUser429JSONResponse) VisitLoginUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3019,6 +3044,7 @@ func (response LogoutUser401JSONResponse) VisitLogoutUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3036,6 +3062,7 @@ func (response RefreshToken200JSONResponse) VisitRefreshTokenResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3045,6 +3072,7 @@ func (response RefreshToken401JSONResponse) VisitRefreshTokenResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3067,6 +3095,7 @@ func (response RegisterUser201JSONResponse) VisitRegisterUserResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3076,6 +3105,7 @@ func (response RegisterUser400JSONResponse) VisitRegisterUserResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3085,6 +3115,7 @@ func (response RegisterUser409JSONResponse) VisitRegisterUserResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(409)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3110,6 +3141,7 @@ func (response DeleteComment401JSONResponse) VisitDeleteCommentResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3119,6 +3151,7 @@ func (response DeleteComment403JSONResponse) VisitDeleteCommentResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3128,6 +3161,7 @@ func (response DeleteComment404JSONResponse) VisitDeleteCommentResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3148,6 +3182,7 @@ func (response ExplorePopular200JSONResponse) VisitExplorePopularResponse(w http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3168,6 +3203,7 @@ func (response ExploreRecent200JSONResponse) VisitExploreRecentResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3184,6 +3220,7 @@ func (response HealthCheck200JSONResponse) VisitHealthCheckResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3200,6 +3237,7 @@ func (response ReadinessCheck200JSONResponse) VisitReadinessCheckResponse(w http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3209,6 +3247,7 @@ func (response ReadinessCheck503JSONResponse) VisitReadinessCheckResponse(w http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3229,6 +3268,7 @@ func (response ListImages200JSONResponse) VisitListImagesResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3238,6 +3278,7 @@ func (response ListImages400JSONResponse) VisitListImagesResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3255,6 +3296,7 @@ func (response UploadImage201JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3264,6 +3306,7 @@ func (response UploadImage400JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3273,6 +3316,7 @@ func (response UploadImage401JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3282,6 +3326,7 @@ func (response UploadImage413JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(413)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3291,6 +3336,7 @@ func (response UploadImage415JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(415)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3300,6 +3346,7 @@ func (response UploadImage422JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(422)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3309,6 +3356,7 @@ func (response UploadImage429JSONResponse) VisitUploadImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3334,6 +3382,7 @@ func (response DeleteImage401JSONResponse) VisitDeleteImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3343,6 +3392,7 @@ func (response DeleteImage403JSONResponse) VisitDeleteImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3352,6 +3402,7 @@ func (response DeleteImage404JSONResponse) VisitDeleteImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3369,6 +3420,7 @@ func (response GetImage200JSONResponse) VisitGetImageResponse(w http.ResponseWri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3378,6 +3430,7 @@ func (response GetImage404JSONResponse) VisitGetImageResponse(w http.ResponseWri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3396,6 +3449,7 @@ func (response UpdateImage200JSONResponse) VisitUpdateImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3405,6 +3459,7 @@ func (response UpdateImage400JSONResponse) VisitUpdateImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3414,6 +3469,7 @@ func (response UpdateImage401JSONResponse) VisitUpdateImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3423,6 +3479,7 @@ func (response UpdateImage403JSONResponse) VisitUpdateImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3432,6 +3489,7 @@ func (response UpdateImage404JSONResponse) VisitUpdateImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3453,6 +3511,7 @@ func (response ListComments200JSONResponse) VisitListCommentsResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3471,6 +3530,7 @@ func (response AddComment201JSONResponse) VisitAddCommentResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3480,6 +3540,7 @@ func (response AddComment400JSONResponse) VisitAddCommentResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3489,6 +3550,7 @@ func (response AddComment401JSONResponse) VisitAddCommentResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3498,6 +3560,7 @@ func (response AddComment404JSONResponse) VisitAddCommentResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3518,6 +3581,7 @@ func (response UnlikeImage200JSONResponse) VisitUnlikeImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3527,6 +3591,7 @@ func (response UnlikeImage401JSONResponse) VisitUnlikeImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3536,6 +3601,7 @@ func (response UnlikeImage404JSONResponse) VisitUnlikeImageResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3556,6 +3622,7 @@ func (response LikeImage200JSONResponse) VisitLikeImageResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3565,6 +3632,7 @@ func (response LikeImage401JSONResponse) VisitLikeImageResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3574,6 +3642,7 @@ func (response LikeImage404JSONResponse) VisitLikeImageResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3595,6 +3664,7 @@ func (response ListImageLikes200JSONResponse) VisitListImageLikesResponse(w http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3689,6 +3759,7 @@ func (response GetImageVariant404JSONResponse) VisitGetImageVariantResponse(w ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3709,6 +3780,7 @@ func (response ListReports200JSONResponse) VisitListReportsResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3718,6 +3790,7 @@ func (response ListReports401JSONResponse) VisitListReportsResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3727,6 +3800,7 @@ func (response ListReports403JSONResponse) VisitListReportsResponse(w http.Respo
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3744,6 +3818,7 @@ func (response GetReport200JSONResponse) VisitGetReportResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3753,6 +3828,7 @@ func (response GetReport401JSONResponse) VisitGetReportResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3762,6 +3838,7 @@ func (response GetReport403JSONResponse) VisitGetReportResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3771,6 +3848,7 @@ func (response GetReport404JSONResponse) VisitGetReportResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3789,6 +3867,7 @@ func (response ResolveReport200JSONResponse) VisitResolveReportResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3798,6 +3877,7 @@ func (response ResolveReport400JSONResponse) VisitResolveReportResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3807,6 +3887,7 @@ func (response ResolveReport401JSONResponse) VisitResolveReportResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3816,6 +3897,7 @@ func (response ResolveReport403JSONResponse) VisitResolveReportResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3825,6 +3907,7 @@ func (response ResolveReport404JSONResponse) VisitResolveReportResponse(w http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3842,6 +3925,7 @@ func (response CreateReport201JSONResponse) VisitCreateReportResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3851,6 +3935,7 @@ func (response CreateReport400JSONResponse) VisitCreateReportResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3860,6 +3945,7 @@ func (response CreateReport401JSONResponse) VisitCreateReportResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3869,6 +3955,7 @@ func (response CreateReport403JSONResponse) VisitCreateReportResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3878,6 +3965,7 @@ func (response CreateReport429JSONResponse) VisitCreateReportResponse(w http.Res
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3895,6 +3983,7 @@ func (response ListPopularTags200JSONResponse) VisitListPopularTagsResponse(w ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3912,6 +4001,7 @@ func (response SearchTags200JSONResponse) VisitSearchTagsResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3933,6 +4023,7 @@ func (response ListImagesByTag200JSONResponse) VisitListImagesByTagResponse(w ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3958,6 +4049,7 @@ func (response DeleteUser401JSONResponse) VisitDeleteUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3967,6 +4059,7 @@ func (response DeleteUser403JSONResponse) VisitDeleteUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3976,6 +4069,7 @@ func (response DeleteUser404JSONResponse) VisitDeleteUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -3993,6 +4087,7 @@ func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4002,6 +4097,7 @@ func (response GetUser404JSONResponse) VisitGetUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4020,6 +4116,7 @@ func (response UpdateUser200JSONResponse) VisitUpdateUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4029,6 +4126,7 @@ func (response UpdateUser400JSONResponse) VisitUpdateUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4038,6 +4136,7 @@ func (response UpdateUser401JSONResponse) VisitUpdateUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4047,6 +4146,7 @@ func (response UpdateUser403JSONResponse) VisitUpdateUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4056,6 +4156,7 @@ func (response UpdateUser404JSONResponse) VisitUpdateUserResponse(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4076,6 +4177,7 @@ func (response UnbanUser200JSONResponse) VisitUnbanUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4085,6 +4187,7 @@ func (response UnbanUser401JSONResponse) VisitUnbanUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4094,6 +4197,7 @@ func (response UnbanUser403JSONResponse) VisitUnbanUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4103,6 +4207,7 @@ func (response UnbanUser404JSONResponse) VisitUnbanUserResponse(w http.ResponseW
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4126,6 +4231,7 @@ func (response BanUser200JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4135,6 +4241,7 @@ func (response BanUser400JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4144,6 +4251,7 @@ func (response BanUser401JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4153,6 +4261,7 @@ func (response BanUser403JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -4162,6 +4271,7 @@ func (response BanUser404JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
+	// #nosec G117 // Encoding struct is expected part of auth response
 	return json.NewEncoder(w).Encode(response)
 }
 
