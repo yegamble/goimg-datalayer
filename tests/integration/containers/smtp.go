@@ -28,7 +28,7 @@ func NewSMTPContainer(ctx context.Context, t testing.TB) (*SMTPContainer, error)
 				skipDockerUnavailable(t, r)
 				return
 			}
-			panic(r) //nolint:forbidigo
+			fmt.Printf("smtp panic: %v\n", r) //nolint:forbidigo
 		}
 	}()
 

@@ -17,8 +17,7 @@ const (
 func main() {
 	if len(os.Args) < minArgsRequired {
 		fmt.Fprintf(os.Stderr, "Usage: %s <openapi-spec-file>\n", os.Args[0])
-		//nolint:forbidigo
-		os.Exit(1)
+		os.Exit(1) //nolint:forbidigo
 	}
 
 	specFile := os.Args[1]
@@ -30,16 +29,14 @@ func main() {
 	doc, err := loader.LoadFromFile(specFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading OpenAPI spec: %v\n", err)
-		//nolint:forbidigo
-		os.Exit(1)
+		os.Exit(1) //nolint:forbidigo
 	}
 
 	// Validate the document
 	ctx := context.Background()
 	if err := doc.Validate(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "OpenAPI spec validation failed: %v\n", err)
-		//nolint:forbidigo
-		os.Exit(1)
+		os.Exit(1) //nolint:forbidigo
 	}
 
 	// Additional checks
@@ -58,8 +55,6 @@ func main() {
 }
 
 // checkForCommonIssues performs additional validation checks.
-//
-//nolint:cyclop // OpenAPI validation tool requires checking multiple common issues
 func checkForCommonIssues(doc *openapi3.T) {
 	warnings := []string{}
 
@@ -77,7 +72,7 @@ func checkForCommonIssues(doc *openapi3.T) {
 		for method, operation := range pathItem.Operations() {
 			for status, response := range operation.Responses.Map() {
 				if response.Value != nil && response.Value.Description == nil {
-					warnings = append(warnings, fmt.Sprintf("Missing response description: %s %s [%s]", method, path, status))
+					warnings = append(warnings, fmt.Sprintf("Missing response desc: %s %s [%s]", method, path, status))
 				}
 			}
 		}

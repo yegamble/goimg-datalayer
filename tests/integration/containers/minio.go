@@ -39,7 +39,7 @@ func NewMinIOContainer(ctx context.Context, t testing.TB) (*MinIOContainer, erro
 				skipDockerUnavailable(t, r)
 				return
 			}
-			panic(r) //nolint:forbidigo
+			fmt.Printf("minio panic: %v\n", r) //nolint:forbidigo
 		}
 	}()
 

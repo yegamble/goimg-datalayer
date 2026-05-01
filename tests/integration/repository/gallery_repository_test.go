@@ -68,8 +68,7 @@ func createTestMetadata(title string) gallery.ImageMetadata {
 		"local",
 	)
 	if err != nil {
-		//nolint:forbidigo
-		panic(err)
+		panic(err) //nolint:forbidigo
 	}
 	return metadata
 }
@@ -79,8 +78,7 @@ func createTestImage(ownerID identity.UserID, title string) *gallery.Image {
 	metadata := createTestMetadata(title)
 	img, err := gallery.NewImage(ownerID, metadata)
 	if err != nil {
-		//nolint:forbidigo
-		panic(err)
+		panic(err) //nolint:forbidigo
 	}
 	return img
 }
@@ -118,8 +116,7 @@ func createTestImageWithVisibility(ownerID identity.UserID, title string, visibi
 func createTestAlbum(ownerID identity.UserID, title string) *gallery.Album {
 	album, err := gallery.NewAlbum(ownerID, title)
 	if err != nil {
-		//nolint:forbidigo
-		panic(err)
+		panic(err) //nolint:forbidigo
 	}
 	return album
 }

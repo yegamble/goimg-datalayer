@@ -27,7 +27,7 @@ var (
 
 func TestMain(m *testing.M) {
 	// Load OpenAPI spec
-	specPath := getSpecPath()
+	specPath := "../../api/openapi/openapi.yaml"
 	var err error
 	loader = openapi3.NewLoader()
 	doc, err = loader.LoadFromFile(specPath)
@@ -56,17 +56,6 @@ func TestMain(m *testing.M) {
 	// Run tests
 	//nolint:forbidigo
 	os.Exit(m.Run())
-}
-
-// getSpecPath returns the absolute path to the OpenAPI spec.
-func getSpecPath() string {
-	// Navigate from tests/contract/ to api/openapi/openapi.yaml
-	dir, err := os.Getwd()
-	if err != nil {
-		//nolint:forbidigo
-		panic(err)
-	}
-	return filepath.Join(dir, "..", "..", "api", "openapi", "openapi.yaml")
 }
 
 // TestOpenAPISpecLoads verifies the OpenAPI spec can be loaded and is valid.

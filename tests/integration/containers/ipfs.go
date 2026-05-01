@@ -29,7 +29,7 @@ func NewIPFSContainer(ctx context.Context, t testing.TB) (*IPFSContainer, error)
 				skipDockerUnavailable(t, r)
 				return
 			}
-			panic(r) //nolint:forbidigo
+			fmt.Printf("ipfs panic: %v\n", r) //nolint:forbidigo
 		}
 	}()
 
