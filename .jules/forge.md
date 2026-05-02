@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-13 - PostgreSQL Service Health Check Initialization Error
+**Issue:** Integration tests and E2E tests in GitHub Actions workflows could occasionally experience connection issues or flaky behavior because the `postgres` service container health check was running as root.
+**Root Cause:** The `pg_isready` command in the `options` field for the `postgres` service in `ci.yml` lacked a specified user (`-U`). When run as the default `root` user by GitHub Actions service runner, it could cause 'role "root" does not exist' fatal errors during the initialization phase, resulting in race conditions with tests relying on DB readiness.
+**Fix:** Modified the health check command to explicitly run as the expected user: `pg_isready -U goimg_test`.
