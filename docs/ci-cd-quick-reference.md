@@ -285,7 +285,7 @@ make migrate-up
 
 ### Workflow-Level
 - `GO_VERSION: "1.25.5"`
-- `GOLANGCI_LINT_VERSION: "v2.6.2"`
+- `GOLANGCI_LINT_VERSION: "v1.64.5"`
 
 ### Job-Level (Integration/E2E)
 - `DATABASE_URL: postgresql://goimg_test:test_password@localhost:5432/goimg_test?sslmode=disable`
