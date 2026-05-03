@@ -2,6 +2,7 @@ package identity
 
 import (
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -105,12 +106,12 @@ func (d *DeviceFingerprint) UpdateLastSeen() {
 
 // Matches checks if another fingerprint matches this one (same hash).
 func (d DeviceFingerprint) Matches(other DeviceFingerprint) bool {
-	return d.fingerprintHash == other.fingerprintHash
+	return subtle.ConstantTimeCompare([]byte(d.fingerprintHash), []byte(other.fingerprintHash)) == 1
 }
 
 // MatchesHash checks if the given hash matches this fingerprint.
 func (d DeviceFingerprint) MatchesHash(hash string) bool {
-	return d.fingerprintHash == hash
+	return subtle.ConstantTimeCompare([]byte(d.fingerprintHash), []byte(hash)) == 1
 }
 
 // generateFingerprintHash creates a SHA-256 hash from device identifiers.
