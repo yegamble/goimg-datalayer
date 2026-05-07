@@ -17,6 +17,7 @@ const (
 func main() {
 	if len(os.Args) < minArgsRequired {
 		fmt.Fprintf(os.Stderr, "Usage: %s <openapi-spec-file>\n", os.Args[0])
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
@@ -29,6 +30,7 @@ func main() {
 	doc, err := loader.LoadFromFile(specFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading OpenAPI spec: %v\n", err)
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
@@ -36,6 +38,7 @@ func main() {
 	ctx := context.Background()
 	if err := doc.Validate(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "OpenAPI spec validation failed: %v\n", err)
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
