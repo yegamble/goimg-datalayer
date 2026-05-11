@@ -50,3 +50,49 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby daemon, not used directly by app
+# Added: 2026-05-11
+# Review: When updating docker
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects moby plugins, not used directly
+# Added: 2026-05-11
+# Review: When updating docker
+CVE-2026-33997
+
+# CVE-2026-29181 - go.opentelemetry.io/otel
+# DoS in otel baggage, not actively used
+# Added: 2026-05-11
+# Review: When updating otel
+CVE-2026-29181
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# AWS SDK DoS, low risk for current app usage
+# Added: 2026-05-11
+# Review: When updating aws-sdk
+GHSA-xmrv-pmrh-hhx2
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby daemon, not used directly by app
+# Added: 2026-05-11
+# Review: When updating docker
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects moby plugins, not used directly
+# Added: 2026-05-11
+# Review: When updating docker
+CVE-2026-33997
+
+# CVE-2026-29181 - go.opentelemetry.io/otel
+# DoS in otel baggage, not actively used
+# Added: 2026-05-11
+# Review: When updating otel
+CVE-2026-29181
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# AWS SDK DoS, low risk for current app usage
+# Added: 2026-05-11
+# Review: When updating aws-sdk
+GHSA-xmrv-pmrh-hhx2
