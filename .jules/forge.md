@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-05-13 - Pinned golangci-lint to valid version
+**Issue:** `ci.yml` was failing because `GOLANGCI_LINT_VERSION` was set to a non-existent `v2.6.2` version.
+**Root Cause:** `golangci-lint` uses `v1.x` versioning (e.g., `v1.64.5`). Specifying a `v2.x` version causes it to fetch an unsupported configuration or fail with 'Go language version used to build golangci-lint is lower than the targeted Go version'.
+**Fix:** Pinned `GOLANGCI_LINT_VERSION` to `v1.64.5` in `.github/workflows/ci.yml` and updated documentation accordingly.

@@ -19,7 +19,7 @@ Sprint 1-2 successfully established the foundational architecture for the goimg-
   - `lint`, `generate`, `validate-openapi`
   - `migrate-up`, `migrate-down`, `migrate-status`
   - `run`, `run-worker`, `docker-up`, `docker-down`
-- Configured golangci-lint v2.6.2 with strict linting rules
+- Configured golangci-lint v1.64.5 with strict linting rules
 - Set up pre-commit hooks for automated code quality checks
 - Created GitHub Actions CI workflow with:
   - Linting job
@@ -37,7 +37,7 @@ Sprint 1-2 successfully established the foundational architecture for the goimg-
 
 **Technical Decisions**:
 - Go 1.25+ selected for latest language features
-- golangci-lint v2.6.2 for comprehensive static analysis
+- golangci-lint v1.64.5 for comprehensive static analysis
 - Testify for test assertions
 - Table-driven tests as the standard pattern
 
@@ -147,7 +147,7 @@ Sprint 1-2 successfully established the foundational architecture for the goimg-
 **Completed**:
 - GitHub Actions workflow with parallel job execution
 - **Linting Job**:
-  - golangci-lint v2.6.2
+  - golangci-lint v1.64.5
   - Zero tolerance for linting errors
   - 10-minute timeout
 - **Test Job**:
