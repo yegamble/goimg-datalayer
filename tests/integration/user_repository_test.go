@@ -288,11 +288,13 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 		expiredUsername.String(),
 		"",
 		0,
-		now.Add(-48*time.Hour), // Created 2 days ago
+		now.Add(-48*time.Hour),
 		now.Add(-48*time.Hour),
 		identity.UserTypeGuest,
 		&ip,
 		&expiredTime,
+		false,
+		nil,
 	)
 
 	err = repo.Save(ctx, expiredGuest)
