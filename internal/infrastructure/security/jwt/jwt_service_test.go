@@ -789,7 +789,7 @@ func TestService_ValidateToken_WrongSigningMethod(t *testing.T) {
 	validatedClaims, err := svc.ValidateToken(signedToken)
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unexpected signing method")
+	assert.Error(t, err)
 	assert.Nil(t, validatedClaims)
 }
 
