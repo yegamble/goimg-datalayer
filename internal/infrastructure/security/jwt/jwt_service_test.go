@@ -789,7 +789,8 @@ func TestService_ValidateToken_WrongSigningMethod(t *testing.T) {
 	validatedClaims, err := svc.ValidateToken(signedToken)
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unexpected signing method")
+	// After adding jwt.WithValidMethods([]string{"RS256"}), the error message changes.
+	assert.Contains(t, err.Error(), "invalid")
 	assert.Nil(t, validatedClaims)
 }
 
