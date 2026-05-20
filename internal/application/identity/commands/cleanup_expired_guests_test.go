@@ -38,7 +38,8 @@ func TestCleanupExpiredGuestsHandler_Handle(t *testing.T) {
 				expiredGuests := []*identity.User{guest1, guest2}
 
 				// Mock finding expired guests
-				suite.UserRepo.On("FindExpiredGuests",
+				suite.UserRepo.On(
+					"FindExpiredGuests",
 					mock.Anything,
 					mock.AnythingOfType("time.Time"),
 					1000,
@@ -64,7 +65,8 @@ func TestCleanupExpiredGuestsHandler_Handle(t *testing.T) {
 			cmd:  commands.CleanupExpiredGuestsCommand{},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				// No expired guests found
-				suite.UserRepo.On("FindExpiredGuests",
+				suite.UserRepo.On(
+					"FindExpiredGuests",
 					mock.Anything,
 					mock.AnythingOfType("time.Time"),
 					1000,
@@ -83,7 +85,8 @@ func TestCleanupExpiredGuestsHandler_Handle(t *testing.T) {
 			cmd:  commands.CleanupExpiredGuestsCommand{},
 			setup: func(t *testing.T, suite *testhelpers.TestSuite) {
 				// Simulate database error
-				suite.UserRepo.On("FindExpiredGuests",
+				suite.UserRepo.On(
+					"FindExpiredGuests",
 					mock.Anything,
 					mock.AnythingOfType("time.Time"),
 					1000,
@@ -111,7 +114,8 @@ func TestCleanupExpiredGuestsHandler_Handle(t *testing.T) {
 				expiredGuests := []*identity.User{guest1, guest2, guest3}
 
 				// Mock finding expired guests
-				suite.UserRepo.On("FindExpiredGuests",
+				suite.UserRepo.On(
+					"FindExpiredGuests",
 					mock.Anything,
 					mock.AnythingOfType("time.Time"),
 					1000,

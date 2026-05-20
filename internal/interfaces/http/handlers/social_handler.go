@@ -47,7 +47,8 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in like handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -57,7 +58,8 @@ func (h *SocialHandler) LikeImage(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -99,7 +101,8 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in unlike handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -109,7 +112,8 @@ func (h *SocialHandler) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -151,7 +155,8 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in add comment handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -160,7 +165,8 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !userCtx.EmailVerified {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Email verification required to post comments",
@@ -170,7 +176,8 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -182,7 +189,8 @@ func (h *SocialHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid add comment request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid comment data",
@@ -228,7 +236,8 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete comment handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -238,7 +247,8 @@ func (h *SocialHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 
 	commentID := GetPathParam(r, "commentID")
 	if commentID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing comment ID",
@@ -270,7 +280,8 @@ func (h *SocialHandler) ListImageComments(w http.ResponseWriter, r *http.Request
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -348,7 +359,8 @@ func (h *SocialHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Reques
 
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -418,7 +430,8 @@ func (h *SocialHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Reques
 		Str("operation", operation).
 		Msg("social operation failed")
 
-	middleware.WriteError(w, r,
+	middleware.WriteError(
+		w, r,
 		http.StatusInternalServerError,
 		"Internal Server Error",
 		"An unexpected error occurred",

@@ -79,21 +79,24 @@ func (s *TestSuite) SetupSuccessfulLogin(user *identity.User) {
 	s.UserRepo.On("FindByEmail", mock.Anything, mock.Anything).
 		Return(user, nil)
 
-	s.JWTService.On("GenerateAccessToken",
+	s.JWTService.On(
+		"GenerateAccessToken",
 		user.ID().String(),
 		user.Email().String(),
 		string(user.Role()),
 		sessionID,
 	).Return("access.token.value", nil)
 
-	s.JWTService.On("GenerateRefreshToken",
+	s.JWTService.On(
+		"GenerateRefreshToken",
 		user.ID().String(),
 		user.Email().String(),
 		string(user.Role()),
 		sessionID,
 	).Return("refresh.token.value", nil)
 
-	s.RefreshTokenService.On("GenerateToken",
+	s.RefreshTokenService.On(
+		"GenerateToken",
 		mock.Anything,
 		user.ID().String(),
 		sessionID,
@@ -126,14 +129,16 @@ func (s *TestSuite) SetupSuccessfulTokenRefresh(user *identity.User, metadata *j
 	s.UserRepo.On("FindByID", mock.Anything, userID).
 		Return(user, nil)
 
-	s.JWTService.On("GenerateAccessToken",
+	s.JWTService.On(
+		"GenerateAccessToken",
 		user.ID().String(),
 		user.Email().String(),
 		string(user.Role()),
 		sessionID,
 	).Return("new.access.token", nil)
 
-	s.RefreshTokenService.On("GenerateToken",
+	s.RefreshTokenService.On(
+		"GenerateToken",
 		mock.Anything,
 		user.ID().String(),
 		sessionID,

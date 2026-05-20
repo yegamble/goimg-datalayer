@@ -62,7 +62,8 @@ func TestRefreshTokenHandler_Handle(t *testing.T) {
 					Return(nil).Once()
 
 				// Generate new access token
-				suite.JWTService.On("GenerateAccessToken",
+				suite.JWTService.On(
+					"GenerateAccessToken",
 					user.ID().String(),
 					user.Email().String(),
 					string(user.Role()),
@@ -71,7 +72,8 @@ func TestRefreshTokenHandler_Handle(t *testing.T) {
 
 				// Generate new refresh token
 				newMetadata := testhelpers.ValidRefreshTokenMetadata()
-				suite.RefreshTokenService.On("GenerateToken",
+				suite.RefreshTokenService.On(
+					"GenerateToken",
 					mock.Anything,
 					user.ID().String(),
 					metadata.SessionID,

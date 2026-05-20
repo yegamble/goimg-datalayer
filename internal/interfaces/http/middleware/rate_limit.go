@@ -135,7 +135,8 @@ func RateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
 				// Return 429 Too Many Requests
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Rate Limit Exceeded",
 					fmt.Sprintf("You have exceeded the rate limit of %d requests per %s", cfg.GlobalLimit, cfg.WindowSize),
@@ -223,7 +224,8 @@ func AuthRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Rate Limit Exceeded",
 					fmt.Sprintf("You have exceeded the rate limit of %d requests per %s", cfg.AuthLimit, cfg.WindowSize),
@@ -294,7 +296,8 @@ func LoginRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Too Many Login Attempts",
 					fmt.Sprintf(
@@ -445,7 +448,8 @@ func UploadRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Upload Limit Exceeded",
 					fmt.Sprintf(
@@ -538,7 +542,8 @@ func TwoFARateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Too Many 2FA Attempts",
 					fmt.Sprintf(
@@ -627,7 +632,8 @@ func ReportRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler {
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Report Limit Exceeded",
 					fmt.Sprintf(
@@ -710,7 +716,8 @@ func GuestSessionRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Hand
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Guest Session Limit Exceeded",
 					fmt.Sprintf(
@@ -799,7 +806,8 @@ func GroupCreationRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Han
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Group Creation Limit Exceeded",
 					fmt.Sprintf(
@@ -888,7 +896,8 @@ func GroupJoinRateLimiter(cfg RateLimiterConfig) func(http.Handler) http.Handler
 
 				w.Header().Set("Retry-After", strconv.Itoa(info.RetryAfter))
 
-				WriteErrorWithExtensions(w, r,
+				WriteErrorWithExtensions(
+					w, r,
 					http.StatusTooManyRequests,
 					"Group Join Limit Exceeded",
 					fmt.Sprintf(
