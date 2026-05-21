@@ -17,3 +17,8 @@
 **Issue:** `make lint` and CI pipeline were failing with "can't load config: the Go language version used to build golangci-lint is lower than the targeted Go version".
 **Root Cause:** `GOLANGCI_LINT_VERSION` was set to a non-existent version (`v2.6.2`) causing fallback/failure, and the deprecated `gomodguard` linter caused additional warnings with the corrected version.
 **Fix:** Pinned `GOLANGCI_LINT_VERSION` to `v1.64.5` (compatible with Go 1.25) and replaced `gomodguard` with `gomodguard_v2` in `.golangci.yml`. Note that while this surfaces existing lint issues in the codebase, the CI is configured with `only-new-issues: true` on PRs, so it correctly fails only if new code violates rules, while allowing the pipeline to proceed otherwise.
+
+## 2026-05-21 - Deprecated Actions and Setup-Trivy Version Resolution
+**Issue:** CI pipelines failed because `aquasecurity/trivy-action` was trying to resolve an invalid underlying version of `setup-trivy@v0.2.1`. Also, actions like checkout and setup-go generated Node 20 deprecation warnings.
+**Root Cause:** `aquasecurity/trivy-action` uses a composite action that had a hardcoded/broken setup step in earlier versions. Several github actions were pinned to older versions that didn't support Node 24.
+**Fix:** Pinned `aquasecurity/trivy-action` to commit `c1824fd6edce30d7ab345a9989de00bbd46ef284` (v0.34.0) with explicit version `v0.70.0`. Updated checkout, setup-go, upload-artifact, and upload-sarif actions to their Node 24-compatible major versions.
