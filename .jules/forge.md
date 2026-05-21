@@ -22,3 +22,7 @@
 **Issue:** CI pipelines failed because `aquasecurity/trivy-action` was trying to resolve an invalid underlying version of `setup-trivy@v0.2.1`. Also, actions like checkout and setup-go generated Node 20 deprecation warnings.
 **Root Cause:** `aquasecurity/trivy-action` uses a composite action that had a hardcoded/broken setup step in earlier versions. Several github actions were pinned to older versions that didn't support Node 24.
 **Fix:** Pinned `aquasecurity/trivy-action` to commit `c1824fd6edce30d7ab345a9989de00bbd46ef284` (v0.34.0) with explicit version `v0.70.0`. Updated checkout, setup-go, upload-artifact, and upload-sarif actions to their Node 24-compatible major versions.
+
+## 2026-05-21 - Deprecated Actions and download-artifact Action Update
+**Issue:** `download-artifact` action generated Node 20 deprecation warnings.
+**Fix:** Upgraded `actions/download-artifact` in `.github/workflows/ci.yml` from `v4.1.8` to `v4.3.0` which is compatible with Node 24.
