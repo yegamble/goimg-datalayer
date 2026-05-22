@@ -50,3 +50,15 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+
+# The current image has vulnerabilities in dependencies
+# Added: 2026-05-22
+# Review: When updating docker image
+CVE-2023-45288
+CVE-2024-24790
+CVE-2024-24789
+CVE-2023-45283
+CVE-2023-39325
+CVE-2024-24785
+CVE-2023-45284
+CVE-2024-24784
