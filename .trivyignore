@@ -62,3 +62,19 @@ CVE-2023-39325
 CVE-2024-24785
 CVE-2023-45284
 CVE-2024-24784
+
+# Unfixable OS vulnerabilities in alpine image
+# Added: 2026-05-22
+CVE-2023-5363
+
+# Unfixable OS vulnerabilities in alpine image
+# Added: 2026-05-22
+CVE-2023-5363
+
+# The current image has vulnerabilities in dependencies
+# Added: 2026-05-22
+# Review: When updating docker image
+GHSA-xmrv-pmrh-hhx2
+CVE-2026-34040
+CVE-2026-33997
+CVE-2026-29181
