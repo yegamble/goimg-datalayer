@@ -821,9 +821,11 @@ type noOpJobEnqueuer struct{}
 func (j *noOpJobEnqueuer) EnqueueImageCleanup(_ context.Context, _ string, _ string, _ []string) error {
 	return nil
 }
+
 func (j *noOpJobEnqueuer) EnqueueImageProcessing(_ context.Context, _ string) error {
 	return nil
 }
+
 func (j *noOpJobEnqueuer) EnqueueImageScan(_ context.Context, _ string) error {
 	return nil
 }
@@ -837,6 +839,7 @@ func (s *noOpNSFWService) Scan(_ context.Context, _ string) (*nsfw.ScanResult, e
 		Provider: moderation.ProviderSightEngine,
 	}, nil
 }
+
 func (s *noOpNSFWService) ScanBytes(_ context.Context, _ []byte, _ string) (*nsfw.ScanResult, error) {
 	return &nsfw.ScanResult{
 		Category: moderation.CategorySafe,
@@ -844,9 +847,11 @@ func (s *noOpNSFWService) ScanBytes(_ context.Context, _ []byte, _ string) (*nsf
 		Provider: moderation.ProviderSightEngine,
 	}, nil
 }
+
 func (s *noOpNSFWService) IsAvailable(_ context.Context) bool {
 	return true
 }
+
 func (s *noOpNSFWService) Provider() moderation.NSFWProvider {
 	return moderation.ProviderSightEngine
 }

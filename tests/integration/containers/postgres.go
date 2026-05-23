@@ -50,7 +50,8 @@ func NewPostgresContainer(ctx context.Context, t testing.TB) (*PostgresContainer
 	}
 
 	// Start PostgreSQL container
-	postgresContainer, err := postgres.RunContainer(ctx,
+	postgresContainer, err := postgres.RunContainer(
+		ctx,
 		testcontainers.WithImage("postgres:16-alpine"),
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),

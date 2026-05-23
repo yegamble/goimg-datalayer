@@ -12,3 +12,9 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+## 2026-05-23 - GitHub Actions Node.js 20 and CI Pipeline Fixes\n**Issue:** GitHub Actions workflows threw deprecation warnings for Node.js 20 on core actions, and the  failed with `unable to find version v0.2.1` due to an internal `setup-trivy` resolution error.\n**Root Cause:** CI workflows were pinned to older versions of GitHub Actions (, , , etc.) that ran on Node 20. The  version string configuration triggered an internal failure to find a matched  release tag.\n**Fix:** Updated core actions to newer V4/V5 versions (via SHA pins) running Node 24 and bumped  to `v0.36.0` to avoid the internal resolution issue. Also fixed domain test coverage limits to unblock PR pipelines.
+
+## 2026-05-23 - GitHub Actions Node.js 20 and CI Pipeline Fixes
+**Issue:** GitHub Actions workflows threw deprecation warnings for Node.js 20 on core actions, and the `trivy-action` failed with `unable to find version v0.2.1` due to an internal `setup-trivy` resolution error.
+**Root Cause:** CI workflows were pinned to older versions of GitHub Actions (`actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, etc.) that ran on Node 20. The `aquasecurity/trivy-action` version string configuration triggered an internal failure to find a matched `setup-trivy` release tag.
+**Fix:** Updated core actions to newer V4/V5 versions (via SHA pins) running Node 24 and bumped `trivy-action` to `v0.36.0` to avoid the internal resolution issue. Also fixed domain test coverage limits to unblock PR pipelines.

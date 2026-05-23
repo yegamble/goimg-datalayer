@@ -23,7 +23,8 @@ func (h *ImageHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Requ
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in generate custom variant handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -33,7 +34,8 @@ func (h *ImageHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Requ
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -45,7 +47,8 @@ func (h *ImageHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Requ
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid generate custom variant request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid variant parameters",
@@ -56,7 +59,8 @@ func (h *ImageHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Requ
 
 	if req.ConfigID == "" {
 		if req.MaxWidth == 0 || req.MaxHeight == 0 {
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusBadRequest,
 				"Validation Failed",
 				"Either config_id or max_width/max_height are required",

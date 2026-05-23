@@ -18,7 +18,8 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -28,7 +29,8 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 
 	sizeParam := GetPathParam(r, "size")
 	if sizeParam == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing variant size",
@@ -42,7 +44,8 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("size", sizeParam).
 			Msg("invalid variant size")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid variant size. Must be one of: thumbnail, small, medium, large, original",
@@ -80,7 +83,8 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 			Str("image_id", imageID).
 			Str("variant_type", variantType.String()).
 			Msg("variant not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image variant not found",
@@ -96,7 +100,8 @@ func (h *ImageHandler) GetImageVariant(w http.ResponseWriter, r *http.Request) {
 			Str("variant_type", variantType.String()).
 			Str("storage_key", variantDTO.StorageKey).
 			Msg("failed to retrieve variant from storage")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve image variant",
@@ -140,7 +145,8 @@ func (h *ImageHandler) Download(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -160,7 +166,8 @@ func (h *ImageHandler) Download(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, gallery.ErrImageNotFound), errors.Is(err, gallery.ErrUnauthorizedAccess):
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusNotFound,
 				"Not Found",
 				"Image not found",
@@ -178,7 +185,8 @@ func (h *ImageHandler) Download(w http.ResponseWriter, r *http.Request) {
 			Str("image_id", imageID).
 			Str("storage_key", imageDTO.StorageKey).
 			Msg("failed to retrieve image from storage for download")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve image",

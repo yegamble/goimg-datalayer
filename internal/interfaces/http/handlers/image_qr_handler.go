@@ -27,7 +27,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -36,7 +37,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := gallery.ParseImageID(imageID); err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
@@ -46,7 +48,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 
 	qrSize, err := parseIntParam(r.URL.Query().Get("size"), defaultQRCodeSize)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid size parameter",
@@ -54,7 +57,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if qrSize < minQRCodeSize || qrSize > maxQRCodeSize {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			fmt.Sprintf("size must be between %d and %d", minQRCodeSize, maxQRCodeSize),
@@ -69,7 +73,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, gallery.ErrImageNotFound), errors.Is(err, gallery.ErrUnauthorizedAccess):
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusNotFound,
 				"Not Found",
 				"Image not found",
@@ -79,7 +84,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 				Err(err).
 				Str("image_id", imageID).
 				Msg("failed to load image for QR code generation")
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusInternalServerError,
 				"Internal Server Error",
 				"Failed to load image",
@@ -89,7 +95,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if image.Visibility != gallery.VisibilityPublic.String() {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
@@ -100,7 +107,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 	baseURL := h.baseURL
 	if baseURL == "" {
 		h.logger.Error().Msg("baseURL is not configured, cannot generate QR code with absolute URL")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Server configuration error",
@@ -117,7 +125,8 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 			Str("preview_url", previewURL).
 			Int("size", qrSize).
 			Msg("failed to generate image QR code")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to generate QR code",

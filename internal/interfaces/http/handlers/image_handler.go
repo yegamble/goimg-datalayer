@@ -83,7 +83,8 @@ func (h *ImageHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 		Str("operation", operation).
 		Msg("image operation failed")
 
-	middleware.WriteError(w, r,
+	middleware.WriteError(
+		w, r,
 		http.StatusInternalServerError,
 		"Internal Server Error",
 		"An unexpected error occurred",
