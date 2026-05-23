@@ -164,4 +164,3 @@ func generateQRCodePNG(content string, size int) ([]byte, error) {
 
 	return buffer.Bytes(), nil
 }
-
