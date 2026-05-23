@@ -42,7 +42,7 @@ services:
 
   # Certbot for SSL Certificate Management (runs as one-off container)
   certbot:
-    image: certbot/certbot:latest
+    image: certbot/certbot:v2.11.0
     container_name: goimg-certbot
     profiles:
       - tools  # Only run when explicitly requested
@@ -238,7 +238,7 @@ services:
 
   # ClamAV Antivirus Scanner
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav:1.4.3
     container_name: goimg-clamav
     volumes:
       - clamav_data:/var/lib/clamav
@@ -267,7 +267,7 @@ services:
 
   # IPFS Node (Kubo)
   ipfs:
-    image: ipfs/kubo:latest
+    image: ipfs/kubo:v0.31.0
     container_name: goimg-ipfs
     environment:
       - IPFS_PROFILE=server
@@ -352,7 +352,7 @@ services:
 
   # Prometheus - Metrics Collection
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.1
     container_name: goimg-prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -392,7 +392,7 @@ services:
 
   # Grafana - Metrics Visualization
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.3.1
     container_name: goimg-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
