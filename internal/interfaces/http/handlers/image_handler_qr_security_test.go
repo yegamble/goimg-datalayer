@@ -47,22 +47,8 @@ func TestImageHandler_GetImageQRCode_HostHeaderInjection(t *testing.T) {
 	// Execute handler
 	imageHandler.GetImageQRCode(rec, req)
 
-	// Assert that the QR code generation was attempted
-	assert.Equal(t, http.StatusOK, rec.Code)
-
-	// NOTE: We can't easily check the content of the QR code here without decoding it,
-	// but the fact that it used the malicious host is implicit in the `inferBaseURLFromRequest` logic
-	// which we verified in `TestInferBaseURLFromRequest`.
-	// The `inferBaseURLFromRequest` function is:
-	// func inferBaseURLFromRequest(r *http.Request) string {
-	//     ...
-	//     host := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Host"), ",")[0])
-	//     ...
-	//     return fmt.Sprintf("%s://%s", proto, host)
-	// }
-
-	// Let's verify inferBaseURLFromRequest behaves as expected (vulnerable)
-	assert.Equal(t, "https://evil.com", inferBaseURLFromRequest(req))
+	// Assert that the QR code generation fails with 500 when baseURL is not configured
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 }
 
 // TestImageHandler_GetImageQRCode_SecureBaseURL demonstrates the fix

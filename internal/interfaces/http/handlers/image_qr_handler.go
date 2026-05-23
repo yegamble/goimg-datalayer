@@ -7,7 +7,6 @@ import (
 	"image/png"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
@@ -100,7 +99,13 @@ func (h *ImageHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 
 	baseURL := h.baseURL
 	if baseURL == "" {
-		baseURL = inferBaseURLFromRequest(r)
+		h.logger.Error().Msg("baseURL is not configured, cannot generate QR code with absolute URL")
+		middleware.WriteError(w, r,
+			http.StatusInternalServerError,
+			"Internal Server Error",
+			"Server configuration error",
+		)
+		return
 	}
 	previewURL := fmt.Sprintf("%s/images/%s/preview", baseURL, image.ID)
 
@@ -160,20 +165,3 @@ func generateQRCodePNG(content string, size int) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func inferBaseURLFromRequest(r *http.Request) string {
-	proto := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Proto"), ",")[0])
-	if proto == "" {
-		if r.TLS != nil {
-			proto = "https"
-		} else {
-			proto = "http"
-		}
-	}
-
-	host := strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-Host"), ",")[0])
-	if host == "" {
-		host = r.Host
-	}
-
-	return fmt.Sprintf("%s://%s", proto, host)
-}
