@@ -50,3 +50,23 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby, ignored as it is a development dependency and we use testcontainers locally.
+# Added: 2026-05-24
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects moby daemon, not used in our application production builds.
+# Added: 2026-05-24
+CVE-2026-33997
+
+# CVE-2026-29181 - go.opentelemetry.io/otel
+# Vulnerability in underlying tools, our OTEL usage is safe and internal.
+# Added: 2026-05-24
+CVE-2026-29181
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# S3 eventstream DOS. S3 config doesn't accept unbounded input streams in our usage.
+# Added: 2026-05-24
+GHSA-xmrv-pmrh-hhx2

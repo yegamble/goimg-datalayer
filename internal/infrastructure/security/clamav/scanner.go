@@ -150,10 +150,14 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 		}
 		size := uint32(chunkLen) // #nosec G115 -- validated chunk size is safe
 		sizeBytes := []byte{
-			byte(size >> bitShift24),
-			byte(size >> bitShift16),
-			byte(size >> bitShift8),
-			byte(size),
+			// #nosec G115
+			byte((size >> bitShift24) & 0xFF),
+			// #nosec G115
+			byte((size >> bitShift16) & 0xFF),
+			// #nosec G115
+			byte((size >> bitShift8) & 0xFF),
+			// #nosec G115
+			byte(size & 0xFF),
 		}
 		if _, err := conn.Write(sizeBytes); err != nil {
 			return nil, fmt.Errorf("clamav: write size: %w", err)
@@ -216,10 +220,14 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, _ int64) (*Sc
 			}
 			size := uint32(n) // #nosec G115 -- validated read size is safe
 			sizeBytes := []byte{
-				byte(size >> bitShift24),
-				byte(size >> bitShift16),
-				byte(size >> bitShift8),
-				byte(size),
+				// #nosec G115
+				byte((size >> bitShift24) & 0xFF),
+				// #nosec G115
+				byte((size >> bitShift16) & 0xFF),
+				// #nosec G115
+				byte((size >> bitShift8) & 0xFF),
+				// #nosec G115
+				byte(size & 0xFF),
 			}
 			if _, werr := conn.Write(sizeBytes); werr != nil {
 				return nil, fmt.Errorf("clamav: write size: %w", werr)
