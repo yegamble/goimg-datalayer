@@ -16,3 +16,7 @@
 **Issue:** The CI pipeline was failing during the linting step due to a missing `golangci-lint` binary.
 **Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable in `.github/workflows/ci.yml` was incorrectly set to `"v2.6.2"`. `golangci-lint` does not have a `v2.x.x` release series, so the GitHub Action failed to download the binary.
 **Fix:** Pinned `GOLANGCI_LINT_VERSION` to a valid and recent `v1.x` version (`v1.64.5`) in `.github/workflows/ci.yml`.
+## 2026-05-24 - Broken CI Pipeline due to Trivy Action version
+**Issue:** The CI pipeline was failing during the `trivy` step with `Unable to resolve action aquasecurity/setup-trivy`.
+**Root Cause:** The `aquasecurity/trivy-action` was configured to fetch version `v0.55.2`, which failed, and falling back caused it to resolve an old setup script.
+**Fix:** Pinned `aquasecurity/trivy-action` to commit `c1824fd6edce30d7ab345a9989de00bbd46ef284` (`v0.34.0`) and updated the embedded trivy `version` parameter to a valid `v0.70.0`.
