@@ -17,3 +17,8 @@
 **Issue:** The `pg_isready` health check in `ci.yml` was flooding PostgreSQL logs with `FATAL: role "root" does not exist` errors, and potentially risking initialization errors if the default user did not match the environment.
 **Root Cause:** The `pg_isready` command in Docker runs as `root` by default and tries to authenticate as such unless explicitly told otherwise.
 **Fix:** Explicitly added the `-U goimg_test` flag to the `pg_isready` commands in the CI workflow to authenticate correctly and silence the log noise.
+
+## 2026-05-27 - CI Security Scan and Integration Test Fixes
+**Issue:** CI failed due to multiple issues: `trivy` action failed to resolve (`setup-trivy@v0.2.1`), `gosec` flagged false positives for hardcoded credentials (G101) and path traversals (G304), and `integration` tests failed to compile due to missing arguments in `ReconstructUser`.
+**Root Cause:** The `trivy-action` was pinned to an older version that internally referenced a missing or broken `setup-trivy` tag. `gosec` aggressively flagged SQL queries containing the word `token`. The `ReconstructUser` function signature was updated but the integration test mock data wasn't.
+**Fix:** Pinned `trivy-action` to a stable commit (`c1824fd...` for `v0.34.0`) and updated the internal `version` flag to `v0.70.0`. Added explicit `// #nosec G101` to SQL queries and `// #nosec G304` + `filepath.Clean` to `os.ReadFile` calls. Added missing `emailVerified` (`false`) and `emailVerifiedAt` (`nil`) to `ReconstructUser` in tests.
