@@ -91,7 +91,8 @@ func (h *NotificationHandler) GetNotifications(w http.ResponseWriter, r *http.Re
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in notification handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -159,7 +160,8 @@ func (h *NotificationHandler) GetUnreadCount(w http.ResponseWriter, r *http.Requ
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in notification handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -207,7 +209,8 @@ func (h *NotificationHandler) MarkAsRead(w http.ResponseWriter, r *http.Request)
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in notification handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -219,7 +222,8 @@ func (h *NotificationHandler) MarkAsRead(w http.ResponseWriter, r *http.Request)
 	var req MarkAsReadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid request body in mark as read")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid request body",
@@ -229,7 +233,8 @@ func (h *NotificationHandler) MarkAsRead(w http.ResponseWriter, r *http.Request)
 
 	// 3. Validate request
 	if !req.MarkAllAsRead && len(req.NotificationIDs) == 0 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Either notificationIds or markAllAsRead must be provided",
@@ -285,28 +290,32 @@ func (h *NotificationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.
 	// Map specific domain errors to HTTP status codes
 	switch {
 	case errors.Is(err, notification.ErrNotificationNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Notification not found",
 		)
 
 	case errors.Is(err, notification.ErrRecipientRequired):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Recipient is required",
 		)
 
 	case errors.Is(err, notification.ErrTitleRequired):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Title is required",
 		)
 
 	case errors.Is(err, notification.ErrInvalidNotificationType):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid notification type",
@@ -314,7 +323,8 @@ func (h *NotificationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.
 
 	// Check for authorization errors (notification doesn't belong to user)
 	case err != nil && err.Error() == "notification does not belong to user":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to access this notification",
@@ -322,7 +332,8 @@ func (h *NotificationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.
 
 	default:
 		// Unknown error - return generic 500 without exposing internal details
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",

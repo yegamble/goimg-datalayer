@@ -92,7 +92,8 @@ func (c *ModerateContentClient) Scan(ctx context.Context, imageURL string) (*Sca
 	}
 
 	// Build request URL
-	apiURL := fmt.Sprintf("%s?key=%s&url=%s",
+	apiURL := fmt.Sprintf(
+		"%s?key=%s&url=%s",
 		moderateContentAPIURL,
 		url.QueryEscape(c.config.APIKey),
 		url.QueryEscape(imageURL),

@@ -94,7 +94,8 @@ func (h *AlbumHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in create album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -107,7 +108,8 @@ func (h *AlbumHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid create album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid album data",
@@ -140,7 +142,8 @@ func (h *AlbumHandler) Create(w http.ResponseWriter, r *http.Request) {
 	album, err := h.getAlbum.Handle(ctx, query)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to fetch created album")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Album created but failed to retrieve",
@@ -179,7 +182,8 @@ func (h *AlbumHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -241,7 +245,8 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in update album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -252,7 +257,8 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -265,7 +271,8 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid update album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid album update data",
@@ -299,7 +306,8 @@ func (h *AlbumHandler) Update(w http.ResponseWriter, r *http.Request) {
 	album, err := h.getAlbum.Handle(ctx, query)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to fetch updated album")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Album updated but failed to retrieve",
@@ -340,7 +348,8 @@ func (h *AlbumHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -351,7 +360,8 @@ func (h *AlbumHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -406,7 +416,8 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	offset, err := parseIntParam(queryParams.Get("offset"), 0)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid offset parameter",
@@ -416,7 +427,8 @@ func (h *AlbumHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid limit parameter",
@@ -509,7 +521,8 @@ func (h *AlbumHandler) AddImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in add image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -520,7 +533,8 @@ func (h *AlbumHandler) AddImage(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -533,7 +547,8 @@ func (h *AlbumHandler) AddImage(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid add image to album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid image data",
@@ -592,7 +607,8 @@ func (h *AlbumHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in remove image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -605,7 +621,8 @@ func (h *AlbumHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {
 	imageID := GetPathParam(r, "imageID")
 
 	if albumID == "" || imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID or image ID",
@@ -660,7 +677,8 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -673,7 +691,8 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 
 	offset, err := parseIntParam(queryParams.Get("offset"), 0)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid offset parameter",
@@ -683,7 +702,8 @@ func (h *AlbumHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 
 	limit, err := parseIntParam(queryParams.Get("limit"), defaultLimit)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid limit parameter",
@@ -783,7 +803,8 @@ func (h *AlbumHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 		Msg("album operation failed")
 
 	// Simplified error mapping - expand based on actual domain errors
-	middleware.WriteError(w, r,
+	middleware.WriteError(
+		w, r,
 		http.StatusInternalServerError,
 		"Internal Server Error",
 		"An unexpected error occurred",
@@ -822,7 +843,8 @@ func (h *AlbumHandler) GetBreadcrumb(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -879,7 +901,8 @@ func (h *AlbumHandler) GetChildren(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract album ID from path
 	albumID := GetPathParam(r, "albumID")
 	if albumID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",

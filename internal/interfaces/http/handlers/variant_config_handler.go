@@ -99,7 +99,8 @@ func (h *VariantConfigHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in create variant config handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -112,7 +113,8 @@ func (h *VariantConfigHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid create variant config request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid variant config data",
@@ -148,7 +150,8 @@ func (h *VariantConfigHandler) Create(w http.ResponseWriter, r *http.Request) {
 	config, err := h.getConfig.Handle(ctx, query)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to fetch created variant config")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Variant config created but failed to retrieve",
@@ -187,7 +190,8 @@ func (h *VariantConfigHandler) Get(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in get variant config handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -198,7 +202,8 @@ func (h *VariantConfigHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract config ID from path
 	configID := GetPathParam(r, "configID")
 	if configID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing config ID",
@@ -251,7 +256,8 @@ func (h *VariantConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in update variant config handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -262,7 +268,8 @@ func (h *VariantConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract config ID from path
 	configID := GetPathParam(r, "configID")
 	if configID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing config ID",
@@ -275,7 +282,8 @@ func (h *VariantConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid update variant config request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid variant config update data",
@@ -310,7 +318,8 @@ func (h *VariantConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	config, err := h.getConfig.Handle(ctx, query)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to fetch updated variant config")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Variant config updated but failed to retrieve",
@@ -349,7 +358,8 @@ func (h *VariantConfigHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete variant config handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -360,7 +370,8 @@ func (h *VariantConfigHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract config ID from path
 	configID := GetPathParam(r, "configID")
 	if configID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing config ID",
@@ -403,7 +414,8 @@ func (h *VariantConfigHandler) List(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in list variant configs handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -471,7 +483,8 @@ func (h *VariantConfigHandler) mapErrorAndRespond(w http.ResponseWriter, r *http
 		Msg("variant config operation failed")
 
 	// Simplified error mapping - expand based on actual domain errors
-	middleware.WriteError(w, r,
+	middleware.WriteError(
+		w, r,
 		http.StatusInternalServerError,
 		"Internal Server Error",
 		"An unexpected error occurred",

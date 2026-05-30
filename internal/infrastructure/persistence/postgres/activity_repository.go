@@ -207,7 +207,6 @@ func (r *ActivityRepository) FindFeedForUser(
 	userID identity.UserID,
 	pagination shared.Pagination,
 ) ([]*activity.Activity, int, error) {
-
 	// Calculate inner limit for LATERAL JOIN optimization
 	// Cap the inner limit to prevent unbounded scans on large offsets
 	innerLimit := pagination.Limit() + pagination.Offset()

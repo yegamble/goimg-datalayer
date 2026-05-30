@@ -54,7 +54,8 @@ func RequireElevatedSession(logger zerolog.Logger) func(http.Handler) http.Handl
 					Str("request_id", requestID).
 					Msg("elevated session check called without user context")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusUnauthorized,
 					"Unauthorized",
 					"Authentication required for this operation",
@@ -74,7 +75,8 @@ func RequireElevatedSession(logger zerolog.Logger) func(http.Handler) http.Handl
 					Msg("sensitive operation attempted without elevated session")
 
 				// Return 403 with instructions on how to elevate
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusForbidden,
 					"Elevated Session Required",
 					"This operation requires 2FA verification. Please verify your identity by calling POST /api/v1/auth/2fa/login-verify with your TOTP code.",
