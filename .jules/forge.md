@@ -12,3 +12,13 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-05 - PostgreSQL Healthcheck Role Errors
+**Issue:** PostgreSQL service containers in GitHub Actions failed to become healthy.
+**Root Cause:** The `--health-cmd pg_isready` command defaults to the `postgres` user, but the container was configured to use `goimg_test`, leading to "role does not exist" errors.
+**Fix:** Always specify the user explicitly in the healthcheck command: `--health-cmd "pg_isready -U <username>"`.
+
+## 2026-02-05 - golangci-lint Version Mismatch
+**Issue:** The lint job failed with "unsupported version of the configuration" or version lower than targeted Go version errors.
+**Root Cause:** `GOLANGCI_LINT_VERSION` was set to `v2.6.2`, which is not a valid version for golangci-lint (currently on v1.x branch).
+**Fix:** Pinned `GOLANGCI_LINT_VERSION` explicitly to a valid v1.x version compatible with the project, e.g., `v1.64.5`.
