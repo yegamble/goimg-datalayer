@@ -344,7 +344,8 @@ func (h *GroupHandler) ListPublicGroups(w http.ResponseWriter, r *http.Request) 
 	case "activity":
 		sortBy = community.GroupSortByActivity
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid sort_by parameter",
@@ -1035,13 +1036,15 @@ func (h *GroupHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	case errors.Is(err, community.ErrCannotRemoveOwner):
 		middleware.WriteError(w, r, http.StatusForbidden, "Forbidden", "Cannot remove the group owner")
 	case errors.Is(err, community.ErrCannotBanOwner):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Cannot ban the group owner",
 		)
 	case errors.Is(err, community.ErrCannotLeaveAsOwner):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Owner cannot leave the group",

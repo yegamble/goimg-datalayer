@@ -798,7 +798,8 @@ func (r *ImageRepository) saveVariantsInTx(ctx context.Context, tx *sqlx.Tx, ima
 		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
 			offset+1, offset+2, offset+3, offset+4, offset+5, offset+6, offset+7, offset+8, offset+9))
 
-		values = append(values,
+		values = append(
+			values,
 			uuid.New().String(),
 			image.ID().String(),
 			variant.VariantType().String(),

@@ -162,7 +162,8 @@ func hashBackupCode(plaintext string) (string, error) {
 	)
 
 	// Encode in PHC string format
-	encoded := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
+	encoded := fmt.Sprintf(
+		"$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
 		argon2.Version,
 		backupCodeArgonMem,
 		backupCodeArgonTime,

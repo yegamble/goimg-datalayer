@@ -80,7 +80,8 @@ func (h *FeaturedHandler) FeatureImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in feature image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -93,7 +94,8 @@ func (h *FeaturedHandler) FeatureImage(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid feature image request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid feature image request",
@@ -151,7 +153,8 @@ func (h *FeaturedHandler) UnfeatureImage(w http.ResponseWriter, r *http.Request)
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in unfeature image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -162,7 +165,8 @@ func (h *FeaturedHandler) UnfeatureImage(w http.ResponseWriter, r *http.Request)
 	// 2. Extract image ID from path
 	imageID := chi.URLParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -195,49 +199,56 @@ func (h *FeaturedHandler) mapFeatureError(w http.ResponseWriter, r *http.Request
 
 	switch {
 	case errors.Is(err, gallery.ErrImageNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
 		)
 
 	case errors.Is(err, gallery.ErrFeaturedPickNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image is not currently featured",
 		)
 
 	case errors.Is(err, gallery.ErrImageAlreadyFeatured):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Image is already featured",
 		)
 
 	case errors.Is(err, gallery.ErrInvalidVisibility):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Only public images can be featured",
 		)
 
 	case errors.Is(err, gallery.ErrInvalidImageStatus):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Only active images can be featured",
 		)
 
 	case errors.Is(err, gallery.ErrReasonTooLong):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Reason exceeds 500 characters",
 		)
 
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to process request",

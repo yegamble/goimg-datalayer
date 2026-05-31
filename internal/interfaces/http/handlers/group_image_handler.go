@@ -83,7 +83,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in share image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -94,7 +95,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract group ID from path
 	groupIDStr := GetPathParam(r, "groupID")
 	if groupIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group ID",
@@ -105,7 +107,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	groupID, err := community.ParseGroupID(groupIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_id", groupIDStr).Msg("invalid group id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group ID format",
@@ -118,7 +121,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid share image request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid share image data",
@@ -131,7 +135,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -142,7 +147,8 @@ func (h *GroupImageHandler) ShareImage(w http.ResponseWriter, r *http.Request) {
 	imageID, err := gallery.ParseImageID(req.ImageID)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("image_id", req.ImageID).Msg("invalid image id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
@@ -209,7 +215,8 @@ func (h *GroupImageHandler) ListPendingImages(w http.ResponseWriter, r *http.Req
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in list pending images handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -220,7 +227,8 @@ func (h *GroupImageHandler) ListPendingImages(w http.ResponseWriter, r *http.Req
 	// 2. Extract group ID from path
 	groupIDStr := GetPathParam(r, "groupID")
 	if groupIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group ID",
@@ -231,7 +239,8 @@ func (h *GroupImageHandler) ListPendingImages(w http.ResponseWriter, r *http.Req
 	groupID, err := community.ParseGroupID(groupIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_id", groupIDStr).Msg("invalid group id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group ID format",
@@ -259,7 +268,8 @@ func (h *GroupImageHandler) ListPendingImages(w http.ResponseWriter, r *http.Req
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -325,7 +335,8 @@ func (h *GroupImageHandler) ListApprovedImages(w http.ResponseWriter, r *http.Re
 	// 1. Extract group ID from path
 	groupIDStr := GetPathParam(r, "groupID")
 	if groupIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group ID",
@@ -336,7 +347,8 @@ func (h *GroupImageHandler) ListApprovedImages(w http.ResponseWriter, r *http.Re
 	groupID, err := community.ParseGroupID(groupIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_id", groupIDStr).Msg("invalid group id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group ID format",
@@ -418,7 +430,8 @@ func (h *GroupImageHandler) ApproveImage(w http.ResponseWriter, r *http.Request)
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in approve image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -429,7 +442,8 @@ func (h *GroupImageHandler) ApproveImage(w http.ResponseWriter, r *http.Request)
 	// 2. Extract group image ID from path
 	groupImageIDStr := GetPathParam(r, "groupImageID")
 	if groupImageIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group image ID",
@@ -440,7 +454,8 @@ func (h *GroupImageHandler) ApproveImage(w http.ResponseWriter, r *http.Request)
 	groupImageID, err := community.ParseGroupImageID(groupImageIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_image_id", groupImageIDStr).Msg("invalid group image id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group image ID format",
@@ -452,7 +467,8 @@ func (h *GroupImageHandler) ApproveImage(w http.ResponseWriter, r *http.Request)
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -507,7 +523,8 @@ func (h *GroupImageHandler) RejectImage(w http.ResponseWriter, r *http.Request) 
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in reject image handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -518,7 +535,8 @@ func (h *GroupImageHandler) RejectImage(w http.ResponseWriter, r *http.Request) 
 	// 2. Extract group image ID from path
 	groupImageIDStr := GetPathParam(r, "groupImageID")
 	if groupImageIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group image ID",
@@ -529,7 +547,8 @@ func (h *GroupImageHandler) RejectImage(w http.ResponseWriter, r *http.Request) 
 	groupImageID, err := community.ParseGroupImageID(groupImageIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_image_id", groupImageIDStr).Msg("invalid group image id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group image ID format",
@@ -545,7 +564,8 @@ func (h *GroupImageHandler) RejectImage(w http.ResponseWriter, r *http.Request) 
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -588,43 +608,50 @@ func (h *GroupImageHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	switch {
 	case err == community.ErrGroupNotFound:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Group not found",
 		)
 	case err == community.ErrGroupImageNotFound:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Group image not found",
 		)
 	case err == community.ErrNotGroupMember:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Must be a group member to share images",
 		)
 	case err == community.ErrImageAlreadyShared:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Image is already shared to this group",
 		)
 	case err == community.ErrImageNotPending:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Image is not in pending status",
 		)
 	case err == community.ErrInsufficientGroupRole:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Insufficient permissions for this operation",
 		)
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred",

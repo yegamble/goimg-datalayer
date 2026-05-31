@@ -95,7 +95,8 @@ func NewMinIOContainer(ctx context.Context, t testing.TB) (*MinIOContainer, erro
 }
 
 func createMinioBucket(ctx context.Context, endpoint, accessKey, secretKey, bucket string) error {
-	awsCfg, err := config.LoadDefaultConfig(ctx,
+	awsCfg, err := config.LoadDefaultConfig(
+		ctx,
 		config.WithRegion("us-east-1"),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			accessKey, secretKey, "",

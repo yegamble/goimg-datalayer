@@ -292,7 +292,8 @@ func RequireRole(
 					Str("request_id", requestID).
 					Msg("role check called without user context")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusUnauthorized,
 					"Unauthorized",
 					"User role not found in context",
@@ -316,7 +317,8 @@ func RequireRole(
 					Str("request_id", requestID).
 					Msg("access denied due to insufficient role")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusForbidden,
 					"Forbidden",
 					fmt.Sprintf("This action requires %s role", requiredRole),
@@ -345,7 +347,8 @@ func RequireAnyRole(
 					Str("request_id", requestID).
 					Msg("role check called without user context")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusUnauthorized,
 					"Unauthorized",
 					"User role not found in context",
@@ -376,7 +379,8 @@ func RequireAnyRole(
 				Str("request_id", requestID).
 				Msg("access denied due to insufficient role")
 
-			WriteError(w, r,
+			WriteError(
+				w, r,
 				http.StatusForbidden,
 				"Forbidden",
 				fmt.Sprintf("This action requires one of the following roles: %v", allowedRoles),
