@@ -38,9 +38,9 @@ func NewRedisContainer(ctx context.Context, t testing.TB) (*RedisContainer, erro
 	}()
 
 	// Start Redis container
-	redisC, err := rediscontainer.RunContainer(
+	redisC, err := rediscontainer.Run(
 		ctx,
-		testcontainers.WithImage("redis:7-alpine"),
+		"redis:7-alpine",
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("Ready to accept connections").
 				WithStartupTimeout(30*time.Second),
