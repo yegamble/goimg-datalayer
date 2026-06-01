@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-22 - Trivy Action Binary Download Error
+**Issue:** Security scan workflow failed with "Unable to resolve action aquasecurity/setup-trivy" or binary download errors for Trivy.
+**Root Cause:** The `aquasecurity/trivy-action` was pinned to an older version (0.28.0) that has issues fetching the latest scanner binary versions.
+**Fix:** Pinned `aquasecurity/trivy-action` to `c1824fd6edce30d7ab345a9989de00bbd46ef284` (v0.34.0) and set `version: 'v0.70.0'` for the scanner to ensure valid tag resolution.
