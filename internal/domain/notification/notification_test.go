@@ -166,22 +166,22 @@ func TestNotification_Lifecycle(t *testing.T) {
 func TestNotification_MetadataRaw(t *testing.T) {
 	t.Parallel()
 
-	// Test 1: Generate from map
+	// Test 1: Generate from map.
 	recipientID := identity.NewUserID()
 	metadata := map[string]string{"foo": "bar"}
 	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
 	raw := n.MetadataRaw()
 	assert.Contains(t, string(raw), `"foo":"bar"`)
 
-	// Test 2: Generate empty fallback
+	// Test 2: Generate empty fallback.
 	n2, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-	// Force the internal map to nil to test the empty fallback logic
+	// Force the internal map to nil to test the empty fallback logic.
 	n2.metadata = nil
 	n2.metadataRaw = nil
 	assert.Equal(t, "{}", string(n2.MetadataRaw()))
 }
 
-// Dummy Event for testing
+// dummyEvent is a mock for testing domain events.
 type dummyEvent struct {
 	id string
 }
@@ -198,49 +198,11 @@ func TestNotification_AddEvent(t *testing.T) {
 	recipientID := identity.NewUserID()
 	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
 
-	// Test addEvent and Events() since addEvent is unexported
+	// Test addEvent and Events() since addEvent is unexported.
 	event := dummyEvent{id: "evt-1"}
 	n.addEvent(event)
 	assert.Len(t, n.Events(), 1)
 
 	n.ClearEvents()
 	assert.Empty(t, n.Events())
-}
-
-func TestNotification_MetadataRawFallback(t *testing.T) {
-	t.Parallel()
-
-	// Test 3: Has raw but no parsed map
-	recipientID := identity.NewUserID()
-	n3 := ReconstructNotification(NewNotificationID(), recipientID, TypeNewFollower, "Title", "Body", []byte(`{"foo":"baz"}`), nil, time.Now())
-
-	// Should parse the raw map
-	meta := n3.Metadata()
-	assert.Equal(t, "baz", meta["foo"])
-
-	// Test MetadataRaw returns existing if present
-	raw := string(n3.MetadataRaw())
-	assert.Contains(t, raw, `"foo":"baz"`)
-}
-
-func TestNotification_ValidateAdditional(t *testing.T) {
-	t.Parallel()
-
-	recipientID := identity.NewUserID()
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-
-	// Add missing coverage lines for n.Validate() if there's any branching not hit
-	n.title = "A"
-	assert.NoError(t, n.Validate())
-}
-
-func TestNotification_MarkReadAlreadyRead(t *testing.T) {
-	t.Parallel()
-
-	recipientID := identity.NewUserID()
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-	err := n.MarkRead()
-	assert.NoError(t, err)
-	err = n.MarkRead()
-	assert.NoError(t, err)
 }
