@@ -17,7 +17,7 @@ const (
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
-	`
+	` // #nosec G101
 
 	sqlFindValidEmailVerificationToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
@@ -25,19 +25,19 @@ const (
 		WHERE token = $1
 		  AND used_at IS NULL
 		  AND expires_at > NOW()
-	`
+	` // #nosec G101
 
 	sqlMarkEmailVerificationTokenUsed = `
 		UPDATE email_verification_tokens
 		SET used_at = NOW()
 		WHERE token = $1
-	`
+	` // #nosec G101
 
 	sqlCreatePasswordResetToken = `
 		INSERT INTO password_reset_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
-	`
+	` // #nosec G101
 
 	sqlFindValidPasswordResetToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
@@ -45,20 +45,20 @@ const (
 		WHERE token = $1
 		  AND used_at IS NULL
 		  AND expires_at > NOW()
-	`
+	` // #nosec G101
 
 	sqlMarkPasswordResetTokenUsed = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE token = $1
-	`
+	` // #nosec G101
 
 	sqlInvalidateAllPasswordResetTokens = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE user_id = $1
 		  AND used_at IS NULL
-	`
+	` // #nosec G101
 )
 
 type passwordResetTokenRow struct {
