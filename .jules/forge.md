@@ -13,7 +13,7 @@
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
 
-## 2026-01-23 - golangci-lint Version Mismatch
-**Issue:** CI pipeline fails during the `golangci-lint` step with the error 'the Go language version used to build golangci-lint is lower than the targeted Go version'.
-**Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable in `ci.yml` was set to a non-existent `v2.x` version (`v2.6.2`). This caused the action to fallback to an invalid build that was compiled with an older Go version.
-**Fix:** Pinned `GOLANGCI_LINT_VERSION` to a valid `v1.x` version (`v1.64.5`) compatible with Go 1.25+.
+## 2026-06-05 - Trivy Action Version Fix
+**Issue:** `security.yml` failing on Trivy scan step.
+**Root Cause:** Using an old, potentially deprecated commit hash (`915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2`) for `aquasecurity/trivy-action`.
+**Fix:** Pinned `aquasecurity/trivy-action` to a stable commit hash `c1824fd6edce30d7ab345a9989de00bbd46ef284` (v0.34.0) to prevent binary download errors.
