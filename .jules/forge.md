@@ -17,3 +17,8 @@
 **Issue:** `security.yml` failing on Trivy scan step.
 **Root Cause:** Using an old, potentially deprecated commit hash (`915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2`) for `aquasecurity/trivy-action`.
 **Fix:** Pinned `aquasecurity/trivy-action` to a stable commit hash `c1824fd6edce30d7ab345a9989de00bbd46ef284` (v0.34.0) to prevent binary download errors.
+
+## 2026-06-05 - Node.js 20 Deprecation in GitHub Actions
+**Issue:** Warnings for Node.js 20 deprecation in multiple workflows (`ci.yml`, `security.yml`).
+**Root Cause:** Using older, pinned versions of actions (`actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `github/codeql-action/upload-sarif`) that still rely on Node.js 20 instead of Node.js 24.
+**Fix:** Updated and pinned the actions to newer versions that are compatible with Node.js 24 (`actions/checkout@v4.2.2`, `actions/setup-go@v5.1.0`, `actions/upload-artifact@v4.6.0`, `github/codeql-action/upload-sarif@v3.32.2`).
