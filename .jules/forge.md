@@ -22,3 +22,8 @@
 **Issue:** Warnings for Node.js 20 deprecation in multiple workflows (`ci.yml`, `security.yml`).
 **Root Cause:** Using older, pinned versions of actions (`actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `github/codeql-action/upload-sarif`) that still rely on Node.js 20 instead of Node.js 24.
 **Fix:** Updated and pinned the actions to newer versions that are compatible with Node.js 24 (`actions/checkout@v4.2.2`, `actions/setup-go@v5.1.0`, `actions/upload-artifact@v4.6.0`, `github/codeql-action/upload-sarif@v3.32.2`).
+
+## 2026-06-05 - golangci-lint Version Fix
+**Issue:** `ci.yml` failing on golangci-lint step.
+**Root Cause:** Using a non-existent version (`v2.6.2`) for `golangci-lint` caused the action to fail to find a valid binary.
+**Fix:** Changed `GOLANGCI_LINT_VERSION` to `v1.64.5` (a valid and stable version compatible with Go 1.25) in `.github/workflows/ci.yml`.
