@@ -162,3 +162,15 @@ func TestNotification_Lifecycle(t *testing.T) {
 	// we can't test event generation directly without reflection or exposing it,
 	// but ClearEvents is tested.
 }
+
+func TestNotification_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	metadata := map[string]string{"key": "value"}
+	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
+
+	raw := n.MetadataRaw()
+	assert.NotEmpty(t, raw)
+	assert.Equal(t, `{"key":"value"}`, string(raw))
+}
