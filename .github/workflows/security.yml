@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Go Environment
         uses: ./.github/actions/setup-go-env
@@ -76,7 +76,7 @@ jobs:
 
       # Try to upload to Security tab (will fail silently on private repos without GHAS)
       - name: Upload gosec SARIF (if available)
-        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         if: always() && hashFiles('gosec-results.sarif') != ''
         continue-on-error: true
         with:
@@ -84,7 +84,7 @@ jobs:
           category: gosec
 
       - name: Upload gosec results as artifact
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
           name: gosec-results
@@ -115,7 +115,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -163,7 +163,7 @@ jobs:
 
       # Try to upload to Security tab (will fail silently on private repos without GHAS)
       - name: Upload Trivy SARIF (if available)
-        uses: github/codeql-action/upload-sarif@4bdb89f48054571735e3792627da6195c57459e2 # v3.31.10
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         if: always() && hashFiles(format('trivy-{0}-results.sarif', matrix.scan-type)) != ''
         continue-on-error: true
         with:
@@ -171,7 +171,7 @@ jobs:
           category: trivy-${{ matrix.scan-type }}
 
       - name: Upload Trivy results as artifact
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
           name: trivy-${{ matrix.scan-type }}-results
@@ -197,7 +197,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Go Environment
         uses: ./.github/actions/setup-go-env
@@ -232,7 +232,7 @@ jobs:
           govulncheck -format json ./... > govulncheck-results.json 2>&1 || true
 
       - name: Upload govulncheck results
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
           name: govulncheck-results
@@ -257,7 +257,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
@@ -284,7 +284,7 @@ jobs:
           fi
 
       - name: Upload Gitleaks results
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
           name: gitleaks-results
@@ -311,7 +311,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Go Environment
         uses: ./.github/actions/setup-go-env
@@ -369,7 +369,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Go Environment
         uses: ./.github/actions/setup-go-env
@@ -391,7 +391,7 @@ jobs:
           echo "**Total Components:** ${COMPONENT_COUNT}" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: sbom
           path: sbom.cdx.json
@@ -415,7 +415,7 @@ jobs:
           fi
 
       - name: Upload Grype results
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: always()
         with:
           name: grype-results

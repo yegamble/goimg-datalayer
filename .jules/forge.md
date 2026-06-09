@@ -45,3 +45,8 @@
 2. Addressed the `G101` warnings by appending `// #nosec G101` and addressed the `G304` warnings by adding `path = filepath.Clean(path)` and appending `// #nosec G304`.
 3. Created a missing `notification_id_test.go` and added a `TestNotification_MetadataRaw` test to `notification_test.go` to boost domain coverage to `91.5%`.
 4. Supplied the missing arguments `false` and `nil` for `emailVerified` and `emailVerifiedAt` in `identity.ReconstructUser` in `tests/integration/user_repository_test.go`.
+
+## 2026-06-09 - Upgrade Node.js and action version to address deprecation warnings
+**Issue:** `security.yml` had multiple CI checks outputting deprecation warnings regarding GitHub Actions workflow steps that run on `Node.js 20`, predicting failures by late 2026 and forcing migrations.
+**Root Cause:** Older versions of `actions/checkout@v4`, `actions/setup-go@v5`, `actions/upload-artifact@v4` and `github/codeql-action/upload-sarif@v3` were pinned to versions that do not support Node.js 24 out-of-the-box.
+**Fix:** Bumbed the actions to version numbers with out-of-the-box Node.js 24 support (`v4.2.2`, `v5.2.0`, `v4.6.0`, and `v4.36.2`) and repinned them to their verified SHAs in `ci.yml`, `security.yml`, and `setup-go-env/action.yml`.
