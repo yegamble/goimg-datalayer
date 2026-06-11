@@ -59,7 +59,7 @@ func getSpecPath() string {
 	// Navigate from tests/contract/ to api/openapi/openapi.yaml
 	dir, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Failed to get working directory: %v", err)) //nolint:forbidigo
 	}
 	return filepath.Join(dir, "..", "..", "api", "openapi", "openapi.yaml")
 }
