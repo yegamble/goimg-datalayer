@@ -129,7 +129,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
           exit-code: '1'
-          version: '0.58.0'
+          trivy-version: '0.58.0'
         continue-on-error: true
         id: trivy-scan
 
