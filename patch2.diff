@@ -1,0 +1,10 @@
+--- internal/infrastructure/security/jwt/jwt_service_test.go
++++ internal/infrastructure/security/jwt/jwt_service_test.go
+@@ -357,7 +357,7 @@
+	validatedClaims, err := svc.ValidateToken(signedToken)
+
+	require.Error(t, err)
+-	assert.Contains(t, err.Error(), "unexpected signing method")
++	assert.Contains(t, err.Error(), "token signature is invalid: signing method HS256 is invalid")
+	assert.Nil(t, validatedClaims)
+ }
