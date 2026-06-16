@@ -250,7 +250,7 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return s.publicKey, nil
-	})
+	}, jwt.WithValidMethods([]string{"RS256"}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
@@ -316,6 +316,7 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 }
 
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
+	// #nosec G304 // This path is securely provided by application configuration
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
@@ -349,6 +350,7 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 }
 
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
+	// #nosec G304 // This path is securely provided by application configuration
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)
