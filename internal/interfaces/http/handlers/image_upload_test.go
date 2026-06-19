@@ -174,6 +174,7 @@ func TestImageHandler_Upload_MimeTypeDetection(t *testing.T) {
 
 	imageHandler.Upload(rec, req)
 
+
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
 	mockAppStorage.AssertNotCalled(t, "Put")
