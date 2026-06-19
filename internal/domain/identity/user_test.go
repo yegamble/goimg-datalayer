@@ -110,6 +110,32 @@ func TestReconstructUser(t *testing.T) {
 	assert.Empty(t, user.Events()) // No events on reconstruction
 }
 
+func TestUser_ChangeEmail_Empty(t *testing.T) {
+	t.Parallel()
+
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, err := identity.NewUser(email, username, passwordHash)
+	require.NoError(t, err)
+
+	err = user.ChangeEmail(identity.Email{})
+	require.ErrorContains(t, err, "email cannot be empty")
+}
+
+func TestUser_ChangeEmail_Same(t *testing.T) {
+	t.Parallel()
+
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, err := identity.NewUser(email, username, passwordHash)
+	require.NoError(t, err)
+
+	err = user.ChangeEmail(email)
+	require.NoError(t, err)
+}
+
 func TestUser_UpdateProfile(t *testing.T) {
 	t.Parallel()
 
@@ -355,6 +381,45 @@ func TestUser_VerifyPassword(t *testing.T) {
 		err = user.VerifyPassword("WrongPassword123")
 		require.ErrorIs(t, err, identity.ErrPasswordMismatch)
 	})
+}
+
+func TestUser_IncrementInfectedFileCount(t *testing.T) {
+	t.Parallel()
+
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, err := identity.NewUser(email, username, passwordHash)
+	require.NoError(t, err)
+
+	// Act
+	user.IncrementInfectedFileCount()
+
+	// Assert
+	assert.Equal(t, 1, user.InfectedFileCount())
+}
+
+func TestUser_ChangeEmail(t *testing.T) {
+	t.Parallel()
+
+	email, _ := identity.NewEmail("test@example.com")
+	username, _ := identity.NewUsername("testuser")
+	passwordHash, _ := identity.NewPasswordHash("SecureP@ssw0rd123")
+	user, err := identity.NewUser(email, username, passwordHash)
+	require.NoError(t, err)
+	user.ClearEvents()
+
+	newEmailStr := "new.email@example.com"
+	newEmail, err := identity.NewEmail(newEmailStr)
+	require.NoError(t, err)
+
+	// Act
+	err = user.ChangeEmail(newEmail)
+
+	// Assert
+	require.NoError(t, err)
+	assert.Equal(t, newEmailStr, user.Email().String())
+	assert.False(t, user.EmailVerified())
 }
 
 func TestUser_ChangePassword(t *testing.T) {

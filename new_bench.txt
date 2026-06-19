@@ -1,7 +1,0 @@
-goos: linux
-goarch: amd64
-pkg: github.com/yegamble/goimg-datalayer/internal/application/gallery/queries
-cpu: Intel(R) Xeon(R) Processor @ 2.30GHz
-BenchmarkGetUserLikedImagesHandler-4   	     487	   2422998 ns/op	   11560 B/op	     108 allocs/op
-PASS
-ok  	github.com/yegamble/goimg-datalayer/internal/application/gallery/queries	1.445s
