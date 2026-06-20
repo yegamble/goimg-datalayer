@@ -17,3 +17,8 @@
 **Issue:** The CI pipeline was failing during the `golangci-lint` step with an error indicating that the Go version used to build `golangci-lint` was lower than the targeted Go version.
 **Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable was incorrectly set to a non-existent `v2.6.2` version. This caused the action to fall back to an older, invalid build of the linter that did not support Go 1.25.5.
 **Fix:** Updated `GOLANGCI_LINT_VERSION` to a valid pinned version (`v1.64.5`) that supports Go 1.25.5.
+
+## 2026-06-20 - CI Vulnerability Scan and Test Failures Fix
+**Issue:** The CI pipeline was failing during the Trivy security scan and integration test compilation. Specifically, the action `aquasecurity/setup-trivy@v0.2.1` could not be resolved because it was removed/deprecated, and an integration test failed to compile due to missing arguments in `identity.ReconstructUser`.
+**Root Cause:** The `security.yml` workflow was pinning `aquasecurity/trivy-action` to an older `0.28.0` tag, which internally referenced the broken `setup-trivy@v0.2.1` action. Concurrently, `identity.ReconstructUser` had its signature updated to include `emailVerified` and `emailVerifiedAt` fields, but `user_repository_test.go` was not updated to pass these new arguments.
+**Fix:** Updated `aquasecurity/trivy-action` to use the valid `v0.34.0` SHA `c1824fd6edce30d7ab345a9989de00bbd46ef284` in `.github/workflows/security.yml`. Fixed the test compilation by adding `false, nil` as the last arguments to `ReconstructUser` in `tests/integration/user_repository_test.go`.
