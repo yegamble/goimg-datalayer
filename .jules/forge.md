@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - CI Tool Versioning Issues
+**Issue:** The CI pipeline failed due to a `golangci-lint` version mismatch and a `trivy-action` missing dependency error.
+**Root Cause:** `GOLANGCI_LINT_VERSION` was set to `v2.6.2`, which is an invalid version for `golangci-lint`, causing a fallback to an incompatible build. `trivy-action` was pinned to an older version (`0.28.0`) that referenced a deleted `setup-trivy` tag.
+**Fix:** Pinned `GOLANGCI_LINT_VERSION` to `v1.64.5` and updated `trivy-action` to a verified stable commit hash for `v0.34.0`.
