@@ -12,3 +12,7 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+## 2025-06-24 - Trivy Action Cache Issues
+**Issue:** Updating `trivy-action` sequentially (`v0.28.0` -> `v0.34.0` -> `v0.36.0`) revealed that `v0.34.0` used an older `setup-trivy` action that sometimes failed to cache correctly on GitHub runners, throwing "No files were found with the provided path: trivy-fs-results.txt" due to binary installation exit code 1 failures.
+**Root Cause:** The `version` parameter in the action's `with:` block (`version: 'v0.55.2'`) was causing exit codes during binary fetch inside `setup-trivy`.
+**Fix:** Bumping `trivy-action` to `v0.36.0` (commit `a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8`) and strictly removing the explicit `version: 'v0.55.2'` constraint from the configuration allowed the action to gracefully fall back to its internal defaults, resolving the exit code failures and allowing artifacts to generate properly.
