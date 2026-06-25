@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"path/filepath"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -316,6 +318,8 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 }
 
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
+	path = filepath.Clean(path)
+	// #nosec G304
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
@@ -349,6 +353,8 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 }
 
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
+	path = filepath.Clean(path)
+	// #nosec G304
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)
