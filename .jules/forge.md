@@ -17,3 +17,8 @@
 **Issue:** The CI pipeline was failing during the `golangci-lint` step with the error 'the Go language version used to build golangci-lint is lower than the targeted Go version'.
 **Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable was set to a non-existent `v2.6.2` version, causing the action to fallback to an invalid build.
 **Fix:** Pinned `GOLANGCI_LINT_VERSION` to `v1.64.5` to ensure the correct, compatible version of `golangci-lint` is installed.
+
+## 2026-06-26 - Trivy Action Resolution Failure
+**Issue:** The CI pipeline was failing during the `trivy` step with the error 'Unable to resolve action aquasecurity/setup-trivy'.
+**Root Cause:** The `aquasecurity/trivy-action` was pinned to an older version (`0.28.0`) that referenced an invalid or deleted `setup-trivy` tag.
+**Fix:** Updated `aquasecurity/trivy-action` to a verified stable commit hash for `v0.34.0` (`c1824fd6edce30d7ab345a9989de00bbd46ef284`).
