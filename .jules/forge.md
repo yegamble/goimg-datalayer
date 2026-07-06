@@ -17,3 +17,8 @@
 **Issue:** CI workflows failed with "Unable to resolve action aquasecurity/setup-trivy" or binary download errors.
 **Root Cause:** The `aquasecurity/trivy-action` was pinned to `0.28.0` (`915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2`), which references an invalid or deleted `setup-trivy` tag.
 **Fix:** Updated and pinned `aquasecurity/trivy-action` to a verified stable commit hash for `v0.34.0` (`c1824fd6edce30d7ab345a9989de00bbd46ef284`).
+
+## 2026-01-23 - Node.js 20 Deprecation in GitHub Actions
+**Issue:** CI workflows failed or warned heavily due to Node.js 20 deprecation, resulting in "Cache service responded with 400" errors and artifact upload/download issues.
+**Root Cause:** Standard actions (checkout, setup-go, upload-artifact, etc.) were pinned to older commit hashes running on Node.js 20, which is deprecated by GitHub.
+**Fix:** Updated all standard actions to modern versions pinned to stable hashes that support Node.js 24 (e.g., checkout@v4.2.2, setup-go@v5.3.0, upload-artifact@v4.6.0).
