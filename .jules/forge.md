@@ -17,3 +17,8 @@
 **Issue:** CI pipeline failed during the `golangci-lint` step with the error 'the Go language version used to build golangci-lint is lower than the targeted Go version'.
 **Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable in `ci.yml` was set to a non-existent `v2.x` version (`v2.6.2`), which caused the action to fallback to an invalid build.
 **Fix:** Pinned `GOLANGCI_LINT_VERSION` to a valid `v1.x` version (`v1.64.5`) to ensure the correct build is used.
+
+## 2026-01-23 - Trivy and ReconstructUser fixes
+**Issue:** CI pipeline failed due to outdated `aquasecurity/trivy-action` and missing arguments in `identity.ReconstructUser` in `tests/integration/user_repository_test.go`.
+**Root Cause:** Trivy action `v0.28.0` referenced an invalid/deleted `setup-trivy` tag. `identity.ReconstructUser` was updated with `emailVerified` and `emailVerifiedAt` arguments, but the integration test was not updated.
+**Fix:** Pinned `aquasecurity/trivy-action` to `v0.34.0` (commit `c1824fd6edce30d7ab345a9989de00bbd46ef284`) and added `false, nil` to the `identity.ReconstructUser` call.
