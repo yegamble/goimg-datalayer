@@ -17,3 +17,8 @@
 **Issue:** CI pipeline failed during golangci-lint step with error about Go language version used to build being lower than targeted Go version.
 **Root Cause:** GOLANGCI_LINT_VERSION was set to a non-existent v2.x version (v2.6.2), which caused the action to fallback to an invalid build.
 **Fix:** Pinned GOLANGCI_LINT_VERSION to a valid v1.x version (v1.64.5).
+
+## 2026-07-11 - Fix Node.js 20 Deprecation and Trivy Action Errors
+**Issue:** CI pipelines failed due to Node.js 20 deprecation causing caching service 400 errors and `aquasecurity/trivy-action` failing to resolve `setup-trivy@v0.2.1`. Integration tests failed due to a domain signature mismatch in `ReconstructUser`.
+**Root Cause:** The GitHub Actions runner deprecated Node.js 20, causing older versions of standard actions (`checkout`, `setup-go`, `upload-artifact`, `codeql-action/upload-sarif`) to fail during cache restoration. Additionally, `aquasecurity/trivy-action` `v0.28.0` referenced a deleted `setup-trivy` tag. The `identity.ReconstructUser` signature was updated to include `emailVerified` and `emailVerifiedAt`, but the integration tests were not updated to match.
+**Fix:** Pinned `actions/checkout` to `v4.2.2`, `actions/setup-go` to `v5.3.0`, `actions/upload-artifact` to `v4.6.0`, `github/codeql-action/upload-sarif` to `v4.36.2`, and `aquasecurity/trivy-action` to `v0.34.0` using their respective stable commit hashes. Also fixed `identity.ReconstructUser` in `user_repository_test.go` to match the updated domain signature by adding `emailVerified` and `emailVerifiedAt` arguments.
