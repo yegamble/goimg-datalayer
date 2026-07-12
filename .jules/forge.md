@@ -17,3 +17,8 @@
 **Issue:** Security scanning workflows failed with 'Unable to resolve action aquasecurity/setup-trivy' or binary download errors.
 **Root Cause:** Older versions of aquasecurity/trivy-action (e.g., v0.28.0) reference an invalid or deleted setup-trivy tag, breaking the CI pipeline.
 **Fix:** Updated and pinned aquasecurity/trivy-action to a stable commit hash for v0.34.0 (c1824fd6edce30d7ab345a9989de00bbd46ef284) to resolve the invalid tag reference.
+
+## 2026-07-12 - Node.js 20 Deprecation Warnings Fix
+**Issue:** GitHub Actions workflows were failing or logging warnings due to Node.js 20 deprecation, causing cache service errors and potential tool download breaks.
+**Root Cause:** The workflows used outdated actions that depended on Node.js 20, which is deprecated on GitHub Actions runners.
+**Fix:** Updated standard actions (e.g., actions/checkout, actions/setup-go) to their modern versions and securely pinned them to their respective stable commit hashes.
