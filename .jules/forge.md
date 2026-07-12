@@ -22,3 +22,8 @@
 **Issue:** GitHub Actions workflows were failing or logging warnings due to Node.js 20 deprecation, causing cache service errors and potential tool download breaks.
 **Root Cause:** The workflows used outdated actions that depended on Node.js 20, which is deprecated on GitHub Actions runners.
 **Fix:** Updated standard actions (e.g., actions/checkout, actions/setup-go) to their modern versions and securely pinned them to their respective stable commit hashes.
+
+## 2026-07-12 - Fix GoSec false positives for SQL constants and File Inclusion
+**Issue:** GoSec failed CI with G101 (Potential hardcoded credentials) on SQL strings containing 'token' and G304 (Potential file inclusion via variable) on os.ReadFile calls using config variables.
+**Root Cause:** GoSec's string pattern matching flag 'token' in SQL statements as a credential. G304 flags dynamic file paths in 'os.ReadFile'.
+**Fix:** Used 'filepath.Clean' and '#nosec G304' comments for path usage based on application config, and suppressed G101 false positives with '#nosec G101' above the SQL constant blocks.
