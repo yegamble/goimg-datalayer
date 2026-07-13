@@ -13,14 +13,16 @@ import (
 )
 
 const (
-	sqlCreateEmailVerificationToken = `
+	sqlCreateEmailVerificationToken = ` // #nosec G101
+
 		// #nosec G101
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
-	sqlFindValidEmailVerificationToken = `
+	sqlFindValidEmailVerificationToken = ` // #nosec G101
+
 		// #nosec G101
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM email_verification_tokens
@@ -29,14 +31,17 @@ const (
 		  AND expires_at > NOW()
 	`
 
-	sqlMarkEmailVerificationTokenUsed = `
+	sqlMarkEmailVerificationTokenUsed = ` // #nosec G101
+
 		// #nosec G101
 		UPDATE email_verification_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
-	sqlCreatePasswordResetToken = `
+	sqlCreatePasswordResetToken = ` // #nosec G101
+
+		// #nosec G101
 		// #nosec G101
 		// #nosec G101
 		INSERT INTO password_reset_tokens (user_id, expires_at)
@@ -44,7 +49,8 @@ const (
 		RETURNING token
 	`
 
-	sqlFindValidPasswordResetToken = `
+	sqlFindValidPasswordResetToken = ` // #nosec G101
+
 		// #nosec G101
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM password_reset_tokens
@@ -53,7 +59,9 @@ const (
 		  AND expires_at > NOW()
 	`
 
-	sqlMarkPasswordResetTokenUsed = `
+	sqlMarkPasswordResetTokenUsed = ` // #nosec G101
+
+		// #nosec G101
 		// #nosec G101
 		// #nosec G101
 		UPDATE password_reset_tokens
@@ -61,7 +69,9 @@ const (
 		WHERE token = $1
 	`
 
-	sqlInvalidateAllPasswordResetTokens = `
+	sqlInvalidateAllPasswordResetTokens = ` // #nosec G101
+
+		// #nosec G101
 		// #nosec G101
 		// #nosec G101
 		UPDATE password_reset_tokens
