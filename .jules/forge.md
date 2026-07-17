@@ -17,3 +17,8 @@
 **Issue:** CI workflows were generating Node.js 20 deprecation warnings causing 'Cache service responded with 400' errors, and `golangci-lint-action` could fail due to specifying a non-existent version `v2.6.2`.
 **Root Cause:** Using older Action versions (like `actions/checkout@v4.1.1` and `aquasecurity/trivy-action@0.28.0`) that relied on deprecated Node environments, and an invalid `GOLANGCI_LINT_VERSION` env variable.
 **Fix:** Updated standard actions (e.g., checkout, upload-artifact, setup-node) and `aquasecurity/trivy-action` to modern versions securely pinned to their stable commit hashes, and corrected `GOLANGCI_LINT_VERSION` to `v1.64.5`.
+
+## 2026-02-05 - Trivy Action Version Format
+**Issue:** `aquasecurity/trivy-action` failed with `aquasecurity/trivy info checking GitHub for tag 'v0.55.2'` when `version: 'v0.55.2'` was specified.
+**Root Cause:** The action expects the version string without the 'v' prefix (e.g., `0.55.2`) when downloading the binary via the installer script. The `setup-trivy` action correctly parsed it, but the main action failed.
+**Fix:** Changed `version: 'v0.55.2'` to `version: '0.55.2'` in `.github/workflows/security.yml`.
