@@ -62,13 +62,6 @@ GO_VERSION_MIN := 1.25
 GO_VERSION_CURRENT := $(shell GOTOOLCHAIN=local go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | sed 's/go//')
 GO_VERSION_OK := $(shell printf '%s\n%s' "$(GO_VERSION_MIN)" "$(GO_VERSION_CURRENT)" | sort -V | head -n1)
 
-check-go-version:
-	@if [ "$(GO_VERSION_OK)" != "$(GO_VERSION_MIN)" ]; then \
-		echo "ERROR: Go $(GO_VERSION_MIN)+ required, but found Go $(GO_VERSION_CURRENT)"; \
-		echo "Download the latest Go from: https://go.dev/dl/"; \
-		exit 1; \
-	fi
-	@echo "Go version check passed: $(GO_VERSION_CURRENT) >= $(GO_VERSION_MIN)"
 
 # Build targets
 build: check-go-version
