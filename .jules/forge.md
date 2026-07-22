@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-22 - Node.js 20 Deprecations
+**Issue:** GitHub Actions workflows were encountering Node.js 20 deprecation warnings and potential failures due to outdated standard actions.
+**Root Cause:** CI workflows used older versions of actions (e.g., `actions/checkout@v4.1.1`, `actions/setup-node@v4.0.2`, `actions/upload-artifact@v4.4.0`) that rely on deprecated Node.js runtime versions.
+**Fix:** Updated and securely pinned all standard actions to their modern versions (e.g., `actions/checkout@v4.2.2`, `actions/upload-artifact@v4.6.0`, `actions/setup-go@v5.3.0`) using specific stable commit hashes to ensure compatibility and maintain security boundaries.
