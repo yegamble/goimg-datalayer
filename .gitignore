@@ -46,3 +46,11 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Local artifacts that must not be committed
+/main
+/uploads/
+newman-report.html
+.codegraph/
+/coverage-e2e/
+*_bench.txt
