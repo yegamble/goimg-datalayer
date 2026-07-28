@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -398,4 +399,68 @@ func TestClient_Close(t *testing.T) {
 	ctx := context.Background()
 	err = client.Ping(ctx)
 	require.Error(t, err)
+}
+
+func TestConfigFromEnv(t *testing.T) {
+	// Not parallel: mutates process-wide environment. Save and clear all
+	// REDIS_* vars this test manipulates so it neither reads leaked shell
+	// state nor leaks into other tests.
+	keys := []string{"REDIS_HOST", "REDIS_PORT", "REDIS_PASSWORD", "REDIS_USE_TLS"}
+	saved := make(map[string]string, len(keys))
+	for _, k := range keys {
+		saved[k] = os.Getenv(k)
+		_ = os.Unsetenv(k)
+	}
+	t.Cleanup(func() {
+		for _, k := range keys {
+			if v := saved[k]; v != "" {
+				_ = os.Setenv(k, v)
+			} else {
+				_ = os.Unsetenv(k)
+			}
+		}
+	})
+
+	t.Run("unset falls back to defaults", func(t *testing.T) {
+		for _, k := range keys {
+			_ = os.Unsetenv(k)
+		}
+
+		cfg := ConfigFromEnv()
+
+		// Identical to DefaultConfig() when nothing is set (localhost:6379).
+		assert.Equal(t, DefaultConfig(), cfg)
+		assert.Equal(t, "localhost", cfg.Host)
+		assert.Equal(t, defaultRedisPort, cfg.Port)
+		assert.Empty(t, cfg.Password)
+		assert.False(t, cfg.UseTLS)
+	})
+
+	t.Run("host and port are honored", func(t *testing.T) {
+		t.Setenv("REDIS_HOST", "redis")
+		t.Setenv("REDIS_PORT", "6380")
+
+		cfg := ConfigFromEnv()
+
+		assert.Equal(t, "redis", cfg.Host)
+		assert.Equal(t, 6380, cfg.Port)
+	})
+
+	t.Run("password and TLS are honored", func(t *testing.T) {
+		t.Setenv("REDIS_PASSWORD", "s3cret")
+		t.Setenv("REDIS_USE_TLS", "true")
+
+		cfg := ConfigFromEnv()
+
+		assert.Equal(t, "s3cret", cfg.Password)
+		assert.True(t, cfg.UseTLS)
+	})
+
+	t.Run("invalid port falls back to the default", func(t *testing.T) {
+		t.Setenv("REDIS_PORT", "not-a-number")
+
+		cfg := ConfigFromEnv()
+
+		assert.Equal(t, defaultRedisPort, cfg.Port)
+	})
 }

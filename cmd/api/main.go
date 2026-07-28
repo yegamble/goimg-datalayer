@@ -67,13 +67,7 @@ func main() {
 	log.Info().Msg("Starting goimg-datalayer API server...")
 
 	dbConfig := postgres.ConfigFromEnv()
-	redisConfig := redis.DefaultConfig()
-	if pwd := os.Getenv("REDIS_PASSWORD"); pwd != "" {
-		redisConfig.Password = pwd
-	}
-	if useTLS := os.Getenv("REDIS_USE_TLS"); useTLS == strTrue {
-		redisConfig.UseTLS = true
-	}
+	redisConfig := redis.ConfigFromEnv()
 
 	encryptionKey := os.Getenv("ENCRYPTION_KEY")
 	if encryptionKey == "" {

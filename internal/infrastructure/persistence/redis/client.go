@@ -5,9 +5,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -48,6 +51,36 @@ func DefaultConfig() Config {
 		Timeout:  defaultTimeoutSec * time.Second,
 		UseTLS:   false,
 	}
+}
+
+// ConfigFromEnv creates a Config populated from environment variables, falling
+// back to DefaultConfig() values for any variable that is unset. This lets the
+// API dial a Redis service by hostname (e.g. a "redis" container in a compose
+// stack) instead of always assuming localhost.
+//
+// Environment variables:
+//   - REDIS_HOST (default: localhost)
+//   - REDIS_PORT (default: 6379)
+//   - REDIS_PASSWORD (default: empty)
+//   - REDIS_USE_TLS (default: false; set to "true" to enable TLS)
+//
+// When none of these are set the returned Config is identical to
+// DefaultConfig() (localhost:6379), preserving existing local-dev behavior.
+func ConfigFromEnv() Config {
+	cfg := DefaultConfig()
+	if v := getEnv("REDIS_HOST", ""); v != "" {
+		cfg.Host = v
+	}
+	if v := getEnvInt("REDIS_PORT", 0); v != 0 {
+		cfg.Port = v
+	}
+	if v := getEnv("REDIS_PASSWORD", ""); v != "" {
+		cfg.Password = v
+	}
+	if getEnv("REDIS_USE_TLS", "") == "true" {
+		cfg.UseTLS = true
+	}
+	return cfg
 }
 
 // Client wraps redis.Client with additional methods for health checks.
@@ -202,4 +235,30 @@ func (c *Client) TTL(ctx context.Context, key string) (time.Duration, error) {
 		return 0, fmt.Errorf("redis ttl failed for key %s: %w", key, err)
 	}
 	return ttl, nil
+}
+
+// getEnv returns the value of an environment variable or a default value.
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getEnvInt returns the integer value of an environment variable or a default value.
+// Logs a warning if the environment variable contains an invalid integer value.
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		intVal, err := strconv.Atoi(value)
+		if err != nil {
+			log.Warn().
+				Str("key", key).
+				Str("value", value).
+				Int("default", defaultValue).
+				Msg("invalid integer value for environment variable, using default")
+			return defaultValue
+		}
+		return intVal
+	}
+	return defaultValue
 }
