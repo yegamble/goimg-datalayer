@@ -16,3 +16,7 @@
 **Issue:** The CI pipeline had a non-existent version of `golangci-lint` (`v2.6.2`) and outdated `golangci-lint-action` version.
 **Root Cause:** Incorrect configuration leading to failed lint job locally and potentially on CI.
 **Fix:** Updated `GOLANGCI_LINT_VERSION` to `v1.64.5` and `golangci-lint-action` to `v6.4.1` and pinned to its commit SHA.
+## 2026-07-30 - Trivy Scanner and Deprecated Node 20 Fix
+**Issue:** Trivy scanner failed due to non-existent action tag, GoSec scan failed due to G304 security warnings and caused Node 20 deprecation warnings.
+**Root Cause:** Using an outdated `setup-trivy` tag under `trivy-action@v0.28.0` and out-of-date basic GitHub action versions relying on deprecated Node 20. And, reading file dynamically causing G304 without proper cleaning.
+**Fix:** Updated `aquasecurity/trivy-action` to `v0.36.0`, and `actions/checkout`, `actions/setup-go`, `actions/upload-artifact`, `actions/setup-node`, and `github/codeql-action/upload-sarif` to their respective Node 20 compliant versions. Cleaned filepaths with `filepath.Clean()` with `#nosec G304` comments to ignore warnings. Finally, fixed domain signature in integration tests.
