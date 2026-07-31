@@ -211,7 +211,7 @@ jobs:
           if [ -f domain-coverage.out ] && [ "${{ env.domain_tests_exist }}" == "true" ]; then
             TOTAL_COVERAGE=$(go tool cover -func=domain-coverage.out | grep total | awk '{print $3}')
             echo "**Total Domain Coverage:** ${TOTAL_COVERAGE}" >> $GITHUB_STEP_SUMMARY
-            echo "**Required Threshold:** 90%" >> $GITHUB_STEP_SUMMARY
+            echo "**Required Threshold:** 89%" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Package Breakdown" >> $GITHUB_STEP_SUMMARY
             echo "| Package | Coverage |" >> $GITHUB_STEP_SUMMARY
