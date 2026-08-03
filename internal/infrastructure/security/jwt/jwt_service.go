@@ -245,7 +245,8 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, fmt.Errorf("token cannot be empty")
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	parser := jwt.NewParser(jwt.WithValidMethods([]string{"RS256"}))
+	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
