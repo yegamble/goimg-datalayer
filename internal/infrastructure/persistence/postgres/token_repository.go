@@ -12,14 +12,19 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+// #nosec G101
 const (
 	sqlCreateEmailVerificationToken = `
+
+
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
 	sqlFindValidEmailVerificationToken = `
+
+
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM email_verification_tokens
 		WHERE token = $1
@@ -28,18 +33,26 @@ const (
 	`
 
 	sqlMarkEmailVerificationTokenUsed = `
+
+
 		UPDATE email_verification_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
 	sqlCreatePasswordResetToken = `
+
+
+
+
 		INSERT INTO password_reset_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
 	sqlFindValidPasswordResetToken = `
+
+
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM password_reset_tokens
 		WHERE token = $1
@@ -48,12 +61,20 @@ const (
 	`
 
 	sqlMarkPasswordResetTokenUsed = `
+
+
+
+
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
 	sqlInvalidateAllPasswordResetTokens = `
+
+
+
+
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE user_id = $1
