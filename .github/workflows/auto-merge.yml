@@ -8,9 +8,14 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   enable-auto-merge:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     # Attempt to target agent PRs based on actor or branch naming convention
     if: >
       github.actor == 'jules' ||
