@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-07-11 - Fix Node.js 20 Deprecation and Trivy Action Errors
+**Issue:** CI pipelines failed due to Node.js 20 deprecation causing caching service 400 errors and `aquasecurity/trivy-action` failing to resolve its dependent setup-trivy action. Integration tests failed due to a domain signature mismatch in `ReconstructUser`.
+**Root Cause:** The GitHub Actions runner deprecated Node.js 20, causing older versions of standard actions (`checkout`, `setup-go`, `upload-artifact`, `codeql-action/upload-sarif`) to fail during cache restoration. Additionally, `aquasecurity/trivy-action` `v0.28.0` referenced an invalid/deleted `setup-trivy` tag. The `identity.ReconstructUser` signature was updated to include `emailVerified` and `emailVerifiedAt`, but the integration tests were not updated to match.
+**Fix:** Pinned `actions/checkout` to `v4.2.2`, `actions/setup-go` to `v5.3.0`, `actions/upload-artifact` to `v4.6.0`, `github/codeql-action/upload-sarif` to `v4.36.2`, and `aquasecurity/trivy-action` to `v0.34.0` using their respective stable commit hashes. Also fixed `identity.ReconstructUser` in `user_repository_test.go` to match the updated domain signature by adding `emailVerified` and `emailVerifiedAt` arguments.
