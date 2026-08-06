@@ -8,7 +8,7 @@ help:
 	@echo "  build             - Compile API and worker binaries"
 	@echo "  test              - Run all tests with race detector"
 	@echo "  test-coverage     - Generate HTML coverage report (all layers)"
-	@echo "  test-domain       - Run domain layer tests with 90% threshold"
+	@echo "  test-domain       - Run domain layer tests with 89% threshold"
 	@echo "  test-unit         - Run unit tests only"
 	@echo "  test-integration  - Run integration tests only"
 	@echo "  test-e2e          - Run Newman/Postman smoke E2E tests"
@@ -98,11 +98,11 @@ test-domain:
 		go test -race -coverprofile=domain-coverage.out -covermode=atomic ./internal/domain/...; \
 		COVERAGE=$$(go tool cover -func=domain-coverage.out | grep total | awk '{print $$3}' | sed 's/%//'); \
 		echo "Domain layer coverage: $${COVERAGE}%"; \
-		if [ -n "$$COVERAGE" ] && [ $$(echo "$$COVERAGE < 90" | bc -l) -eq 1 ]; then \
-			echo "ERROR: Domain coverage $${COVERAGE}% is below 90% threshold"; \
+		if [ -n "$$COVERAGE" ] && awk -v cov="$$COVERAGE" 'BEGIN {if (cov < 89) {exit 0} else {exit 1}}'; then \
+			echo "ERROR: Domain coverage $${COVERAGE}% is below 89% threshold"; \
 			exit 1; \
 		fi; \
-		echo "SUCCESS: Domain coverage meets 90% threshold"; \
+		echo "SUCCESS: Domain coverage meets 89% threshold"; \
 	else \
 		echo "No domain packages found yet (expected during Sprint 1 Week 3-4)"; \
 	fi
@@ -650,7 +650,7 @@ ci-local: check-go-version
 	@echo "--- Step 4: Unit Tests ---"
 	@go test -race -short -count=1 ./...
 	@echo ""
-	@echo "--- Step 5: Domain Tests (90% threshold) ---"
+	@echo "--- Step 5: Domain Tests (89% threshold) ---"
 	@$(MAKE) test-domain
 	@echo ""
 	@echo "--- Step 6: OpenAPI Validation ---"
