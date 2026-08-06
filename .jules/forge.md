@@ -12,3 +12,7 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+## 2026-07-23 - Fix Trivy action resolution error
+**Issue:** CI security workflows fail with "Unable to resolve action aquasecurity/setup-trivy".
+**Root Cause:** Older versions of aquasecurity/trivy-action (like 0.28.0) reference invalid or deleted setup-trivy tags.
+**Fix:** Update and pin aquasecurity/trivy-action to at least v0.36.0 (a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8) which uses a valid setup-trivy resolution.
