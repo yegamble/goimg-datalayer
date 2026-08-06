@@ -293,6 +293,8 @@ func TestUserRepository_FindExpiredGuests(t *testing.T) {
 		identity.UserTypeGuest,
 		&ip,
 		&expiredTime,
+		true,
+		nil,
 	)
 
 	err = repo.Save(ctx, expiredGuest)
