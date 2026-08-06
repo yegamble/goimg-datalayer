@@ -591,7 +591,8 @@ func JWTAuth(secret string) func(http.Handler) http.Handler {
             tokenString := parts[1]
 
             // 2. Parse and validate JWT
-            token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+            parser := jwt.NewParser(jwt.WithValidMethods([]string{"HS256"}))
+            token, err := parser.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
                 if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
                     return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
                 }
