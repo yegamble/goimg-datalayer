@@ -12,3 +12,7 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+## 2025-03-09 - GitHub Actions Version and Tags Deprecation
+**Issue:** CI failed due to Node.js 20 deprecations and invalid aquasecurity/trivy-action tags causing 'Unable to resolve action' errors.
+**Root Cause:** The `setup-node` action was using v4.0.2, and `trivy-action` was using 0.28.0.
+**Fix:** Pinned `actions/setup-node` to v4.1.0, `trivy-action` to v0.36.0, and updated other actions (`checkout`, `setup-go`, `upload-artifact`, `upload-sarif`, `golangci-lint-action`) to modern versions in `.github/workflows/ci.yml`, `.github/workflows/security.yml`, and `.github/actions/setup-go-env/action.yml`. Fixed `GOLANGCI_LINT_VERSION` reference to v1.64.5.
