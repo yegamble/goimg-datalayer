@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-07-26 - Broken CI pipelines due to invalid/deleted tags
+**Issue:** CI pipelines failed due to missing `setup-trivy` tags (e.g. `0.28.0`) and invalid `golangci-lint` versions (e.g. `v2.6.2`).
+**Root Cause:** Action versions were either hallucinated or referenced deprecated/deleted tags (like `setup-trivy`, which was replaced by `trivy-action`).
+**Fix:** Explicitly discover and pin to verified stable tags and their commit hashes (e.g., `trivy-action@v0.36.0`, `GOLANGCI_LINT_VERSION: v1.64.5`) using commands like `git ls-remote --tags`.
