@@ -6,6 +6,7 @@ version: 2
 run:
   # Timeout for analysis
   timeout: 5m
+  skip-go-version-check: true
 
   # Include test files
   tests: true
