@@ -13,7 +13,7 @@
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
 
-## 2026-01-22 - Unpinned Production Docker Images
-**Issue:** `docker-compose.prod.yml` was using floating/latest tags (e.g. `latest`, `stable`) for production images like `certbot`, `clamav`, `ipfs`, `prometheus`, and `grafana`.
-**Root Cause:** Floating tags were used, which leads to unpredictable updates, breaking changes without warning, and non-reproducible deployments.
-**Fix:** Pinned all external production Docker images to specific immutable versions to ensure stability, predictability, and reproducible builds.
+## 2026-08-07 - Fixing Security Scans
+**Issue:** Security scan workflows failed due to Trivy setup errors and GoSec scanning for SQL constants as credentials.
+**Root Cause:** Trivy action was an old version that used a deleted setup action. GoSec triggered on SQL statements containing the word token.
+**Fix:** Updated Trivy action to a stable version and added nosec annotations to suppress false positives in GoSec.
