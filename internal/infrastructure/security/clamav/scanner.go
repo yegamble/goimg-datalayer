@@ -23,6 +23,7 @@ const (
 	bitShift16       = 16               // Bit shift for byte 1 in big-endian uint32
 	bitShift8        = 8                // Bit shift for byte 2 in big-endian uint32
 	minResponseParts = 2                // Minimum parts in response (stream: result)
+	byteMask         = 0xFF             // Mask for extracting a single byte
 )
 
 // ScanResult contains the result of a malware scan.
@@ -150,10 +151,10 @@ func (c *Client) Scan(ctx context.Context, data []byte) (*ScanResult, error) {
 		}
 		size := uint32(chunkLen) // #nosec G115 -- validated chunk size is safe
 		sizeBytes := []byte{
-			byte(size >> bitShift24),
-			byte(size >> bitShift16),
-			byte(size >> bitShift8),
-			byte(size),
+			byte((size >> bitShift24) & byteMask), // #nosec G115 -- safe cast after shift and mask
+			byte((size >> bitShift16) & byteMask), // #nosec G115 -- safe cast after shift and mask
+			byte((size >> bitShift8) & byteMask),  // #nosec G115 -- safe cast after shift and mask
+			byte(size & byteMask),                 // #nosec G115 -- safe cast after mask
 		}
 		if _, err := conn.Write(sizeBytes); err != nil {
 			return nil, fmt.Errorf("clamav: write size: %w", err)
@@ -216,10 +217,10 @@ func (c *Client) ScanReader(ctx context.Context, reader io.Reader, _ int64) (*Sc
 			}
 			size := uint32(n) // #nosec G115 -- validated read size is safe
 			sizeBytes := []byte{
-				byte(size >> bitShift24),
-				byte(size >> bitShift16),
-				byte(size >> bitShift8),
-				byte(size),
+				byte((size >> bitShift24) & byteMask), // #nosec G115 -- safe cast after shift and mask
+				byte((size >> bitShift16) & byteMask), // #nosec G115 -- safe cast after shift and mask
+				byte((size >> bitShift8) & byteMask),  // #nosec G115 -- safe cast after shift and mask
+				byte(size & byteMask),                 // #nosec G115 -- safe cast after mask
 			}
 			if _, werr := conn.Write(sizeBytes); werr != nil {
 				return nil, fmt.Errorf("clamav: write size: %w", werr)

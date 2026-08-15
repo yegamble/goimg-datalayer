@@ -123,6 +123,52 @@ func TestGroupImageReconstruction(t *testing.T) {
 	assert.Equal(t, now, *img.ReviewedAt())
 }
 
+func TestGroupImageStatus(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, "pending", community.GroupImageStatusPending.String())
+	assert.True(t, community.GroupImageStatusPending.IsValid())
+	assert.True(t, community.GroupImageStatusPending.IsPending())
+	assert.False(t, community.GroupImageStatusPending.IsApproved())
+	assert.False(t, community.GroupImageStatusPending.IsRejected())
+
+	assert.Equal(t, "approved", community.GroupImageStatusApproved.String())
+	assert.True(t, community.GroupImageStatusApproved.IsValid())
+	assert.False(t, community.GroupImageStatusApproved.IsPending())
+	assert.True(t, community.GroupImageStatusApproved.IsApproved())
+	assert.False(t, community.GroupImageStatusApproved.IsRejected())
+
+	assert.Equal(t, "rejected", community.GroupImageStatusRejected.String())
+	assert.True(t, community.GroupImageStatusRejected.IsValid())
+	assert.False(t, community.GroupImageStatusRejected.IsPending())
+	assert.False(t, community.GroupImageStatusRejected.IsApproved())
+	assert.True(t, community.GroupImageStatusRejected.IsRejected())
+
+	assert.False(t, community.GroupImageStatus("invalid").IsValid())
+	assert.Len(t, community.AllGroupImageStatuses(), 3)
+
+	id1 := community.NewGroupImageID()
+	id2 := community.NewGroupImageID()
+	id3, _ := community.ParseGroupImageID(id1.String())
+
+	assert.False(t, id1.IsZero())
+	assert.True(t, community.GroupImageID{}.IsZero())
+	assert.False(t, id1.Equals(id2))
+	assert.True(t, id1.Equals(id3))
+	id1Copy := id1
+	assert.True(t, id1.Equals(id1Copy))
+	assert.NotEmpty(t, id1.String())
+	_, err := community.ParseGroupImageID("invalid")
+	assert.Error(t, err)
+
+	assert.NotPanics(t, func() {
+		community.MustParseGroupImageID(id1.String())
+	})
+	assert.Panics(t, func() {
+		community.MustParseGroupImageID("invalid")
+	})
+}
+
 func TestGroupInvitationReconstruction(t *testing.T) {
 	t.Parallel()
 
@@ -387,6 +433,10 @@ func TestInvitationToken(t *testing.T) {
 
 	_, err = community.ParseInvitationToken("short")
 	assert.Error(t, err)
+
+	token2, err := community.NewInvitationToken()
+	require.NoError(t, err)
+	assert.False(t, token.Equals(token2))
 }
 
 func TestMembershipID(t *testing.T) {
