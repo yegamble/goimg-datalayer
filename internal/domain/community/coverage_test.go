@@ -382,6 +382,10 @@ func TestInvitationToken(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, token.Equals(parsed))
 
+	token2, err := community.NewInvitationToken()
+	require.NoError(t, err)
+	assert.False(t, token.Equals(token2))
+
 	_, err = community.ParseInvitationToken("")
 	assert.Error(t, err)
 

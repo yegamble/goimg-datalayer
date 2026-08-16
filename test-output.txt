@@ -1,0 +1,64 @@
+?   	github.com/yegamble/goimg-datalayer/cmd/api	[no test files]
+?   	github.com/yegamble/goimg-datalayer/cmd/migrate	[no test files]
+?   	github.com/yegamble/goimg-datalayer/cmd/worker	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/activity/dto	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/activity/queries	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/community	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/community/commands	1.047s
+?   	github.com/yegamble/goimg-datalayer/internal/application/community/queries	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/community/testhelpers	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/gallery	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/gallery/commands	33.542s
+ok  	github.com/yegamble/goimg-datalayer/internal/application/gallery/queries	1.103s
+?   	github.com/yegamble/goimg-datalayer/internal/application/gallery/testhelpers	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity	1.578s
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity/commands	56.057s
+?   	github.com/yegamble/goimg-datalayer/internal/application/identity/dto	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity/queries	21.103s
+?   	github.com/yegamble/goimg-datalayer/internal/application/identity/services	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/identity/testhelpers	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/moderation	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/moderation/commands	1.158s
+ok  	github.com/yegamble/goimg-datalayer/internal/application/moderation/queries	1.354s
+?   	github.com/yegamble/goimg-datalayer/internal/application/moderation/testhelpers	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/application/notification	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/notification/commands	1.134s [no tests to run]
+?   	github.com/yegamble/goimg-datalayer/internal/application/notification/queries	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/activity	1.078s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/community	1.149s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/gallery	1.745s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/identity	81.915s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/moderation	1.179s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/notification	1.078s
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/shared	1.087s
+?   	github.com/yegamble/goimg-datalayer/internal/infrastructure/adapters/identity	[no test files]
+?   	github.com/yegamble/goimg-datalayer/internal/infrastructure/email	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/jobs/asynq	1.152s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/jobs/tasks	1.250s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres	1.152s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis	27.987s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/secrets	1.064s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security	1.393s
+?   	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt	33.209s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/nsfw	4.005s
+?   	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/ipfs	1.101s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/local	1.087s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/orchestrator	1.087s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/processor	1.303s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/s3	1.163s
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/validator	1.057s
+?   	github.com/yegamble/goimg-datalayer/internal/interfaces/http/generated	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/interfaces/http/handlers	8.085s
+ok  	github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware	1.159s
+ok  	github.com/yegamble/goimg-datalayer/tests/contract	2.718s
+ok  	github.com/yegamble/goimg-datalayer/tests/helpers	1.051s
+?   	github.com/yegamble/goimg-datalayer/tests/integration/containers	[no test files]
+?   	github.com/yegamble/goimg-datalayer/tests/integration/fixtures	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/tests/integration/repository	1.113s
+ok  	github.com/yegamble/goimg-datalayer/tests/security	1.194s
+?   	github.com/yegamble/goimg-datalayer/tests/security/mocks	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/tests/unit	10.943s
+?   	github.com/yegamble/goimg-datalayer/tools/validate-openapi	[no test files]
