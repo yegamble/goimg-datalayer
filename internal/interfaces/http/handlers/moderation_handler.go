@@ -110,7 +110,8 @@ func (h *ModerationHandler) CreateReport(w http.ResponseWriter, r *http.Request)
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in create report handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -123,7 +124,8 @@ func (h *ModerationHandler) CreateReport(w http.ResponseWriter, r *http.Request)
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid create report request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid report data",
@@ -191,7 +193,8 @@ func (h *ModerationHandler) ListPendingReports(w http.ResponseWriter, r *http.Re
 	// 1. Parse query parameters
 	page, err := parseIntParam(r.URL.Query().Get("page"), 1)
 	if err != nil || page < 1 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid page parameter",
@@ -201,7 +204,8 @@ func (h *ModerationHandler) ListPendingReports(w http.ResponseWriter, r *http.Re
 
 	perPage, err := parseIntParam(r.URL.Query().Get("per_page"), defaultPerPage)
 	if err != nil || perPage < 1 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid per_page parameter",
@@ -266,7 +270,8 @@ func (h *ModerationHandler) GetReport(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract report ID from path
 	reportID := GetPathParam(r, "reportID")
 	if reportID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing report ID",
@@ -319,7 +324,8 @@ func (h *ModerationHandler) StartReview(w http.ResponseWriter, r *http.Request) 
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in start review handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -330,7 +336,8 @@ func (h *ModerationHandler) StartReview(w http.ResponseWriter, r *http.Request) 
 	// 2. Extract report ID from path
 	reportID := GetPathParam(r, "reportID")
 	if reportID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing report ID",
@@ -385,7 +392,8 @@ func (h *ModerationHandler) ResolveReport(w http.ResponseWriter, r *http.Request
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in resolve report handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -396,7 +404,8 @@ func (h *ModerationHandler) ResolveReport(w http.ResponseWriter, r *http.Request
 	// 2. Extract report ID from path
 	reportID := GetPathParam(r, "reportID")
 	if reportID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing report ID",
@@ -409,7 +418,8 @@ func (h *ModerationHandler) ResolveReport(w http.ResponseWriter, r *http.Request
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid resolve report request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid resolution data",
@@ -464,7 +474,8 @@ func (h *ModerationHandler) DismissReport(w http.ResponseWriter, r *http.Request
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in dismiss report handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -475,7 +486,8 @@ func (h *ModerationHandler) DismissReport(w http.ResponseWriter, r *http.Request
 	// 2. Extract report ID from path
 	reportID := GetPathParam(r, "reportID")
 	if reportID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing report ID",
@@ -532,7 +544,8 @@ func (h *ModerationHandler) BanUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in ban user handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -543,7 +556,8 @@ func (h *ModerationHandler) BanUser(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -556,7 +570,8 @@ func (h *ModerationHandler) BanUser(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid ban user request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid ban data",
@@ -620,7 +635,8 @@ func (h *ModerationHandler) UnbanUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in unban user handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -631,7 +647,8 @@ func (h *ModerationHandler) UnbanUser(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -682,7 +699,8 @@ func (h *ModerationHandler) GetUserBanStatus(w http.ResponseWriter, r *http.Requ
 	// 1. Extract user ID from path
 	userID := GetPathParam(r, "userID")
 	if userID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -786,7 +804,8 @@ func (h *ModerationHandler) ScanImageNSFW(w http.ResponseWriter, r *http.Request
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid NSFW scan request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid NSFW scan request data",
@@ -852,7 +871,8 @@ func (h *ModerationHandler) GetNSFWScan(w http.ResponseWriter, r *http.Request) 
 	// 1. Extract scan ID from path
 	scanID := GetPathParam(r, "scanID")
 	if scanID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing scan ID",
@@ -904,7 +924,8 @@ func (h *ModerationHandler) ListNSFWFlagged(w http.ResponseWriter, r *http.Reque
 	// 1. Parse query parameters
 	page, err := parseIntParam(r.URL.Query().Get("page"), 1)
 	if err != nil || page < 1 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid page parameter",
@@ -914,7 +935,8 @@ func (h *ModerationHandler) ListNSFWFlagged(w http.ResponseWriter, r *http.Reque
 
 	pageSize, err := parseIntParam(r.URL.Query().Get("page_size"), defaultPerPage)
 	if err != nil || pageSize < 1 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid page_size parameter",
@@ -982,7 +1004,8 @@ func (h *ModerationHandler) ListNSFWScansByImage(w http.ResponseWriter, r *http.
 	// 1. Extract image ID from path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -1033,21 +1056,24 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 	switch {
 	// Report errors
 	case err.Error() == "report not found" || err.Error() == "find report by id: report not found":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Report not found",
 		)
 
 	case err.Error() == "report already resolved" || err.Error() == "report not in pending status":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Report is not in a valid state for this operation",
 		)
 
 	case err.Error() == "cannot report your own content":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"You cannot report your own content",
@@ -1055,7 +1081,8 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	// Image errors
 	case err.Error() == "image not found" || err.Error() == "find image: image not found":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
@@ -1063,21 +1090,24 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	// User/Ban errors
 	case err.Error() == "user not found" || err.Error() == "find user: user not found":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User not found",
 		)
 
 	case err.Error() == "user not banned" || err.Error() == "no active ban found":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User is not banned",
 		)
 
 	case err.Error() == "user already banned":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"User is already banned",
@@ -1085,14 +1115,16 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	// Validation errors
 	case err.Error() == "invalid report id" || err.Error() == "invalid user id" || err.Error() == "invalid image id":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid ID format",
 		)
 
 	case err.Error() == "invalid report reason":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid report reason. Must be one of: spam, inappropriate, copyright, other",
@@ -1100,35 +1132,40 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	// NSFW scan errors
 	case containsError(err, "nsfw scan not found") || containsError(err, "find scan by id"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"NSFW scan not found",
 		)
 
 	case containsError(err, "invalid scan id"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid scan ID format",
 		)
 
 	case containsError(err, "nsfw detection disabled") || containsError(err, "no providers available"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusServiceUnavailable,
 			"Service Unavailable",
 			"NSFW detection service is currently unavailable",
 		)
 
 	case containsError(err, "active scan exists"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"An active NSFW scan already exists for this image",
 		)
 
 	case containsError(err, "all providers failed"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusServiceUnavailable,
 			"Service Unavailable",
 			"All NSFW detection providers failed",
@@ -1136,7 +1173,8 @@ func (h *ModerationHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	// Default to internal error
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred",

@@ -91,7 +91,8 @@ func (h *GroupAlbumHandler) CreateAlbum(w http.ResponseWriter, r *http.Request) 
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in create album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -102,7 +103,8 @@ func (h *GroupAlbumHandler) CreateAlbum(w http.ResponseWriter, r *http.Request) 
 	// 2. Extract group ID from path
 	groupIDStr := GetPathParam(r, "groupID")
 	if groupIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group ID",
@@ -113,7 +115,8 @@ func (h *GroupAlbumHandler) CreateAlbum(w http.ResponseWriter, r *http.Request) 
 	groupID, err := community.ParseGroupID(groupIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_id", groupIDStr).Msg("invalid group id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group ID format",
@@ -126,7 +129,8 @@ func (h *GroupAlbumHandler) CreateAlbum(w http.ResponseWriter, r *http.Request) 
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid create album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid album data",
@@ -139,7 +143,8 @@ func (h *GroupAlbumHandler) CreateAlbum(w http.ResponseWriter, r *http.Request) 
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -197,7 +202,8 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract group ID from path
 	groupIDStr := GetPathParam(r, "groupID")
 	if groupIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing group ID",
@@ -208,7 +214,8 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	groupID, err := community.ParseGroupID(groupIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("group_id", groupIDStr).Msg("invalid group id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid group ID format",
@@ -246,7 +253,8 @@ func (h *GroupAlbumHandler) ListAlbums(w http.ResponseWriter, r *http.Request) {
 	pagination, err := shared.NewPagination(page, perPage)
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid pagination parameters")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid pagination parameters",
@@ -307,7 +315,8 @@ func (h *GroupAlbumHandler) GetAlbum(w http.ResponseWriter, r *http.Request) {
 	// 1. Extract album ID from path
 	albumIDStr := GetPathParam(r, "albumID")
 	if albumIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -318,7 +327,8 @@ func (h *GroupAlbumHandler) GetAlbum(w http.ResponseWriter, r *http.Request) {
 	albumID, err := community.ParseGroupAlbumID(albumIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("album_id", albumIDStr).Msg("invalid album id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid album ID format",
@@ -372,7 +382,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in update album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -383,7 +394,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	// 2. Extract album ID from path
 	albumIDStr := GetPathParam(r, "albumID")
 	if albumIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -394,7 +406,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	albumID, err := community.ParseGroupAlbumID(albumIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("album_id", albumIDStr).Msg("invalid album id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid album ID format",
@@ -407,7 +420,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid update album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid album update data",
@@ -420,7 +434,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -433,7 +448,8 @@ func (h *GroupAlbumHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request) 
 	if req.CoverImageID != nil && *req.CoverImageID != "" {
 		imageID, err := gallery.ParseImageID(*req.CoverImageID)
 		if err != nil {
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusBadRequest,
 				"Bad Request",
 				"Invalid cover image ID format",
@@ -493,7 +509,8 @@ func (h *GroupAlbumHandler) DeleteAlbum(w http.ResponseWriter, r *http.Request) 
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -504,7 +521,8 @@ func (h *GroupAlbumHandler) DeleteAlbum(w http.ResponseWriter, r *http.Request) 
 	// 2. Extract album ID from path
 	albumIDStr := GetPathParam(r, "albumID")
 	if albumIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -515,7 +533,8 @@ func (h *GroupAlbumHandler) DeleteAlbum(w http.ResponseWriter, r *http.Request) 
 	albumID, err := community.ParseGroupAlbumID(albumIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("album_id", albumIDStr).Msg("invalid album id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid album ID format",
@@ -527,7 +546,8 @@ func (h *GroupAlbumHandler) DeleteAlbum(w http.ResponseWriter, r *http.Request) 
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -579,7 +599,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in add image to album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -590,7 +611,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	// 2. Extract album ID from path
 	albumIDStr := GetPathParam(r, "albumID")
 	if albumIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -601,7 +623,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	albumID, err := community.ParseGroupAlbumID(albumIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("album_id", albumIDStr).Msg("invalid album id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid album ID format",
@@ -614,7 +637,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid add image to album request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid request data",
@@ -627,7 +651,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -638,7 +663,8 @@ func (h *GroupAlbumHandler) AddImageToAlbum(w http.ResponseWriter, r *http.Reque
 	imageID, err := gallery.ParseImageID(req.ImageID)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("image_id", req.ImageID).Msg("invalid image id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
@@ -691,7 +717,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in remove image from album handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -702,7 +729,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 	// 2. Extract IDs from path
 	albumIDStr := GetPathParam(r, "albumID")
 	if albumIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing album ID",
@@ -712,7 +740,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 
 	imageIDStr := GetPathParam(r, "imageID")
 	if imageIDStr == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -723,7 +752,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 	albumID, err := community.ParseGroupAlbumID(albumIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("album_id", albumIDStr).Msg("invalid album id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid album ID format",
@@ -734,7 +764,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 	imageID, err := gallery.ParseImageID(imageIDStr)
 	if err != nil {
 		h.logger.Debug().Err(err).Str("image_id", imageIDStr).Msg("invalid image id")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
@@ -746,7 +777,8 @@ func (h *GroupAlbumHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.
 	actorID, err := identity.ParseUserID(userCtx.UserID.String())
 	if err != nil {
 		h.logger.Error().Err(err).Msg("invalid user id in context")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user context",
@@ -786,49 +818,57 @@ func (h *GroupAlbumHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Re
 
 	switch {
 	case err == community.ErrGroupNotFound:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Group not found",
 		)
 	case err == community.ErrGroupAlbumNotFound:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Group album not found",
 		)
 	case err == community.ErrNotGroupMember:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Must be a group member to perform this action",
 		)
 	case err == community.ErrInsufficientGroupRole:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Insufficient permissions for this operation",
 		)
 	case err == community.ErrGroupImageNotFound:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found in group pool",
 		)
 	case err == community.ErrImageAlreadyInAlbum:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Image is already in this album",
 		)
 	case err == community.ErrPrivateGroupNoAccess:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Cannot access private group without membership",
 		)
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred",

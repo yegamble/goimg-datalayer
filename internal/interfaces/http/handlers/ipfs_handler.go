@@ -77,7 +77,8 @@ func (h *IPFSHandler) Pin(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in IPFS pin handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -88,7 +89,8 @@ func (h *IPFSHandler) Pin(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract image ID from URL path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Image ID is required",
@@ -147,7 +149,8 @@ func (h *IPFSHandler) Unpin(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in IPFS unpin handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -158,7 +161,8 @@ func (h *IPFSHandler) Unpin(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract image ID from URL path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Image ID is required",
@@ -222,7 +226,8 @@ func (h *IPFSHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	// 2. Extract image ID from URL path
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Image ID is required",
@@ -261,32 +266,37 @@ func (h *IPFSHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 func (h *IPFSHandler) handlePinError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, gallery.ErrImageNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
 		)
 	case errors.Is(err, gallery.ErrUnauthorizedAccess):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to pin this image",
 		)
 	case containsString(err.Error(), "already pinned"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			err.Error(),
 		)
 	case containsString(err.Error(), "invalid image id"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
 		)
 	default:
 		h.logger.Error().Err(err).Msg("unexpected error in IPFS pin")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to pin image to IPFS",
@@ -298,32 +308,37 @@ func (h *IPFSHandler) handlePinError(w http.ResponseWriter, r *http.Request, err
 func (h *IPFSHandler) handleUnpinError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, gallery.ErrImageNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
 		)
 	case errors.Is(err, gallery.ErrUnauthorizedAccess):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to unpin this image",
 		)
 	case containsString(err.Error(), "not pinned"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Image is not pinned to IPFS",
 		)
 	case containsString(err.Error(), "invalid image id"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
 		)
 	default:
 		h.logger.Error().Err(err).Msg("unexpected error in IPFS unpin")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to unpin image from IPFS",
@@ -335,26 +350,30 @@ func (h *IPFSHandler) handleUnpinError(w http.ResponseWriter, r *http.Request, e
 func (h *IPFSHandler) handleStatusError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, gallery.ErrImageNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Image not found",
 		)
 	case errors.Is(err, gallery.ErrUnauthorizedAccess):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to view this image's IPFS status",
 		)
 	case containsString(err.Error(), "invalid image id"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid image ID format",
 		)
 	default:
 		h.logger.Error().Err(err).Msg("unexpected error in IPFS status")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to get IPFS status",

@@ -24,7 +24,8 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	offset, err := parseIntParam(queryParams.Get("offset"), 0)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid offset parameter",
@@ -34,7 +35,8 @@ func (h *ImageHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	limit, err := parseIntParam(queryParams.Get("limit"), defaultPerPage)
 	if err != nil {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid limit parameter",
@@ -99,7 +101,8 @@ func (h *ImageHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	searchQuery := queryParams.Get("q")
 	if searchQuery == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Search query (q) is required",

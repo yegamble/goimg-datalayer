@@ -200,7 +200,8 @@ func (r *FeaturedPickRepository) Save(ctx context.Context, pick *gallery.Feature
 
 	if !exists {
 		// Insert
-		_, err = r.db.ExecContext(ctx, sqlInsertFeaturedPick,
+		_, err = r.db.ExecContext(
+			ctx, sqlInsertFeaturedPick,
 			pick.ID().String(),
 			pick.ImageID().String(),
 			pick.FeaturedBy().String(),
@@ -216,7 +217,8 @@ func (r *FeaturedPickRepository) Save(ctx context.Context, pick *gallery.Feature
 		}
 	} else {
 		// Update
-		_, err = r.db.ExecContext(ctx, sqlUpdateFeaturedPick,
+		_, err = r.db.ExecContext(
+			ctx, sqlUpdateFeaturedPick,
 			pick.ID().String(),
 			pick.DisplayOrder(),
 			pick.FeaturedFrom(),

@@ -96,7 +96,8 @@ func New(ctx context.Context, cfg Config) (*Storage, error) {
 	}
 
 	// Build AWS config
-	awsCfg, err := config.LoadDefaultConfig(ctx,
+	awsCfg, err := config.LoadDefaultConfig(
+		ctx,
 		config.WithRegion(cfg.Region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			cfg.AccessKeyID,

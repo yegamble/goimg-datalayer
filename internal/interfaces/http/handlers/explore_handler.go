@@ -100,7 +100,8 @@ func (h *ExploreHandler) ListRecent(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error().
 			Err(err).
 			Msg("failed to list recent images")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve recent images",
@@ -157,7 +158,8 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	// Validate period
 	validPeriods := map[string]bool{"day": true, "week": true, "month": true, "all": true}
 	if !validPeriods[period] {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid period. Must be one of: day, week, month, all",
@@ -204,7 +206,8 @@ func (h *ExploreHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("period", period).
 			Msg("failed to list popular images")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve popular images",
@@ -252,7 +255,8 @@ func (h *ExploreHandler) ListFeatured(w http.ResponseWriter, r *http.Request) {
 	// Check if handler is configured
 	if h.listFeatured == nil {
 		h.logger.Warn().Msg("listFeatured handler not configured")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotImplemented,
 			"Not Implemented",
 			"Featured images endpoint is not configured",
@@ -279,7 +283,8 @@ func (h *ExploreHandler) ListFeatured(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error().
 			Err(err).
 			Msg("failed to list featured images")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve featured images",

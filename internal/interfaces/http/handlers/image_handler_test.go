@@ -197,7 +197,7 @@ func TestImageHandler_GetImageQRCode_PublicImage(t *testing.T) {
 	imageHandler := NewImageHandler(
 		nil, nil, nil, nil,
 		getImageHandler, nil, nil, nil,
-		"",
+		"https://example.com",
 		logger,
 	)
 
