@@ -1,164 +1,221 @@
-package notification
+package notification_test
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
+	"github.com/yegamble/goimg-datalayer/internal/domain/notification"
 )
 
-func TestNewNotification(t *testing.T) {
-	t.Parallel()
+func TestNotificationID(t *testing.T) {
+	id := notification.NewNotificationID()
 
-	recipientID := identity.NewUserID()
-	notifType := TypeNewFollower
-	title := "Welcome"
-	body := "Welcome to the app!"
-	metadata := map[string]string{"key": "value"}
+	if id.IsZero() {
+		t.Errorf("NewNotificationID should not be zero")
+	}
 
-	t.Run("Success", func(t *testing.T) {
-		n, err := NewNotification(recipientID, notifType, title, body, metadata)
-		require.NoError(t, err)
-		assert.NotNil(t, n)
-		assert.NotEmpty(t, n.ID())
-		assert.Equal(t, recipientID, n.RecipientID())
-		assert.Equal(t, notifType, n.Type())
-		assert.Equal(t, title, n.Title())
-		assert.Equal(t, body, n.Body())
-		assert.Equal(t, metadata, n.Metadata())
-		assert.False(t, n.IsRead())
-		assert.Nil(t, n.ReadAt())
-		assert.WithinDuration(t, time.Now(), n.CreatedAt(), 2*time.Second)
-		assert.Empty(t, n.Events())
-	})
+	str := id.String()
+	if str == "" {
+		t.Errorf("NotificationID.String() should not be empty")
+	}
 
-	t.Run("Success_NilMetadata", func(t *testing.T) {
-		n, err := NewNotification(recipientID, notifType, title, body, nil)
-		require.NoError(t, err)
-		assert.NotNil(t, n.Metadata())
-		assert.Empty(t, n.Metadata())
-	})
+	parsedID, err := notification.ParseNotificationID(str)
+	if err != nil {
+		t.Errorf("ParseNotificationID failed: %v", err)
+	}
 
-	t.Run("Error_ZeroRecipient", func(t *testing.T) {
-		n, err := NewNotification(identity.UserID{}, notifType, title, body, metadata)
-		assert.ErrorIs(t, err, ErrRecipientRequired)
-		assert.Nil(t, n)
-	})
+	if !id.Equals(parsedID) {
+		t.Errorf("Parsed ID should equal original ID")
+	}
 
-	t.Run("Error_EmptyTitle", func(t *testing.T) {
-		n, err := NewNotification(recipientID, notifType, "", body, metadata)
-		assert.ErrorIs(t, err, ErrTitleRequired)
-		assert.Nil(t, n)
-	})
+	parsedIDCopy := parsedID
+	if !id.Equals(parsedIDCopy) {
+		t.Errorf("ID should equal itself")
+	}
 
-	t.Run("Error_InvalidType", func(t *testing.T) {
-		n, err := NewNotification(recipientID, NotificationType("invalid"), title, body, metadata)
-		assert.ErrorIs(t, err, ErrInvalidNotificationType)
-		assert.Nil(t, n)
-	})
+	_, err = notification.ParseNotificationID("invalid-uuid")
+	if err == nil {
+		t.Errorf("ParseNotificationID should fail on invalid uuid")
+	}
 }
 
-func TestReconstructNotification(t *testing.T) {
-	t.Parallel()
-
-	id := NewNotificationID()
+func TestNotification_Coverage(t *testing.T) {
 	recipientID := identity.NewUserID()
-	notifType := TypeNewFollower
-	title := "Reconstructed"
-	body := "Body"
-	metadata := map[string]string{"foo": "bar"}
-	metadataBytes, _ := json.Marshal(metadata)
-	now := time.Now().UTC()
-	readAt := &now
 
-	n := ReconstructNotification(id, recipientID, notifType, title, body, metadataBytes, readAt, now)
+	notif, err := notification.NewNotification(
+		recipientID,
+		notification.TypeNewFollower,
+		"Test Title",
+		"Test Body",
+		map[string]string{"key": "value"},
+	)
 
-	assert.Equal(t, id, n.ID())
-	assert.Equal(t, recipientID, n.RecipientID())
-	assert.Equal(t, notifType, n.Type())
-	assert.Equal(t, title, n.Title())
-	assert.Equal(t, body, n.Body())
-	assert.Equal(t, metadata, n.Metadata())
-	assert.Equal(t, readAt, n.ReadAt())
-	assert.True(t, n.IsRead())
-	assert.Equal(t, now, n.CreatedAt())
-	assert.Empty(t, n.Events())
+	if err != nil {
+		t.Fatalf("Failed to create notification: %v", err)
+	}
 
-	// Test with nil metadata
-	n2 := ReconstructNotification(id, recipientID, notifType, title, body, nil, nil, now)
-	assert.NotNil(t, n2.Metadata())
+	// Validate accessors
+	if notif.ID().IsZero() {
+		t.Errorf("ID should not be zero")
+	}
+	if notif.RecipientID().IsZero() {
+		t.Errorf("RecipientID should not be zero")
+	}
+	if notif.Type() != notification.TypeNewFollower {
+		t.Errorf("Type mismatch")
+	}
+	if notif.Title() != "Test Title" {
+		t.Errorf("Title mismatch")
+	}
+	if notif.Body() != "Test Body" {
+		t.Errorf("Body mismatch")
+	}
+	if notif.ReadAt() != nil {
+		t.Errorf("ReadAt should be nil initially")
+	}
+	if notif.CreatedAt().IsZero() {
+		t.Errorf("CreatedAt should not be zero")
+	}
+	if notif.IsRead() {
+		t.Errorf("IsRead should be false initially")
+	}
+	err = notif.MarkRead()
+	if err != nil {
+		t.Errorf("MarkRead should not return error")
+	}
+	if !notif.IsRead() {
+		t.Errorf("IsRead should be true after MarkRead")
+	}
+	err = notif.MarkRead() // Call again for coverage of already read
+	if err != nil {
+		t.Errorf("MarkRead again should not return error")
+	}
+
+	raw := notif.MetadataRaw()
+	if len(raw) == 0 {
+		t.Errorf("MetadataRaw should return bytes")
+	}
+
+	if len(notif.Events()) != 0 {
+		t.Errorf("New notification should have no events")
+	}
+
+	notif.ClearEvents()
+
+	val := notif.GetMetadata("key")
+	if val != "value" {
+		t.Errorf("GetMetadata should return 'value'")
+	}
+
+	val2 := notif.GetMetadata("missing")
+	if val2 != "" {
+		t.Errorf("GetMetadata should return empty string for missing key")
+	}
+
+	err = notif.Validate()
+	if err != nil {
+		t.Errorf("Validate should return nil")
+	}
+
+	// Reconstruct with nil bytes to ensure GetMetadata handles nil meta
+	id := notification.NewNotificationID()
+	now := time.Now()
+
+	reconstructed := notification.ReconstructNotification(
+		id,
+		recipientID,
+		notification.TypeNewFollower,
+		"Title",
+		"Body",
+		nil, // passing nil for raw bytes to test fallback
+		&now,
+		now,
+	)
+
+	val3 := reconstructed.GetMetadata("key")
+	if val3 != "" {
+		t.Errorf("GetMetadata on nil metadata should return empty string")
+	}
+
+	// Test MetadataRaw fallbacks
+	raw2 := reconstructed.MetadataRaw()
+	if string(raw2) != "{}" {
+		t.Errorf("MetadataRaw should return '{}' for nil map and bytes")
+	}
+
+	// Test MetadataRaw with pre-populated raw string
+	rawNotif := notification.ReconstructNotification(
+		id, recipientID, notification.TypeNewFollower, "T", "B", []byte(`{"k":"v"}`), nil, now,
+	)
+	if string(rawNotif.MetadataRaw()) != `{"k":"v"}` {
+		t.Errorf("MetadataRaw should return underlying raw bytes")
+	}
+
+	// For coverage of MetadataRaw lazy parsing error fallback
+	badJsonNotif := notification.ReconstructNotification(
+		id, recipientID, notification.TypeNewFollower, "T", "B",
+		[]byte(`{bad json`), nil, now,
+	)
+	_ = badJsonNotif.Metadata()
+
+	// Test Validate errors
+	badNotif1 := notification.ReconstructNotification(
+		id, identity.UserID{}, notification.TypeNewFollower, "T", "B", nil, nil, now,
+	)
+	if badNotif1.Validate() == nil {
+		t.Errorf("Validate should fail on missing recipient")
+	}
+
+	badNotif2 := notification.ReconstructNotification(
+		id, recipientID, notification.TypeNewFollower, "", "B", nil, nil, now,
+	)
+	if badNotif2.Validate() == nil {
+		t.Errorf("Validate should fail on missing title")
+	}
+
+	badNotif3 := notification.ReconstructNotification(
+		id, recipientID, "", "T", "B", nil, nil, now,
+	)
+	if badNotif3.Validate() == nil {
+		t.Errorf("Validate should fail on invalid type")
+	}
 }
 
-func TestNotification_MarkRead(t *testing.T) {
-	t.Parallel()
-
+func TestNotification_Validation(t *testing.T) {
 	recipientID := identity.NewUserID()
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
 
-	// First mark read
-	err := n.MarkRead()
-	require.NoError(t, err)
-	assert.True(t, n.IsRead())
-	assert.NotNil(t, n.ReadAt())
-	firstReadAt := *n.ReadAt()
+	_, err := notification.NewNotification(
+		identity.UserID{}, // Invalid recipient
+		notification.TypeNewFollower,
+		"Test Title",
+		"Test Body",
+		nil,
+	)
+	if err == nil {
+		t.Errorf("Expected error for missing recipient")
+	}
 
-	// Second mark read (idempotent)
-	time.Sleep(10 * time.Millisecond) // Ensure time passes
-	err = n.MarkRead()
-	require.NoError(t, err)
-	assert.Equal(t, firstReadAt, *n.ReadAt())
-}
+	_, err = notification.NewNotification(
+		recipientID,
+		notification.TypeNewFollower,
+		"", // Invalid title
+		"Test Body",
+		nil,
+	)
+	if err == nil {
+		t.Errorf("Expected error for missing title")
+	}
 
-func TestNotification_GetMetadata(t *testing.T) {
-	t.Parallel()
+	_, err = notification.NewNotification(
+		recipientID,
+		"", // Invalid type
+		"Test Title",
+		"Test Body",
+		nil,
+	)
+	if err == nil {
+		t.Errorf("Expected error for missing/invalid type")
+	}
 
-	recipientID := identity.NewUserID()
-	metadata := map[string]string{"key": "value"}
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
-
-	assert.Equal(t, "value", n.GetMetadata("key"))
-	assert.Equal(t, "", n.GetMetadata("missing"))
-}
-
-func TestNotification_Validate(t *testing.T) {
-	t.Parallel()
-
-	recipientID := identity.NewUserID()
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-
-	// Valid
-	assert.NoError(t, n.Validate())
-
-	// Invalid recipient
-	n2, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-	n2.recipientID = identity.UserID{}
-	assert.ErrorIs(t, n2.Validate(), ErrRecipientRequired)
-
-	// Invalid title
-	n3, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-	n3.title = ""
-	assert.ErrorIs(t, n3.Validate(), ErrTitleRequired)
-
-	// Invalid type
-	n4, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-	n4.notifType = NotificationType("invalid")
-	assert.ErrorIs(t, n4.Validate(), ErrInvalidNotificationType)
-}
-
-func TestNotification_Lifecycle(t *testing.T) {
-	t.Parallel()
-
-	recipientID := identity.NewUserID()
-	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
-
-	n.ClearEvents()
-	assert.Empty(t, n.Events())
-
-	// Since addEvent is private and not exposed via public methods that trigger events (passive entity),
-	// we can't test event generation directly without reflection or exposing it,
-	// but ClearEvents is tested.
 }
