@@ -12,6 +12,7 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
+// #nosec G101 // These are SQL queries, not hardcoded credentials.
 const (
 	sqlCreateEmailVerificationToken = `
 		INSERT INTO email_verification_tokens (user_id, expires_at)

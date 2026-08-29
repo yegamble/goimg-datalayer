@@ -12,3 +12,13 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - PostgreSQL Health Check Failure
+**Issue:** The PostgreSQL service health check in `ci.yml` was failing with `role "root" does not exist` errors.
+**Root Cause:** The health check command (`pg_isready`) was running without explicitly specifying the user, causing it to default to the user running the health check (root).
+**Fix:** Updated the `--health-cmd` to explicitly specify the test user with `pg_isready -U goimg_test`.
+
+## 2026-01-23 - Trivy Action Failures
+**Issue:** The `aquasecurity/trivy-action` in `security.yml` was failing due to resolution or binary download errors.
+**Root Cause:** The action version wasn't pinned to a stable commit hash (like `v0.34.0` at `c1824fd6edce30d7ab345a9989de00bbd46ef284`) and the requested Trivy release version (`v0.55.2`) had upstream download issues.
+**Fix:** Pinned `aquasecurity/trivy-action` to a stable hash (`c1824fd6edce30d7ab345a9989de00bbd46ef284`) and updated the explicit Trivy release version to `v0.69.3`.
