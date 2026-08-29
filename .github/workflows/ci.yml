@@ -252,7 +252,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U goimg_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -650,7 +650,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U goimg_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -849,6 +849,7 @@ jobs:
   # Final Status Check - All critical jobs must pass
   # ============================================================================
   ci-success:
+    timeout-minutes: 5
     name: CI Success
     runs-on: ubuntu-latest
     timeout-minutes: 5

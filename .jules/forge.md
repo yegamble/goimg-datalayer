@@ -12,3 +12,7 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+## 2026-05-25 - PostgreSQL Service Health Checks in CI
+**Issue:** Test containers could experience initialization issues or auth errors if `pg_isready` is run without specifying the database user. The `ci-success` job lacked a timeout.
+**Root Cause:** The `--health-cmd pg_isready` in `ci.yml` lacked the `-U` flag, and the GitHub Action job lacked `timeout-minutes`.
+**Fix:** Modified the `postgres` health command to `--health-cmd "pg_isready -U goimg_test"` and added `timeout-minutes: 5` to the `ci-success` job.
