@@ -250,7 +250,7 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return s.publicKey, nil
-	})
+	}, jwt.WithValidMethods([]string{"RS256"}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
@@ -276,7 +276,7 @@ func (s *Service) ExtractTokenID(tokenString string) (string, error) {
 		return "", fmt.Errorf("token cannot be empty")
 	}
 
-	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &Claims{})
+	token, _, err := jwt.NewParser(jwt.WithValidMethods([]string{"RS256"})).ParseUnverified(tokenString, &Claims{})
 	if err != nil {
 		return "", fmt.Errorf("failed to parse token: %w", err)
 	}
@@ -298,7 +298,7 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("token cannot be empty")
 	}
 
-	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &Claims{})
+	token, _, err := jwt.NewParser(jwt.WithValidMethods([]string{"RS256"})).ParseUnverified(tokenString, &Claims{})
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to parse token: %w", err)
 	}
