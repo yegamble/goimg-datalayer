@@ -13,12 +13,14 @@ import (
 )
 
 const (
+	// #nosec G101 // SQL query contains token in variable name
 	sqlCreateEmailVerificationToken = `
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlFindValidEmailVerificationToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM email_verification_tokens
@@ -27,18 +29,21 @@ const (
 		  AND expires_at > NOW()
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlMarkEmailVerificationTokenUsed = `
 		UPDATE email_verification_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlCreatePasswordResetToken = `
 		INSERT INTO password_reset_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlFindValidPasswordResetToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM password_reset_tokens
@@ -47,12 +52,14 @@ const (
 		  AND expires_at > NOW()
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlMarkPasswordResetTokenUsed = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
+	// #nosec G101 // SQL query contains token in variable name
 	sqlInvalidateAllPasswordResetTokens = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
