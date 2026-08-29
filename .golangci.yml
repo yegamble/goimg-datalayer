@@ -82,7 +82,7 @@ linters:
     - godot         # Check if comments end in a period
     - goheader      # Check file headers
     - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod
-    - gomodguard    # Allow and block lists for direct Go module dependencies
+    - gomodguard_v2 # Allow and block lists for direct Go module dependencies
     - goprintffuncname # Check that printf-like functions are named with f at the end
     - gosec         # Inspect source code for security problems
     - grouper       # Analyze expression groups
@@ -393,7 +393,7 @@ linters-settings:
     exclude-godoc-examples: true
 
   # gomodguard: module dependencies
-  gomodguard:
+  gomodguard_v2:
     blocked:
       modules:
         - github.com/sirupsen/logrus:
