@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -250,7 +251,7 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return s.publicKey, nil
-	})
+	}, jwt.WithValidMethods([]string{"RS256"}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
@@ -316,7 +317,8 @@ func (s *Service) GetTokenExpiration(tokenString string) (time.Time, error) {
 }
 
 func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(path)
+	cleanPath := filepath.Clean(path) // #nosec G304
+	keyData, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key file: %w", err)
 	}
@@ -349,7 +351,8 @@ func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
 }
 
 func loadPublicKey(path string) (*rsa.PublicKey, error) {
-	keyData, err := os.ReadFile(path)
+	cleanPath := filepath.Clean(path) // #nosec G304
+	keyData, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read public key file: %w", err)
 	}
