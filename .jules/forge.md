@@ -12,3 +12,13 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-04-14 - PostgreSQL Health Check User Mismatch
+**Issue:** Integration tests running in GitHub Actions and locally were failing due to flaky PostgreSQL container startups.
+**Root Cause:** The `health-cmd pg_isready` in `ci.yml` executed as the `root` user within the PostgreSQL container. However, since the database was initialized with `POSTGRES_USER: goimg_test`, the root user role did not exist, causing the readiness check to fail and timeout or the test execution to commence prematurely.
+**Fix:** Updated the health check command to specify the initialized user explicitly: `--health-cmd "pg_isready -U goimg_test"`.
+
+## 2026-04-14 - Trivy Action Binary Resolution Failures
+**Issue:** The security pipeline's Trivy vulnerability scan was failing to resolve and execute.
+**Root Cause:** The GitHub action `aquasecurity/trivy-action` was pinned to an outdated version (`0.28.0`), and it explicitly requested a Trivy binary release (`v0.55.2`) that could not be consistently retrieved or was unsupported by the older action wrapper.
+**Fix:** Pinned `aquasecurity/trivy-action` to a newer, stable commit hash (`c1824fd6edce30d7ab345a9989de00bbd46ef284` which resolves to `v0.34.0`) and updated the required Trivy binary version in the `with:` block to `v0.69.3`.

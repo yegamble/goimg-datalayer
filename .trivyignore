@@ -50,3 +50,21 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby daemon, not used in our application. Testcontainers development dependency only.
+# Added: 2026-04-14
+# Review: When updating testcontainers-go or docker module
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects moby daemon plugin installation, not used in our application. Testcontainers development dependency only.
+# Added: 2026-04-14
+# Review: When updating testcontainers-go or docker module
+CVE-2026-33997
+
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
+# S3 eventstream DOS vulnerability. We use S3 for simple objects, not eventstreams.
+# Added: 2026-04-14
+# Review: When updating aws-sdk-go-v2
+GHSA-xmrv-pmrh-hhx2

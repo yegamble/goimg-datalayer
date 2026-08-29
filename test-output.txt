@@ -1,0 +1,65 @@
+	github.com/yegamble/goimg-datalayer/cmd/api		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/cmd/migrate		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/cmd/worker		coverage: 0.0% of statements
+?   	github.com/yegamble/goimg-datalayer/internal	[no test files]
+	github.com/yegamble/goimg-datalayer/internal/application/activity/dto		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/activity/queries		coverage: 0.0% of statements
+?   	github.com/yegamble/goimg-datalayer/internal/application/community	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/community/commands	(cached)	coverage: 14.9% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/community/queries		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/community/testhelpers		coverage: 0.0% of statements
+?   	github.com/yegamble/goimg-datalayer/internal/application/gallery	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/gallery/commands	(cached)	coverage: 64.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/gallery/queries	(cached)	coverage: 65.9% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/gallery/testhelpers		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity	(cached)	coverage: 90.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity/commands	(cached)	coverage: 41.9% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/identity/dto		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/identity/queries	(cached)	coverage: 95.8% of statements
+?   	github.com/yegamble/goimg-datalayer/internal/application/identity/services	[no test files]
+	github.com/yegamble/goimg-datalayer/internal/application/identity/testhelpers		coverage: 0.0% of statements
+?   	github.com/yegamble/goimg-datalayer/internal/application/moderation	[no test files]
+ok  	github.com/yegamble/goimg-datalayer/internal/application/moderation/commands	(cached)	coverage: 58.3% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/moderation/queries	(cached)	coverage: 46.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/moderation/testhelpers		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/application/notification		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/application/notification/commands	(cached)	coverage: 0.0% of statements [no tests to run]
+	github.com/yegamble/goimg-datalayer/internal/application/notification/queries		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/activity	(cached)	coverage: 88.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/community	(cached)	coverage: 86.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/dummy	1.041s	coverage: [no statements]
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/gallery	(cached)	coverage: 85.8% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/identity	(cached)	coverage: 93.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/moderation	(cached)	coverage: 100.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/notification	1.059s	coverage: 94.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/domain/shared	(cached)	coverage: 78.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/infrastructure/adapters/identity		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/internal/infrastructure/email		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/jobs/asynq	(cached)	coverage: 75.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/jobs/tasks	(cached)	coverage: 28.6% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/postgres	(cached)	coverage: 0.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/persistence/redis	(cached)	coverage: 93.4% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/secrets	(cached)	coverage: 68.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security	(cached)	coverage: 51.4% of statements
+	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/clamav		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/jwt	(cached)	coverage: 87.8% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/security/nsfw	(cached)	coverage: 76.6% of statements
+	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/ipfs	(cached)	coverage: 83.1% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/local	(cached)	coverage: 76.2% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/orchestrator	(cached)	coverage: 92.9% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/processor	(cached)	coverage: 25.3% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/s3	(cached)	coverage: 36.8% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/infrastructure/storage/validator	(cached)	coverage: 90.4% of statements
+	github.com/yegamble/goimg-datalayer/internal/interfaces/http/generated		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/interfaces/http/handlers	(cached)	coverage: 12.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/internal/interfaces/http/middleware	(cached)	coverage: 64.2% of statements
+ok  	github.com/yegamble/goimg-datalayer/tests/contract	(cached)	coverage: [no statements]
+ok  	github.com/yegamble/goimg-datalayer/tests/helpers	(cached)	coverage: 100.0% of statements
+	github.com/yegamble/goimg-datalayer/tests/integration/containers		coverage: 0.0% of statements
+	github.com/yegamble/goimg-datalayer/tests/integration/fixtures		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/tests/integration/repository	(cached)	coverage: [no statements]
+ok  	github.com/yegamble/goimg-datalayer/tests/security	(cached)	coverage: [no statements]
+	github.com/yegamble/goimg-datalayer/tests/security/mocks		coverage: 0.0% of statements
+ok  	github.com/yegamble/goimg-datalayer/tests/unit	(cached)	coverage: [no statements]
+	github.com/yegamble/goimg-datalayer/tools/validate-openapi		coverage: 0.0% of statements

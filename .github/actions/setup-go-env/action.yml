@@ -17,12 +17,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set up Go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-      with:
-        go-version: ${{ inputs.go-version }}
-        cache: ${{ inputs.cache }}
-
     - name: Install libvips (Linux)
       if: inputs.install-libvips == 'true' && runner.os == 'Linux'
       shell: bash
@@ -44,6 +38,12 @@ runs:
         if [ -n "$ACT_NODE_BIN_DIR" ]; then
           echo "$ACT_NODE_BIN_DIR" >> "$GITHUB_PATH"
         fi
+
+    - name: Set up Go
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: ${{ inputs.cache }}
 
     - name: Install libvips (macOS)
       if: inputs.install-libvips == 'true' && runner.os == 'macOS'
