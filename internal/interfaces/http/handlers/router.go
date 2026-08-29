@@ -100,12 +100,13 @@ func NewRouter(
 						Post("/login", authHandler.Login)
 					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
 						Post("/register", authHandler.Register)
+					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
+						Post("/refresh", authHandler.Refresh)
 				} else {
 					r.Post("/login", authHandler.Login)
 					r.Post("/register", authHandler.Register)
+					r.Post("/refresh", authHandler.Refresh)
 				}
-
-				r.Post("/refresh", authHandler.Refresh)
 
 				if middlewareConfig.RateLimiterConfig != nil {
 					r.With(middleware.LoginRateLimiter(*middlewareConfig.RateLimiterConfig)).
@@ -230,6 +231,10 @@ func NewRouter(
 				Optional:       false,
 			}
 			r.Use(middleware.JWTAuth(authCfg))
+
+			if middlewareConfig.RateLimiterConfig != nil {
+				r.Use(middleware.AuthRateLimiter(*middlewareConfig.RateLimiterConfig))
+			}
 
 			if authHandler != nil {
 				r.Post("/auth/logout", authHandler.Logout)
