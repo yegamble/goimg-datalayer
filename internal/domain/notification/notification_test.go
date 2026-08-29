@@ -162,3 +162,47 @@ func TestNotification_Lifecycle(t *testing.T) {
 	// we can't test event generation directly without reflection or exposing it,
 	// but ClearEvents is tested.
 }
+
+func TestNotification_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	// Test 1: Generate from map.
+	recipientID := identity.NewUserID()
+	metadata := map[string]string{"foo": "bar"}
+	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", metadata)
+	raw := n.MetadataRaw()
+	assert.Contains(t, string(raw), `"foo":"bar"`)
+
+	// Test 2: Generate empty fallback.
+	n2, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
+	// Force the internal map to nil to test the empty fallback logic.
+	n2.metadata = nil
+	n2.metadataRaw = nil
+	assert.Equal(t, "{}", string(n2.MetadataRaw()))
+}
+
+// dummyEvent is a mock for testing domain events.
+type dummyEvent struct {
+	id string
+}
+
+func (d dummyEvent) EventID() string       { return d.id }
+func (d dummyEvent) AggregateID() string   { return "1" }
+func (d dummyEvent) AggregateType() string { return "dummy" }
+func (d dummyEvent) EventType() string     { return "dummy.event" }
+func (d dummyEvent) OccurredAt() time.Time { return time.Now() }
+
+func TestNotification_AddEvent(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
+
+	// Test addEvent and Events() since addEvent is unexported.
+	event := dummyEvent{id: "evt-1"}
+	n.addEvent(event)
+	assert.Len(t, n.Events(), 1)
+
+	n.ClearEvents()
+	assert.Empty(t, n.Events())
+}
