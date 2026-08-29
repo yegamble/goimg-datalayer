@@ -120,7 +120,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy ${{ matrix.scan-type }} scanner
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -129,12 +129,12 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
           exit-code: '1'
-          version: 'v0.55.2'
+          version: 'v0.69.3'
         continue-on-error: true
         id: trivy-scan
 
       - name: Generate SARIF output
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: ${{ matrix.scan-type }}
           scan-ref: '.'
@@ -142,7 +142,7 @@ jobs:
           output: 'trivy-${{ matrix.scan-type }}-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
           ignore-unfixed: true
-          version: 'v0.55.2'
+          version: 'v0.69.3'
         continue-on-error: true
 
       - name: Add Trivy results to summary
