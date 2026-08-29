@@ -274,7 +274,7 @@ func NewRouter(
 
 			// Note: Upload endpoint should have special rate limiting applied at handler level
 			if imageHandler != nil {
-				r.Mount("/images", imageHandler.Routes())
+				r.Mount("/images", imageHandler.Routes(middlewareConfig.RateLimiterConfig))
 			}
 
 			if albumHandler != nil {
