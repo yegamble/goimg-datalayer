@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-06-28 - Update aquasecurity/trivy-action to v0.34.0
+**Issue:** CI failing due to 'Unable to resolve action aquasecurity/setup-trivy' or binary download errors when running Trivy scans.
+**Root Cause:** Older versions of trivy-action (like 0.28.0) reference an invalid/deleted setup-trivy tag.
+**Fix:** Pinned `aquasecurity/trivy-action` to a verified stable commit hash for at least v0.34.0 (`c1824fd6edce30d7ab345a9989de00bbd46ef284`).
