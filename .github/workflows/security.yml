@@ -261,7 +261,19 @@ jobs:
 
       - name: Install Gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz | tar xz
+          success=false
+          for i in 1 2 3 4 5; do
+            if curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz | tar xz; then
+              success=true
+              break
+            fi
+            echo "Download failed, retrying in 5s..."
+            sleep 5
+          done
+          if [ "$success" = false ]; then
+            echo "Failed to download Gitleaks after 5 attempts"
+            exit 1
+          fi
           sudo mv gitleaks /usr/local/bin/
 
       - name: Run Gitleaks secret scanner
@@ -398,7 +410,19 @@ jobs:
       - name: Scan SBOM with Grype
         run: |
           # Install Grype (pinned)
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.105.0
+          success=false
+          for i in 1 2 3 4 5; do
+            if curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin v0.105.0; then
+              success=true
+              break
+            fi
+            echo "Download failed, retrying in 5s..."
+            sleep 5
+          done
+          if [ "$success" = false ]; then
+            echo "Failed to download Grype after 5 attempts"
+            exit 1
+          fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### SBOM Vulnerability Scan (Grype)" >> $GITHUB_STEP_SUMMARY
