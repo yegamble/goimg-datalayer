@@ -133,3 +133,9 @@ func TestUserID_Equals(t *testing.T) {
 		assert.True(t, id1.Equals(id2))
 	})
 }
+func TestUserID_UUID(t *testing.T) {
+	t.Parallel()
+	id := identity.NewUserID()
+	uuidVal := id.UUID()
+	assert.Equal(t, id.String(), uuidVal.String())
+}
