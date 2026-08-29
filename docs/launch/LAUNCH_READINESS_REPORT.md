@@ -340,7 +340,7 @@ Minor post-launch enhancements identified (2FA, password breach check, timing at
 
 | Step | Tool | Status | Notes |
 |------|------|--------|-------|
-| **Linting** | golangci-lint v2.6.2 | ✅ PASS | 0 errors |
+| **Linting** | golangci-lint v1.64.5 | ✅ PASS | 0 errors |
 | **Unit Tests** | go test -race | ✅ PASS | All tests passing |
 | **Integration Tests** | testcontainers | ✅ PASS | PostgreSQL, Redis |
 | **OpenAPI Validation** | oapi-codegen | ✅ PASS | 100% spec compliance |

@@ -187,7 +187,7 @@ All residual risks have been assessed and either mitigated or accepted:
 
 **GitHub Actions**: ✅ All checks passing
 
-- ✅ Linting (golangci-lint v2.6.2): 0 errors
+- ✅ Linting (golangci-lint v1.64.5): 0 errors
 - ✅ Unit tests (go test -race): All passing
 - ✅ Integration tests (testcontainers): PostgreSQL, Redis passing
 - ✅ OpenAPI validation: 100% spec compliance
