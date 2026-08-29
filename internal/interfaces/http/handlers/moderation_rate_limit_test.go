@@ -88,15 +88,19 @@ func (m *MockImageRepository) NextID() gallery.ImageID { return gallery.ImageID{
 func (m *MockImageRepository) FindByOwner(ctx context.Context, ownerID identity.UserID, pagination shared.Pagination, visibility *gallery.Visibility) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
+
 func (m *MockImageRepository) FindPublic(ctx context.Context, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
+
 func (m *MockImageRepository) FindByTag(ctx context.Context, tag gallery.Tag, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
+
 func (m *MockImageRepository) FindByStatus(ctx context.Context, status gallery.ImageStatus, pagination shared.Pagination) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
+
 func (m *MockImageRepository) Search(ctx context.Context, params gallery.SearchParams) ([]*gallery.Image, int64, error) {
 	return nil, 0, nil
 }
