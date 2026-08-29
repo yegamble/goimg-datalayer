@@ -50,3 +50,20 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2
+# Affects EventStream which we don't use
+# Added: 2026-04-27
+# Review: When updating aws-sdk-go-v2
+GHSA-xmrv-pmrh-hhx2
+
+# CVE-2026-34040 - github.com/docker/docker
+# Affects moby daemon, not used
+# Added: 2026-04-27
+# Review: When updating docker
+CVE-2026-34040
+
+# CVE-2026-33997 - github.com/docker/docker
+# Affects moby daemon, not used
+# Added: 2026-04-27
+# Review: When updating docker
+CVE-2026-33997
