@@ -414,6 +414,11 @@ func TestProvider(t *testing.T) {
 func TestValidateKey_Valid(t *testing.T) {
 	t.Parallel()
 
+	storage := &Storage{
+		basePath: "/var/storage",
+		baseURL:  "http://localhost/uploads",
+	}
+
 	tests := []struct {
 		name string
 		key  string
@@ -429,7 +434,7 @@ func TestValidateKey_Valid(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := validateKey(tt.key)
+			err := storage.validateKey(tt.key)
 			assert.NoError(t, err)
 		})
 	}
@@ -438,6 +443,11 @@ func TestValidateKey_Valid(t *testing.T) {
 // TestValidateKey_Invalid tests key validation with invalid keys.
 func TestValidateKey_Invalid(t *testing.T) {
 	t.Parallel()
+
+	storage := &Storage{
+		basePath: "/var/storage",
+		baseURL:  "http://localhost/uploads",
+	}
 
 	tests := []struct {
 		name      string
@@ -480,7 +490,7 @@ func TestValidateKey_Invalid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateKey(tt.key)
+			err := storage.validateKey(tt.key)
 			require.Error(t, err)
 			assert.ErrorIs(t, err, tt.wantError, "expected error %v, got %v", tt.wantError, err)
 		})

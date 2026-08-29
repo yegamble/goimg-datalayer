@@ -95,7 +95,7 @@ func New(cfg Config) (*Storage, error) {
 //
 //nolint:cyclop // Sequential steps: validation, directory creation, temp file, streaming, finalization.
 func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int64, _ PutOptions) error {
-	if err := validateKey(key); err != nil {
+	if err := s.validateKey(key); err != nil {
 		return err
 	}
 
@@ -173,7 +173,7 @@ func (s *Storage) PutBytes(ctx context.Context, key string, data []byte, opts Pu
 
 // Get retrieves data from storage as a streaming reader.
 func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
-	if err := validateKey(key); err != nil {
+	if err := s.validateKey(key); err != nil {
 		return nil, err
 	}
 
@@ -216,7 +216,7 @@ func (s *Storage) GetBytes(ctx context.Context, key string) ([]byte, error) {
 
 // Delete removes an object from storage.
 func (s *Storage) Delete(_ context.Context, key string) error {
-	if err := validateKey(key); err != nil {
+	if err := s.validateKey(key); err != nil {
 		return err
 	}
 
@@ -231,7 +231,7 @@ func (s *Storage) Delete(_ context.Context, key string) error {
 
 // Exists checks if an object exists at the given key.
 func (s *Storage) Exists(_ context.Context, key string) (bool, error) {
-	if err := validateKey(key); err != nil {
+	if err := s.validateKey(key); err != nil {
 		return false, err
 	}
 
@@ -262,7 +262,7 @@ func (s *Storage) PresignedURL(_ context.Context, _ string, _ time.Duration) (st
 
 // Stat returns metadata about a stored object.
 func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
-	if err := validateKey(key); err != nil {
+	if err := s.validateKey(key); err != nil {
 		return nil, err
 	}
 
@@ -323,9 +323,12 @@ func (s *Storage) calculateETag(path string) (string, error) {
 }
 
 // validateKey checks if a storage key is safe.
-func validateKey(key string) error {
+func (s *Storage) validateKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("%w: empty key", errInvalidKey)
+	}
+	if strings.ContainsRune(key, 0) {
+		return fmt.Errorf("%w: contains null byte", errInvalidKey)
 	}
 	if strings.Contains(key, "..") {
 		return fmt.Errorf("%w: contains '..'", errPathTraversal)
@@ -336,9 +339,13 @@ func validateKey(key string) error {
 	if strings.HasPrefix(key, "/") || strings.HasPrefix(key, "\\") {
 		return fmt.Errorf("%w: cannot be absolute path", errPathTraversal)
 	}
-	if strings.ContainsRune(key, 0) {
-		return fmt.Errorf("%w: contains null byte", errInvalidKey)
+
+	cleanPath := filepath.Clean(filepath.Join(s.basePath, key))
+	expectedPrefix := filepath.Clean(s.basePath) + string(filepath.Separator)
+	if !strings.HasPrefix(cleanPath, expectedPrefix) && cleanPath != filepath.Clean(s.basePath) {
+		return fmt.Errorf("%w: out of bounds", errPathTraversal)
 	}
+
 	return nil
 }
 

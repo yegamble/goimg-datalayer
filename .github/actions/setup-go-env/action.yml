@@ -17,21 +17,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set up Go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-      with:
-        go-version: ${{ inputs.go-version }}
-        cache: ${{ inputs.cache }}
-
-    - name: Install libvips (Linux)
-      if: inputs.install-libvips == 'true' && runner.os == 'Linux'
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libvips-dev
-
     # Some local runners (for example act) can drop system paths after setup steps.
     # Re-adding common binary paths keeps Node-based actions available.
+    # Must be done BEFORE actions/setup-go to prevent shadowing the new Go binary with the old system one!
     - name: Ensure node and system binary paths (Linux)
       if: runner.os == 'Linux'
       shell: bash
@@ -44,6 +32,19 @@ runs:
         if [ -n "$ACT_NODE_BIN_DIR" ]; then
           echo "$ACT_NODE_BIN_DIR" >> "$GITHUB_PATH"
         fi
+
+    - name: Set up Go
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: ${{ inputs.cache }}
+
+    - name: Install libvips (Linux)
+      if: inputs.install-libvips == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvips-dev
 
     - name: Install libvips (macOS)
       if: inputs.install-libvips == 'true' && runner.os == 'macOS'

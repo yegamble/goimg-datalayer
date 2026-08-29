@@ -1,0 +1,6 @@
+version: v1
+vulnerability:
+  - id: CVE-2026-34040
+    reason: Dependency comes from github.com/testcontainers/testcontainers-go which pulls an old Docker module in go.mod. It's only used for tests.
+  - id: CVE-2026-33997
+    reason: Dependency comes from github.com/testcontainers/testcontainers-go which pulls an old Docker module in go.mod. It's only used for tests.
