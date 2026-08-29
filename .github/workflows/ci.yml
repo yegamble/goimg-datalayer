@@ -14,9 +14,19 @@ on:
       - main
       - develop
       - 'claude/*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '**.txt'
   pull_request:
     branches:
       - "**"
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '**.txt'
 
 # Cancel in-progress runs on new commits to the same PR
 concurrency:
@@ -492,6 +502,10 @@ jobs:
             echo "OpenAPI spec not found, skipping validation (expected in Sprint 1 Week 2)"
           fi
 
+      - name: Install oapi-codegen
+        if: steps.check_openapi.outputs.exists == 'true'
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.1
+
       - name: Validate OpenAPI spec with Spectral
         if: steps.check_openapi.outputs.exists == 'true'
         uses: stoplightio/spectral-action@a8cf48e40dfe41c9cb9e34ad1395262ee1e797ca # v0.8.10
@@ -506,7 +520,7 @@ jobs:
           if [ -f "Makefile" ]; then
             if grep -q "generate" Makefile; then
               echo "Checking for OpenAPI drift..."
-              make generate || echo "No generate target or generation not required"
+              make generate
 
               # Check if any files were modified
               if ! git diff --quiet; then
@@ -566,12 +580,7 @@ jobs:
     needs: [lint, test-unit, test-integration, domain-tests]
     timeout-minutes: 15
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -610,7 +619,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: binaries-${{ matrix.os }}
+          name: binaries-ubuntu-latest
           path: bin/
           retention-days: 1
 

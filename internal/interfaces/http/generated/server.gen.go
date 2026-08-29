@@ -29,6 +29,23 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for ActivityActivityType.
+const (
+	ActivityActivityTypeAlbumCreated   ActivityActivityType = "album_created"
+	ActivityActivityTypeImageCommented ActivityActivityType = "image_commented"
+	ActivityActivityTypeImageLiked     ActivityActivityType = "image_liked"
+	ActivityActivityTypeImageUploaded  ActivityActivityType = "image_uploaded"
+	ActivityActivityTypeUserFollowed   ActivityActivityType = "user_followed"
+)
+
+// Defines values for ActivityTargetType.
+const (
+	ActivityTargetTypeAlbum   ActivityTargetType = "album"
+	ActivityTargetTypeComment ActivityTargetType = "comment"
+	ActivityTargetTypeImage   ActivityTargetType = "image"
+	ActivityTargetTypeUser    ActivityTargetType = "user"
+)
+
 // Defines values for AlbumVisibility.
 const (
 	AlbumVisibilityPrivate  AlbumVisibility = "private"
@@ -36,29 +53,45 @@ const (
 	AlbumVisibilityUnlisted AlbumVisibility = "unlisted"
 )
 
-// Defines values for AlbumWithImagesVisibility.
+// Defines values for CreateGroupRequestGroupType.
 const (
-	AlbumWithImagesVisibilityPrivate  AlbumWithImagesVisibility = "private"
-	AlbumWithImagesVisibilityPublic   AlbumWithImagesVisibility = "public"
-	AlbumWithImagesVisibilityUnlisted AlbumWithImagesVisibility = "unlisted"
+	CreateGroupRequestGroupTypeInviteOnly CreateGroupRequestGroupType = "invite_only"
+	CreateGroupRequestGroupTypePrivate    CreateGroupRequestGroupType = "private"
+	CreateGroupRequestGroupTypePublic     CreateGroupRequestGroupType = "public"
 )
 
-// Defines values for HealthStatusChecksDatabase.
+// Defines values for GroupMembershipResponseRole.
 const (
-	HealthStatusChecksDatabaseDown HealthStatusChecksDatabase = "down"
-	HealthStatusChecksDatabaseUp   HealthStatusChecksDatabase = "up"
+	GroupMembershipResponseRoleAdmin  GroupMembershipResponseRole = "admin"
+	GroupMembershipResponseRoleMember GroupMembershipResponseRole = "member"
+	GroupMembershipResponseRoleOwner  GroupMembershipResponseRole = "owner"
 )
 
-// Defines values for HealthStatusChecksRedis.
+// Defines values for GroupMembershipResponseStatus.
 const (
-	HealthStatusChecksRedisDown HealthStatusChecksRedis = "down"
-	HealthStatusChecksRedisUp   HealthStatusChecksRedis = "up"
+	GroupMembershipResponseStatusActive    GroupMembershipResponseStatus = "active"
+	GroupMembershipResponseStatusBanned    GroupMembershipResponseStatus = "banned"
+	GroupMembershipResponseStatusInvited   GroupMembershipResponseStatus = "invited"
+	GroupMembershipResponseStatusRequested GroupMembershipResponseStatus = "requested"
 )
 
-// Defines values for HealthStatusChecksStorage.
+// Defines values for GroupResponseGroupType.
 const (
-	HealthStatusChecksStorageDown HealthStatusChecksStorage = "down"
-	HealthStatusChecksStorageUp   HealthStatusChecksStorage = "up"
+	GroupResponseGroupTypeInviteOnly GroupResponseGroupType = "invite_only"
+	GroupResponseGroupTypePrivate    GroupResponseGroupType = "private"
+	GroupResponseGroupTypePublic     GroupResponseGroupType = "public"
+)
+
+// Defines values for HealthCheckStatus.
+const (
+	HealthCheckStatusDown HealthCheckStatus = "down"
+	HealthCheckStatusUp   HealthCheckStatus = "up"
+)
+
+// Defines values for HealthReadyResponseStatus.
+const (
+	HealthReadyResponseStatusNotReady HealthReadyResponseStatus = "not_ready"
+	HealthReadyResponseStatusReady    HealthReadyResponseStatus = "ready"
 )
 
 // Defines values for HealthStatusStatus.
@@ -73,6 +106,83 @@ const (
 	ImageVisibilityPrivate  ImageVisibility = "private"
 	ImageVisibilityPublic   ImageVisibility = "public"
 	ImageVisibilityUnlisted ImageVisibility = "unlisted"
+)
+
+// Defines values for NSFWScanCategory.
+const (
+	NSFWScanCategoryDrugs      NSFWScanCategory = "drugs"
+	NSFWScanCategoryExplicit   NSFWScanCategory = "explicit"
+	NSFWScanCategoryNudity     NSFWScanCategory = "nudity"
+	NSFWScanCategoryOffensive  NSFWScanCategory = "offensive"
+	NSFWScanCategorySafe       NSFWScanCategory = "safe"
+	NSFWScanCategorySuggestive NSFWScanCategory = "suggestive"
+	NSFWScanCategoryUnknown    NSFWScanCategory = "unknown"
+	NSFWScanCategoryViolence   NSFWScanCategory = "violence"
+	NSFWScanCategoryWeapons    NSFWScanCategory = "weapons"
+)
+
+// Defines values for NSFWScanProvider.
+const (
+	NSFWScanProviderMock            NSFWScanProvider = "mock"
+	NSFWScanProviderModeratecontent NSFWScanProvider = "moderatecontent"
+	NSFWScanProviderSightengine     NSFWScanProvider = "sightengine"
+)
+
+// Defines values for NSFWScanStatus.
+const (
+	NSFWScanStatusCompleted NSFWScanStatus = "completed"
+	NSFWScanStatusFailed    NSFWScanStatus = "failed"
+	NSFWScanStatusPending   NSFWScanStatus = "pending"
+	NSFWScanStatusScanning  NSFWScanStatus = "scanning"
+)
+
+// Defines values for NSFWScanResponseCategory.
+const (
+	NSFWScanResponseCategoryDrugs      NSFWScanResponseCategory = "drugs"
+	NSFWScanResponseCategoryExplicit   NSFWScanResponseCategory = "explicit"
+	NSFWScanResponseCategoryNudity     NSFWScanResponseCategory = "nudity"
+	NSFWScanResponseCategoryOffensive  NSFWScanResponseCategory = "offensive"
+	NSFWScanResponseCategorySafe       NSFWScanResponseCategory = "safe"
+	NSFWScanResponseCategorySuggestive NSFWScanResponseCategory = "suggestive"
+	NSFWScanResponseCategoryUnknown    NSFWScanResponseCategory = "unknown"
+	NSFWScanResponseCategoryViolence   NSFWScanResponseCategory = "violence"
+	NSFWScanResponseCategoryWeapons    NSFWScanResponseCategory = "weapons"
+)
+
+// Defines values for NSFWScanResponseStatus.
+const (
+	NSFWScanResponseStatusCompleted NSFWScanResponseStatus = "completed"
+	NSFWScanResponseStatusFailed    NSFWScanResponseStatus = "failed"
+	NSFWScanResponseStatusPending   NSFWScanResponseStatus = "pending"
+	NSFWScanResponseStatusScanning  NSFWScanResponseStatus = "scanning"
+)
+
+// Defines values for NotificationType.
+const (
+	NotificationTypeAbuseReport       NotificationType = "abuse_report"
+	NotificationTypeAccountBanned     NotificationType = "account_banned"
+	NotificationTypeAccountReinstated NotificationType = "account_reinstated"
+	NotificationTypeAccountSuspended  NotificationType = "account_suspended"
+	NotificationTypeModActionRequired NotificationType = "mod_action_required"
+	NotificationTypeNewFollower       NotificationType = "new_follower"
+	NotificationTypeNewPhotos         NotificationType = "new_photos"
+	NotificationTypeReportEscalated   NotificationType = "report_escalated"
+)
+
+// Defines values for OAuthAccountProvider.
+const (
+	OAuthAccountProviderGithub OAuthAccountProvider = "github"
+	OAuthAccountProviderGoogle OAuthAccountProvider = "google"
+)
+
+// Defines values for OEmbedResponseType.
+const (
+	OEmbedResponseTypePhoto OEmbedResponseType = "photo"
+)
+
+// Defines values for OEmbedResponseVersion.
+const (
+	OEmbedResponseVersionN10 OEmbedResponseVersion = "1.0"
 )
 
 // Defines values for ReportReason.
@@ -90,6 +200,42 @@ const (
 	ReportStatusPending   ReportStatus = "pending"
 	ReportStatusResolved  ReportStatus = "resolved"
 	ReportStatusReviewing ReportStatus = "reviewing"
+)
+
+// Defines values for TagListResponsePeriod.
+const (
+	TagListResponsePeriodAll   TagListResponsePeriod = "all"
+	TagListResponsePeriodDay   TagListResponsePeriod = "day"
+	TagListResponsePeriodMonth TagListResponsePeriod = "month"
+	TagListResponsePeriodWeek  TagListResponsePeriod = "week"
+)
+
+// Defines values for TrendingTagListResponsePeriod.
+const (
+	TrendingTagListResponsePeriodDay   TrendingTagListResponsePeriod = "day"
+	TrendingTagListResponsePeriodMonth TrendingTagListResponsePeriod = "month"
+	TrendingTagListResponsePeriodWeek  TrendingTagListResponsePeriod = "week"
+)
+
+// Defines values for UpdateMemberRoleRequestRole.
+const (
+	UpdateMemberRoleRequestRoleAdmin  UpdateMemberRoleRequestRole = "admin"
+	UpdateMemberRoleRequestRoleMember UpdateMemberRoleRequestRole = "member"
+)
+
+// Defines values for VariantConfigCropMode.
+const (
+	VariantConfigCropModeCrop VariantConfigCropMode = "crop"
+	VariantConfigCropModeFill VariantConfigCropMode = "fill"
+	VariantConfigCropModeFit  VariantConfigCropMode = "fit"
+)
+
+// Defines values for VariantConfigFormat.
+const (
+	VariantConfigFormatAvif VariantConfigFormat = "avif"
+	VariantConfigFormatJpeg VariantConfigFormat = "jpeg"
+	VariantConfigFormatPng  VariantConfigFormat = "png"
+	VariantConfigFormatWebp VariantConfigFormat = "webp"
 )
 
 // Defines values for ListAlbumsParamsVisibility.
@@ -113,12 +259,78 @@ const (
 	UpdateAlbumJSONBodyVisibilityUnlisted UpdateAlbumJSONBodyVisibility = "unlisted"
 )
 
+// Defines values for UnlinkOAuthAccountParamsProvider.
+const (
+	UnlinkOAuthAccountParamsProviderGithub UnlinkOAuthAccountParamsProvider = "github"
+	UnlinkOAuthAccountParamsProviderGoogle UnlinkOAuthAccountParamsProvider = "google"
+)
+
+// Defines values for LinkOAuthAccountJSONBodyProvider.
+const (
+	LinkOAuthAccountJSONBodyProviderGithub LinkOAuthAccountJSONBodyProvider = "github"
+	LinkOAuthAccountJSONBodyProviderGoogle LinkOAuthAccountJSONBodyProvider = "google"
+)
+
+// Defines values for UnlinkOAuthAccountByProviderParamsProvider.
+const (
+	UnlinkOAuthAccountByProviderParamsProviderGithub UnlinkOAuthAccountByProviderParamsProvider = "github"
+	UnlinkOAuthAccountByProviderParamsProviderGoogle UnlinkOAuthAccountByProviderParamsProvider = "google"
+)
+
+// Defines values for InitiateOAuthFlowParamsProvider.
+const (
+	InitiateOAuthFlowParamsProviderGithub InitiateOAuthFlowParamsProvider = "github"
+	InitiateOAuthFlowParamsProviderGoogle InitiateOAuthFlowParamsProvider = "google"
+)
+
+// Defines values for HandleOAuthCallbackParamsProvider.
+const (
+	HandleOAuthCallbackParamsProviderGithub HandleOAuthCallbackParamsProvider = "github"
+	HandleOAuthCallbackParamsProviderGoogle HandleOAuthCallbackParamsProvider = "google"
+)
+
 // Defines values for ExplorePopularParamsPeriod.
 const (
 	ExplorePopularParamsPeriodAll   ExplorePopularParamsPeriod = "all"
 	ExplorePopularParamsPeriodDay   ExplorePopularParamsPeriod = "day"
 	ExplorePopularParamsPeriodMonth ExplorePopularParamsPeriod = "month"
 	ExplorePopularParamsPeriodWeek  ExplorePopularParamsPeriod = "week"
+)
+
+// Defines values for ListGroupsParamsType.
+const (
+	ListGroupsParamsTypeInviteOnly ListGroupsParamsType = "invite_only"
+	ListGroupsParamsTypePublic     ListGroupsParamsType = "public"
+)
+
+// Defines values for ListGroupsParamsSort.
+const (
+	ListGroupsParamsSortName    ListGroupsParamsSort = "name"
+	ListGroupsParamsSortPopular ListGroupsParamsSort = "popular"
+	ListGroupsParamsSortRecent  ListGroupsParamsSort = "recent"
+)
+
+// Defines values for ListGroupAlbumsParamsSort.
+const (
+	ListGroupAlbumsParamsSortMostImages ListGroupAlbumsParamsSort = "most_images"
+	ListGroupAlbumsParamsSortName       ListGroupAlbumsParamsSort = "name"
+	ListGroupAlbumsParamsSortNewest     ListGroupAlbumsParamsSort = "newest"
+	ListGroupAlbumsParamsSortOldest     ListGroupAlbumsParamsSort = "oldest"
+)
+
+// Defines values for ListGroupMembersParamsRole.
+const (
+	ListGroupMembersParamsRoleAdmin  ListGroupMembersParamsRole = "admin"
+	ListGroupMembersParamsRoleMember ListGroupMembersParamsRole = "member"
+	ListGroupMembersParamsRoleOwner  ListGroupMembersParamsRole = "owner"
+)
+
+// Defines values for ListGroupMembersParamsStatus.
+const (
+	ListGroupMembersParamsStatusActive    ListGroupMembersParamsStatus = "active"
+	ListGroupMembersParamsStatusBanned    ListGroupMembersParamsStatus = "banned"
+	ListGroupMembersParamsStatusInvited   ListGroupMembersParamsStatus = "invited"
+	ListGroupMembersParamsStatusRequested ListGroupMembersParamsStatus = "requested"
 )
 
 // Defines values for ListImagesParamsVisibility.
@@ -148,11 +360,41 @@ const (
 	UploadImageMultipartBodyVisibilityUnlisted UploadImageMultipartBodyVisibility = "unlisted"
 )
 
+// Defines values for SearchImagesParamsVisibility.
+const (
+	SearchImagesParamsVisibilityPrivate  SearchImagesParamsVisibility = "private"
+	SearchImagesParamsVisibilityPublic   SearchImagesParamsVisibility = "public"
+	SearchImagesParamsVisibilityUnlisted SearchImagesParamsVisibility = "unlisted"
+)
+
+// Defines values for SearchImagesParamsSortBy.
+const (
+	SearchImagesParamsSortByCreatedAt SearchImagesParamsSortBy = "created_at"
+	SearchImagesParamsSortByLikeCount SearchImagesParamsSortBy = "like_count"
+	SearchImagesParamsSortByRelevance SearchImagesParamsSortBy = "relevance"
+	SearchImagesParamsSortByViewCount SearchImagesParamsSortBy = "view_count"
+)
+
 // Defines values for UpdateImageJSONBodyVisibility.
 const (
 	UpdateImageJSONBodyVisibilityPrivate  UpdateImageJSONBodyVisibility = "private"
 	UpdateImageJSONBodyVisibilityPublic   UpdateImageJSONBodyVisibility = "public"
 	UpdateImageJSONBodyVisibilityUnlisted UpdateImageJSONBodyVisibility = "unlisted"
+)
+
+// Defines values for GenerateCustomVariantJSONBodyCropMode.
+const (
+	GenerateCustomVariantJSONBodyCropModeCrop GenerateCustomVariantJSONBodyCropMode = "crop"
+	GenerateCustomVariantJSONBodyCropModeFill GenerateCustomVariantJSONBodyCropMode = "fill"
+	GenerateCustomVariantJSONBodyCropModeFit  GenerateCustomVariantJSONBodyCropMode = "fit"
+)
+
+// Defines values for GenerateCustomVariantJSONBodyFormat.
+const (
+	GenerateCustomVariantJSONBodyFormatAvif GenerateCustomVariantJSONBodyFormat = "avif"
+	GenerateCustomVariantJSONBodyFormatJpeg GenerateCustomVariantJSONBodyFormat = "jpeg"
+	GenerateCustomVariantJSONBodyFormatPng  GenerateCustomVariantJSONBodyFormat = "png"
+	GenerateCustomVariantJSONBodyFormatWebp GenerateCustomVariantJSONBodyFormat = "webp"
 )
 
 // Defines values for GetImageVariantParamsSize.
@@ -164,6 +406,13 @@ const (
 	GetImageVariantParamsSizeThumbnail GetImageVariantParamsSize = "thumbnail"
 )
 
+// Defines values for ListUserGroupsParamsRole.
+const (
+	ListUserGroupsParamsRoleAdmin  ListUserGroupsParamsRole = "admin"
+	ListUserGroupsParamsRoleMember ListUserGroupsParamsRole = "member"
+	ListUserGroupsParamsRoleOwner  ListUserGroupsParamsRole = "owner"
+)
+
 // Defines values for ListReportsParamsStatus.
 const (
 	ListReportsParamsStatusDismissed ListReportsParamsStatus = "dismissed"
@@ -172,12 +421,10 @@ const (
 	ListReportsParamsStatusReviewing ListReportsParamsStatus = "reviewing"
 )
 
-// Defines values for ResolveReportJSONBodyAction.
+// Defines values for GetOEmbedParamsFormat.
 const (
-	ResolveReportJSONBodyActionBan     ResolveReportJSONBodyAction = "ban"
-	ResolveReportJSONBodyActionDismiss ResolveReportJSONBodyAction = "dismiss"
-	ResolveReportJSONBodyActionRemove  ResolveReportJSONBodyAction = "remove"
-	ResolveReportJSONBodyActionWarn    ResolveReportJSONBodyAction = "warn"
+	GetOEmbedParamsFormatJson GetOEmbedParamsFormat = "json"
+	GetOEmbedParamsFormatXml  GetOEmbedParamsFormat = "xml"
 )
 
 // Defines values for CreateReportJSONBodyReason.
@@ -189,6 +436,105 @@ const (
 	CreateReportJSONBodyReasonSpam          CreateReportJSONBodyReason = "spam"
 )
 
+// Defines values for ListPopularTagsParamsPeriod.
+const (
+	ListPopularTagsParamsPeriodAll   ListPopularTagsParamsPeriod = "all"
+	ListPopularTagsParamsPeriodDay   ListPopularTagsParamsPeriod = "day"
+	ListPopularTagsParamsPeriodMonth ListPopularTagsParamsPeriod = "month"
+	ListPopularTagsParamsPeriodWeek  ListPopularTagsParamsPeriod = "week"
+)
+
+// Defines values for ListTrendingTagsParamsPeriod.
+const (
+	ListTrendingTagsParamsPeriodDay   ListTrendingTagsParamsPeriod = "day"
+	ListTrendingTagsParamsPeriodMonth ListTrendingTagsParamsPeriod = "month"
+	ListTrendingTagsParamsPeriodWeek  ListTrendingTagsParamsPeriod = "week"
+)
+
+// Defines values for CreateVariantConfigJSONBodyCropMode.
+const (
+	CreateVariantConfigJSONBodyCropModeCrop CreateVariantConfigJSONBodyCropMode = "crop"
+	CreateVariantConfigJSONBodyCropModeFill CreateVariantConfigJSONBodyCropMode = "fill"
+	CreateVariantConfigJSONBodyCropModeFit  CreateVariantConfigJSONBodyCropMode = "fit"
+)
+
+// Defines values for CreateVariantConfigJSONBodyFormat.
+const (
+	CreateVariantConfigJSONBodyFormatAvif CreateVariantConfigJSONBodyFormat = "avif"
+	CreateVariantConfigJSONBodyFormatJpeg CreateVariantConfigJSONBodyFormat = "jpeg"
+	CreateVariantConfigJSONBodyFormatPng  CreateVariantConfigJSONBodyFormat = "png"
+	CreateVariantConfigJSONBodyFormatWebp CreateVariantConfigJSONBodyFormat = "webp"
+)
+
+// Defines values for UpdateVariantConfigJSONBodyCropMode.
+const (
+	UpdateVariantConfigJSONBodyCropModeCrop UpdateVariantConfigJSONBodyCropMode = "crop"
+	UpdateVariantConfigJSONBodyCropModeFill UpdateVariantConfigJSONBodyCropMode = "fill"
+	UpdateVariantConfigJSONBodyCropModeFit  UpdateVariantConfigJSONBodyCropMode = "fit"
+)
+
+// Defines values for UpdateVariantConfigJSONBodyFormat.
+const (
+	UpdateVariantConfigJSONBodyFormatAvif UpdateVariantConfigJSONBodyFormat = "avif"
+	UpdateVariantConfigJSONBodyFormatJpeg UpdateVariantConfigJSONBodyFormat = "jpeg"
+	UpdateVariantConfigJSONBodyFormatPng  UpdateVariantConfigJSONBodyFormat = "png"
+	UpdateVariantConfigJSONBodyFormatWebp UpdateVariantConfigJSONBodyFormat = "webp"
+)
+
+// Activity A single activity performed by a user
+type Activity struct {
+	// ActivityType Type of activity performed
+	ActivityType ActivityActivityType `json:"activity_type"`
+
+	// ActorId ID of the user who performed the activity
+	ActorId openapi_types.UUID `json:"actor_id"`
+
+	// CreatedAt When the activity occurred
+	CreatedAt time.Time `json:"created_at"`
+
+	// Id Unique identifier for the activity
+	Id openapi_types.UUID `json:"id"`
+
+	// Metadata Additional contextual information about the activity
+	Metadata *map[string]string `json:"metadata,omitempty"`
+
+	// TargetId ID of the target entity
+	TargetId openapi_types.UUID `json:"target_id"`
+
+	// TargetType Type of the target entity
+	TargetType ActivityTargetType `json:"target_type"`
+}
+
+// ActivityActivityType Type of activity performed
+type ActivityActivityType string
+
+// ActivityTargetType Type of the target entity
+type ActivityTargetType string
+
+// ActivityFeed Paginated feed of activities from followed users
+type ActivityFeed struct {
+	// Activities List of activities from followed users
+	Activities []Activity `json:"activities"`
+
+	// Limit Maximum number of activities returned
+	Limit int `json:"limit"`
+
+	// Offset Number of activities skipped for pagination
+	Offset int `json:"offset"`
+
+	// TotalCount Total number of activities in the feed
+	TotalCount int `json:"total_count"`
+}
+
+// AddImageToGroupAlbumRequest Request body for adding an image to a group album
+type AddImageToGroupAlbumRequest struct {
+	// ImageId Image ID (must be posted to the group)
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// Position Optional display position (defaults to end)
+	Position *int `json:"position,omitempty"`
+}
+
 // Album defines model for Album.
 type Album struct {
 	CoverImage   *Image              `json:"cover_image"`
@@ -198,32 +544,70 @@ type Album struct {
 	Id           openapi_types.UUID  `json:"id"`
 	ImageCount   int                 `json:"image_count"`
 	OwnerId      openapi_types.UUID  `json:"owner_id"`
-	Title        string              `json:"title"`
-	UpdatedAt    *time.Time          `json:"updated_at,omitempty"`
-	Visibility   AlbumVisibility     `json:"visibility"`
+
+	// ParentId Parent album ID for nested albums. Null for root albums.
+	ParentId   *openapi_types.UUID `json:"parent_id"`
+	Title      string              `json:"title"`
+	UpdatedAt  *time.Time          `json:"updated_at,omitempty"`
+	Visibility AlbumVisibility     `json:"visibility"`
 }
 
 // AlbumVisibility defines model for Album.Visibility.
 type AlbumVisibility string
 
-// AlbumWithImages defines model for AlbumWithImages.
-type AlbumWithImages struct {
-	CoverImage   *Image                    `json:"cover_image"`
-	CoverImageId *openapi_types.UUID       `json:"cover_image_id"`
-	CreatedAt    time.Time                 `json:"created_at"`
-	Description  *string                   `json:"description"`
-	Id           openapi_types.UUID        `json:"id"`
-	ImageCount   int                       `json:"image_count"`
-	Images       *[]Image                  `json:"images,omitempty"`
-	OwnerId      openapi_types.UUID        `json:"owner_id"`
-	Pagination   *Pagination               `json:"pagination,omitempty"`
-	Title        string                    `json:"title"`
-	UpdatedAt    *time.Time                `json:"updated_at,omitempty"`
-	Visibility   AlbumWithImagesVisibility `json:"visibility"`
+// BackupCodesResponse Response containing newly generated backup codes
+type BackupCodesResponse struct {
+	// BackupCodes New one-time recovery codes (shown only once)
+	BackupCodes []string `json:"backup_codes"`
+
+	// RemainingCodes Number of unused backup codes (always 10 after regeneration)
+	RemainingCodes int `json:"remaining_codes"`
 }
 
-// AlbumWithImagesVisibility defines model for AlbumWithImages.Visibility.
-type AlbumWithImagesVisibility string
+// Ban defines model for Ban.
+type Ban struct {
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy struct {
+		Id       openapi_types.UUID `json:"id"`
+		Username string             `json:"username"`
+	} `json:"created_by"`
+	ExpiresAt *time.Time         `json:"expires_at"`
+	Id        openapi_types.UUID `json:"id"`
+	Reason    string             `json:"reason"`
+	User      *struct {
+		DisplayName *string             `json:"display_name"`
+		Id          *openapi_types.UUID `json:"id,omitempty"`
+		Username    *string             `json:"username,omitempty"`
+	} `json:"user"`
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+// BreadcrumbItem A single item in an album breadcrumb path
+type BreadcrumbItem struct {
+	// Id Album ID
+	Id openapi_types.UUID `json:"id"`
+
+	// Title Album title
+	Title string `json:"title"`
+}
+
+// ClaimGuestImageResponse Response from successfully claiming a guest upload
+type ClaimGuestImageResponse struct {
+	// ImageId The ID of the claimed image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// Message Success message
+	Message string `json:"message"`
+
+	// NewOwnerId The ID of the new owner (authenticated user)
+	NewOwnerId openapi_types.UUID `json:"new_owner_id"`
+
+	// PreviousOwner The ID of the previous owner (guest user)
+	PreviousOwner openapi_types.UUID `json:"previous_owner"`
+
+	// TransferredAt When the ownership was transferred
+	TransferredAt time.Time `json:"transferred_at"`
+}
 
 // Comment defines model for Comment.
 type Comment struct {
@@ -239,25 +623,292 @@ type Comment struct {
 	UserId openapi_types.UUID `json:"user_id"`
 }
 
+// CreateGroupAlbumRequest Request body for creating a group album
+type CreateGroupAlbumRequest struct {
+	// CoverImageId Optional cover image (must be in the group)
+	CoverImageId *openapi_types.UUID `json:"cover_image_id,omitempty"`
+	Description  *string             `json:"description,omitempty"`
+	Name         string              `json:"name"`
+}
+
+// CreateGroupRequest defines model for CreateGroupRequest.
+type CreateGroupRequest struct {
+	Description *string                     `json:"description,omitempty"`
+	GroupType   CreateGroupRequestGroupType `json:"group_type"`
+	Name        string                      `json:"name"`
+
+	// Settings Group configuration settings
+	Settings *GroupSettings `json:"settings,omitempty"`
+}
+
+// CreateGroupRequestGroupType defines model for CreateGroupRequest.GroupType.
+type CreateGroupRequestGroupType string
+
+// CustomVariantResult Result of custom variant generation
+type CustomVariantResult struct {
+	// ContentType MIME type of the variant
+	ContentType string `json:"content_type"`
+
+	// FileSize File size in bytes
+	FileSize int64 `json:"file_size"`
+
+	// Format Output format of the variant
+	Format string `json:"format"`
+
+	// Height Actual height of the generated variant
+	Height int `json:"height"`
+
+	// VariantKey Storage key for the generated variant
+	VariantKey string `json:"variant_key"`
+
+	// VariantUrl URL to access the generated variant
+	VariantUrl string `json:"variant_url"`
+
+	// Width Actual width of the generated variant
+	Width int `json:"width"`
+}
+
+// FeatureImageRequest Request to feature an image on the explore page
+type FeatureImageRequest struct {
+	// DisplayOrder Display priority (0 = highest, increments for lower priority)
+	DisplayOrder int `json:"display_order"`
+
+	// FeaturedFrom Start date/time for featuring (default now)
+	FeaturedFrom *time.Time `json:"featured_from,omitempty"`
+
+	// FeaturedUntil End date/time for featuring (null = no expiration)
+	FeaturedUntil *time.Time `json:"featured_until,omitempty"`
+
+	// ImageId ID of the image to feature
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// Reason Optional reason or notes for featuring this image
+	Reason *string `json:"reason,omitempty"`
+}
+
+// FeatureImageResponse Response after successfully featuring an image
+type FeatureImageResponse struct {
+	// DisplayOrder Display priority
+	DisplayOrder int `json:"display_order"`
+
+	// FeaturedFrom Start date/time of featuring
+	FeaturedFrom time.Time `json:"featured_from"`
+
+	// FeaturedUntil End date/time of featuring (null = no expiration)
+	FeaturedUntil *time.Time `json:"featured_until"`
+
+	// ImageId ID of the featured image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// PickId ID of the featured pick record
+	PickId openapi_types.UUID `json:"pick_id"`
+}
+
+// FeaturedImageResponse A featured image with full details for display
+type FeaturedImageResponse struct {
+	// DisplayOrder Display priority (lower = higher priority)
+	DisplayOrder int `json:"display_order"`
+
+	// FeaturedSince When the image was first featured
+	FeaturedSince time.Time `json:"featured_since"`
+
+	// Image Full image details
+	Image struct {
+		CreatedAt   *time.Time          `json:"created_at,omitempty"`
+		Description *string             `json:"description,omitempty"`
+		Id          *openapi_types.UUID `json:"id,omitempty"`
+		OwnerId     *openapi_types.UUID `json:"owner_id,omitempty"`
+		Title       *string             `json:"title,omitempty"`
+		Visibility  *string             `json:"visibility,omitempty"`
+	} `json:"image"`
+
+	// ImageId ID of the featured image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// PickId ID of the featured pick record
+	PickId openapi_types.UUID `json:"pick_id"`
+
+	// Reason Optional reason for featuring
+	Reason *string `json:"reason,omitempty"`
+}
+
+// FollowUser User profile information for follow relationships
+type FollowUser struct {
+	// Bio User's biography
+	Bio *string `json:"bio"`
+
+	// DisplayName User's display name
+	DisplayName string `json:"display_name"`
+
+	// FollowedAt When the follow relationship was created
+	FollowedAt time.Time `json:"followed_at"`
+
+	// UserId Unique identifier of the user
+	UserId openapi_types.UUID `json:"user_id"`
+
+	// Username Unique username
+	Username string `json:"username"`
+}
+
+// FollowersList Paginated list of followers
+type FollowersList struct {
+	// Followers List of users who are following the specified user
+	Followers []FollowUser `json:"followers"`
+
+	// Limit Maximum number of items returned
+	Limit int `json:"limit"`
+
+	// Offset Number of items skipped for pagination
+	Offset int `json:"offset"`
+
+	// TotalCount Total number of followers
+	TotalCount int `json:"total_count"`
+}
+
+// FollowingList Paginated list of users being followed
+type FollowingList struct {
+	// Following List of users that the specified user is following
+	Following []FollowUser `json:"following"`
+
+	// Limit Maximum number of items returned
+	Limit int `json:"limit"`
+
+	// Offset Number of items skipped for pagination
+	Offset int `json:"offset"`
+
+	// TotalCount Total number of users being followed
+	TotalCount int `json:"total_count"`
+}
+
+// GroupAlbumListResponse Paginated list of group albums
+type GroupAlbumListResponse struct {
+	Albums     []GroupAlbumResponse `json:"albums"`
+	Pagination Pagination           `json:"pagination"`
+}
+
+// GroupAlbumResponse Group album details with images
+type GroupAlbumResponse struct {
+	CoverImageId *openapi_types.UUID `json:"cover_image_id"`
+	CreatedAt    time.Time           `json:"created_at"`
+	CreatorId    openapi_types.UUID  `json:"creator_id"`
+	Description  *string             `json:"description"`
+	GroupId      openapi_types.UUID  `json:"group_id"`
+	Id           openapi_types.UUID  `json:"id"`
+	ImageCount   int                 `json:"image_count"`
+
+	// Images List of images in this album (included in detail view)
+	Images *[]struct {
+		AddedAt *time.Time          `json:"added_at,omitempty"`
+		ImageId *openapi_types.UUID `json:"image_id,omitempty"`
+
+		// Position Display order within album
+		Position *int `json:"position,omitempty"`
+	} `json:"images,omitempty"`
+	Name      string     `json:"name"`
+	Slug      string     `json:"slug"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// GroupListResponse defines model for GroupListResponse.
+type GroupListResponse struct {
+	Groups     []GroupResponse `json:"groups"`
+	Pagination Pagination      `json:"pagination"`
+}
+
+// GroupMemberListResponse defines model for GroupMemberListResponse.
+type GroupMemberListResponse struct {
+	Members    []GroupMembershipResponse `json:"members"`
+	Pagination Pagination                `json:"pagination"`
+}
+
+// GroupMembershipResponse defines model for GroupMembershipResponse.
+type GroupMembershipResponse struct {
+	GroupId   openapi_types.UUID            `json:"group_id"`
+	Id        openapi_types.UUID            `json:"id"`
+	JoinedAt  time.Time                     `json:"joined_at"`
+	Role      GroupMembershipResponseRole   `json:"role"`
+	Status    GroupMembershipResponseStatus `json:"status"`
+	UpdatedAt *time.Time                    `json:"updated_at,omitempty"`
+	UserId    openapi_types.UUID            `json:"user_id"`
+}
+
+// GroupMembershipResponseRole defines model for GroupMembershipResponse.Role.
+type GroupMembershipResponseRole string
+
+// GroupMembershipResponseStatus defines model for GroupMembershipResponse.Status.
+type GroupMembershipResponseStatus string
+
+// GroupResponse Full group details
+type GroupResponse struct {
+	AlbumCount   int                    `json:"album_count"`
+	CoverImageId *openapi_types.UUID    `json:"cover_image_id"`
+	CreatedAt    time.Time              `json:"created_at"`
+	Description  *string                `json:"description,omitempty"`
+	GroupType    GroupResponseGroupType `json:"group_type"`
+	Id           openapi_types.UUID     `json:"id"`
+	ImageCount   int                    `json:"image_count"`
+	MemberCount  int                    `json:"member_count"`
+	Name         string                 `json:"name"`
+	OwnerId      openapi_types.UUID     `json:"owner_id"`
+
+	// Settings Group configuration settings
+	Settings  *GroupSettings `json:"settings,omitempty"`
+	Slug      string         `json:"slug"`
+	UpdatedAt *time.Time     `json:"updated_at,omitempty"`
+}
+
+// GroupResponseGroupType defines model for GroupResponse.GroupType.
+type GroupResponseGroupType string
+
+// GroupSettings Group configuration settings
+type GroupSettings struct {
+	// AllowMemberAlbums Allow members to create group albums
+	AllowMemberAlbums *bool `json:"allow_member_albums,omitempty"`
+
+	// AllowMemberInvites Allow members to invite others
+	AllowMemberInvites *bool `json:"allow_member_invites,omitempty"`
+
+	// MaxMembers Maximum members (0 = unlimited)
+	MaxMembers *int `json:"max_members,omitempty"`
+
+	// RequireApproval Require admin approval for shared images
+	RequireApproval *bool `json:"require_approval,omitempty"`
+}
+
+// HealthCheck Individual dependency health check result
+type HealthCheck struct {
+	// Error Error message if check failed
+	Error *string `json:"error,omitempty"`
+
+	// LatencyMs Response time in milliseconds
+	LatencyMs *float32           `json:"latency_ms,omitempty"`
+	Status    *HealthCheckStatus `json:"status,omitempty"`
+}
+
+// HealthCheckStatus defines model for HealthCheck.Status.
+type HealthCheckStatus string
+
+// HealthReadyResponse Readiness check response with dependency health status
+type HealthReadyResponse struct {
+	Checks struct {
+		// Database Individual dependency health check result
+		Database *HealthCheck `json:"database,omitempty"`
+
+		// Redis Individual dependency health check result
+		Redis *HealthCheck `json:"redis,omitempty"`
+	} `json:"checks"`
+	Status    HealthReadyResponseStatus `json:"status"`
+	Timestamp time.Time                 `json:"timestamp"`
+}
+
+// HealthReadyResponseStatus defines model for HealthReadyResponse.Status.
+type HealthReadyResponseStatus string
+
 // HealthStatus defines model for HealthStatus.
 type HealthStatus struct {
-	Checks *struct {
-		Database *HealthStatusChecksDatabase `json:"database,omitempty"`
-		Redis    *HealthStatusChecksRedis    `json:"redis,omitempty"`
-		Storage  *HealthStatusChecksStorage  `json:"storage,omitempty"`
-	} `json:"checks,omitempty"`
 	Status    HealthStatusStatus `json:"status"`
 	Timestamp time.Time          `json:"timestamp"`
 }
-
-// HealthStatusChecksDatabase defines model for HealthStatus.Checks.Database.
-type HealthStatusChecksDatabase string
-
-// HealthStatusChecksRedis defines model for HealthStatus.Checks.Redis.
-type HealthStatusChecksRedis string
-
-// HealthStatusChecksStorage defines model for HealthStatus.Checks.Storage.
-type HealthStatusChecksStorage string
 
 // HealthStatusStatus defines model for HealthStatus.Status.
 type HealthStatusStatus string
@@ -302,6 +953,27 @@ type Image struct {
 // ImageVisibility defines model for Image.Visibility.
 type ImageVisibility string
 
+// ImageIPFSStatus defines model for ImageIPFSStatus.
+type ImageIPFSStatus struct {
+	// Cid IPFS Content Identifier (CID). Null if not pinned.
+	Cid *string `json:"cid"`
+
+	// GatewayUrl Public gateway URL. Null if not pinned.
+	GatewayUrl *string `json:"gateway_url"`
+
+	// ImageId ID of the image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// IpfsUri Canonical IPFS URI (ipfs://CID). Null if not pinned.
+	IpfsUri *string `json:"ipfs_uri"`
+
+	// IsPinned Whether the image is pinned to IPFS
+	IsPinned bool `json:"is_pinned"`
+
+	// PinnedAt When the image was pinned. Null if not pinned.
+	PinnedAt *time.Time `json:"pinned_at"`
+}
+
 // ImageVariant defines model for ImageVariant.
 type ImageVariant struct {
 	Height int    `json:"height"`
@@ -309,16 +981,305 @@ type ImageVariant struct {
 	Width  int    `json:"width"`
 }
 
-// Like defines model for Like.
-type Like struct {
-	CreatedAt time.Time          `json:"created_at"`
-	ImageId   openapi_types.UUID `json:"image_id"`
-	User      struct {
-		DisplayName *string            `json:"display_name"`
-		Id          openapi_types.UUID `json:"id"`
-		Username    string             `json:"username"`
-	} `json:"user"`
-	UserId openapi_types.UUID `json:"user_id"`
+// InvitationResponse Group invitation details
+type InvitationResponse struct {
+	// CreatedAt Invitation creation timestamp
+	CreatedAt time.Time `json:"created_at"`
+
+	// Email Email address (if inviting non-registered user)
+	Email *openapi_types.Email `json:"email"`
+
+	// ExpiresAt Invitation expiry timestamp (7 days from creation)
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// GroupId Group ID
+	GroupId openapi_types.UUID `json:"group_id"`
+
+	// Id Invitation unique identifier
+	Id openapi_types.UUID `json:"id"`
+
+	// InvitedBy User who created the invitation
+	InvitedBy openapi_types.UUID `json:"invited_by"`
+
+	// Token Secure invitation token (64 hex characters)
+	Token string `json:"token"`
+
+	// UsedAt Timestamp when invitation was accepted
+	UsedAt *time.Time `json:"used_at"`
+
+	// UserId User ID (if inviting existing user)
+	UserId *openapi_types.UUID `json:"user_id"`
+}
+
+// InviteToGroupRequest Request body for inviting a user to a group
+type InviteToGroupRequest struct {
+	// Email Email address for non-registered users
+	Email *openapi_types.Email `json:"email,omitempty"`
+
+	// UserId User ID for existing registered users
+	UserId *openapi_types.UUID `json:"user_id,omitempty"`
+	union  json.RawMessage
+}
+
+// InviteToGroupRequest0 defines model for .
+type InviteToGroupRequest0 = interface{}
+
+// InviteToGroupRequest1 defines model for .
+type InviteToGroupRequest1 = interface{}
+
+// NSFWFlaggedListResponse Paginated list of NSFW flagged images
+type NSFWFlaggedListResponse struct {
+	// Page Current page number
+	Page int `json:"page"`
+
+	// PageSize Items per page
+	PageSize int        `json:"page_size"`
+	Scans    []NSFWScan `json:"scans"`
+
+	// TotalCount Total number of flagged items
+	TotalCount int64 `json:"total_count"`
+
+	// TotalPages Total number of pages
+	TotalPages int64 `json:"total_pages"`
+}
+
+// NSFWScan NSFW scan result for an image
+type NSFWScan struct {
+	// Category Primary NSFW category detected
+	Category *NSFWScanCategory `json:"category,omitempty"`
+
+	// CreatedAt Timestamp when the scan was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// Details Detailed category scores from NSFW detection
+	Details *NSFWScanDetails `json:"details"`
+
+	// ErrorMessage Error message if the scan failed
+	ErrorMessage *string `json:"error_message"`
+
+	// Id Unique identifier for the scan
+	Id openapi_types.UUID `json:"id"`
+
+	// ImageId ID of the scanned image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// IsNsfw Whether the image is flagged as NSFW
+	IsNsfw *bool `json:"is_nsfw,omitempty"`
+
+	// Provider NSFW detection provider used
+	Provider NSFWScanProvider `json:"provider"`
+
+	// RequiresReview Whether the scan result requires manual review
+	RequiresReview *bool `json:"requires_review,omitempty"`
+
+	// ScannedAt Timestamp when the scan completed
+	ScannedAt *time.Time `json:"scanned_at"`
+
+	// Score Confidence score for NSFW detection (0 = safe, 1 = definite NSFW)
+	Score *float64 `json:"score,omitempty"`
+
+	// Status Current status of the scan
+	Status NSFWScanStatus `json:"status"`
+
+	// UpdatedAt Timestamp when the scan was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// NSFWScanCategory Primary NSFW category detected
+type NSFWScanCategory string
+
+// NSFWScanProvider NSFW detection provider used
+type NSFWScanProvider string
+
+// NSFWScanStatus Current status of the scan
+type NSFWScanStatus string
+
+// NSFWScanDetails Detailed category scores from NSFW detection
+type NSFWScanDetails struct {
+	// DrugScore Score for drug-related content detection
+	DrugScore *float64 `json:"drug_score,omitempty"`
+
+	// NudityScore Score for nudity detection
+	NudityScore *float64 `json:"nudity_score,omitempty"`
+
+	// OffensiveScore Score for offensive content detection
+	OffensiveScore *float64 `json:"offensive_score,omitempty"`
+
+	// SubCategories Detected sub-categories
+	SubCategories *[]string `json:"sub_categories,omitempty"`
+
+	// ViolenceScore Score for violence detection
+	ViolenceScore *float64 `json:"violence_score,omitempty"`
+
+	// WeaponScore Score for weapon detection
+	WeaponScore *float64 `json:"weapon_score,omitempty"`
+}
+
+// NSFWScanResponse Response after initiating an NSFW scan
+type NSFWScanResponse struct {
+	// Category Primary NSFW category detected
+	Category *NSFWScanResponseCategory `json:"category,omitempty"`
+
+	// IsNsfw Whether the image is flagged as NSFW
+	IsNsfw bool `json:"is_nsfw"`
+
+	// Provider Provider used for the scan
+	Provider string `json:"provider"`
+
+	// RequiresReview Whether the scan result requires manual review
+	RequiresReview *bool `json:"requires_review,omitempty"`
+
+	// ScanId Unique identifier for the scan
+	ScanId openapi_types.UUID `json:"scan_id"`
+
+	// Score Confidence score
+	Score *float64 `json:"score,omitempty"`
+
+	// Status Current status of the scan
+	Status NSFWScanResponseStatus `json:"status"`
+}
+
+// NSFWScanResponseCategory Primary NSFW category detected
+type NSFWScanResponseCategory string
+
+// NSFWScanResponseStatus Current status of the scan
+type NSFWScanResponseStatus string
+
+// NSFWScansByImageResponse List of NSFW scans for a specific image
+type NSFWScansByImageResponse struct {
+	Scans []NSFWScan `json:"scans"`
+
+	// TotalCount Total number of scans for this image
+	TotalCount int `json:"total_count"`
+}
+
+// Notification A single notification for a user
+type Notification struct {
+	// Body Notification body (detailed message)
+	Body string `json:"body"`
+
+	// CreatedAt When the notification was created
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Id Unique identifier for the notification
+	Id openapi_types.UUID `json:"id"`
+
+	// IsRead Whether the notification has been read
+	IsRead bool `json:"isRead"`
+
+	// Metadata Flexible JSON payload for notification-specific data
+	Metadata map[string]string `json:"metadata"`
+
+	// ReadAt When the notification was marked as read (null if unread)
+	ReadAt *time.Time `json:"readAt"`
+
+	// Title Notification title (short summary)
+	Title string `json:"title"`
+
+	// Type Type of notification
+	Type NotificationType `json:"type"`
+}
+
+// NotificationType Type of notification
+type NotificationType string
+
+// NotificationsList Paginated list of notifications with unread count
+type NotificationsList struct {
+	// Limit Maximum number of notifications returned
+	Limit int `json:"limit"`
+
+	// Notifications List of notifications for the user
+	Notifications []Notification `json:"notifications"`
+
+	// Offset Number of notifications skipped for pagination
+	Offset int `json:"offset"`
+
+	// TotalUnread Total number of unread notifications
+	TotalUnread int `json:"totalUnread"`
+}
+
+// OAuthAccount OAuth account linked to a user
+type OAuthAccount struct {
+	// AvatarUrl Profile picture URL from the OAuth provider
+	AvatarUrl *string `json:"avatar_url"`
+
+	// DisplayName Display name from the OAuth provider
+	DisplayName *string `json:"display_name"`
+
+	// Email Email address from the OAuth provider
+	Email openapi_types.Email `json:"email"`
+
+	// LinkedAt When the OAuth account was linked to the user
+	LinkedAt time.Time `json:"linked_at"`
+
+	// Provider OAuth provider name
+	Provider OAuthAccountProvider `json:"provider"`
+
+	// ProviderUserId Unique user ID from the OAuth provider
+	ProviderUserId string `json:"provider_user_id"`
+}
+
+// OAuthAccountProvider OAuth provider name
+type OAuthAccountProvider string
+
+// OEmbedResponse oEmbed 1.0 response for photo type.
+// See https://oembed.com/#section2.3.4.1
+type OEmbedResponse struct {
+	// AuthorName Username of image owner
+	AuthorName *string `json:"author_name,omitempty"`
+
+	// AuthorUrl URL to author's profile
+	AuthorUrl *string `json:"author_url,omitempty"`
+
+	// CacheAge Suggested cache duration in seconds
+	CacheAge *int `json:"cache_age,omitempty"`
+
+	// Height Height of image in pixels
+	Height int `json:"height"`
+
+	// ProviderName Name of the provider (goimg)
+	ProviderName *string `json:"provider_name,omitempty"`
+
+	// ProviderUrl URL to the provider
+	ProviderUrl *string `json:"provider_url,omitempty"`
+
+	// ThumbnailHeight Height of thumbnail in pixels
+	ThumbnailHeight *int `json:"thumbnail_height,omitempty"`
+
+	// ThumbnailUrl URL of the thumbnail image
+	ThumbnailUrl *string `json:"thumbnail_url,omitempty"`
+
+	// ThumbnailWidth Width of thumbnail in pixels
+	ThumbnailWidth *int `json:"thumbnail_width,omitempty"`
+
+	// Title Image title
+	Title *string `json:"title,omitempty"`
+
+	// Type Resource type (always "photo" for images)
+	Type OEmbedResponseType `json:"type"`
+
+	// Url URL of the image
+	Url string `json:"url"`
+
+	// Version oEmbed version (always "1.0")
+	Version OEmbedResponseVersion `json:"version"`
+
+	// Width Width of image in pixels
+	Width int `json:"width"`
+}
+
+// OEmbedResponseType Resource type (always "photo" for images)
+type OEmbedResponseType string
+
+// OEmbedResponseVersion oEmbed version (always "1.0")
+type OEmbedResponseVersion string
+
+// PaginatedInvitationsResponse Paginated list of group invitations
+type PaginatedInvitationsResponse struct {
+	Invitations []InvitationResponse `json:"invitations"`
+
+	// TotalCount Total number of pending invitations
+	TotalCount int64 `json:"total_count"`
 }
 
 // PaginatedResponse defines model for PaginatedResponse.
@@ -340,6 +1301,21 @@ type Pagination struct {
 
 	// TotalPages Total number of pages
 	TotalPages int `json:"total_pages"`
+}
+
+// PinImageToIPFSResponse defines model for PinImageToIPFSResponse.
+type PinImageToIPFSResponse struct {
+	// Cid IPFS Content Identifier (CID)
+	Cid string `json:"cid"`
+
+	// GatewayUrl Public gateway URL to access the content
+	GatewayUrl string `json:"gateway_url"`
+
+	// ImageId ID of the pinned image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// PinnedAt When the image was pinned
+	PinnedAt time.Time `json:"pinned_at"`
 }
 
 // ProblemDetail defines model for ProblemDetail.
@@ -402,12 +1378,76 @@ type ReportReason string
 // ReportStatus defines model for Report.Status.
 type ReportStatus string
 
+// Session User session information
+type Session struct {
+	// CreatedAt Session creation time
+	CreatedAt time.Time `json:"created_at"`
+
+	// ExpiresAt Session expiration time
+	ExpiresAt time.Time `json:"expires_at"`
+
+	// Id Session ID
+	Id openapi_types.UUID `json:"id"`
+
+	// IpAddress IP address of the session
+	IpAddress *string `json:"ip_address,omitempty"`
+
+	// IsCurrent Whether this is the current session
+	IsCurrent *bool `json:"is_current,omitempty"`
+
+	// UserAgent Browser/device user agent
+	UserAgent *string `json:"user_agent,omitempty"`
+
+	// UserId User ID
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+// Setup2FAResponse Response from 2FA setup containing secret and backup codes
+type Setup2FAResponse struct {
+	// AccountName Account identifier (usually email)
+	AccountName string `json:"account_name"`
+
+	// BackupCodes One-time recovery codes (10 codes, shown only once)
+	BackupCodes []string `json:"backup_codes"`
+
+	// Issuer Application name shown in authenticator apps
+	Issuer string `json:"issuer"`
+
+	// ProvisioningUri otpauth:// URI for QR code generation
+	ProvisioningUri string `json:"provisioning_uri"`
+
+	// Secret Base32-encoded TOTP secret for manual entry into authenticator
+	Secret string `json:"secret"`
+}
+
 // Tag defines model for Tag.
 type Tag struct {
 	Name string `json:"name"`
 	Slug string `json:"slug"`
 
 	// UsageCount Number of images with this tag
+	UsageCount int `json:"usage_count"`
+}
+
+// TagListResponse Response for popular tags endpoint (Sprint 19)
+type TagListResponse struct {
+	Limit  int                   `json:"limit"`
+	Period TagListResponsePeriod `json:"period"`
+	Tags   []Tag                 `json:"tags"`
+}
+
+// TagListResponsePeriod defines model for TagListResponse.Period.
+type TagListResponsePeriod string
+
+// TagWithTrendScore Tag with trending score for trending endpoints
+type TagWithTrendScore struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+
+	// TrendScore Time-weighted trending score (recent_count/total_count * 100)
+	TrendScore *float32 `json:"trend_score,omitempty"`
+
+	// UsageCount Total number of images with this tag
 	UsageCount int `json:"usage_count"`
 }
 
@@ -420,6 +1460,75 @@ type TokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 	TokenType    string `json:"token_type"`
 }
+
+// TrendingTagListResponse Response for trending tags endpoint (Sprint 19)
+type TrendingTagListResponse struct {
+	Limit  int                           `json:"limit"`
+	Period TrendingTagListResponsePeriod `json:"period"`
+	Tags   []TagWithTrendScore           `json:"tags"`
+}
+
+// TrendingTagListResponsePeriod defines model for TrendingTagListResponse.Period.
+type TrendingTagListResponsePeriod string
+
+// TwoFactorStatus Current 2FA status for a user
+type TwoFactorStatus struct {
+	// BackupCodesRemaining Number of unused backup codes remaining
+	BackupCodesRemaining int `json:"backup_codes_remaining"`
+
+	// Enabled Whether 2FA is currently active
+	Enabled bool `json:"enabled"`
+
+	// EnabledAt When 2FA was enabled (null if not enabled)
+	EnabledAt *time.Time `json:"enabled_at"`
+
+	// SetupPending Whether 2FA setup was started but not yet verified
+	SetupPending bool `json:"setup_pending"`
+}
+
+// UnpinImageFromIPFSResponse defines model for UnpinImageFromIPFSResponse.
+type UnpinImageFromIPFSResponse struct {
+	// ImageId ID of the unpinned image
+	ImageId openapi_types.UUID `json:"image_id"`
+
+	// Message Success message
+	Message string `json:"message"`
+
+	// UnpinnedCid The CID that was unpinned
+	UnpinnedCid string `json:"unpinned_cid"`
+}
+
+// UnreadCount Count of unread notifications for badge display
+type UnreadCount struct {
+	// Count Number of unread notifications
+	Count int `json:"count"`
+}
+
+// UpdateGroupAlbumRequest Request body for updating a group album
+type UpdateGroupAlbumRequest struct {
+	// CoverImageId Cover image (must be in the album)
+	CoverImageId *openapi_types.UUID `json:"cover_image_id"`
+	Description  *string             `json:"description"`
+	Name         *string             `json:"name,omitempty"`
+}
+
+// UpdateGroupRequest defines model for UpdateGroupRequest.
+type UpdateGroupRequest struct {
+	CoverImageId *openapi_types.UUID `json:"cover_image_id,omitempty"`
+	Description  *string             `json:"description,omitempty"`
+
+	// Settings Group configuration settings
+	Settings *GroupSettings `json:"settings,omitempty"`
+}
+
+// UpdateMemberRoleRequest defines model for UpdateMemberRoleRequest.
+type UpdateMemberRoleRequest struct {
+	// Role New role for the member (cannot set to owner via API)
+	Role UpdateMemberRoleRequestRole `json:"role"`
+}
+
+// UpdateMemberRoleRequestRole New role for the member (cannot set to owner via API)
+type UpdateMemberRoleRequestRole string
 
 // User defines model for User.
 type User struct {
@@ -435,6 +1544,53 @@ type User struct {
 	Username   string `json:"username"`
 }
 
+// UserGroupsResponse defines model for UserGroupsResponse.
+type UserGroupsResponse struct {
+	Groups []struct {
+		// Group Full group details
+		Group      *GroupResponse           `json:"group,omitempty"`
+		Membership *GroupMembershipResponse `json:"membership,omitempty"`
+	} `json:"groups"`
+	Pagination Pagination `json:"pagination"`
+}
+
+// VariantConfig Custom variant configuration for image processing
+type VariantConfig struct {
+	CreatedAt time.Time `json:"created_at"`
+
+	// CropMode How to handle aspect ratio differences
+	CropMode VariantConfigCropMode `json:"crop_mode"`
+
+	// Format Output image format
+	Format VariantConfigFormat `json:"format"`
+	Id     openapi_types.UUID  `json:"id"`
+
+	// IsPreset Whether this is a system-defined preset (read-only)
+	IsPreset bool `json:"is_preset"`
+
+	// MaxHeight Maximum height in pixels
+	MaxHeight int `json:"max_height"`
+
+	// MaxWidth Maximum width in pixels
+	MaxWidth int `json:"max_width"`
+
+	// Name Unique name for this config (per user)
+	Name string `json:"name"`
+
+	// Quality Image quality (1-100)
+	Quality   int       `json:"quality"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// UserId Owner of this variant config
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+// VariantConfigCropMode How to handle aspect ratio differences
+type VariantConfigCropMode string
+
+// VariantConfigFormat Output image format
+type VariantConfigFormat string
+
 // AlbumIdParam defines model for AlbumIdParam.
 type AlbumIdParam = openapi_types.UUID
 
@@ -449,6 +1605,24 @@ type PerPageParam = int
 
 // UserIdParam defines model for UserIdParam.
 type UserIdParam = openapi_types.UUID
+
+// BadRequest defines model for BadRequest.
+type BadRequest = ProblemDetail
+
+// Conflict defines model for Conflict.
+type Conflict = ProblemDetail
+
+// Forbidden defines model for Forbidden.
+type Forbidden = ProblemDetail
+
+// InternalServerError defines model for InternalServerError.
+type InternalServerError = ProblemDetail
+
+// NotFound defines model for NotFound.
+type NotFound = ProblemDetail
+
+// Unauthorized defines model for Unauthorized.
+type Unauthorized = ProblemDetail
 
 // ListAlbumsParams defines parameters for ListAlbums.
 type ListAlbumsParams struct {
@@ -480,29 +1654,65 @@ type CreateAlbumJSONBody struct {
 // CreateAlbumJSONBodyVisibility defines parameters for CreateAlbum.
 type CreateAlbumJSONBodyVisibility string
 
-// GetAlbumParams defines parameters for GetAlbum.
-type GetAlbumParams struct {
-	// Page Page number
-	Page *PageParam `form:"page,omitempty" json:"page,omitempty"`
-
-	// PerPage Number of items per page
-	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
-}
-
 // UpdateAlbumJSONBody defines parameters for UpdateAlbum.
 type UpdateAlbumJSONBody struct {
-	CoverImageId *openapi_types.UUID            `json:"cover_image_id,omitempty"`
-	Description  *string                        `json:"description,omitempty"`
-	Title        *string                        `json:"title,omitempty"`
-	Visibility   *UpdateAlbumJSONBodyVisibility `json:"visibility,omitempty"`
+	CoverImageId *openapi_types.UUID `json:"cover_image_id,omitempty"`
+	Description  *string             `json:"description,omitempty"`
+
+	// ParentId Parent album ID for nesting. Set to null or empty string to remove parent.
+	ParentId   *openapi_types.UUID            `json:"parent_id"`
+	Title      *string                        `json:"title,omitempty"`
+	Visibility *UpdateAlbumJSONBodyVisibility `json:"visibility,omitempty"`
 }
 
 // UpdateAlbumJSONBodyVisibility defines parameters for UpdateAlbum.
 type UpdateAlbumJSONBodyVisibility string
 
+// GetAlbumImagesParams defines parameters for GetAlbumImages.
+type GetAlbumImagesParams struct {
+	// Offset Number of items to skip
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// Limit Maximum number of items to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // AddImagesToAlbumJSONBody defines parameters for AddImagesToAlbum.
 type AddImagesToAlbumJSONBody struct {
 	ImageIds []openapi_types.UUID `json:"image_ids"`
+}
+
+// RegenerateBackupCodesJSONBody defines parameters for RegenerateBackupCodes.
+type RegenerateBackupCodesJSONBody struct {
+	// Password Current account password for confirmation
+	Password string `json:"password"`
+}
+
+// Disable2FAJSONBody defines parameters for Disable2FA.
+type Disable2FAJSONBody struct {
+	// Code Optional 6-digit TOTP code for extra security
+	Code *string `json:"code,omitempty"`
+
+	// Password Current account password for confirmation
+	Password string `json:"password"`
+}
+
+// Verify2FALoginJSONBody defines parameters for Verify2FALogin.
+type Verify2FALoginJSONBody struct {
+	// Code 6-digit TOTP code from authenticator app
+	Code string `json:"code"`
+}
+
+// Verify2FAJSONBody defines parameters for Verify2FA.
+type Verify2FAJSONBody struct {
+	// Code 6-digit TOTP code from authenticator app
+	Code string `json:"code"`
+}
+
+// CreateGuestSessionJSONBody defines parameters for CreateGuestSession.
+type CreateGuestSessionJSONBody struct {
+	// UserAgent Optional browser/client user agent
+	UserAgent *string `json:"user_agent,omitempty"`
 }
 
 // LoginUserJSONBody defines parameters for LoginUser.
@@ -510,6 +1720,52 @@ type LoginUserJSONBody struct {
 	Email    openapi_types.Email `json:"email"`
 	Password string              `json:"password"`
 }
+
+// UnlinkOAuthAccountParams defines parameters for UnlinkOAuthAccount.
+type UnlinkOAuthAccountParams struct {
+	// Provider OAuth provider to unlink
+	Provider UnlinkOAuthAccountParamsProvider `form:"provider" json:"provider"`
+}
+
+// UnlinkOAuthAccountParamsProvider defines parameters for UnlinkOAuthAccount.
+type UnlinkOAuthAccountParamsProvider string
+
+// LinkOAuthAccountJSONBody defines parameters for LinkOAuthAccount.
+type LinkOAuthAccountJSONBody struct {
+	// Code Authorization code from OAuth provider
+	Code     string                           `json:"code"`
+	Provider LinkOAuthAccountJSONBodyProvider `json:"provider"`
+
+	// State CSRF protection state parameter
+	State string `json:"state"`
+}
+
+// LinkOAuthAccountJSONBodyProvider defines parameters for LinkOAuthAccount.
+type LinkOAuthAccountJSONBodyProvider string
+
+// UnlinkOAuthAccountByProviderParamsProvider defines parameters for UnlinkOAuthAccountByProvider.
+type UnlinkOAuthAccountByProviderParamsProvider string
+
+// InitiateOAuthFlowParamsProvider defines parameters for InitiateOAuthFlow.
+type InitiateOAuthFlowParamsProvider string
+
+// HandleOAuthCallbackParams defines parameters for HandleOAuthCallback.
+type HandleOAuthCallbackParams struct {
+	// Code Authorization code from OAuth provider
+	Code string `form:"code" json:"code"`
+
+	// State CSRF protection state parameter
+	State string `form:"state" json:"state"`
+
+	// Error Error code from OAuth provider (if authorization failed)
+	Error *string `form:"error,omitempty" json:"error,omitempty"`
+
+	// ErrorDescription Error description from OAuth provider
+	ErrorDescription *string `form:"error_description,omitempty" json:"error_description,omitempty"`
+}
+
+// HandleOAuthCallbackParamsProvider defines parameters for HandleOAuthCallback.
+type HandleOAuthCallbackParamsProvider string
 
 // RefreshTokenJSONBody defines parameters for RefreshToken.
 type RefreshTokenJSONBody struct {
@@ -523,6 +1779,12 @@ type RegisterUserJSONBody struct {
 	Username string              `json:"username"`
 }
 
+// ExploreFeaturedParams defines parameters for ExploreFeatured.
+type ExploreFeaturedParams struct {
+	// Limit Maximum number of featured images to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ExplorePopularParams defines parameters for ExplorePopular.
 type ExplorePopularParams struct {
 	// Period Time period for popularity calculation
@@ -533,6 +1795,9 @@ type ExplorePopularParams struct {
 
 	// PerPage Number of items per page
 	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// IncludeNsfw Include NSFW content in results (default false)
+	IncludeNsfw *bool `form:"include_nsfw,omitempty" json:"include_nsfw,omitempty"`
 }
 
 // ExplorePopularParamsPeriod defines parameters for ExplorePopular.
@@ -545,6 +1810,92 @@ type ExploreRecentParams struct {
 
 	// PerPage Number of items per page
 	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
+
+	// IncludeNsfw Include NSFW content in results (default false)
+	IncludeNsfw *bool `form:"include_nsfw,omitempty" json:"include_nsfw,omitempty"`
+}
+
+// GetActivityFeedParams defines parameters for GetActivityFeed.
+type GetActivityFeedParams struct {
+	// Limit Maximum number of activities to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of activities to skip for pagination
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListGroupsParams defines parameters for ListGroups.
+type ListGroupsParams struct {
+	Page  *int `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Type Filter by group type (public, invite_only)
+	Type *ListGroupsParamsType `form:"type,omitempty" json:"type,omitempty"`
+
+	// Sort Sort order
+	Sort *ListGroupsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+}
+
+// ListGroupsParamsType defines parameters for ListGroups.
+type ListGroupsParamsType string
+
+// ListGroupsParamsSort defines parameters for ListGroups.
+type ListGroupsParamsSort string
+
+// SearchGroupsParams defines parameters for SearchGroups.
+type SearchGroupsParams struct {
+	// Q Search query
+	Q     string `form:"q" json:"q"`
+	Page  *int   `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int   `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListGroupAlbumsParams defines parameters for ListGroupAlbums.
+type ListGroupAlbumsParams struct {
+	Page  *int `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Sort Sort order
+	Sort *ListGroupAlbumsParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+}
+
+// ListGroupAlbumsParamsSort defines parameters for ListGroupAlbums.
+type ListGroupAlbumsParamsSort string
+
+// ListGroupInvitationsParams defines parameters for ListGroupInvitations.
+type ListGroupInvitationsParams struct {
+	Page  *int `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListGroupMembersParams defines parameters for ListGroupMembers.
+type ListGroupMembersParams struct {
+	Page  *int `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Role Filter by member role
+	Role *ListGroupMembersParamsRole `form:"role,omitempty" json:"role,omitempty"`
+
+	// Status Filter by membership status
+	Status *ListGroupMembersParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListGroupMembersParamsRole defines parameters for ListGroupMembers.
+type ListGroupMembersParamsRole string
+
+// ListGroupMembersParamsStatus defines parameters for ListGroupMembers.
+type ListGroupMembersParamsStatus string
+
+// BanMemberJSONBody defines parameters for BanMember.
+type BanMemberJSONBody struct {
+	// Reason Reason for ban
+	Reason *string `json:"reason,omitempty"`
+}
+
+// ClaimGuestImageJSONBody defines parameters for ClaimGuestImage.
+type ClaimGuestImageJSONBody struct {
+	// GuestUserId The ID of the guest user who uploaded the image
+	GuestUserId openapi_types.UUID `json:"guest_user_id"`
 }
 
 // ListImagesParams defines parameters for ListImages.
@@ -604,6 +1955,36 @@ type UploadImageMultipartBody struct {
 // UploadImageMultipartBodyVisibility defines parameters for UploadImage.
 type UploadImageMultipartBodyVisibility string
 
+// SearchImagesParams defines parameters for SearchImages.
+type SearchImagesParams struct {
+	// Q Search query (searches title and description)
+	Q string `form:"q" json:"q"`
+
+	// Tags Filter by tag name
+	Tags *string `form:"tags,omitempty" json:"tags,omitempty"`
+
+	// OwnerId Filter by owner ID
+	OwnerId *openapi_types.UUID `form:"owner_id,omitempty" json:"owner_id,omitempty"`
+
+	// Visibility Filter by visibility (only for own images)
+	Visibility *SearchImagesParamsVisibility `form:"visibility,omitempty" json:"visibility,omitempty"`
+
+	// SortBy Sort field
+	SortBy *SearchImagesParamsSortBy `form:"sort_by,omitempty" json:"sort_by,omitempty"`
+
+	// Page Page number
+	Page *PageParam `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage Number of items per page
+	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// SearchImagesParamsVisibility defines parameters for SearchImages.
+type SearchImagesParamsVisibility string
+
+// SearchImagesParamsSortBy defines parameters for SearchImages.
+type SearchImagesParamsSortBy string
+
 // UpdateImageJSONBody defines parameters for UpdateImage.
 type UpdateImageJSONBody struct {
 	Description *string                        `json:"description,omitempty"`
@@ -629,8 +2010,53 @@ type AddCommentJSONBody struct {
 	Content string `json:"content"`
 }
 
-// ListImageLikesParams defines parameters for ListImageLikes.
-type ListImageLikesParams struct {
+// GetImageQRCodeParams defines parameters for GetImageQRCode.
+type GetImageQRCodeParams struct {
+	// Size QR code size in pixels
+	Size *int `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// GenerateCustomVariantJSONBody defines parameters for GenerateCustomVariant.
+type GenerateCustomVariantJSONBody struct {
+	// ConfigId Use a saved variant config (alternative to direct parameters)
+	ConfigId *openapi_types.UUID                    `json:"config_id,omitempty"`
+	CropMode *GenerateCustomVariantJSONBodyCropMode `json:"crop_mode,omitempty"`
+	Format   *GenerateCustomVariantJSONBodyFormat   `json:"format,omitempty"`
+
+	// MaxHeight Maximum height in pixels (required if config_id not provided)
+	MaxHeight *int `json:"max_height,omitempty"`
+
+	// MaxWidth Maximum width in pixels (required if config_id not provided)
+	MaxWidth *int `json:"max_width,omitempty"`
+
+	// Name Custom name for the variant (used in storage key)
+	Name    *string `json:"name,omitempty"`
+	Quality *int    `json:"quality,omitempty"`
+}
+
+// GenerateCustomVariantJSONBodyCropMode defines parameters for GenerateCustomVariant.
+type GenerateCustomVariantJSONBodyCropMode string
+
+// GenerateCustomVariantJSONBodyFormat defines parameters for GenerateCustomVariant.
+type GenerateCustomVariantJSONBodyFormat string
+
+// GetImageVariantParamsSize defines parameters for GetImageVariant.
+type GetImageVariantParamsSize string
+
+// ListUserGroupsParams defines parameters for ListUserGroups.
+type ListUserGroupsParams struct {
+	Page  *int `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Role Filter by user's role in groups
+	Role *ListUserGroupsParamsRole `form:"role,omitempty" json:"role,omitempty"`
+}
+
+// ListUserGroupsParamsRole defines parameters for ListUserGroups.
+type ListUserGroupsParamsRole string
+
+// ListBansParams defines parameters for ListBans.
+type ListBansParams struct {
 	// Page Page number
 	Page *PageParam `form:"page,omitempty" json:"page,omitempty"`
 
@@ -638,8 +2064,26 @@ type ListImageLikesParams struct {
 	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
 }
 
-// GetImageVariantParamsSize defines parameters for GetImageVariant.
-type GetImageVariantParamsSize string
+// ListNSFWFlaggedParams defines parameters for ListNSFWFlagged.
+type ListNSFWFlaggedParams struct {
+	// Page Page number (1-indexed)
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// PageSize Items per page (max 100)
+	PageSize *int `form:"page_size,omitempty" json:"page_size,omitempty"`
+
+	// RequiresReview Filter to only show items requiring manual review
+	RequiresReview *bool `form:"requires_review,omitempty" json:"requires_review,omitempty"`
+}
+
+// ScanImageNSFWJSONBody defines parameters for ScanImageNSFW.
+type ScanImageNSFWJSONBody struct {
+	// Force Force rescan even if active scan exists
+	Force *bool `json:"force,omitempty"`
+
+	// ImageId UUID of the image to scan
+	ImageId openapi_types.UUID `json:"image_id"`
+}
 
 // ListReportsParams defines parameters for ListReports.
 type ListReportsParams struct {
@@ -658,12 +2102,54 @@ type ListReportsParamsStatus string
 
 // ResolveReportJSONBody defines parameters for ResolveReport.
 type ResolveReportJSONBody struct {
-	Action     ResolveReportJSONBodyAction `json:"action"`
-	Resolution *string                     `json:"resolution,omitempty"`
+	Resolution string `json:"resolution"`
 }
 
-// ResolveReportJSONBodyAction defines parameters for ResolveReport.
-type ResolveReportJSONBodyAction string
+// GetNotificationsParams defines parameters for GetNotifications.
+type GetNotificationsParams struct {
+	// UnreadOnly If true, only return unread notifications
+	UnreadOnly *bool `form:"unread_only,omitempty" json:"unread_only,omitempty"`
+
+	// Limit Maximum number of notifications to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of notifications to skip for pagination
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// MarkNotificationsAsReadJSONBody defines parameters for MarkNotificationsAsRead.
+type MarkNotificationsAsReadJSONBody struct {
+	// MarkAllAsRead If true, mark all notifications for user as read (optional)
+	MarkAllAsRead *bool `json:"markAllAsRead,omitempty"`
+
+	// NotificationIds Array of notification IDs to mark as read (optional)
+	NotificationIds *[]openapi_types.UUID `json:"notificationIds,omitempty"`
+	union           json.RawMessage
+}
+
+// MarkNotificationsAsReadJSONBody0 defines parameters for MarkNotificationsAsRead.
+type MarkNotificationsAsReadJSONBody0 = interface{}
+
+// MarkNotificationsAsReadJSONBody1 defines parameters for MarkNotificationsAsRead.
+type MarkNotificationsAsReadJSONBody1 = interface{}
+
+// GetOEmbedParams defines parameters for GetOEmbed.
+type GetOEmbedParams struct {
+	// Url URL of the image to embed
+	Url string `form:"url" json:"url"`
+
+	// Format Response format (json or xml)
+	Format *GetOEmbedParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+
+	// Maxwidth Maximum width of embedded content in pixels
+	Maxwidth *int `form:"maxwidth,omitempty" json:"maxwidth,omitempty"`
+
+	// Maxheight Maximum height of embedded content in pixels
+	Maxheight *int `form:"maxheight,omitempty" json:"maxheight,omitempty"`
+}
+
+// GetOEmbedParamsFormat defines parameters for GetOEmbed.
+type GetOEmbedParamsFormat string
 
 // CreateReportJSONBody defines parameters for CreateReport.
 type CreateReportJSONBody struct {
@@ -677,9 +2163,15 @@ type CreateReportJSONBodyReason string
 
 // ListPopularTagsParams defines parameters for ListPopularTags.
 type ListPopularTagsParams struct {
-	// Limit Number of tags to return
+	// Limit Maximum number of tags to return
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Period Time period for popularity calculation
+	Period *ListPopularTagsParamsPeriod `form:"period,omitempty" json:"period,omitempty"`
 }
+
+// ListPopularTagsParamsPeriod defines parameters for ListPopularTags.
+type ListPopularTagsParamsPeriod string
 
 // SearchTagsParams defines parameters for SearchTags.
 type SearchTagsParams struct {
@@ -689,6 +2181,18 @@ type SearchTagsParams struct {
 	// Limit Number of results to return
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
+
+// ListTrendingTagsParams defines parameters for ListTrendingTags.
+type ListTrendingTagsParams struct {
+	// Limit Maximum number of tags to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Period Time window for trending calculation
+	Period *ListTrendingTagsParamsPeriod `form:"period,omitempty" json:"period,omitempty"`
+}
+
+// ListTrendingTagsParamsPeriod defines parameters for ListTrendingTags.
+type ListTrendingTagsParamsPeriod string
 
 // ListImagesByTagParams defines parameters for ListImagesByTag.
 type ListImagesByTagParams struct {
@@ -707,10 +2211,77 @@ type UpdateUserJSONBody struct {
 
 // BanUserJSONBody defines parameters for BanUser.
 type BanUserJSONBody struct {
-	// ExpiresAt Ban expiration (null for permanent)
-	ExpiresAt *time.Time `json:"expires_at,omitempty"`
-	Reason    string     `json:"reason"`
+	// DurationHours Ban duration in hours (omit for permanent ban)
+	DurationHours *int   `json:"duration_hours,omitempty"`
+	Reason        string `json:"reason"`
 }
+
+// GetUserFollowersParams defines parameters for GetUserFollowers.
+type GetUserFollowersParams struct {
+	// Limit Maximum number of followers to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of followers to skip for pagination
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetUserFollowingParams defines parameters for GetUserFollowing.
+type GetUserFollowingParams struct {
+	// Limit Maximum number of followed users to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Offset Number of followed users to skip for pagination
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// GetUserLikedImagesParams defines parameters for GetUserLikedImages.
+type GetUserLikedImagesParams struct {
+	// Page Page number
+	Page *PageParam `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage Number of items per page
+	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// ListUserSessionsParams defines parameters for ListUserSessions.
+type ListUserSessionsParams struct {
+	// Page Page number
+	Page *PageParam `form:"page,omitempty" json:"page,omitempty"`
+
+	// PerPage Number of items per page
+	PerPage *PerPageParam `form:"per_page,omitempty" json:"per_page,omitempty"`
+}
+
+// CreateVariantConfigJSONBody defines parameters for CreateVariantConfig.
+type CreateVariantConfigJSONBody struct {
+	CropMode  CreateVariantConfigJSONBodyCropMode `json:"crop_mode"`
+	Format    CreateVariantConfigJSONBodyFormat   `json:"format"`
+	MaxHeight int                                 `json:"max_height"`
+	MaxWidth  int                                 `json:"max_width"`
+	Name      string                              `json:"name"`
+	Quality   int                                 `json:"quality"`
+}
+
+// CreateVariantConfigJSONBodyCropMode defines parameters for CreateVariantConfig.
+type CreateVariantConfigJSONBodyCropMode string
+
+// CreateVariantConfigJSONBodyFormat defines parameters for CreateVariantConfig.
+type CreateVariantConfigJSONBodyFormat string
+
+// UpdateVariantConfigJSONBody defines parameters for UpdateVariantConfig.
+type UpdateVariantConfigJSONBody struct {
+	CropMode  UpdateVariantConfigJSONBodyCropMode `json:"crop_mode"`
+	Format    UpdateVariantConfigJSONBodyFormat   `json:"format"`
+	MaxHeight int                                 `json:"max_height"`
+	MaxWidth  int                                 `json:"max_width"`
+	Quality   int                                 `json:"quality"`
+}
+
+// UpdateVariantConfigJSONBodyCropMode defines parameters for UpdateVariantConfig.
+type UpdateVariantConfigJSONBodyCropMode string
+
+// UpdateVariantConfigJSONBodyFormat defines parameters for UpdateVariantConfig.
+type UpdateVariantConfigJSONBodyFormat string
 
 // CreateAlbumJSONRequestBody defines body for CreateAlbum for application/json ContentType.
 type CreateAlbumJSONRequestBody CreateAlbumJSONBody
@@ -721,14 +2292,59 @@ type UpdateAlbumJSONRequestBody UpdateAlbumJSONBody
 // AddImagesToAlbumJSONRequestBody defines body for AddImagesToAlbum for application/json ContentType.
 type AddImagesToAlbumJSONRequestBody AddImagesToAlbumJSONBody
 
+// RegenerateBackupCodesJSONRequestBody defines body for RegenerateBackupCodes for application/json ContentType.
+type RegenerateBackupCodesJSONRequestBody RegenerateBackupCodesJSONBody
+
+// Disable2FAJSONRequestBody defines body for Disable2FA for application/json ContentType.
+type Disable2FAJSONRequestBody Disable2FAJSONBody
+
+// Verify2FALoginJSONRequestBody defines body for Verify2FALogin for application/json ContentType.
+type Verify2FALoginJSONRequestBody Verify2FALoginJSONBody
+
+// Verify2FAJSONRequestBody defines body for Verify2FA for application/json ContentType.
+type Verify2FAJSONRequestBody Verify2FAJSONBody
+
+// CreateGuestSessionJSONRequestBody defines body for CreateGuestSession for application/json ContentType.
+type CreateGuestSessionJSONRequestBody CreateGuestSessionJSONBody
+
 // LoginUserJSONRequestBody defines body for LoginUser for application/json ContentType.
 type LoginUserJSONRequestBody LoginUserJSONBody
+
+// LinkOAuthAccountJSONRequestBody defines body for LinkOAuthAccount for application/json ContentType.
+type LinkOAuthAccountJSONRequestBody LinkOAuthAccountJSONBody
 
 // RefreshTokenJSONRequestBody defines body for RefreshToken for application/json ContentType.
 type RefreshTokenJSONRequestBody RefreshTokenJSONBody
 
 // RegisterUserJSONRequestBody defines body for RegisterUser for application/json ContentType.
 type RegisterUserJSONRequestBody RegisterUserJSONBody
+
+// CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
+type CreateGroupJSONRequestBody = CreateGroupRequest
+
+// UpdateGroupJSONRequestBody defines body for UpdateGroup for application/json ContentType.
+type UpdateGroupJSONRequestBody = UpdateGroupRequest
+
+// CreateGroupAlbumJSONRequestBody defines body for CreateGroupAlbum for application/json ContentType.
+type CreateGroupAlbumJSONRequestBody = CreateGroupAlbumRequest
+
+// UpdateGroupAlbumJSONRequestBody defines body for UpdateGroupAlbum for application/json ContentType.
+type UpdateGroupAlbumJSONRequestBody = UpdateGroupAlbumRequest
+
+// AddImageToGroupAlbumJSONRequestBody defines body for AddImageToGroupAlbum for application/json ContentType.
+type AddImageToGroupAlbumJSONRequestBody = AddImageToGroupAlbumRequest
+
+// InviteToGroupJSONRequestBody defines body for InviteToGroup for application/json ContentType.
+type InviteToGroupJSONRequestBody = InviteToGroupRequest
+
+// BanMemberJSONRequestBody defines body for BanMember for application/json ContentType.
+type BanMemberJSONRequestBody BanMemberJSONBody
+
+// UpdateMemberRoleJSONRequestBody defines body for UpdateMemberRole for application/json ContentType.
+type UpdateMemberRoleJSONRequestBody = UpdateMemberRoleRequest
+
+// ClaimGuestImageJSONRequestBody defines body for ClaimGuestImage for application/json ContentType.
+type ClaimGuestImageJSONRequestBody ClaimGuestImageJSONBody
 
 // UploadImageMultipartRequestBody defines body for UploadImage for multipart/form-data ContentType.
 type UploadImageMultipartRequestBody UploadImageMultipartBody
@@ -739,8 +2355,20 @@ type UpdateImageJSONRequestBody UpdateImageJSONBody
 // AddCommentJSONRequestBody defines body for AddComment for application/json ContentType.
 type AddCommentJSONRequestBody AddCommentJSONBody
 
+// GenerateCustomVariantJSONRequestBody defines body for GenerateCustomVariant for application/json ContentType.
+type GenerateCustomVariantJSONRequestBody GenerateCustomVariantJSONBody
+
+// FeatureImageJSONRequestBody defines body for FeatureImage for application/json ContentType.
+type FeatureImageJSONRequestBody = FeatureImageRequest
+
+// ScanImageNSFWJSONRequestBody defines body for ScanImageNSFW for application/json ContentType.
+type ScanImageNSFWJSONRequestBody ScanImageNSFWJSONBody
+
 // ResolveReportJSONRequestBody defines body for ResolveReport for application/json ContentType.
 type ResolveReportJSONRequestBody ResolveReportJSONBody
+
+// MarkNotificationsAsReadJSONRequestBody defines body for MarkNotificationsAsRead for application/json ContentType.
+type MarkNotificationsAsReadJSONRequestBody MarkNotificationsAsReadJSONBody
 
 // CreateReportJSONRequestBody defines body for CreateReport for application/json ContentType.
 type CreateReportJSONRequestBody CreateReportJSONBody
@@ -750,6 +2378,122 @@ type UpdateUserJSONRequestBody UpdateUserJSONBody
 
 // BanUserJSONRequestBody defines body for BanUser for application/json ContentType.
 type BanUserJSONRequestBody BanUserJSONBody
+
+// CreateVariantConfigJSONRequestBody defines body for CreateVariantConfig for application/json ContentType.
+type CreateVariantConfigJSONRequestBody CreateVariantConfigJSONBody
+
+// UpdateVariantConfigJSONRequestBody defines body for UpdateVariantConfig for application/json ContentType.
+type UpdateVariantConfigJSONRequestBody UpdateVariantConfigJSONBody
+
+// AsInviteToGroupRequest0 returns the union data inside the InviteToGroupRequest as a InviteToGroupRequest0
+func (t InviteToGroupRequest) AsInviteToGroupRequest0() (InviteToGroupRequest0, error) {
+	var body InviteToGroupRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromInviteToGroupRequest0 overwrites any union data inside the InviteToGroupRequest as the provided InviteToGroupRequest0
+func (t *InviteToGroupRequest) FromInviteToGroupRequest0(v InviteToGroupRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeInviteToGroupRequest0 performs a merge with any union data inside the InviteToGroupRequest, using the provided InviteToGroupRequest0
+func (t *InviteToGroupRequest) MergeInviteToGroupRequest0(v InviteToGroupRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsInviteToGroupRequest1 returns the union data inside the InviteToGroupRequest as a InviteToGroupRequest1
+func (t InviteToGroupRequest) AsInviteToGroupRequest1() (InviteToGroupRequest1, error) {
+	var body InviteToGroupRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromInviteToGroupRequest1 overwrites any union data inside the InviteToGroupRequest as the provided InviteToGroupRequest1
+func (t *InviteToGroupRequest) FromInviteToGroupRequest1(v InviteToGroupRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeInviteToGroupRequest1 performs a merge with any union data inside the InviteToGroupRequest, using the provided InviteToGroupRequest1
+func (t *InviteToGroupRequest) MergeInviteToGroupRequest1(v InviteToGroupRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t InviteToGroupRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	object := make(map[string]json.RawMessage)
+	if t.union != nil {
+		err = json.Unmarshal(b, &object)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if t.Email != nil {
+		object["email"], err = json.Marshal(t.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	if t.UserId != nil {
+		object["user_id"], err = json.Marshal(t.UserId)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'user_id': %w", err)
+		}
+	}
+	b, err = json.Marshal(object)
+	return b, err
+}
+
+func (t *InviteToGroupRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	object := make(map[string]json.RawMessage)
+	err = json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &t.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+	}
+
+	if raw, found := object["user_id"]; found {
+		err = json.Unmarshal(raw, &t.UserId)
+		if err != nil {
+			return fmt.Errorf("error reading 'user_id': %w", err)
+		}
+	}
+
+	return err
+}
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -762,24 +2506,72 @@ type ServerInterface interface {
 	// Delete album
 	// (DELETE /albums/{id})
 	DeleteAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
-	// Get album with images
+	// Get album details
 	// (GET /albums/{id})
-	GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumParams)
+	GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
 	// Update album
 	// (PUT /albums/{id})
 	UpdateAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
+	// Get album breadcrumb
+	// (GET /albums/{id}/breadcrumb)
+	GetAlbumBreadcrumb(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
+	// Get child albums
+	// (GET /albums/{id}/children)
+	GetAlbumChildren(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
+	// List images in album
+	// (GET /albums/{id}/images)
+	GetAlbumImages(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumImagesParams)
 	// Add images to album
 	// (POST /albums/{id}/images)
 	AddImagesToAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam)
 	// Remove image from album
 	// (DELETE /albums/{id}/images/{imageId})
 	RemoveImageFromAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam, imageId openapi_types.UUID)
+	// Regenerate backup codes
+	// (POST /auth/2fa/backup-codes/regenerate)
+	RegenerateBackupCodes(w http.ResponseWriter, r *http.Request)
+	// Disable 2FA
+	// (POST /auth/2fa/disable)
+	Disable2FA(w http.ResponseWriter, r *http.Request)
+	// Verify 2FA during login
+	// (POST /auth/2fa/login-verify)
+	Verify2FALogin(w http.ResponseWriter, r *http.Request)
+	// Setup 2FA
+	// (POST /auth/2fa/setup)
+	Setup2FA(w http.ResponseWriter, r *http.Request)
+	// Get 2FA status
+	// (GET /auth/2fa/status)
+	Get2FAStatus(w http.ResponseWriter, r *http.Request)
+	// Verify and enable 2FA
+	// (POST /auth/2fa/verify)
+	Verify2FA(w http.ResponseWriter, r *http.Request)
+	// Create guest session
+	// (POST /auth/guest)
+	CreateGuestSession(w http.ResponseWriter, r *http.Request)
 	// User login
 	// (POST /auth/login)
 	LoginUser(w http.ResponseWriter, r *http.Request)
 	// User logout
 	// (POST /auth/logout)
 	LogoutUser(w http.ResponseWriter, r *http.Request)
+	// List linked OAuth accounts
+	// (GET /auth/oauth/accounts)
+	ListLinkedOAuthAccounts(w http.ResponseWriter, r *http.Request)
+	// Unlink OAuth account
+	// (DELETE /auth/oauth/link)
+	UnlinkOAuthAccount(w http.ResponseWriter, r *http.Request, params UnlinkOAuthAccountParams)
+	// Link OAuth account
+	// (POST /auth/oauth/link)
+	LinkOAuthAccount(w http.ResponseWriter, r *http.Request)
+	// Unlink OAuth account by provider
+	// (DELETE /auth/oauth/{provider})
+	UnlinkOAuthAccountByProvider(w http.ResponseWriter, r *http.Request, provider UnlinkOAuthAccountByProviderParamsProvider)
+	// Initiate OAuth flow
+	// (GET /auth/oauth/{provider})
+	InitiateOAuthFlow(w http.ResponseWriter, r *http.Request, provider InitiateOAuthFlowParamsProvider)
+	// Handle OAuth callback
+	// (GET /auth/oauth/{provider}/callback)
+	HandleOAuthCallback(w http.ResponseWriter, r *http.Request, provider HandleOAuthCallbackParamsProvider, params HandleOAuthCallbackParams)
 	// Refresh access token
 	// (POST /auth/refresh)
 	RefreshToken(w http.ResponseWriter, r *http.Request)
@@ -789,24 +2581,108 @@ type ServerInterface interface {
 	// Delete comment
 	// (DELETE /comments/{id})
 	DeleteComment(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Featured images
+	// (GET /explore/featured)
+	ExploreFeatured(w http.ResponseWriter, r *http.Request, params ExploreFeaturedParams)
 	// Popular images
 	// (GET /explore/popular)
 	ExplorePopular(w http.ResponseWriter, r *http.Request, params ExplorePopularParams)
 	// Recent public images
 	// (GET /explore/recent)
 	ExploreRecent(w http.ResponseWriter, r *http.Request, params ExploreRecentParams)
+	// Get activity feed
+	// (GET /feed)
+	GetActivityFeed(w http.ResponseWriter, r *http.Request, params GetActivityFeedParams)
+	// List public groups
+	// (GET /groups)
+	ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams)
+	// Create a new group
+	// (POST /groups)
+	CreateGroup(w http.ResponseWriter, r *http.Request)
+	// Get group by slug
+	// (GET /groups/by-slug/{slug})
+	GetGroupBySlug(w http.ResponseWriter, r *http.Request, slug string)
+	// Accept group invitation
+	// (POST /groups/invitations/{token}/accept)
+	AcceptInvitation(w http.ResponseWriter, r *http.Request, token string)
+	// Decline group invitation
+	// (POST /groups/invitations/{token}/decline)
+	DeclineInvitation(w http.ResponseWriter, r *http.Request, token string)
+	// Search groups
+	// (GET /groups/search)
+	SearchGroups(w http.ResponseWriter, r *http.Request, params SearchGroupsParams)
+	// Delete group
+	// (DELETE /groups/{groupID})
+	DeleteGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// Get group by ID
+	// (GET /groups/{groupID})
+	GetGroupByID(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// Update group
+	// (PUT /groups/{groupID})
+	UpdateGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// List group albums
+	// (GET /groups/{groupID}/albums)
+	ListGroupAlbums(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupAlbumsParams)
+	// Create group album
+	// (POST /groups/{groupID}/albums)
+	CreateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// Delete album
+	// (DELETE /groups/{groupID}/albums/{albumID})
+	DeleteGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID)
+	// Get album details
+	// (GET /groups/{groupID}/albums/{albumID})
+	GetGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID)
+	// Update album
+	// (PUT /groups/{groupID}/albums/{albumID})
+	UpdateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID)
+	// Add image to album
+	// (POST /groups/{groupID}/albums/{albumID}/images)
+	AddImageToGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID)
+	// Remove image from album
+	// (DELETE /groups/{groupID}/albums/{albumID}/images/{imageID})
+	RemoveImageFromGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID, imageID openapi_types.UUID)
+	// List pending group invitations
+	// (GET /groups/{groupID}/invitations)
+	ListGroupInvitations(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupInvitationsParams)
+	// Invite user to group
+	// (POST /groups/{groupID}/invitations)
+	InviteToGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// Join group
+	// (POST /groups/{groupID}/join)
+	JoinGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// Leave group
+	// (DELETE /groups/{groupID}/leave)
+	LeaveGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID)
+	// List group members
+	// (GET /groups/{groupID}/members)
+	ListGroupMembers(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupMembersParams)
+	// Remove member
+	// (DELETE /groups/{groupID}/members/{userID})
+	RemoveMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID)
+	// Ban member
+	// (POST /groups/{groupID}/members/{userID}/ban)
+	BanMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID)
+	// Update member role
+	// (PUT /groups/{groupID}/members/{userID}/role)
+	UpdateMemberRole(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID)
+	// Claim guest upload
+	// (POST /guest/images/{imageId}/claim)
+	ClaimGuestImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID)
 	// Liveness check
 	// (GET /health)
 	HealthCheck(w http.ResponseWriter, r *http.Request)
 	// Readiness check
 	// (GET /health/ready)
-	ReadinessCheck(w http.ResponseWriter, r *http.Request)
+	HealthReadiness(w http.ResponseWriter, r *http.Request)
 	// List images
 	// (GET /images)
 	ListImages(w http.ResponseWriter, r *http.Request, params ListImagesParams)
 	// Upload image
 	// (POST /images)
 	UploadImage(w http.ResponseWriter, r *http.Request)
+	// Search images
+	// (GET /images/search)
+	SearchImages(w http.ResponseWriter, r *http.Request, params SearchImagesParams)
 	// Delete image
 	// (DELETE /images/{id})
 	DeleteImage(w http.ResponseWriter, r *http.Request, id ImageIdParam)
@@ -822,36 +2698,99 @@ type ServerInterface interface {
 	// Add comment
 	// (POST /images/{id}/comments)
 	AddComment(w http.ResponseWriter, r *http.Request, id ImageIdParam)
+	// Unpin image from IPFS
+	// (DELETE /images/{id}/ipfs)
+	UnpinImageFromIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam)
+	// Get image IPFS status
+	// (GET /images/{id}/ipfs)
+	GetImageIPFSStatus(w http.ResponseWriter, r *http.Request, id ImageIdParam)
+	// Pin image to IPFS
+	// (POST /images/{id}/ipfs)
+	PinImageToIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam)
 	// Unlike image
 	// (DELETE /images/{id}/like)
 	UnlikeImage(w http.ResponseWriter, r *http.Request, id ImageIdParam)
 	// Like image
 	// (POST /images/{id}/like)
 	LikeImage(w http.ResponseWriter, r *http.Request, id ImageIdParam)
-	// List users who liked image
-	// (GET /images/{id}/likes)
-	ListImageLikes(w http.ResponseWriter, r *http.Request, id ImageIdParam, params ListImageLikesParams)
+	// Get image preview page
+	// (GET /images/{id}/preview)
+	GetImagePreview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get image share QR code
+	// (GET /images/{id}/qr)
+	GetImageQRCode(w http.ResponseWriter, r *http.Request, id ImageIdParam, params GetImageQRCodeParams)
+	// Generate custom variant
+	// (POST /images/{id}/variants)
+	GenerateCustomVariant(w http.ResponseWriter, r *http.Request, id ImageIdParam)
 	// Get image variant
 	// (GET /images/{id}/variants/{size})
 	GetImageVariant(w http.ResponseWriter, r *http.Request, id ImageIdParam, size GetImageVariantParamsSize)
+	// List NSFW scans for an image
+	// (GET /images/{imageId}/nsfw-scans)
+	ListNSFWScansByImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID)
+	// List current user's groups
+	// (GET /me/groups)
+	ListUserGroups(w http.ResponseWriter, r *http.Request, params ListUserGroupsParams)
+	// Prometheus metrics
+	// (GET /metrics)
+	Metrics(w http.ResponseWriter, r *http.Request)
+	// List active bans
+	// (GET /moderation/bans)
+	ListBans(w http.ResponseWriter, r *http.Request, params ListBansParams)
+	// Feature an image (Admin only)
+	// (POST /moderation/featured)
+	FeatureImage(w http.ResponseWriter, r *http.Request)
+	// Unfeature an image (Admin only)
+	// (DELETE /moderation/featured/{imageID})
+	UnfeatureImage(w http.ResponseWriter, r *http.Request, imageID openapi_types.UUID)
+	// List NSFW flagged images
+	// (GET /moderation/nsfw/flagged)
+	ListNSFWFlagged(w http.ResponseWriter, r *http.Request, params ListNSFWFlaggedParams)
+	// Initiate NSFW scan
+	// (POST /moderation/nsfw/scan)
+	ScanImageNSFW(w http.ResponseWriter, r *http.Request)
+	// Get NSFW scan details
+	// (GET /moderation/nsfw/scans/{scanId})
+	GetNSFWScan(w http.ResponseWriter, r *http.Request, scanId openapi_types.UUID)
 	// List reports
 	// (GET /moderation/reports)
 	ListReports(w http.ResponseWriter, r *http.Request, params ListReportsParams)
 	// Get report details
 	// (GET /moderation/reports/{id})
 	GetReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Dismiss report
+	// (POST /moderation/reports/{id}/dismiss)
+	DismissReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// Resolve report
 	// (POST /moderation/reports/{id}/resolve)
 	ResolveReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Start report review
+	// (POST /moderation/reports/{id}/review)
+	StartReportReview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get notifications
+	// (GET /notifications)
+	GetNotifications(w http.ResponseWriter, r *http.Request, params GetNotificationsParams)
+	// Get unread notification count
+	// (GET /notifications/count)
+	GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request)
+	// Mark notifications as read
+	// (POST /notifications/read)
+	MarkNotificationsAsRead(w http.ResponseWriter, r *http.Request)
+	// Get oEmbed response for image
+	// (GET /oembed)
+	GetOEmbed(w http.ResponseWriter, r *http.Request, params GetOEmbedParams)
 	// Create abuse report
 	// (POST /reports)
 	CreateReport(w http.ResponseWriter, r *http.Request)
 	// List popular tags
-	// (GET /tags)
+	// (GET /tags/popular)
 	ListPopularTags(w http.ResponseWriter, r *http.Request, params ListPopularTagsParams)
 	// Search tags
 	// (GET /tags/search)
 	SearchTags(w http.ResponseWriter, r *http.Request, params SearchTagsParams)
+	// List trending tags
+	// (GET /tags/trending)
+	ListTrendingTags(w http.ResponseWriter, r *http.Request, params ListTrendingTagsParams)
 	// List images by tag
 	// (GET /tags/{tag}/images)
 	ListImagesByTag(w http.ResponseWriter, r *http.Request, tag string, params ListImagesByTagParams)
@@ -867,9 +2806,48 @@ type ServerInterface interface {
 	// Unban user
 	// (DELETE /users/{id}/ban)
 	UnbanUser(w http.ResponseWriter, r *http.Request, id UserIdParam)
+	// Check ban status
+	// (GET /users/{id}/ban)
+	GetBanStatus(w http.ResponseWriter, r *http.Request, id UserIdParam)
 	// Ban user
 	// (POST /users/{id}/ban)
 	BanUser(w http.ResponseWriter, r *http.Request, id UserIdParam)
+	// Unfollow user
+	// (DELETE /users/{id}/follow)
+	UnfollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam)
+	// Follow user
+	// (POST /users/{id}/follow)
+	FollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam)
+	// List user followers
+	// (GET /users/{id}/followers)
+	GetUserFollowers(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowersParams)
+	// List users being followed
+	// (GET /users/{id}/following)
+	GetUserFollowing(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowingParams)
+	// Get user's liked images
+	// (GET /users/{id}/likes)
+	GetUserLikedImages(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserLikedImagesParams)
+	// List user sessions
+	// (GET /users/{id}/sessions)
+	ListUserSessions(w http.ResponseWriter, r *http.Request, id UserIdParam, params ListUserSessionsParams)
+	// List user's variant configs
+	// (GET /variant-configs)
+	ListVariantConfigs(w http.ResponseWriter, r *http.Request)
+	// Create custom variant config
+	// (POST /variant-configs)
+	CreateVariantConfig(w http.ResponseWriter, r *http.Request)
+	// List system presets
+	// (GET /variant-configs/presets)
+	ListVariantConfigPresets(w http.ResponseWriter, r *http.Request)
+	// Delete variant config
+	// (DELETE /variant-configs/{id})
+	DeleteVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get variant config
+	// (GET /variant-configs/{id})
+	GetVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Update variant config
+	// (PUT /variant-configs/{id})
+	UpdateVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -894,15 +2872,33 @@ func (_ Unimplemented) DeleteAlbum(w http.ResponseWriter, r *http.Request, id Al
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Get album with images
+// Get album details
 // (GET /albums/{id})
-func (_ Unimplemented) GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumParams) {
+func (_ Unimplemented) GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update album
 // (PUT /albums/{id})
 func (_ Unimplemented) UpdateAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get album breadcrumb
+// (GET /albums/{id}/breadcrumb)
+func (_ Unimplemented) GetAlbumBreadcrumb(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get child albums
+// (GET /albums/{id}/children)
+func (_ Unimplemented) GetAlbumChildren(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List images in album
+// (GET /albums/{id}/images)
+func (_ Unimplemented) GetAlbumImages(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumImagesParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -918,6 +2914,48 @@ func (_ Unimplemented) RemoveImageFromAlbum(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Regenerate backup codes
+// (POST /auth/2fa/backup-codes/regenerate)
+func (_ Unimplemented) RegenerateBackupCodes(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Disable 2FA
+// (POST /auth/2fa/disable)
+func (_ Unimplemented) Disable2FA(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Verify 2FA during login
+// (POST /auth/2fa/login-verify)
+func (_ Unimplemented) Verify2FALogin(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Setup 2FA
+// (POST /auth/2fa/setup)
+func (_ Unimplemented) Setup2FA(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get 2FA status
+// (GET /auth/2fa/status)
+func (_ Unimplemented) Get2FAStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Verify and enable 2FA
+// (POST /auth/2fa/verify)
+func (_ Unimplemented) Verify2FA(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create guest session
+// (POST /auth/guest)
+func (_ Unimplemented) CreateGuestSession(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // User login
 // (POST /auth/login)
 func (_ Unimplemented) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -927,6 +2965,42 @@ func (_ Unimplemented) LoginUser(w http.ResponseWriter, r *http.Request) {
 // User logout
 // (POST /auth/logout)
 func (_ Unimplemented) LogoutUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List linked OAuth accounts
+// (GET /auth/oauth/accounts)
+func (_ Unimplemented) ListLinkedOAuthAccounts(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unlink OAuth account
+// (DELETE /auth/oauth/link)
+func (_ Unimplemented) UnlinkOAuthAccount(w http.ResponseWriter, r *http.Request, params UnlinkOAuthAccountParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Link OAuth account
+// (POST /auth/oauth/link)
+func (_ Unimplemented) LinkOAuthAccount(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unlink OAuth account by provider
+// (DELETE /auth/oauth/{provider})
+func (_ Unimplemented) UnlinkOAuthAccountByProvider(w http.ResponseWriter, r *http.Request, provider UnlinkOAuthAccountByProviderParamsProvider) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Initiate OAuth flow
+// (GET /auth/oauth/{provider})
+func (_ Unimplemented) InitiateOAuthFlow(w http.ResponseWriter, r *http.Request, provider InitiateOAuthFlowParamsProvider) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Handle OAuth callback
+// (GET /auth/oauth/{provider}/callback)
+func (_ Unimplemented) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, provider HandleOAuthCallbackParamsProvider, params HandleOAuthCallbackParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -948,6 +3022,12 @@ func (_ Unimplemented) DeleteComment(w http.ResponseWriter, r *http.Request, id 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Featured images
+// (GET /explore/featured)
+func (_ Unimplemented) ExploreFeatured(w http.ResponseWriter, r *http.Request, params ExploreFeaturedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Popular images
 // (GET /explore/popular)
 func (_ Unimplemented) ExplorePopular(w http.ResponseWriter, r *http.Request, params ExplorePopularParams) {
@@ -960,6 +3040,162 @@ func (_ Unimplemented) ExploreRecent(w http.ResponseWriter, r *http.Request, par
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Get activity feed
+// (GET /feed)
+func (_ Unimplemented) GetActivityFeed(w http.ResponseWriter, r *http.Request, params GetActivityFeedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List public groups
+// (GET /groups)
+func (_ Unimplemented) ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a new group
+// (POST /groups)
+func (_ Unimplemented) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get group by slug
+// (GET /groups/by-slug/{slug})
+func (_ Unimplemented) GetGroupBySlug(w http.ResponseWriter, r *http.Request, slug string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Accept group invitation
+// (POST /groups/invitations/{token}/accept)
+func (_ Unimplemented) AcceptInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Decline group invitation
+// (POST /groups/invitations/{token}/decline)
+func (_ Unimplemented) DeclineInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Search groups
+// (GET /groups/search)
+func (_ Unimplemented) SearchGroups(w http.ResponseWriter, r *http.Request, params SearchGroupsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete group
+// (DELETE /groups/{groupID})
+func (_ Unimplemented) DeleteGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get group by ID
+// (GET /groups/{groupID})
+func (_ Unimplemented) GetGroupByID(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update group
+// (PUT /groups/{groupID})
+func (_ Unimplemented) UpdateGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List group albums
+// (GET /groups/{groupID}/albums)
+func (_ Unimplemented) ListGroupAlbums(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupAlbumsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create group album
+// (POST /groups/{groupID}/albums)
+func (_ Unimplemented) CreateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete album
+// (DELETE /groups/{groupID}/albums/{albumID})
+func (_ Unimplemented) DeleteGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get album details
+// (GET /groups/{groupID}/albums/{albumID})
+func (_ Unimplemented) GetGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update album
+// (PUT /groups/{groupID}/albums/{albumID})
+func (_ Unimplemented) UpdateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Add image to album
+// (POST /groups/{groupID}/albums/{albumID}/images)
+func (_ Unimplemented) AddImageToGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove image from album
+// (DELETE /groups/{groupID}/albums/{albumID}/images/{imageID})
+func (_ Unimplemented) RemoveImageFromGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID, imageID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List pending group invitations
+// (GET /groups/{groupID}/invitations)
+func (_ Unimplemented) ListGroupInvitations(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupInvitationsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Invite user to group
+// (POST /groups/{groupID}/invitations)
+func (_ Unimplemented) InviteToGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Join group
+// (POST /groups/{groupID}/join)
+func (_ Unimplemented) JoinGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Leave group
+// (DELETE /groups/{groupID}/leave)
+func (_ Unimplemented) LeaveGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List group members
+// (GET /groups/{groupID}/members)
+func (_ Unimplemented) ListGroupMembers(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupMembersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove member
+// (DELETE /groups/{groupID}/members/{userID})
+func (_ Unimplemented) RemoveMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Ban member
+// (POST /groups/{groupID}/members/{userID}/ban)
+func (_ Unimplemented) BanMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update member role
+// (PUT /groups/{groupID}/members/{userID}/role)
+func (_ Unimplemented) UpdateMemberRole(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Claim guest upload
+// (POST /guest/images/{imageId}/claim)
+func (_ Unimplemented) ClaimGuestImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Liveness check
 // (GET /health)
 func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
@@ -968,7 +3204,7 @@ func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 // Readiness check
 // (GET /health/ready)
-func (_ Unimplemented) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) HealthReadiness(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -981,6 +3217,12 @@ func (_ Unimplemented) ListImages(w http.ResponseWriter, r *http.Request, params
 // Upload image
 // (POST /images)
 func (_ Unimplemented) UploadImage(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Search images
+// (GET /images/search)
+func (_ Unimplemented) SearchImages(w http.ResponseWriter, r *http.Request, params SearchImagesParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1014,6 +3256,24 @@ func (_ Unimplemented) AddComment(w http.ResponseWriter, r *http.Request, id Ima
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Unpin image from IPFS
+// (DELETE /images/{id}/ipfs)
+func (_ Unimplemented) UnpinImageFromIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get image IPFS status
+// (GET /images/{id}/ipfs)
+func (_ Unimplemented) GetImageIPFSStatus(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Pin image to IPFS
+// (POST /images/{id}/ipfs)
+func (_ Unimplemented) PinImageToIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Unlike image
 // (DELETE /images/{id}/like)
 func (_ Unimplemented) UnlikeImage(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
@@ -1026,15 +3286,81 @@ func (_ Unimplemented) LikeImage(w http.ResponseWriter, r *http.Request, id Imag
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// List users who liked image
-// (GET /images/{id}/likes)
-func (_ Unimplemented) ListImageLikes(w http.ResponseWriter, r *http.Request, id ImageIdParam, params ListImageLikesParams) {
+// Get image preview page
+// (GET /images/{id}/preview)
+func (_ Unimplemented) GetImagePreview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get image share QR code
+// (GET /images/{id}/qr)
+func (_ Unimplemented) GetImageQRCode(w http.ResponseWriter, r *http.Request, id ImageIdParam, params GetImageQRCodeParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Generate custom variant
+// (POST /images/{id}/variants)
+func (_ Unimplemented) GenerateCustomVariant(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get image variant
 // (GET /images/{id}/variants/{size})
 func (_ Unimplemented) GetImageVariant(w http.ResponseWriter, r *http.Request, id ImageIdParam, size GetImageVariantParamsSize) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List NSFW scans for an image
+// (GET /images/{imageId}/nsfw-scans)
+func (_ Unimplemented) ListNSFWScansByImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List current user's groups
+// (GET /me/groups)
+func (_ Unimplemented) ListUserGroups(w http.ResponseWriter, r *http.Request, params ListUserGroupsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Prometheus metrics
+// (GET /metrics)
+func (_ Unimplemented) Metrics(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List active bans
+// (GET /moderation/bans)
+func (_ Unimplemented) ListBans(w http.ResponseWriter, r *http.Request, params ListBansParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Feature an image (Admin only)
+// (POST /moderation/featured)
+func (_ Unimplemented) FeatureImage(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unfeature an image (Admin only)
+// (DELETE /moderation/featured/{imageID})
+func (_ Unimplemented) UnfeatureImage(w http.ResponseWriter, r *http.Request, imageID openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List NSFW flagged images
+// (GET /moderation/nsfw/flagged)
+func (_ Unimplemented) ListNSFWFlagged(w http.ResponseWriter, r *http.Request, params ListNSFWFlaggedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Initiate NSFW scan
+// (POST /moderation/nsfw/scan)
+func (_ Unimplemented) ScanImageNSFW(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get NSFW scan details
+// (GET /moderation/nsfw/scans/{scanId})
+func (_ Unimplemented) GetNSFWScan(w http.ResponseWriter, r *http.Request, scanId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1050,9 +3376,45 @@ func (_ Unimplemented) GetReport(w http.ResponseWriter, r *http.Request, id open
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Dismiss report
+// (POST /moderation/reports/{id}/dismiss)
+func (_ Unimplemented) DismissReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Resolve report
 // (POST /moderation/reports/{id}/resolve)
 func (_ Unimplemented) ResolveReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Start report review
+// (POST /moderation/reports/{id}/review)
+func (_ Unimplemented) StartReportReview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get notifications
+// (GET /notifications)
+func (_ Unimplemented) GetNotifications(w http.ResponseWriter, r *http.Request, params GetNotificationsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get unread notification count
+// (GET /notifications/count)
+func (_ Unimplemented) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Mark notifications as read
+// (POST /notifications/read)
+func (_ Unimplemented) MarkNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get oEmbed response for image
+// (GET /oembed)
+func (_ Unimplemented) GetOEmbed(w http.ResponseWriter, r *http.Request, params GetOEmbedParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1063,7 +3425,7 @@ func (_ Unimplemented) CreateReport(w http.ResponseWriter, r *http.Request) {
 }
 
 // List popular tags
-// (GET /tags)
+// (GET /tags/popular)
 func (_ Unimplemented) ListPopularTags(w http.ResponseWriter, r *http.Request, params ListPopularTagsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
@@ -1071,6 +3433,12 @@ func (_ Unimplemented) ListPopularTags(w http.ResponseWriter, r *http.Request, p
 // Search tags
 // (GET /tags/search)
 func (_ Unimplemented) SearchTags(w http.ResponseWriter, r *http.Request, params SearchTagsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List trending tags
+// (GET /tags/trending)
+func (_ Unimplemented) ListTrendingTags(w http.ResponseWriter, r *http.Request, params ListTrendingTagsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1104,9 +3472,87 @@ func (_ Unimplemented) UnbanUser(w http.ResponseWriter, r *http.Request, id User
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Check ban status
+// (GET /users/{id}/ban)
+func (_ Unimplemented) GetBanStatus(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Ban user
 // (POST /users/{id}/ban)
 func (_ Unimplemented) BanUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unfollow user
+// (DELETE /users/{id}/follow)
+func (_ Unimplemented) UnfollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Follow user
+// (POST /users/{id}/follow)
+func (_ Unimplemented) FollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List user followers
+// (GET /users/{id}/followers)
+func (_ Unimplemented) GetUserFollowers(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List users being followed
+// (GET /users/{id}/following)
+func (_ Unimplemented) GetUserFollowing(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowingParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get user's liked images
+// (GET /users/{id}/likes)
+func (_ Unimplemented) GetUserLikedImages(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserLikedImagesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List user sessions
+// (GET /users/{id}/sessions)
+func (_ Unimplemented) ListUserSessions(w http.ResponseWriter, r *http.Request, id UserIdParam, params ListUserSessionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List user's variant configs
+// (GET /variant-configs)
+func (_ Unimplemented) ListVariantConfigs(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create custom variant config
+// (POST /variant-configs)
+func (_ Unimplemented) CreateVariantConfig(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List system presets
+// (GET /variant-configs/presets)
+func (_ Unimplemented) ListVariantConfigPresets(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete variant config
+// (DELETE /variant-configs/{id})
+func (_ Unimplemented) DeleteVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get variant config
+// (GET /variant-configs/{id})
+func (_ Unimplemented) GetVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update variant config
+// (PUT /variant-configs/{id})
+func (_ Unimplemented) UpdateVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1247,27 +3693,8 @@ func (siw *ServerInterfaceWrapper) GetAlbum(w http.ResponseWriter, r *http.Reque
 
 	r = r.WithContext(ctx)
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetAlbumParams
-
-	// ------------- Optional query parameter "page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "per_page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
-		return
-	}
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetAlbum(w, r, id, params)
+		siw.Handler.GetAlbum(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1299,6 +3726,118 @@ func (siw *ServerInterfaceWrapper) UpdateAlbum(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAlbum(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAlbumBreadcrumb operation middleware
+func (siw *ServerInterfaceWrapper) GetAlbumBreadcrumb(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id AlbumIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAlbumBreadcrumb(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAlbumChildren operation middleware
+func (siw *ServerInterfaceWrapper) GetAlbumChildren(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id AlbumIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAlbumChildren(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAlbumImages operation middleware
+func (siw *ServerInterfaceWrapper) GetAlbumImages(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id AlbumIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAlbumImagesParams
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAlbumImages(w, r, id, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1379,6 +3918,140 @@ func (siw *ServerInterfaceWrapper) RemoveImageFromAlbum(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// RegenerateBackupCodes operation middleware
+func (siw *ServerInterfaceWrapper) RegenerateBackupCodes(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RegenerateBackupCodes(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Disable2FA operation middleware
+func (siw *ServerInterfaceWrapper) Disable2FA(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Disable2FA(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Verify2FALogin operation middleware
+func (siw *ServerInterfaceWrapper) Verify2FALogin(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Verify2FALogin(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Setup2FA operation middleware
+func (siw *ServerInterfaceWrapper) Setup2FA(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Setup2FA(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Get2FAStatus operation middleware
+func (siw *ServerInterfaceWrapper) Get2FAStatus(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Get2FAStatus(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Verify2FA operation middleware
+func (siw *ServerInterfaceWrapper) Verify2FA(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Verify2FA(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGuestSession operation middleware
+func (siw *ServerInterfaceWrapper) CreateGuestSession(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGuestSession(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // LoginUser operation middleware
 func (siw *ServerInterfaceWrapper) LoginUser(w http.ResponseWriter, r *http.Request) {
 
@@ -1404,6 +4077,216 @@ func (siw *ServerInterfaceWrapper) LogoutUser(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LogoutUser(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLinkedOAuthAccounts operation middleware
+func (siw *ServerInterfaceWrapper) ListLinkedOAuthAccounts(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLinkedOAuthAccounts(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnlinkOAuthAccount operation middleware
+func (siw *ServerInterfaceWrapper) UnlinkOAuthAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UnlinkOAuthAccountParams
+
+	// ------------- Required query parameter "provider" -------------
+
+	if paramValue := r.URL.Query().Get("provider"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "provider"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "provider", r.URL.Query(), &params.Provider)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnlinkOAuthAccount(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LinkOAuthAccount operation middleware
+func (siw *ServerInterfaceWrapper) LinkOAuthAccount(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LinkOAuthAccount(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnlinkOAuthAccountByProvider operation middleware
+func (siw *ServerInterfaceWrapper) UnlinkOAuthAccountByProvider(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "provider" -------------
+	var provider UnlinkOAuthAccountByProviderParamsProvider
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider", chi.URLParam(r, "provider"), &provider, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnlinkOAuthAccountByProvider(w, r, provider)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// InitiateOAuthFlow operation middleware
+func (siw *ServerInterfaceWrapper) InitiateOAuthFlow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "provider" -------------
+	var provider InitiateOAuthFlowParamsProvider
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider", chi.URLParam(r, "provider"), &provider, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.InitiateOAuthFlow(w, r, provider)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HandleOAuthCallback operation middleware
+func (siw *ServerInterfaceWrapper) HandleOAuthCallback(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "provider" -------------
+	var provider HandleOAuthCallbackParamsProvider
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider", chi.URLParam(r, "provider"), &provider, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandleOAuthCallbackParams
+
+	// ------------- Required query parameter "code" -------------
+
+	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "state" -------------
+
+	if paramValue := r.URL.Query().Get("state"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "state", r.URL.Query(), &params.State)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "error" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "error", r.URL.Query(), &params.Error)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "error_description" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "error_description", r.URL.Query(), &params.ErrorDescription)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error_description", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleOAuthCallback(w, r, provider, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1472,6 +4355,33 @@ func (siw *ServerInterfaceWrapper) DeleteComment(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// ExploreFeatured operation middleware
+func (siw *ServerInterfaceWrapper) ExploreFeatured(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ExploreFeaturedParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ExploreFeatured(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ExplorePopular operation middleware
 func (siw *ServerInterfaceWrapper) ExplorePopular(w http.ResponseWriter, r *http.Request) {
 
@@ -1507,6 +4417,14 @@ func (siw *ServerInterfaceWrapper) ExplorePopular(w http.ResponseWriter, r *http
 	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "include_nsfw" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "include_nsfw", r.URL.Query(), &params.IncludeNsfw)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "include_nsfw", Err: err})
 		return
 	}
 
@@ -1551,8 +4469,992 @@ func (siw *ServerInterfaceWrapper) ExploreRecent(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// ------------- Optional query parameter "include_nsfw" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "include_nsfw", r.URL.Query(), &params.IncludeNsfw)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "include_nsfw", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ExploreRecent(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetActivityFeed operation middleware
+func (siw *ServerInterfaceWrapper) GetActivityFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetActivityFeedParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetActivityFeed(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGroupsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "type", r.URL.Query(), &params.Type)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroups(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGroup operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroup(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGroupBySlug operation middleware
+func (siw *ServerInterfaceWrapper) GetGroupBySlug(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGroupBySlug(w, r, slug)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "token" -------------
+	var token string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", chi.URLParam(r, "token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptInvitation(w, r, token)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeclineInvitation operation middleware
+func (siw *ServerInterfaceWrapper) DeclineInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "token" -------------
+	var token string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", chi.URLParam(r, "token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeclineInvitation(w, r, token)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchGroups operation middleware
+func (siw *ServerInterfaceWrapper) SearchGroups(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SearchGroupsParams
+
+	// ------------- Required query parameter "q" -------------
+
+	if paramValue := r.URL.Query().Get("q"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "q", r.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchGroups(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteGroup operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteGroup(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGroupByID operation middleware
+func (siw *ServerInterfaceWrapper) GetGroupByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGroupByID(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateGroup operation middleware
+func (siw *ServerInterfaceWrapper) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateGroup(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroupAlbums operation middleware
+func (siw *ServerInterfaceWrapper) ListGroupAlbums(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGroupAlbumsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroupAlbums(w, r, groupID, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroupAlbum(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "albumID" -------------
+	var albumID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "albumID", chi.URLParam(r, "albumID"), &albumID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "albumID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteGroupAlbum(w, r, groupID, albumID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) GetGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "albumID" -------------
+	var albumID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "albumID", chi.URLParam(r, "albumID"), &albumID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "albumID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGroupAlbum(w, r, groupID, albumID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) UpdateGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "albumID" -------------
+	var albumID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "albumID", chi.URLParam(r, "albumID"), &albumID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "albumID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateGroupAlbum(w, r, groupID, albumID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddImageToGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) AddImageToGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "albumID" -------------
+	var albumID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "albumID", chi.URLParam(r, "albumID"), &albumID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "albumID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddImageToGroupAlbum(w, r, groupID, albumID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveImageFromGroupAlbum operation middleware
+func (siw *ServerInterfaceWrapper) RemoveImageFromGroupAlbum(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "albumID" -------------
+	var albumID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "albumID", chi.URLParam(r, "albumID"), &albumID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "albumID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "imageID" -------------
+	var imageID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageID", chi.URLParam(r, "imageID"), &imageID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveImageFromGroupAlbum(w, r, groupID, albumID, imageID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroupInvitations operation middleware
+func (siw *ServerInterfaceWrapper) ListGroupInvitations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGroupInvitationsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroupInvitations(w, r, groupID, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// InviteToGroup operation middleware
+func (siw *ServerInterfaceWrapper) InviteToGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.InviteToGroup(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// JoinGroup operation middleware
+func (siw *ServerInterfaceWrapper) JoinGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.JoinGroup(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LeaveGroup operation middleware
+func (siw *ServerInterfaceWrapper) LeaveGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LeaveGroup(w, r, groupID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroupMembers operation middleware
+func (siw *ServerInterfaceWrapper) ListGroupMembers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGroupMembersParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "role" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "role", r.URL.Query(), &params.Role)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "role", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroupMembers(w, r, groupID, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveMember operation middleware
+func (siw *ServerInterfaceWrapper) RemoveMember(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "userID" -------------
+	var userID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", chi.URLParam(r, "userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveMember(w, r, groupID, userID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// BanMember operation middleware
+func (siw *ServerInterfaceWrapper) BanMember(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "userID" -------------
+	var userID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", chi.URLParam(r, "userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.BanMember(w, r, groupID, userID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateMemberRole operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupID" -------------
+	var groupID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupID", chi.URLParam(r, "groupID"), &groupID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "userID" -------------
+	var userID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", chi.URLParam(r, "userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMemberRole(w, r, groupID, userID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ClaimGuestImage operation middleware
+func (siw *ServerInterfaceWrapper) ClaimGuestImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "imageId" -------------
+	var imageId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageId", chi.URLParam(r, "imageId"), &imageId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ClaimGuestImage(w, r, imageId)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1576,11 +5478,11 @@ func (siw *ServerInterfaceWrapper) HealthCheck(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
-// ReadinessCheck operation middleware
-func (siw *ServerInterfaceWrapper) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
+// HealthReadiness operation middleware
+func (siw *ServerInterfaceWrapper) HealthReadiness(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ReadinessCheck(w, r)
+		siw.Handler.HealthReadiness(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1698,6 +5600,94 @@ func (siw *ServerInterfaceWrapper) UploadImage(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UploadImage(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchImages operation middleware
+func (siw *ServerInterfaceWrapper) SearchImages(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SearchImagesParams
+
+	// ------------- Required query parameter "q" -------------
+
+	if paramValue := r.URL.Query().Get("q"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "q", r.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "tags" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "tags", r.URL.Query(), &params.Tags)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tags", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "owner_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "owner_id", r.URL.Query(), &params.OwnerId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner_id", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "visibility" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "visibility", r.URL.Query(), &params.Visibility)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "visibility", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "sort_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchImages(w, r, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1881,6 +5871,99 @@ func (siw *ServerInterfaceWrapper) AddComment(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// UnpinImageFromIPFS operation middleware
+func (siw *ServerInterfaceWrapper) UnpinImageFromIPFS(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ImageIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnpinImageFromIPFS(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetImageIPFSStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetImageIPFSStatus(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ImageIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetImageIPFSStatus(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PinImageToIPFS operation middleware
+func (siw *ServerInterfaceWrapper) PinImageToIPFS(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ImageIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PinImageToIPFS(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UnlikeImage operation middleware
 func (siw *ServerInterfaceWrapper) UnlikeImage(w http.ResponseWriter, r *http.Request) {
 
@@ -1943,8 +6026,33 @@ func (siw *ServerInterfaceWrapper) LikeImage(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
-// ListImageLikes operation middleware
-func (siw *ServerInterfaceWrapper) ListImageLikes(w http.ResponseWriter, r *http.Request) {
+// GetImagePreview operation middleware
+func (siw *ServerInterfaceWrapper) GetImagePreview(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetImagePreview(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetImageQRCode operation middleware
+func (siw *ServerInterfaceWrapper) GetImageQRCode(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -1964,26 +6072,49 @@ func (siw *ServerInterfaceWrapper) ListImageLikes(w http.ResponseWriter, r *http
 	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params ListImageLikesParams
+	var params GetImageQRCodeParams
 
-	// ------------- Optional query parameter "page" -------------
+	// ------------- Optional query parameter "size" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	err = runtime.BindQueryParameter("form", true, false, "size", r.URL.Query(), &params.Size)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "per_page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "size", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListImageLikes(w, r, id, params)
+		siw.Handler.GetImageQRCode(w, r, id, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GenerateCustomVariant operation middleware
+func (siw *ServerInterfaceWrapper) GenerateCustomVariant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id ImageIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GenerateCustomVariant(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -2024,6 +6155,292 @@ func (siw *ServerInterfaceWrapper) GetImageVariant(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetImageVariant(w, r, id, size)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListNSFWScansByImage operation middleware
+func (siw *ServerInterfaceWrapper) ListNSFWScansByImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "imageId" -------------
+	var imageId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageId", chi.URLParam(r, "imageId"), &imageId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListNSFWScansByImage(w, r, imageId)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListUserGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListUserGroups(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUserGroupsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "role" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "role", r.URL.Query(), &params.Role)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "role", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListUserGroups(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Metrics operation middleware
+func (siw *ServerInterfaceWrapper) Metrics(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Metrics(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListBans operation middleware
+func (siw *ServerInterfaceWrapper) ListBans(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListBansParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListBans(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// FeatureImage operation middleware
+func (siw *ServerInterfaceWrapper) FeatureImage(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.FeatureImage(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnfeatureImage operation middleware
+func (siw *ServerInterfaceWrapper) UnfeatureImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "imageID" -------------
+	var imageID openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "imageID", chi.URLParam(r, "imageID"), &imageID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "imageID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnfeatureImage(w, r, imageID)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListNSFWFlagged operation middleware
+func (siw *ServerInterfaceWrapper) ListNSFWFlagged(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListNSFWFlaggedParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "page_size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page_size", r.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page_size", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "requires_review" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "requires_review", r.URL.Query(), &params.RequiresReview)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requires_review", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListNSFWFlagged(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ScanImageNSFW operation middleware
+func (siw *ServerInterfaceWrapper) ScanImageNSFW(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ScanImageNSFW(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetNSFWScan operation middleware
+func (siw *ServerInterfaceWrapper) GetNSFWScan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "scanId" -------------
+	var scanId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "scanId", chi.URLParam(r, "scanId"), &scanId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scanId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetNSFWScan(w, r, scanId)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -2113,6 +6530,37 @@ func (siw *ServerInterfaceWrapper) GetReport(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
+// DismissReport operation middleware
+func (siw *ServerInterfaceWrapper) DismissReport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DismissReport(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ResolveReport operation middleware
 func (siw *ServerInterfaceWrapper) ResolveReport(w http.ResponseWriter, r *http.Request) {
 
@@ -2135,6 +6583,184 @@ func (siw *ServerInterfaceWrapper) ResolveReport(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ResolveReport(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartReportReview operation middleware
+func (siw *ServerInterfaceWrapper) StartReportReview(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartReportReview(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetNotifications operation middleware
+func (siw *ServerInterfaceWrapper) GetNotifications(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetNotificationsParams
+
+	// ------------- Optional query parameter "unread_only" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "unread_only", r.URL.Query(), &params.UnreadOnly)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "unread_only", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetNotifications(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUnreadNotificationCount operation middleware
+func (siw *ServerInterfaceWrapper) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUnreadNotificationCount(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkNotificationsAsRead operation middleware
+func (siw *ServerInterfaceWrapper) MarkNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkNotificationsAsRead(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetOEmbed operation middleware
+func (siw *ServerInterfaceWrapper) GetOEmbed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetOEmbedParams
+
+	// ------------- Required query parameter "url" -------------
+
+	if paramValue := r.URL.Query().Get("url"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "url"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "url", r.URL.Query(), &params.Url)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "url", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "format" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "format", r.URL.Query(), &params.Format)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "format", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "maxwidth" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "maxwidth", r.URL.Query(), &params.Maxwidth)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "maxwidth", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "maxheight" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "maxheight", r.URL.Query(), &params.Maxheight)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "maxheight", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOEmbed(w, r, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -2183,6 +6809,14 @@ func (siw *ServerInterfaceWrapper) ListPopularTags(w http.ResponseWriter, r *htt
 	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "period" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "period", r.URL.Query(), &params.Period)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "period", Err: err})
 		return
 	}
 
@@ -2236,6 +6870,47 @@ func (siw *ServerInterfaceWrapper) SearchTags(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchTags(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListTrendingTags operation middleware
+func (siw *ServerInterfaceWrapper) ListTrendingTags(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTrendingTagsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "period" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "period", r.URL.Query(), &params.Period)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "period", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListTrendingTags(w, r, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -2419,6 +7094,37 @@ func (siw *ServerInterfaceWrapper) UnbanUser(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
+// GetBanStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetBanStatus(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetBanStatus(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // BanUser operation middleware
 func (siw *ServerInterfaceWrapper) BanUser(w http.ResponseWriter, r *http.Request) {
 
@@ -2441,6 +7147,421 @@ func (siw *ServerInterfaceWrapper) BanUser(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BanUser(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UnfollowUser operation middleware
+func (siw *ServerInterfaceWrapper) UnfollowUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UnfollowUser(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// FollowUser operation middleware
+func (siw *ServerInterfaceWrapper) FollowUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.FollowUser(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUserFollowers operation middleware
+func (siw *ServerInterfaceWrapper) GetUserFollowers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserFollowersParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserFollowers(w, r, id, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUserFollowing operation middleware
+func (siw *ServerInterfaceWrapper) GetUserFollowing(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserFollowingParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserFollowing(w, r, id, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUserLikedImages operation middleware
+func (siw *ServerInterfaceWrapper) GetUserLikedImages(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserLikedImagesParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserLikedImages(w, r, id, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListUserSessions operation middleware
+func (siw *ServerInterfaceWrapper) ListUserSessions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id UserIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUserSessionsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "per_page", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListUserSessions(w, r, id, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListVariantConfigs operation middleware
+func (siw *ServerInterfaceWrapper) ListVariantConfigs(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListVariantConfigs(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateVariantConfig operation middleware
+func (siw *ServerInterfaceWrapper) CreateVariantConfig(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateVariantConfig(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListVariantConfigPresets operation middleware
+func (siw *ServerInterfaceWrapper) ListVariantConfigPresets(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListVariantConfigPresets(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteVariantConfig operation middleware
+func (siw *ServerInterfaceWrapper) DeleteVariantConfig(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteVariantConfig(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetVariantConfig operation middleware
+func (siw *ServerInterfaceWrapper) GetVariantConfig(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVariantConfig(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateVariantConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateVariantConfig(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateVariantConfig(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -2579,16 +7700,64 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/albums/{id}", wrapper.UpdateAlbum)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/albums/{id}/breadcrumb", wrapper.GetAlbumBreadcrumb)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/albums/{id}/children", wrapper.GetAlbumChildren)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/albums/{id}/images", wrapper.GetAlbumImages)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/albums/{id}/images", wrapper.AddImagesToAlbum)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/albums/{id}/images/{imageId}", wrapper.RemoveImageFromAlbum)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/2fa/backup-codes/regenerate", wrapper.RegenerateBackupCodes)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/2fa/disable", wrapper.Disable2FA)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/2fa/login-verify", wrapper.Verify2FALogin)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/2fa/setup", wrapper.Setup2FA)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/auth/2fa/status", wrapper.Get2FAStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/2fa/verify", wrapper.Verify2FA)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/guest", wrapper.CreateGuestSession)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/login", wrapper.LoginUser)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/logout", wrapper.LogoutUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/auth/oauth/accounts", wrapper.ListLinkedOAuthAccounts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/auth/oauth/link", wrapper.UnlinkOAuthAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/oauth/link", wrapper.LinkOAuthAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/auth/oauth/{provider}", wrapper.UnlinkOAuthAccountByProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/auth/oauth/{provider}", wrapper.InitiateOAuthFlow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/auth/oauth/{provider}/callback", wrapper.HandleOAuthCallback)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/refresh", wrapper.RefreshToken)
@@ -2600,22 +7769,106 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Delete(options.BaseURL+"/comments/{id}", wrapper.DeleteComment)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/explore/featured", wrapper.ExploreFeatured)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/explore/popular", wrapper.ExplorePopular)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/explore/recent", wrapper.ExploreRecent)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/feed", wrapper.GetActivityFeed)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups", wrapper.ListGroups)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups", wrapper.CreateGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/by-slug/{slug}", wrapper.GetGroupBySlug)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/invitations/{token}/accept", wrapper.AcceptInvitation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/invitations/{token}/decline", wrapper.DeclineInvitation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/search", wrapper.SearchGroups)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/groups/{groupID}", wrapper.DeleteGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/{groupID}", wrapper.GetGroupByID)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/groups/{groupID}", wrapper.UpdateGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/{groupID}/albums", wrapper.ListGroupAlbums)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/{groupID}/albums", wrapper.CreateGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/groups/{groupID}/albums/{albumID}", wrapper.DeleteGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/{groupID}/albums/{albumID}", wrapper.GetGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/groups/{groupID}/albums/{albumID}", wrapper.UpdateGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/{groupID}/albums/{albumID}/images", wrapper.AddImageToGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/groups/{groupID}/albums/{albumID}/images/{imageID}", wrapper.RemoveImageFromGroupAlbum)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/{groupID}/invitations", wrapper.ListGroupInvitations)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/{groupID}/invitations", wrapper.InviteToGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/{groupID}/join", wrapper.JoinGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/groups/{groupID}/leave", wrapper.LeaveGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/groups/{groupID}/members", wrapper.ListGroupMembers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/groups/{groupID}/members/{userID}", wrapper.RemoveMember)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/groups/{groupID}/members/{userID}/ban", wrapper.BanMember)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/groups/{groupID}/members/{userID}/role", wrapper.UpdateMemberRole)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/guest/images/{imageId}/claim", wrapper.ClaimGuestImage)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/health", wrapper.HealthCheck)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/health/ready", wrapper.ReadinessCheck)
+		r.Get(options.BaseURL+"/health/ready", wrapper.HealthReadiness)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/images", wrapper.ListImages)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/images", wrapper.UploadImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/images/search", wrapper.SearchImages)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/images/{id}", wrapper.DeleteImage)
@@ -2633,16 +7886,58 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/images/{id}/comments", wrapper.AddComment)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/images/{id}/ipfs", wrapper.UnpinImageFromIPFS)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/images/{id}/ipfs", wrapper.GetImageIPFSStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/images/{id}/ipfs", wrapper.PinImageToIPFS)
+	})
+	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/images/{id}/like", wrapper.UnlikeImage)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/images/{id}/like", wrapper.LikeImage)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/images/{id}/likes", wrapper.ListImageLikes)
+		r.Get(options.BaseURL+"/images/{id}/preview", wrapper.GetImagePreview)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/images/{id}/qr", wrapper.GetImageQRCode)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/images/{id}/variants", wrapper.GenerateCustomVariant)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/images/{id}/variants/{size}", wrapper.GetImageVariant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/images/{imageId}/nsfw-scans", wrapper.ListNSFWScansByImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/me/groups", wrapper.ListUserGroups)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/metrics", wrapper.Metrics)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/moderation/bans", wrapper.ListBans)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/moderation/featured", wrapper.FeatureImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/moderation/featured/{imageID}", wrapper.UnfeatureImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/moderation/nsfw/flagged", wrapper.ListNSFWFlagged)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/moderation/nsfw/scan", wrapper.ScanImageNSFW)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/moderation/nsfw/scans/{scanId}", wrapper.GetNSFWScan)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/moderation/reports", wrapper.ListReports)
@@ -2651,16 +7946,37 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/moderation/reports/{id}", wrapper.GetReport)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/moderation/reports/{id}/dismiss", wrapper.DismissReport)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/moderation/reports/{id}/resolve", wrapper.ResolveReport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/moderation/reports/{id}/review", wrapper.StartReportReview)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/notifications", wrapper.GetNotifications)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/notifications/count", wrapper.GetUnreadNotificationCount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/notifications/read", wrapper.MarkNotificationsAsRead)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/oembed", wrapper.GetOEmbed)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/reports", wrapper.CreateReport)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/tags", wrapper.ListPopularTags)
+		r.Get(options.BaseURL+"/tags/popular", wrapper.ListPopularTags)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/tags/search", wrapper.SearchTags)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/tags/trending", wrapper.ListTrendingTags)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/tags/{tag}/images", wrapper.ListImagesByTag)
@@ -2678,11 +7994,62 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Delete(options.BaseURL+"/users/{id}/ban", wrapper.UnbanUser)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{id}/ban", wrapper.GetBanStatus)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/users/{id}/ban", wrapper.BanUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/users/{id}/follow", wrapper.UnfollowUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/users/{id}/follow", wrapper.FollowUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{id}/followers", wrapper.GetUserFollowers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{id}/following", wrapper.GetUserFollowing)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{id}/likes", wrapper.GetUserLikedImages)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{id}/sessions", wrapper.ListUserSessions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/variant-configs", wrapper.ListVariantConfigs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/variant-configs", wrapper.CreateVariantConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/variant-configs/presets", wrapper.ListVariantConfigPresets)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/variant-configs/{id}", wrapper.DeleteVariantConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/variant-configs/{id}", wrapper.GetVariantConfig)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/variant-configs/{id}", wrapper.UpdateVariantConfig)
 	})
 
 	return r
 }
+
+type BadRequestApplicationProblemPlusJSONResponse ProblemDetail
+
+type ConflictApplicationProblemPlusJSONResponse ProblemDetail
+
+type ForbiddenApplicationProblemPlusJSONResponse ProblemDetail
+
+type InternalServerErrorApplicationProblemPlusJSONResponse ProblemDetail
+
+type NotFoundApplicationProblemPlusJSONResponse ProblemDetail
+
+type UnauthorizedApplicationProblemPlusJSONResponse ProblemDetail
 
 type ListAlbumsRequestObject struct {
 	Params ListAlbumsParams
@@ -2783,15 +8150,14 @@ func (response DeleteAlbum404JSONResponse) VisitDeleteAlbumResponse(w http.Respo
 }
 
 type GetAlbumRequestObject struct {
-	Id     AlbumIdParam `json:"id"`
-	Params GetAlbumParams
+	Id AlbumIdParam `json:"id"`
 }
 
 type GetAlbumResponseObject interface {
 	VisitGetAlbumResponse(w http.ResponseWriter) error
 }
 
-type GetAlbum200JSONResponse AlbumWithImages
+type GetAlbum200JSONResponse Album
 
 func (response GetAlbum200JSONResponse) VisitGetAlbumResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -2857,6 +8223,111 @@ func (response UpdateAlbum403JSONResponse) VisitUpdateAlbumResponse(w http.Respo
 type UpdateAlbum404JSONResponse ProblemDetail
 
 func (response UpdateAlbum404JSONResponse) VisitUpdateAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumBreadcrumbRequestObject struct {
+	Id AlbumIdParam `json:"id"`
+}
+
+type GetAlbumBreadcrumbResponseObject interface {
+	VisitGetAlbumBreadcrumbResponse(w http.ResponseWriter) error
+}
+
+type GetAlbumBreadcrumb200JSONResponse []BreadcrumbItem
+
+func (response GetAlbumBreadcrumb200JSONResponse) VisitGetAlbumBreadcrumbResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumBreadcrumb403JSONResponse ProblemDetail
+
+func (response GetAlbumBreadcrumb403JSONResponse) VisitGetAlbumBreadcrumbResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumBreadcrumb404JSONResponse ProblemDetail
+
+func (response GetAlbumBreadcrumb404JSONResponse) VisitGetAlbumBreadcrumbResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumChildrenRequestObject struct {
+	Id AlbumIdParam `json:"id"`
+}
+
+type GetAlbumChildrenResponseObject interface {
+	VisitGetAlbumChildrenResponse(w http.ResponseWriter) error
+}
+
+type GetAlbumChildren200JSONResponse []Album
+
+func (response GetAlbumChildren200JSONResponse) VisitGetAlbumChildrenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumChildren403JSONResponse ProblemDetail
+
+func (response GetAlbumChildren403JSONResponse) VisitGetAlbumChildrenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumChildren404JSONResponse ProblemDetail
+
+func (response GetAlbumChildren404JSONResponse) VisitGetAlbumChildrenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumImagesRequestObject struct {
+	Id     AlbumIdParam `json:"id"`
+	Params GetAlbumImagesParams
+}
+
+type GetAlbumImagesResponseObject interface {
+	VisitGetAlbumImagesResponse(w http.ResponseWriter) error
+}
+
+type GetAlbumImages200JSONResponse struct {
+	HasMore *bool    `json:"has_more,omitempty"`
+	Images  *[]Image `json:"images,omitempty"`
+	Limit   *int     `json:"limit,omitempty"`
+	Offset  *int     `json:"offset,omitempty"`
+
+	// TotalCount Total number of images in the album
+	TotalCount *int `json:"total_count,omitempty"`
+}
+
+func (response GetAlbumImages200JSONResponse) VisitGetAlbumImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetAlbumImages404JSONResponse ProblemDetail
+
+func (response GetAlbumImages404JSONResponse) VisitGetAlbumImagesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
@@ -2963,6 +8434,289 @@ func (response RemoveImageFromAlbum404JSONResponse) VisitRemoveImageFromAlbumRes
 	return json.NewEncoder(w).Encode(response)
 }
 
+type RegenerateBackupCodesRequestObject struct {
+	Body *RegenerateBackupCodesJSONRequestBody
+}
+
+type RegenerateBackupCodesResponseObject interface {
+	VisitRegenerateBackupCodesResponse(w http.ResponseWriter) error
+}
+
+type RegenerateBackupCodes200JSONResponse BackupCodesResponse
+
+func (response RegenerateBackupCodes200JSONResponse) VisitRegenerateBackupCodesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegenerateBackupCodes400JSONResponse ProblemDetail
+
+func (response RegenerateBackupCodes400JSONResponse) VisitRegenerateBackupCodesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegenerateBackupCodes401JSONResponse ProblemDetail
+
+func (response RegenerateBackupCodes401JSONResponse) VisitRegenerateBackupCodesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RegenerateBackupCodes404JSONResponse ProblemDetail
+
+func (response RegenerateBackupCodes404JSONResponse) VisitRegenerateBackupCodesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Disable2FARequestObject struct {
+	Body *Disable2FAJSONRequestBody
+}
+
+type Disable2FAResponseObject interface {
+	VisitDisable2FAResponse(w http.ResponseWriter) error
+}
+
+type Disable2FA200JSONResponse struct {
+	Message *string `json:"message,omitempty"`
+}
+
+func (response Disable2FA200JSONResponse) VisitDisable2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Disable2FA400JSONResponse ProblemDetail
+
+func (response Disable2FA400JSONResponse) VisitDisable2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Disable2FA401JSONResponse ProblemDetail
+
+func (response Disable2FA401JSONResponse) VisitDisable2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Disable2FA404JSONResponse ProblemDetail
+
+func (response Disable2FA404JSONResponse) VisitDisable2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FALoginRequestObject struct {
+	Body *Verify2FALoginJSONRequestBody
+}
+
+type Verify2FALoginResponseObject interface {
+	VisitVerify2FALoginResponse(w http.ResponseWriter) error
+}
+
+type Verify2FALogin200JSONResponse TokenResponse
+
+func (response Verify2FALogin200JSONResponse) VisitVerify2FALoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FALogin400JSONResponse ProblemDetail
+
+func (response Verify2FALogin400JSONResponse) VisitVerify2FALoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FALogin401JSONResponse ProblemDetail
+
+func (response Verify2FALogin401JSONResponse) VisitVerify2FALoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FALogin403JSONResponse ProblemDetail
+
+func (response Verify2FALogin403JSONResponse) VisitVerify2FALoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FALogin429JSONResponse ProblemDetail
+
+func (response Verify2FALogin429JSONResponse) VisitVerify2FALoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Setup2FARequestObject struct {
+}
+
+type Setup2FAResponseObject interface {
+	VisitSetup2FAResponse(w http.ResponseWriter) error
+}
+
+type Setup2FA200JSONResponse Setup2FAResponse
+
+func (response Setup2FA200JSONResponse) VisitSetup2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Setup2FA401JSONResponse ProblemDetail
+
+func (response Setup2FA401JSONResponse) VisitSetup2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Setup2FA409JSONResponse ProblemDetail
+
+func (response Setup2FA409JSONResponse) VisitSetup2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Get2FAStatusRequestObject struct {
+}
+
+type Get2FAStatusResponseObject interface {
+	VisitGet2FAStatusResponse(w http.ResponseWriter) error
+}
+
+type Get2FAStatus200JSONResponse TwoFactorStatus
+
+func (response Get2FAStatus200JSONResponse) VisitGet2FAStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Get2FAStatus401JSONResponse ProblemDetail
+
+func (response Get2FAStatus401JSONResponse) VisitGet2FAStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FARequestObject struct {
+	Body *Verify2FAJSONRequestBody
+}
+
+type Verify2FAResponseObject interface {
+	VisitVerify2FAResponse(w http.ResponseWriter) error
+}
+
+type Verify2FA200JSONResponse struct {
+	Message *string `json:"message,omitempty"`
+}
+
+func (response Verify2FA200JSONResponse) VisitVerify2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FA400JSONResponse ProblemDetail
+
+func (response Verify2FA400JSONResponse) VisitVerify2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FA401JSONResponse ProblemDetail
+
+func (response Verify2FA401JSONResponse) VisitVerify2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FA404JSONResponse ProblemDetail
+
+func (response Verify2FA404JSONResponse) VisitVerify2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type Verify2FA409JSONResponse ProblemDetail
+
+func (response Verify2FA409JSONResponse) VisitVerify2FAResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGuestSessionRequestObject struct {
+	Body *CreateGuestSessionJSONRequestBody
+}
+
+type CreateGuestSessionResponseObject interface {
+	VisitCreateGuestSessionResponse(w http.ResponseWriter) error
+}
+
+type CreateGuestSession201JSONResponse TokenResponse
+
+func (response CreateGuestSession201JSONResponse) VisitCreateGuestSessionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGuestSession429JSONResponse ProblemDetail
+
+func (response CreateGuestSession429JSONResponse) VisitCreateGuestSessionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type LoginUserRequestObject struct {
 	Body *LoginUserJSONRequestBody
 }
@@ -3018,6 +8772,245 @@ type LogoutUser401JSONResponse ProblemDetail
 func (response LogoutUser401JSONResponse) VisitLogoutUserResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListLinkedOAuthAccountsRequestObject struct {
+}
+
+type ListLinkedOAuthAccountsResponseObject interface {
+	VisitListLinkedOAuthAccountsResponse(w http.ResponseWriter) error
+}
+
+type ListLinkedOAuthAccounts200JSONResponse struct {
+	Accounts *[]OAuthAccount `json:"accounts,omitempty"`
+
+	// TotalCount Number of linked OAuth accounts
+	TotalCount *int `json:"total_count,omitempty"`
+}
+
+func (response ListLinkedOAuthAccounts200JSONResponse) VisitListLinkedOAuthAccountsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListLinkedOAuthAccounts401JSONResponse ProblemDetail
+
+func (response ListLinkedOAuthAccounts401JSONResponse) VisitListLinkedOAuthAccountsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccountRequestObject struct {
+	Params UnlinkOAuthAccountParams
+}
+
+type UnlinkOAuthAccountResponseObject interface {
+	VisitUnlinkOAuthAccountResponse(w http.ResponseWriter) error
+}
+
+type UnlinkOAuthAccount204Response struct {
+}
+
+func (response UnlinkOAuthAccount204Response) VisitUnlinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UnlinkOAuthAccount400JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccount400JSONResponse) VisitUnlinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccount401JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccount401JSONResponse) VisitUnlinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccount404JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccount404JSONResponse) VisitUnlinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LinkOAuthAccountRequestObject struct {
+	Body *LinkOAuthAccountJSONRequestBody
+}
+
+type LinkOAuthAccountResponseObject interface {
+	VisitLinkOAuthAccountResponse(w http.ResponseWriter) error
+}
+
+type LinkOAuthAccount200JSONResponse OAuthAccount
+
+func (response LinkOAuthAccount200JSONResponse) VisitLinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LinkOAuthAccount400JSONResponse ProblemDetail
+
+func (response LinkOAuthAccount400JSONResponse) VisitLinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LinkOAuthAccount401JSONResponse ProblemDetail
+
+func (response LinkOAuthAccount401JSONResponse) VisitLinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LinkOAuthAccount409JSONResponse ProblemDetail
+
+func (response LinkOAuthAccount409JSONResponse) VisitLinkOAuthAccountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccountByProviderRequestObject struct {
+	Provider UnlinkOAuthAccountByProviderParamsProvider `json:"provider"`
+}
+
+type UnlinkOAuthAccountByProviderResponseObject interface {
+	VisitUnlinkOAuthAccountByProviderResponse(w http.ResponseWriter) error
+}
+
+type UnlinkOAuthAccountByProvider200JSONResponse struct {
+	Message *string `json:"message,omitempty"`
+}
+
+func (response UnlinkOAuthAccountByProvider200JSONResponse) VisitUnlinkOAuthAccountByProviderResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccountByProvider400JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccountByProvider400JSONResponse) VisitUnlinkOAuthAccountByProviderResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccountByProvider401JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccountByProvider401JSONResponse) VisitUnlinkOAuthAccountByProviderResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnlinkOAuthAccountByProvider404JSONResponse ProblemDetail
+
+func (response UnlinkOAuthAccountByProvider404JSONResponse) VisitUnlinkOAuthAccountByProviderResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InitiateOAuthFlowRequestObject struct {
+	Provider InitiateOAuthFlowParamsProvider `json:"provider"`
+}
+
+type InitiateOAuthFlowResponseObject interface {
+	VisitInitiateOAuthFlowResponse(w http.ResponseWriter) error
+}
+
+type InitiateOAuthFlow302ResponseHeaders struct {
+	Location string
+}
+
+type InitiateOAuthFlow302Response struct {
+	Headers InitiateOAuthFlow302ResponseHeaders
+}
+
+func (response InitiateOAuthFlow302Response) VisitInitiateOAuthFlowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Location", fmt.Sprint(response.Headers.Location))
+	w.WriteHeader(302)
+	return nil
+}
+
+type InitiateOAuthFlow400JSONResponse ProblemDetail
+
+func (response InitiateOAuthFlow400JSONResponse) VisitInitiateOAuthFlowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type HandleOAuthCallbackRequestObject struct {
+	Provider HandleOAuthCallbackParamsProvider `json:"provider"`
+	Params   HandleOAuthCallbackParams
+}
+
+type HandleOAuthCallbackResponseObject interface {
+	VisitHandleOAuthCallbackResponse(w http.ResponseWriter) error
+}
+
+type HandleOAuthCallback200JSONResponse TokenResponse
+
+func (response HandleOAuthCallback200JSONResponse) VisitHandleOAuthCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type HandleOAuthCallback400JSONResponse ProblemDetail
+
+func (response HandleOAuthCallback400JSONResponse) VisitHandleOAuthCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type HandleOAuthCallback401JSONResponse ProblemDetail
+
+func (response HandleOAuthCallback401JSONResponse) VisitHandleOAuthCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type HandleOAuthCallback409JSONResponse ProblemDetail
+
+func (response HandleOAuthCallback409JSONResponse) VisitHandleOAuthCallbackResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3131,6 +9124,37 @@ func (response DeleteComment404JSONResponse) VisitDeleteCommentResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ExploreFeaturedRequestObject struct {
+	Params ExploreFeaturedParams
+}
+
+type ExploreFeaturedResponseObject interface {
+	VisitExploreFeaturedResponse(w http.ResponseWriter) error
+}
+
+type ExploreFeatured200JSONResponse struct {
+	FeaturedImages []FeaturedImageResponse `json:"featured_images"`
+	TotalCount     int                     `json:"total_count"`
+}
+
+func (response ExploreFeatured200JSONResponse) VisitExploreFeaturedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ExploreFeatured400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response ExploreFeatured400ApplicationProblemPlusJSONResponse) VisitExploreFeaturedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ExplorePopularRequestObject struct {
 	Params ExplorePopularParams
 }
@@ -3171,6 +9195,1292 @@ func (response ExploreRecent200JSONResponse) VisitExploreRecentResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetActivityFeedRequestObject struct {
+	Params GetActivityFeedParams
+}
+
+type GetActivityFeedResponseObject interface {
+	VisitGetActivityFeedResponse(w http.ResponseWriter) error
+}
+
+type GetActivityFeed200JSONResponse ActivityFeed
+
+func (response GetActivityFeed200JSONResponse) VisitGetActivityFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetActivityFeed400JSONResponse ProblemDetail
+
+func (response GetActivityFeed400JSONResponse) VisitGetActivityFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetActivityFeed401JSONResponse ProblemDetail
+
+func (response GetActivityFeed401JSONResponse) VisitGetActivityFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetActivityFeed404JSONResponse ProblemDetail
+
+func (response GetActivityFeed404JSONResponse) VisitGetActivityFeedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupsRequestObject struct {
+	Params ListGroupsParams
+}
+
+type ListGroupsResponseObject interface {
+	VisitListGroupsResponse(w http.ResponseWriter) error
+}
+
+type ListGroups200JSONResponse GroupListResponse
+
+func (response ListGroups200JSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupRequestObject struct {
+	Body *CreateGroupJSONRequestBody
+}
+
+type CreateGroupResponseObject interface {
+	VisitCreateGroupResponse(w http.ResponseWriter) error
+}
+
+type CreateGroup201JSONResponse GroupResponse
+
+func (response CreateGroup201JSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroup400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroup400ApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroup401ApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroup409JSONResponse ProblemDetail
+
+func (response CreateGroup409JSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupBySlugRequestObject struct {
+	Slug string `json:"slug"`
+}
+
+type GetGroupBySlugResponseObject interface {
+	VisitGetGroupBySlugResponse(w http.ResponseWriter) error
+}
+
+type GetGroupBySlug200JSONResponse GroupResponse
+
+func (response GetGroupBySlug200JSONResponse) VisitGetGroupBySlugResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupBySlug404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetGroupBySlug404ApplicationProblemPlusJSONResponse) VisitGetGroupBySlugResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitationRequestObject struct {
+	Token string `json:"token"`
+}
+
+type AcceptInvitationResponseObject interface {
+	VisitAcceptInvitationResponse(w http.ResponseWriter) error
+}
+
+type AcceptInvitation200JSONResponse GroupMembershipResponse
+
+func (response AcceptInvitation200JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation401ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation403ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation404ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation409ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation410ApplicationProblemPlusJSONResponse ProblemDetail
+
+func (response AcceptInvitation410ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(410)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AcceptInvitation500ApplicationProblemPlusJSONResponse struct {
+	InternalServerErrorApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation500ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeclineInvitationRequestObject struct {
+	Token string `json:"token"`
+}
+
+type DeclineInvitationResponseObject interface {
+	VisitDeclineInvitationResponse(w http.ResponseWriter) error
+}
+
+type DeclineInvitation204Response struct {
+}
+
+func (response DeclineInvitation204Response) VisitDeclineInvitationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeclineInvitation401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DeclineInvitation401ApplicationProblemPlusJSONResponse) VisitDeclineInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeclineInvitation404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DeclineInvitation404ApplicationProblemPlusJSONResponse) VisitDeclineInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeclineInvitation409ApplicationProblemPlusJSONResponse ProblemDetail
+
+func (response DeclineInvitation409ApplicationProblemPlusJSONResponse) VisitDeclineInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeclineInvitation500ApplicationProblemPlusJSONResponse struct {
+	InternalServerErrorApplicationProblemPlusJSONResponse
+}
+
+func (response DeclineInvitation500ApplicationProblemPlusJSONResponse) VisitDeclineInvitationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchGroupsRequestObject struct {
+	Params SearchGroupsParams
+}
+
+type SearchGroupsResponseObject interface {
+	VisitSearchGroupsResponse(w http.ResponseWriter) error
+}
+
+type SearchGroups200JSONResponse GroupListResponse
+
+func (response SearchGroups200JSONResponse) VisitSearchGroupsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroupRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+}
+
+type DeleteGroupResponseObject interface {
+	VisitDeleteGroupResponse(w http.ResponseWriter) error
+}
+
+type DeleteGroup204Response struct {
+}
+
+func (response DeleteGroup204Response) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroup401ApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroup403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroup403ApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroup404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroup404ApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupByIDRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+}
+
+type GetGroupByIDResponseObject interface {
+	VisitGetGroupByIDResponse(w http.ResponseWriter) error
+}
+
+type GetGroupByID200JSONResponse GroupResponse
+
+func (response GetGroupByID200JSONResponse) VisitGetGroupByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupByID404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetGroupByID404ApplicationProblemPlusJSONResponse) VisitGetGroupByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Body    *UpdateGroupJSONRequestBody
+}
+
+type UpdateGroupResponseObject interface {
+	VisitUpdateGroupResponse(w http.ResponseWriter) error
+}
+
+type UpdateGroup200JSONResponse GroupResponse
+
+func (response UpdateGroup200JSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroup400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroup400ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroup401ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroup403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroup403ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroup404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroup404ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupAlbumsRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Params  ListGroupAlbumsParams
+}
+
+type ListGroupAlbumsResponseObject interface {
+	VisitListGroupAlbumsResponse(w http.ResponseWriter) error
+}
+
+type ListGroupAlbums200JSONResponse GroupAlbumListResponse
+
+func (response ListGroupAlbums200JSONResponse) VisitListGroupAlbumsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupAlbums404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupAlbums404ApplicationProblemPlusJSONResponse) VisitListGroupAlbumsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Body    *CreateGroupAlbumJSONRequestBody
+}
+
+type CreateGroupAlbumResponseObject interface {
+	VisitCreateGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type CreateGroupAlbum201JSONResponse GroupAlbumResponse
+
+func (response CreateGroupAlbum201JSONResponse) VisitCreateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupAlbum400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroupAlbum400ApplicationProblemPlusJSONResponse) VisitCreateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupAlbum401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroupAlbum401ApplicationProblemPlusJSONResponse) VisitCreateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupAlbum403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroupAlbum403ApplicationProblemPlusJSONResponse) VisitCreateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroupAlbum404ApplicationProblemPlusJSONResponse) VisitCreateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	AlbumID openapi_types.UUID `json:"albumID"`
+}
+
+type DeleteGroupAlbumResponseObject interface {
+	VisitDeleteGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type DeleteGroupAlbum204Response struct {
+}
+
+func (response DeleteGroupAlbum204Response) VisitDeleteGroupAlbumResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteGroupAlbum401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroupAlbum401ApplicationProblemPlusJSONResponse) VisitDeleteGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroupAlbum403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroupAlbum403ApplicationProblemPlusJSONResponse) VisitDeleteGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroupAlbum404ApplicationProblemPlusJSONResponse) VisitDeleteGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	AlbumID openapi_types.UUID `json:"albumID"`
+}
+
+type GetGroupAlbumResponseObject interface {
+	VisitGetGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type GetGroupAlbum200JSONResponse GroupAlbumResponse
+
+func (response GetGroupAlbum200JSONResponse) VisitGetGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetGroupAlbum404ApplicationProblemPlusJSONResponse) VisitGetGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	AlbumID openapi_types.UUID `json:"albumID"`
+	Body    *UpdateGroupAlbumJSONRequestBody
+}
+
+type UpdateGroupAlbumResponseObject interface {
+	VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type UpdateGroupAlbum200JSONResponse GroupAlbumResponse
+
+func (response UpdateGroupAlbum200JSONResponse) VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupAlbum400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroupAlbum400ApplicationProblemPlusJSONResponse) VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupAlbum401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroupAlbum401ApplicationProblemPlusJSONResponse) VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupAlbum403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroupAlbum403ApplicationProblemPlusJSONResponse) VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroupAlbum404ApplicationProblemPlusJSONResponse) VisitUpdateGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	AlbumID openapi_types.UUID `json:"albumID"`
+	Body    *AddImageToGroupAlbumJSONRequestBody
+}
+
+type AddImageToGroupAlbumResponseObject interface {
+	VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type AddImageToGroupAlbum201JSONResponse GroupAlbumResponse
+
+func (response AddImageToGroupAlbum201JSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbum400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response AddImageToGroupAlbum400ApplicationProblemPlusJSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbum401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response AddImageToGroupAlbum401ApplicationProblemPlusJSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbum403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response AddImageToGroupAlbum403ApplicationProblemPlusJSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response AddImageToGroupAlbum404ApplicationProblemPlusJSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddImageToGroupAlbum409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response AddImageToGroupAlbum409ApplicationProblemPlusJSONResponse) VisitAddImageToGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveImageFromGroupAlbumRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	AlbumID openapi_types.UUID `json:"albumID"`
+	ImageID openapi_types.UUID `json:"imageID"`
+}
+
+type RemoveImageFromGroupAlbumResponseObject interface {
+	VisitRemoveImageFromGroupAlbumResponse(w http.ResponseWriter) error
+}
+
+type RemoveImageFromGroupAlbum204Response struct {
+}
+
+func (response RemoveImageFromGroupAlbum204Response) VisitRemoveImageFromGroupAlbumResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RemoveImageFromGroupAlbum401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveImageFromGroupAlbum401ApplicationProblemPlusJSONResponse) VisitRemoveImageFromGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveImageFromGroupAlbum403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveImageFromGroupAlbum403ApplicationProblemPlusJSONResponse) VisitRemoveImageFromGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveImageFromGroupAlbum404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveImageFromGroupAlbum404ApplicationProblemPlusJSONResponse) VisitRemoveImageFromGroupAlbumResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupInvitationsRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Params  ListGroupInvitationsParams
+}
+
+type ListGroupInvitationsResponseObject interface {
+	VisitListGroupInvitationsResponse(w http.ResponseWriter) error
+}
+
+type ListGroupInvitations200JSONResponse PaginatedInvitationsResponse
+
+func (response ListGroupInvitations200JSONResponse) VisitListGroupInvitationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupInvitations401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupInvitations401ApplicationProblemPlusJSONResponse) VisitListGroupInvitationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupInvitations403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupInvitations403ApplicationProblemPlusJSONResponse) VisitListGroupInvitationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupInvitations404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupInvitations404ApplicationProblemPlusJSONResponse) VisitListGroupInvitationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupInvitations500ApplicationProblemPlusJSONResponse struct {
+	InternalServerErrorApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupInvitations500ApplicationProblemPlusJSONResponse) VisitListGroupInvitationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroupRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Body    *InviteToGroupJSONRequestBody
+}
+
+type InviteToGroupResponseObject interface {
+	VisitInviteToGroupResponse(w http.ResponseWriter) error
+}
+
+type InviteToGroup201JSONResponse InvitationResponse
+
+func (response InviteToGroup201JSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup400ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup401ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup403ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup404ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup409ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type InviteToGroup500ApplicationProblemPlusJSONResponse struct {
+	InternalServerErrorApplicationProblemPlusJSONResponse
+}
+
+func (response InviteToGroup500ApplicationProblemPlusJSONResponse) VisitInviteToGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinGroupRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+}
+
+type JoinGroupResponseObject interface {
+	VisitJoinGroupResponse(w http.ResponseWriter) error
+}
+
+type JoinGroup201JSONResponse GroupMembershipResponse
+
+func (response JoinGroup201JSONResponse) VisitJoinGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response JoinGroup401ApplicationProblemPlusJSONResponse) VisitJoinGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinGroup403JSONResponse ProblemDetail
+
+func (response JoinGroup403JSONResponse) VisitJoinGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinGroup404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response JoinGroup404ApplicationProblemPlusJSONResponse) VisitJoinGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type JoinGroup409JSONResponse ProblemDetail
+
+func (response JoinGroup409JSONResponse) VisitJoinGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveGroupRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+}
+
+type LeaveGroupResponseObject interface {
+	VisitLeaveGroupResponse(w http.ResponseWriter) error
+}
+
+type LeaveGroup204Response struct {
+}
+
+func (response LeaveGroup204Response) VisitLeaveGroupResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type LeaveGroup400JSONResponse ProblemDetail
+
+func (response LeaveGroup400JSONResponse) VisitLeaveGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveGroup401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response LeaveGroup401ApplicationProblemPlusJSONResponse) VisitLeaveGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LeaveGroup404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response LeaveGroup404ApplicationProblemPlusJSONResponse) VisitLeaveGroupResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupMembersRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	Params  ListGroupMembersParams
+}
+
+type ListGroupMembersResponseObject interface {
+	VisitListGroupMembersResponse(w http.ResponseWriter) error
+}
+
+type ListGroupMembers200JSONResponse GroupMemberListResponse
+
+func (response ListGroupMembers200JSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListGroupMembers404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupMembers404ApplicationProblemPlusJSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveMemberRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	UserID  openapi_types.UUID `json:"userID"`
+}
+
+type RemoveMemberResponseObject interface {
+	VisitRemoveMemberResponse(w http.ResponseWriter) error
+}
+
+type RemoveMember204Response struct {
+}
+
+func (response RemoveMember204Response) VisitRemoveMemberResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RemoveMember401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveMember401ApplicationProblemPlusJSONResponse) VisitRemoveMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveMember403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveMember403ApplicationProblemPlusJSONResponse) VisitRemoveMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveMember404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveMember404ApplicationProblemPlusJSONResponse) VisitRemoveMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type BanMemberRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	UserID  openapi_types.UUID `json:"userID"`
+	Body    *BanMemberJSONRequestBody
+}
+
+type BanMemberResponseObject interface {
+	VisitBanMemberResponse(w http.ResponseWriter) error
+}
+
+type BanMember200JSONResponse GroupMembershipResponse
+
+func (response BanMember200JSONResponse) VisitBanMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type BanMember401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response BanMember401ApplicationProblemPlusJSONResponse) VisitBanMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type BanMember403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response BanMember403ApplicationProblemPlusJSONResponse) VisitBanMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type BanMember404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response BanMember404ApplicationProblemPlusJSONResponse) VisitBanMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMemberRoleRequestObject struct {
+	GroupID openapi_types.UUID `json:"groupID"`
+	UserID  openapi_types.UUID `json:"userID"`
+	Body    *UpdateMemberRoleJSONRequestBody
+}
+
+type UpdateMemberRoleResponseObject interface {
+	VisitUpdateMemberRoleResponse(w http.ResponseWriter) error
+}
+
+type UpdateMemberRole200JSONResponse GroupMembershipResponse
+
+func (response UpdateMemberRole200JSONResponse) VisitUpdateMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMemberRole401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateMemberRole401ApplicationProblemPlusJSONResponse) VisitUpdateMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMemberRole403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateMemberRole403ApplicationProblemPlusJSONResponse) VisitUpdateMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMemberRole404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateMemberRole404ApplicationProblemPlusJSONResponse) VisitUpdateMemberRoleResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImageRequestObject struct {
+	ImageId openapi_types.UUID `json:"imageId"`
+	Body    *ClaimGuestImageJSONRequestBody
+}
+
+type ClaimGuestImageResponseObject interface {
+	VisitClaimGuestImageResponse(w http.ResponseWriter) error
+}
+
+type ClaimGuestImage200JSONResponse ClaimGuestImageResponse
+
+func (response ClaimGuestImage200JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImage400JSONResponse ProblemDetail
+
+func (response ClaimGuestImage400JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImage401JSONResponse ProblemDetail
+
+func (response ClaimGuestImage401JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImage403JSONResponse ProblemDetail
+
+func (response ClaimGuestImage403JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImage404JSONResponse ProblemDetail
+
+func (response ClaimGuestImage404JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ClaimGuestImage409JSONResponse ProblemDetail
+
+func (response ClaimGuestImage409JSONResponse) VisitClaimGuestImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type HealthCheckRequestObject struct {
 }
 
@@ -3187,25 +10497,25 @@ func (response HealthCheck200JSONResponse) VisitHealthCheckResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
-type ReadinessCheckRequestObject struct {
+type HealthReadinessRequestObject struct {
 }
 
-type ReadinessCheckResponseObject interface {
-	VisitReadinessCheckResponse(w http.ResponseWriter) error
+type HealthReadinessResponseObject interface {
+	VisitHealthReadinessResponse(w http.ResponseWriter) error
 }
 
-type ReadinessCheck200JSONResponse HealthStatus
+type HealthReadiness200JSONResponse HealthReadyResponse
 
-func (response ReadinessCheck200JSONResponse) VisitReadinessCheckResponse(w http.ResponseWriter) error {
+func (response HealthReadiness200JSONResponse) VisitHealthReadinessResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type ReadinessCheck503JSONResponse HealthStatus
+type HealthReadiness503JSONResponse HealthReadyResponse
 
-func (response ReadinessCheck503JSONResponse) VisitReadinessCheckResponse(w http.ResponseWriter) error {
+func (response HealthReadiness503JSONResponse) VisitHealthReadinessResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
 
@@ -3308,6 +10618,35 @@ type UploadImage429JSONResponse ProblemDetail
 func (response UploadImage429JSONResponse) VisitUploadImageResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(429)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchImagesRequestObject struct {
+	Params SearchImagesParams
+}
+
+type SearchImagesResponseObject interface {
+	VisitSearchImagesResponse(w http.ResponseWriter) error
+}
+
+type SearchImages200JSONResponse struct {
+	Items      []Image    `json:"items"`
+	Pagination Pagination `json:"pagination"`
+}
+
+func (response SearchImages200JSONResponse) VisitSearchImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchImages400JSONResponse ProblemDetail
+
+func (response SearchImages400JSONResponse) VisitSearchImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3501,6 +10840,174 @@ func (response AddComment404JSONResponse) VisitAddCommentResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UnpinImageFromIPFSRequestObject struct {
+	Id ImageIdParam `json:"id"`
+}
+
+type UnpinImageFromIPFSResponseObject interface {
+	VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error
+}
+
+type UnpinImageFromIPFS200JSONResponse UnpinImageFromIPFSResponse
+
+func (response UnpinImageFromIPFS200JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnpinImageFromIPFS400JSONResponse ProblemDetail
+
+func (response UnpinImageFromIPFS400JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnpinImageFromIPFS401JSONResponse ProblemDetail
+
+func (response UnpinImageFromIPFS401JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnpinImageFromIPFS403JSONResponse ProblemDetail
+
+func (response UnpinImageFromIPFS403JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnpinImageFromIPFS404JSONResponse ProblemDetail
+
+func (response UnpinImageFromIPFS404JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnpinImageFromIPFS500JSONResponse ProblemDetail
+
+func (response UnpinImageFromIPFS500JSONResponse) VisitUnpinImageFromIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageIPFSStatusRequestObject struct {
+	Id ImageIdParam `json:"id"`
+}
+
+type GetImageIPFSStatusResponseObject interface {
+	VisitGetImageIPFSStatusResponse(w http.ResponseWriter) error
+}
+
+type GetImageIPFSStatus200JSONResponse ImageIPFSStatus
+
+func (response GetImageIPFSStatus200JSONResponse) VisitGetImageIPFSStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageIPFSStatus401JSONResponse ProblemDetail
+
+func (response GetImageIPFSStatus401JSONResponse) VisitGetImageIPFSStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageIPFSStatus403JSONResponse ProblemDetail
+
+func (response GetImageIPFSStatus403JSONResponse) VisitGetImageIPFSStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageIPFSStatus404JSONResponse ProblemDetail
+
+func (response GetImageIPFSStatus404JSONResponse) VisitGetImageIPFSStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFSRequestObject struct {
+	Id ImageIdParam `json:"id"`
+}
+
+type PinImageToIPFSResponseObject interface {
+	VisitPinImageToIPFSResponse(w http.ResponseWriter) error
+}
+
+type PinImageToIPFS201JSONResponse PinImageToIPFSResponse
+
+func (response PinImageToIPFS201JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFS401JSONResponse ProblemDetail
+
+func (response PinImageToIPFS401JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFS403JSONResponse ProblemDetail
+
+func (response PinImageToIPFS403JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFS404JSONResponse ProblemDetail
+
+func (response PinImageToIPFS404JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFS409JSONResponse ProblemDetail
+
+func (response PinImageToIPFS409JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PinImageToIPFS500JSONResponse ProblemDetail
+
+func (response PinImageToIPFS500JSONResponse) VisitPinImageToIPFSResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UnlikeImageRequestObject struct {
 	Id ImageIdParam `json:"id"`
 }
@@ -3577,23 +11084,174 @@ func (response LikeImage404JSONResponse) VisitLikeImageResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
-type ListImageLikesRequestObject struct {
-	Id     ImageIdParam `json:"id"`
-	Params ListImageLikesParams
+type GetImagePreviewRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
 }
 
-type ListImageLikesResponseObject interface {
-	VisitListImageLikesResponse(w http.ResponseWriter) error
+type GetImagePreviewResponseObject interface {
+	VisitGetImagePreviewResponse(w http.ResponseWriter) error
 }
 
-type ListImageLikes200JSONResponse struct {
-	Items      []Like     `json:"items"`
-	Pagination Pagination `json:"pagination"`
+type GetImagePreview200ResponseHeaders struct {
+	CacheControl  string
+	XFrameOptions string
 }
 
-func (response ListImageLikes200JSONResponse) VisitListImageLikesResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+type GetImagePreview200TexthtmlResponse struct {
+	Body          io.Reader
+	Headers       GetImagePreview200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetImagePreview200TexthtmlResponse) VisitGetImagePreviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "text/html")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.Header().Set("Cache-Control", fmt.Sprint(response.Headers.CacheControl))
+	w.Header().Set("X-Frame-Options", fmt.Sprint(response.Headers.XFrameOptions))
 	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImagePreview404TexthtmlResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetImagePreview404TexthtmlResponse) VisitGetImagePreviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "text/html")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(404)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImageQRCodeRequestObject struct {
+	Id     ImageIdParam `json:"id"`
+	Params GetImageQRCodeParams
+}
+
+type GetImageQRCodeResponseObject interface {
+	VisitGetImageQRCodeResponse(w http.ResponseWriter) error
+}
+
+type GetImageQRCode200ImagepngResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetImageQRCode200ImagepngResponse) VisitGetImageQRCodeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "image/png")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetImageQRCode400JSONResponse ProblemDetail
+
+func (response GetImageQRCode400JSONResponse) VisitGetImageQRCodeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageQRCode404JSONResponse ProblemDetail
+
+func (response GetImageQRCode404JSONResponse) VisitGetImageQRCodeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetImageQRCode500JSONResponse ProblemDetail
+
+func (response GetImageQRCode500JSONResponse) VisitGetImageQRCodeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariantRequestObject struct {
+	Id   ImageIdParam `json:"id"`
+	Body *GenerateCustomVariantJSONRequestBody
+}
+
+type GenerateCustomVariantResponseObject interface {
+	VisitGenerateCustomVariantResponse(w http.ResponseWriter) error
+}
+
+type GenerateCustomVariant201JSONResponse CustomVariantResult
+
+func (response GenerateCustomVariant201JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariant400JSONResponse ProblemDetail
+
+func (response GenerateCustomVariant400JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariant401JSONResponse ProblemDetail
+
+func (response GenerateCustomVariant401JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariant403JSONResponse ProblemDetail
+
+func (response GenerateCustomVariant403JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariant404JSONResponse ProblemDetail
+
+func (response GenerateCustomVariant404JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GenerateCustomVariant500JSONResponse ProblemDetail
+
+func (response GenerateCustomVariant500JSONResponse) VisitGenerateCustomVariantResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -3692,6 +11350,440 @@ func (response GetImageVariant404JSONResponse) VisitGetImageVariantResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListNSFWScansByImageRequestObject struct {
+	ImageId openapi_types.UUID `json:"imageId"`
+}
+
+type ListNSFWScansByImageResponseObject interface {
+	VisitListNSFWScansByImageResponse(w http.ResponseWriter) error
+}
+
+type ListNSFWScansByImage200JSONResponse NSFWScansByImageResponse
+
+func (response ListNSFWScansByImage200JSONResponse) VisitListNSFWScansByImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWScansByImage400JSONResponse ProblemDetail
+
+func (response ListNSFWScansByImage400JSONResponse) VisitListNSFWScansByImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWScansByImage401JSONResponse ProblemDetail
+
+func (response ListNSFWScansByImage401JSONResponse) VisitListNSFWScansByImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWScansByImage403JSONResponse ProblemDetail
+
+func (response ListNSFWScansByImage403JSONResponse) VisitListNSFWScansByImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWScansByImage404JSONResponse ProblemDetail
+
+func (response ListNSFWScansByImage404JSONResponse) VisitListNSFWScansByImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserGroupsRequestObject struct {
+	Params ListUserGroupsParams
+}
+
+type ListUserGroupsResponseObject interface {
+	VisitListUserGroupsResponse(w http.ResponseWriter) error
+}
+
+type ListUserGroups200JSONResponse UserGroupsResponse
+
+func (response ListUserGroups200JSONResponse) VisitListUserGroupsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserGroups401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ListUserGroups401ApplicationProblemPlusJSONResponse) VisitListUserGroupsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MetricsRequestObject struct {
+}
+
+type MetricsResponseObject interface {
+	VisitMetricsResponse(w http.ResponseWriter) error
+}
+
+type Metrics200TextResponse string
+
+func (response Metrics200TextResponse) VisitMetricsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(200)
+
+	_, err := w.Write([]byte(response))
+	return err
+}
+
+type ListBansRequestObject struct {
+	Params ListBansParams
+}
+
+type ListBansResponseObject interface {
+	VisitListBansResponse(w http.ResponseWriter) error
+}
+
+type ListBans200JSONResponse struct {
+	Items      []Ban      `json:"items"`
+	Pagination Pagination `json:"pagination"`
+}
+
+func (response ListBans200JSONResponse) VisitListBansResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListBans401JSONResponse ProblemDetail
+
+func (response ListBans401JSONResponse) VisitListBansResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListBans403JSONResponse ProblemDetail
+
+func (response ListBans403JSONResponse) VisitListBansResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImageRequestObject struct {
+	Body *FeatureImageJSONRequestBody
+}
+
+type FeatureImageResponseObject interface {
+	VisitFeatureImageResponse(w http.ResponseWriter) error
+}
+
+type FeatureImage201JSONResponse FeatureImageResponse
+
+func (response FeatureImage201JSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImage400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response FeatureImage400ApplicationProblemPlusJSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImage401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response FeatureImage401ApplicationProblemPlusJSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImage403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response FeatureImage403ApplicationProblemPlusJSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImage404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response FeatureImage404ApplicationProblemPlusJSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FeatureImage409JSONResponse ProblemDetail
+
+func (response FeatureImage409JSONResponse) VisitFeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnfeatureImageRequestObject struct {
+	ImageID openapi_types.UUID `json:"imageID"`
+}
+
+type UnfeatureImageResponseObject interface {
+	VisitUnfeatureImageResponse(w http.ResponseWriter) error
+}
+
+type UnfeatureImage204Response struct {
+}
+
+func (response UnfeatureImage204Response) VisitUnfeatureImageResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UnfeatureImage400ApplicationProblemPlusJSONResponse struct {
+	BadRequestApplicationProblemPlusJSONResponse
+}
+
+func (response UnfeatureImage400ApplicationProblemPlusJSONResponse) VisitUnfeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnfeatureImage401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response UnfeatureImage401ApplicationProblemPlusJSONResponse) VisitUnfeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnfeatureImage403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response UnfeatureImage403ApplicationProblemPlusJSONResponse) VisitUnfeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnfeatureImage404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response UnfeatureImage404ApplicationProblemPlusJSONResponse) VisitUnfeatureImageResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWFlaggedRequestObject struct {
+	Params ListNSFWFlaggedParams
+}
+
+type ListNSFWFlaggedResponseObject interface {
+	VisitListNSFWFlaggedResponse(w http.ResponseWriter) error
+}
+
+type ListNSFWFlagged200JSONResponse NSFWFlaggedListResponse
+
+func (response ListNSFWFlagged200JSONResponse) VisitListNSFWFlaggedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWFlagged400JSONResponse ProblemDetail
+
+func (response ListNSFWFlagged400JSONResponse) VisitListNSFWFlaggedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWFlagged401JSONResponse ProblemDetail
+
+func (response ListNSFWFlagged401JSONResponse) VisitListNSFWFlaggedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListNSFWFlagged403JSONResponse ProblemDetail
+
+func (response ListNSFWFlagged403JSONResponse) VisitListNSFWFlaggedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFWRequestObject struct {
+	Body *ScanImageNSFWJSONRequestBody
+}
+
+type ScanImageNSFWResponseObject interface {
+	VisitScanImageNSFWResponse(w http.ResponseWriter) error
+}
+
+type ScanImageNSFW201JSONResponse NSFWScanResponse
+
+func (response ScanImageNSFW201JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW400JSONResponse ProblemDetail
+
+func (response ScanImageNSFW400JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW401JSONResponse ProblemDetail
+
+func (response ScanImageNSFW401JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW403JSONResponse ProblemDetail
+
+func (response ScanImageNSFW403JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW404JSONResponse ProblemDetail
+
+func (response ScanImageNSFW404JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW409JSONResponse ProblemDetail
+
+func (response ScanImageNSFW409JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ScanImageNSFW503JSONResponse ProblemDetail
+
+func (response ScanImageNSFW503JSONResponse) VisitScanImageNSFWResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(503)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNSFWScanRequestObject struct {
+	ScanId openapi_types.UUID `json:"scanId"`
+}
+
+type GetNSFWScanResponseObject interface {
+	VisitGetNSFWScanResponse(w http.ResponseWriter) error
+}
+
+type GetNSFWScan200JSONResponse NSFWScan
+
+func (response GetNSFWScan200JSONResponse) VisitGetNSFWScanResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNSFWScan400JSONResponse ProblemDetail
+
+func (response GetNSFWScan400JSONResponse) VisitGetNSFWScanResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNSFWScan401JSONResponse ProblemDetail
+
+func (response GetNSFWScan401JSONResponse) VisitGetNSFWScanResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNSFWScan403JSONResponse ProblemDetail
+
+func (response GetNSFWScan403JSONResponse) VisitGetNSFWScanResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNSFWScan404JSONResponse ProblemDetail
+
+func (response GetNSFWScan404JSONResponse) VisitGetNSFWScanResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListReportsRequestObject struct {
 	Params ListReportsParams
 }
@@ -3774,6 +11866,49 @@ func (response GetReport404JSONResponse) VisitGetReportResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DismissReportRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type DismissReportResponseObject interface {
+	VisitDismissReportResponse(w http.ResponseWriter) error
+}
+
+type DismissReport204Response struct {
+}
+
+func (response DismissReport204Response) VisitDismissReportResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DismissReport401JSONResponse ProblemDetail
+
+func (response DismissReport401JSONResponse) VisitDismissReportResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DismissReport403JSONResponse ProblemDetail
+
+func (response DismissReport403JSONResponse) VisitDismissReportResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DismissReport404JSONResponse ProblemDetail
+
+func (response DismissReport404JSONResponse) VisitDismissReportResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ResolveReportRequestObject struct {
 	Id   openapi_types.UUID `json:"id"`
 	Body *ResolveReportJSONRequestBody
@@ -3822,6 +11957,255 @@ func (response ResolveReport403JSONResponse) VisitResolveReportResponse(w http.R
 type ResolveReport404JSONResponse ProblemDetail
 
 func (response ResolveReport404JSONResponse) VisitResolveReportResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartReportReviewRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type StartReportReviewResponseObject interface {
+	VisitStartReportReviewResponse(w http.ResponseWriter) error
+}
+
+type StartReportReview204Response struct {
+}
+
+func (response StartReportReview204Response) VisitStartReportReviewResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type StartReportReview401JSONResponse ProblemDetail
+
+func (response StartReportReview401JSONResponse) VisitStartReportReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartReportReview403JSONResponse ProblemDetail
+
+func (response StartReportReview403JSONResponse) VisitStartReportReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartReportReview404JSONResponse ProblemDetail
+
+func (response StartReportReview404JSONResponse) VisitStartReportReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartReportReview409JSONResponse ProblemDetail
+
+func (response StartReportReview409JSONResponse) VisitStartReportReviewResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNotificationsRequestObject struct {
+	Params GetNotificationsParams
+}
+
+type GetNotificationsResponseObject interface {
+	VisitGetNotificationsResponse(w http.ResponseWriter) error
+}
+
+type GetNotifications200JSONResponse NotificationsList
+
+func (response GetNotifications200JSONResponse) VisitGetNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNotifications400JSONResponse ProblemDetail
+
+func (response GetNotifications400JSONResponse) VisitGetNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNotifications401JSONResponse ProblemDetail
+
+func (response GetNotifications401JSONResponse) VisitGetNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetNotifications500JSONResponse ProblemDetail
+
+func (response GetNotifications500JSONResponse) VisitGetNotificationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUnreadNotificationCountRequestObject struct {
+}
+
+type GetUnreadNotificationCountResponseObject interface {
+	VisitGetUnreadNotificationCountResponse(w http.ResponseWriter) error
+}
+
+type GetUnreadNotificationCount200JSONResponse UnreadCount
+
+func (response GetUnreadNotificationCount200JSONResponse) VisitGetUnreadNotificationCountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUnreadNotificationCount401JSONResponse ProblemDetail
+
+func (response GetUnreadNotificationCount401JSONResponse) VisitGetUnreadNotificationCountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUnreadNotificationCount500JSONResponse ProblemDetail
+
+func (response GetUnreadNotificationCount500JSONResponse) VisitGetUnreadNotificationCountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkNotificationsAsReadRequestObject struct {
+	Body *MarkNotificationsAsReadJSONRequestBody
+}
+
+type MarkNotificationsAsReadResponseObject interface {
+	VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error
+}
+
+type MarkNotificationsAsRead204Response struct {
+}
+
+func (response MarkNotificationsAsRead204Response) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type MarkNotificationsAsRead400JSONResponse ProblemDetail
+
+func (response MarkNotificationsAsRead400JSONResponse) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkNotificationsAsRead401JSONResponse ProblemDetail
+
+func (response MarkNotificationsAsRead401JSONResponse) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkNotificationsAsRead403JSONResponse ProblemDetail
+
+func (response MarkNotificationsAsRead403JSONResponse) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkNotificationsAsRead404JSONResponse ProblemDetail
+
+func (response MarkNotificationsAsRead404JSONResponse) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MarkNotificationsAsRead500JSONResponse ProblemDetail
+
+func (response MarkNotificationsAsRead500JSONResponse) VisitMarkNotificationsAsReadResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetOEmbedRequestObject struct {
+	Params GetOEmbedParams
+}
+
+type GetOEmbedResponseObject interface {
+	VisitGetOEmbedResponse(w http.ResponseWriter) error
+}
+
+type GetOEmbed200JSONResponse OEmbedResponse
+
+func (response GetOEmbed200JSONResponse) VisitGetOEmbedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetOEmbed200TextxmlResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetOEmbed200TextxmlResponse) VisitGetOEmbedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "text/xml")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetOEmbed400JSONResponse struct {
+	Error *string `json:"error,omitempty"`
+}
+
+func (response GetOEmbed400JSONResponse) VisitGetOEmbedResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetOEmbed404JSONResponse struct {
+	Error *string `json:"error,omitempty"`
+}
+
+func (response GetOEmbed404JSONResponse) VisitGetOEmbedResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
 
@@ -3889,7 +12273,7 @@ type ListPopularTagsResponseObject interface {
 	VisitListPopularTagsResponse(w http.ResponseWriter) error
 }
 
-type ListPopularTags200JSONResponse []Tag
+type ListPopularTags200JSONResponse TagListResponse
 
 func (response ListPopularTags200JSONResponse) VisitListPopularTagsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -3909,6 +12293,23 @@ type SearchTagsResponseObject interface {
 type SearchTags200JSONResponse []Tag
 
 func (response SearchTags200JSONResponse) VisitSearchTagsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListTrendingTagsRequestObject struct {
+	Params ListTrendingTagsParams
+}
+
+type ListTrendingTagsResponseObject interface {
+	VisitListTrendingTagsResponse(w http.ResponseWriter) error
+}
+
+type ListTrendingTags200JSONResponse TrendingTagListResponse
+
+func (response ListTrendingTags200JSONResponse) VisitListTrendingTagsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
@@ -4067,16 +12468,12 @@ type UnbanUserResponseObject interface {
 	VisitUnbanUserResponse(w http.ResponseWriter) error
 }
 
-type UnbanUser200JSONResponse struct {
-	Banned *bool               `json:"banned,omitempty"`
-	UserId *openapi_types.UUID `json:"user_id,omitempty"`
+type UnbanUser204Response struct {
 }
 
-func (response UnbanUser200JSONResponse) VisitUnbanUserResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+func (response UnbanUser204Response) VisitUnbanUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
 }
 
 type UnbanUser401JSONResponse ProblemDetail
@@ -4106,6 +12503,54 @@ func (response UnbanUser404JSONResponse) VisitUnbanUserResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetBanStatusRequestObject struct {
+	Id UserIdParam `json:"id"`
+}
+
+type GetBanStatusResponseObject interface {
+	VisitGetBanStatusResponse(w http.ResponseWriter) error
+}
+
+type GetBanStatus200JSONResponse struct {
+	ExpiresAt *time.Time `json:"expires_at"`
+	IsBanned  bool       `json:"is_banned"`
+	Reason    *string    `json:"reason"`
+}
+
+func (response GetBanStatus200JSONResponse) VisitGetBanStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBanStatus401JSONResponse ProblemDetail
+
+func (response GetBanStatus401JSONResponse) VisitGetBanStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBanStatus403JSONResponse ProblemDetail
+
+func (response GetBanStatus403JSONResponse) VisitGetBanStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetBanStatus404JSONResponse ProblemDetail
+
+func (response GetBanStatus404JSONResponse) VisitGetBanStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type BanUserRequestObject struct {
 	Id   UserIdParam `json:"id"`
 	Body *BanUserJSONRequestBody
@@ -4116,10 +12561,8 @@ type BanUserResponseObject interface {
 }
 
 type BanUser200JSONResponse struct {
-	Banned    *bool               `json:"banned,omitempty"`
-	ExpiresAt *time.Time          `json:"expires_at"`
-	Reason    *string             `json:"reason,omitempty"`
-	UserId    *openapi_types.UUID `json:"user_id,omitempty"`
+	BanId     openapi_types.UUID `json:"ban_id"`
+	ExpiresAt *time.Time         `json:"expires_at"`
 }
 
 func (response BanUser200JSONResponse) VisitBanUserResponse(w http.ResponseWriter) error {
@@ -4165,6 +12608,486 @@ func (response BanUser404JSONResponse) VisitBanUserResponse(w http.ResponseWrite
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UnfollowUserRequestObject struct {
+	Id UserIdParam `json:"id"`
+}
+
+type UnfollowUserResponseObject interface {
+	VisitUnfollowUserResponse(w http.ResponseWriter) error
+}
+
+type UnfollowUser204Response struct {
+}
+
+func (response UnfollowUser204Response) VisitUnfollowUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UnfollowUser400JSONResponse ProblemDetail
+
+func (response UnfollowUser400JSONResponse) VisitUnfollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UnfollowUser401JSONResponse ProblemDetail
+
+func (response UnfollowUser401JSONResponse) VisitUnfollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FollowUserRequestObject struct {
+	Id UserIdParam `json:"id"`
+}
+
+type FollowUserResponseObject interface {
+	VisitFollowUserResponse(w http.ResponseWriter) error
+}
+
+type FollowUser204Response struct {
+}
+
+func (response FollowUser204Response) VisitFollowUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type FollowUser400JSONResponse ProblemDetail
+
+func (response FollowUser400JSONResponse) VisitFollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FollowUser401JSONResponse ProblemDetail
+
+func (response FollowUser401JSONResponse) VisitFollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FollowUser404JSONResponse ProblemDetail
+
+func (response FollowUser404JSONResponse) VisitFollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type FollowUser409JSONResponse ProblemDetail
+
+func (response FollowUser409JSONResponse) VisitFollowUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowersRequestObject struct {
+	Id     UserIdParam `json:"id"`
+	Params GetUserFollowersParams
+}
+
+type GetUserFollowersResponseObject interface {
+	VisitGetUserFollowersResponse(w http.ResponseWriter) error
+}
+
+type GetUserFollowers200JSONResponse FollowersList
+
+func (response GetUserFollowers200JSONResponse) VisitGetUserFollowersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowers400JSONResponse ProblemDetail
+
+func (response GetUserFollowers400JSONResponse) VisitGetUserFollowersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowers404JSONResponse ProblemDetail
+
+func (response GetUserFollowers404JSONResponse) VisitGetUserFollowersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowingRequestObject struct {
+	Id     UserIdParam `json:"id"`
+	Params GetUserFollowingParams
+}
+
+type GetUserFollowingResponseObject interface {
+	VisitGetUserFollowingResponse(w http.ResponseWriter) error
+}
+
+type GetUserFollowing200JSONResponse FollowingList
+
+func (response GetUserFollowing200JSONResponse) VisitGetUserFollowingResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowing400JSONResponse ProblemDetail
+
+func (response GetUserFollowing400JSONResponse) VisitGetUserFollowingResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserFollowing404JSONResponse ProblemDetail
+
+func (response GetUserFollowing404JSONResponse) VisitGetUserFollowingResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserLikedImagesRequestObject struct {
+	Id     UserIdParam `json:"id"`
+	Params GetUserLikedImagesParams
+}
+
+type GetUserLikedImagesResponseObject interface {
+	VisitGetUserLikedImagesResponse(w http.ResponseWriter) error
+}
+
+type GetUserLikedImages200JSONResponse struct {
+	Items      []Image    `json:"items"`
+	Pagination Pagination `json:"pagination"`
+}
+
+func (response GetUserLikedImages200JSONResponse) VisitGetUserLikedImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserLikedImages401JSONResponse ProblemDetail
+
+func (response GetUserLikedImages401JSONResponse) VisitGetUserLikedImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserLikedImages404JSONResponse ProblemDetail
+
+func (response GetUserLikedImages404JSONResponse) VisitGetUserLikedImagesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserSessionsRequestObject struct {
+	Id     UserIdParam `json:"id"`
+	Params ListUserSessionsParams
+}
+
+type ListUserSessionsResponseObject interface {
+	VisitListUserSessionsResponse(w http.ResponseWriter) error
+}
+
+type ListUserSessions200JSONResponse struct {
+	Pagination *Pagination `json:"pagination,omitempty"`
+	Sessions   *[]Session  `json:"sessions,omitempty"`
+}
+
+func (response ListUserSessions200JSONResponse) VisitListUserSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserSessions401JSONResponse ProblemDetail
+
+func (response ListUserSessions401JSONResponse) VisitListUserSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserSessions403JSONResponse ProblemDetail
+
+func (response ListUserSessions403JSONResponse) VisitListUserSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListUserSessions404JSONResponse ProblemDetail
+
+func (response ListUserSessions404JSONResponse) VisitListUserSessionsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVariantConfigsRequestObject struct {
+}
+
+type ListVariantConfigsResponseObject interface {
+	VisitListVariantConfigsResponse(w http.ResponseWriter) error
+}
+
+type ListVariantConfigs200JSONResponse []VariantConfig
+
+func (response ListVariantConfigs200JSONResponse) VisitListVariantConfigsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVariantConfigs401JSONResponse ProblemDetail
+
+func (response ListVariantConfigs401JSONResponse) VisitListVariantConfigsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVariantConfigRequestObject struct {
+	Body *CreateVariantConfigJSONRequestBody
+}
+
+type CreateVariantConfigResponseObject interface {
+	VisitCreateVariantConfigResponse(w http.ResponseWriter) error
+}
+
+type CreateVariantConfig201JSONResponse VariantConfig
+
+func (response CreateVariantConfig201JSONResponse) VisitCreateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVariantConfig400JSONResponse ProblemDetail
+
+func (response CreateVariantConfig400JSONResponse) VisitCreateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVariantConfig401JSONResponse ProblemDetail
+
+func (response CreateVariantConfig401JSONResponse) VisitCreateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVariantConfig409JSONResponse ProblemDetail
+
+func (response CreateVariantConfig409JSONResponse) VisitCreateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVariantConfigPresetsRequestObject struct {
+}
+
+type ListVariantConfigPresetsResponseObject interface {
+	VisitListVariantConfigPresetsResponse(w http.ResponseWriter) error
+}
+
+type ListVariantConfigPresets200JSONResponse []VariantConfig
+
+func (response ListVariantConfigPresets200JSONResponse) VisitListVariantConfigPresetsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVariantConfigRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type DeleteVariantConfigResponseObject interface {
+	VisitDeleteVariantConfigResponse(w http.ResponseWriter) error
+}
+
+type DeleteVariantConfig204Response struct {
+}
+
+func (response DeleteVariantConfig204Response) VisitDeleteVariantConfigResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteVariantConfig400JSONResponse ProblemDetail
+
+func (response DeleteVariantConfig400JSONResponse) VisitDeleteVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVariantConfig401JSONResponse ProblemDetail
+
+func (response DeleteVariantConfig401JSONResponse) VisitDeleteVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVariantConfig403JSONResponse ProblemDetail
+
+func (response DeleteVariantConfig403JSONResponse) VisitDeleteVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVariantConfig404JSONResponse ProblemDetail
+
+func (response DeleteVariantConfig404JSONResponse) VisitDeleteVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVariantConfigRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type GetVariantConfigResponseObject interface {
+	VisitGetVariantConfigResponse(w http.ResponseWriter) error
+}
+
+type GetVariantConfig200JSONResponse VariantConfig
+
+func (response GetVariantConfig200JSONResponse) VisitGetVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVariantConfig401JSONResponse ProblemDetail
+
+func (response GetVariantConfig401JSONResponse) VisitGetVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVariantConfig403JSONResponse ProblemDetail
+
+func (response GetVariantConfig403JSONResponse) VisitGetVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVariantConfig404JSONResponse ProblemDetail
+
+func (response GetVariantConfig404JSONResponse) VisitGetVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateVariantConfigRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *UpdateVariantConfigJSONRequestBody
+}
+
+type UpdateVariantConfigResponseObject interface {
+	VisitUpdateVariantConfigResponse(w http.ResponseWriter) error
+}
+
+type UpdateVariantConfig200JSONResponse VariantConfig
+
+func (response UpdateVariantConfig200JSONResponse) VisitUpdateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateVariantConfig400JSONResponse ProblemDetail
+
+func (response UpdateVariantConfig400JSONResponse) VisitUpdateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateVariantConfig401JSONResponse ProblemDetail
+
+func (response UpdateVariantConfig401JSONResponse) VisitUpdateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateVariantConfig403JSONResponse ProblemDetail
+
+func (response UpdateVariantConfig403JSONResponse) VisitUpdateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateVariantConfig404JSONResponse ProblemDetail
+
+func (response UpdateVariantConfig404JSONResponse) VisitUpdateVariantConfigResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// List user's albums
@@ -4176,24 +13099,72 @@ type StrictServerInterface interface {
 	// Delete album
 	// (DELETE /albums/{id})
 	DeleteAlbum(ctx context.Context, request DeleteAlbumRequestObject) (DeleteAlbumResponseObject, error)
-	// Get album with images
+	// Get album details
 	// (GET /albums/{id})
 	GetAlbum(ctx context.Context, request GetAlbumRequestObject) (GetAlbumResponseObject, error)
 	// Update album
 	// (PUT /albums/{id})
 	UpdateAlbum(ctx context.Context, request UpdateAlbumRequestObject) (UpdateAlbumResponseObject, error)
+	// Get album breadcrumb
+	// (GET /albums/{id}/breadcrumb)
+	GetAlbumBreadcrumb(ctx context.Context, request GetAlbumBreadcrumbRequestObject) (GetAlbumBreadcrumbResponseObject, error)
+	// Get child albums
+	// (GET /albums/{id}/children)
+	GetAlbumChildren(ctx context.Context, request GetAlbumChildrenRequestObject) (GetAlbumChildrenResponseObject, error)
+	// List images in album
+	// (GET /albums/{id}/images)
+	GetAlbumImages(ctx context.Context, request GetAlbumImagesRequestObject) (GetAlbumImagesResponseObject, error)
 	// Add images to album
 	// (POST /albums/{id}/images)
 	AddImagesToAlbum(ctx context.Context, request AddImagesToAlbumRequestObject) (AddImagesToAlbumResponseObject, error)
 	// Remove image from album
 	// (DELETE /albums/{id}/images/{imageId})
 	RemoveImageFromAlbum(ctx context.Context, request RemoveImageFromAlbumRequestObject) (RemoveImageFromAlbumResponseObject, error)
+	// Regenerate backup codes
+	// (POST /auth/2fa/backup-codes/regenerate)
+	RegenerateBackupCodes(ctx context.Context, request RegenerateBackupCodesRequestObject) (RegenerateBackupCodesResponseObject, error)
+	// Disable 2FA
+	// (POST /auth/2fa/disable)
+	Disable2FA(ctx context.Context, request Disable2FARequestObject) (Disable2FAResponseObject, error)
+	// Verify 2FA during login
+	// (POST /auth/2fa/login-verify)
+	Verify2FALogin(ctx context.Context, request Verify2FALoginRequestObject) (Verify2FALoginResponseObject, error)
+	// Setup 2FA
+	// (POST /auth/2fa/setup)
+	Setup2FA(ctx context.Context, request Setup2FARequestObject) (Setup2FAResponseObject, error)
+	// Get 2FA status
+	// (GET /auth/2fa/status)
+	Get2FAStatus(ctx context.Context, request Get2FAStatusRequestObject) (Get2FAStatusResponseObject, error)
+	// Verify and enable 2FA
+	// (POST /auth/2fa/verify)
+	Verify2FA(ctx context.Context, request Verify2FARequestObject) (Verify2FAResponseObject, error)
+	// Create guest session
+	// (POST /auth/guest)
+	CreateGuestSession(ctx context.Context, request CreateGuestSessionRequestObject) (CreateGuestSessionResponseObject, error)
 	// User login
 	// (POST /auth/login)
 	LoginUser(ctx context.Context, request LoginUserRequestObject) (LoginUserResponseObject, error)
 	// User logout
 	// (POST /auth/logout)
 	LogoutUser(ctx context.Context, request LogoutUserRequestObject) (LogoutUserResponseObject, error)
+	// List linked OAuth accounts
+	// (GET /auth/oauth/accounts)
+	ListLinkedOAuthAccounts(ctx context.Context, request ListLinkedOAuthAccountsRequestObject) (ListLinkedOAuthAccountsResponseObject, error)
+	// Unlink OAuth account
+	// (DELETE /auth/oauth/link)
+	UnlinkOAuthAccount(ctx context.Context, request UnlinkOAuthAccountRequestObject) (UnlinkOAuthAccountResponseObject, error)
+	// Link OAuth account
+	// (POST /auth/oauth/link)
+	LinkOAuthAccount(ctx context.Context, request LinkOAuthAccountRequestObject) (LinkOAuthAccountResponseObject, error)
+	// Unlink OAuth account by provider
+	// (DELETE /auth/oauth/{provider})
+	UnlinkOAuthAccountByProvider(ctx context.Context, request UnlinkOAuthAccountByProviderRequestObject) (UnlinkOAuthAccountByProviderResponseObject, error)
+	// Initiate OAuth flow
+	// (GET /auth/oauth/{provider})
+	InitiateOAuthFlow(ctx context.Context, request InitiateOAuthFlowRequestObject) (InitiateOAuthFlowResponseObject, error)
+	// Handle OAuth callback
+	// (GET /auth/oauth/{provider}/callback)
+	HandleOAuthCallback(ctx context.Context, request HandleOAuthCallbackRequestObject) (HandleOAuthCallbackResponseObject, error)
 	// Refresh access token
 	// (POST /auth/refresh)
 	RefreshToken(ctx context.Context, request RefreshTokenRequestObject) (RefreshTokenResponseObject, error)
@@ -4203,24 +13174,108 @@ type StrictServerInterface interface {
 	// Delete comment
 	// (DELETE /comments/{id})
 	DeleteComment(ctx context.Context, request DeleteCommentRequestObject) (DeleteCommentResponseObject, error)
+	// Featured images
+	// (GET /explore/featured)
+	ExploreFeatured(ctx context.Context, request ExploreFeaturedRequestObject) (ExploreFeaturedResponseObject, error)
 	// Popular images
 	// (GET /explore/popular)
 	ExplorePopular(ctx context.Context, request ExplorePopularRequestObject) (ExplorePopularResponseObject, error)
 	// Recent public images
 	// (GET /explore/recent)
 	ExploreRecent(ctx context.Context, request ExploreRecentRequestObject) (ExploreRecentResponseObject, error)
+	// Get activity feed
+	// (GET /feed)
+	GetActivityFeed(ctx context.Context, request GetActivityFeedRequestObject) (GetActivityFeedResponseObject, error)
+	// List public groups
+	// (GET /groups)
+	ListGroups(ctx context.Context, request ListGroupsRequestObject) (ListGroupsResponseObject, error)
+	// Create a new group
+	// (POST /groups)
+	CreateGroup(ctx context.Context, request CreateGroupRequestObject) (CreateGroupResponseObject, error)
+	// Get group by slug
+	// (GET /groups/by-slug/{slug})
+	GetGroupBySlug(ctx context.Context, request GetGroupBySlugRequestObject) (GetGroupBySlugResponseObject, error)
+	// Accept group invitation
+	// (POST /groups/invitations/{token}/accept)
+	AcceptInvitation(ctx context.Context, request AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error)
+	// Decline group invitation
+	// (POST /groups/invitations/{token}/decline)
+	DeclineInvitation(ctx context.Context, request DeclineInvitationRequestObject) (DeclineInvitationResponseObject, error)
+	// Search groups
+	// (GET /groups/search)
+	SearchGroups(ctx context.Context, request SearchGroupsRequestObject) (SearchGroupsResponseObject, error)
+	// Delete group
+	// (DELETE /groups/{groupID})
+	DeleteGroup(ctx context.Context, request DeleteGroupRequestObject) (DeleteGroupResponseObject, error)
+	// Get group by ID
+	// (GET /groups/{groupID})
+	GetGroupByID(ctx context.Context, request GetGroupByIDRequestObject) (GetGroupByIDResponseObject, error)
+	// Update group
+	// (PUT /groups/{groupID})
+	UpdateGroup(ctx context.Context, request UpdateGroupRequestObject) (UpdateGroupResponseObject, error)
+	// List group albums
+	// (GET /groups/{groupID}/albums)
+	ListGroupAlbums(ctx context.Context, request ListGroupAlbumsRequestObject) (ListGroupAlbumsResponseObject, error)
+	// Create group album
+	// (POST /groups/{groupID}/albums)
+	CreateGroupAlbum(ctx context.Context, request CreateGroupAlbumRequestObject) (CreateGroupAlbumResponseObject, error)
+	// Delete album
+	// (DELETE /groups/{groupID}/albums/{albumID})
+	DeleteGroupAlbum(ctx context.Context, request DeleteGroupAlbumRequestObject) (DeleteGroupAlbumResponseObject, error)
+	// Get album details
+	// (GET /groups/{groupID}/albums/{albumID})
+	GetGroupAlbum(ctx context.Context, request GetGroupAlbumRequestObject) (GetGroupAlbumResponseObject, error)
+	// Update album
+	// (PUT /groups/{groupID}/albums/{albumID})
+	UpdateGroupAlbum(ctx context.Context, request UpdateGroupAlbumRequestObject) (UpdateGroupAlbumResponseObject, error)
+	// Add image to album
+	// (POST /groups/{groupID}/albums/{albumID}/images)
+	AddImageToGroupAlbum(ctx context.Context, request AddImageToGroupAlbumRequestObject) (AddImageToGroupAlbumResponseObject, error)
+	// Remove image from album
+	// (DELETE /groups/{groupID}/albums/{albumID}/images/{imageID})
+	RemoveImageFromGroupAlbum(ctx context.Context, request RemoveImageFromGroupAlbumRequestObject) (RemoveImageFromGroupAlbumResponseObject, error)
+	// List pending group invitations
+	// (GET /groups/{groupID}/invitations)
+	ListGroupInvitations(ctx context.Context, request ListGroupInvitationsRequestObject) (ListGroupInvitationsResponseObject, error)
+	// Invite user to group
+	// (POST /groups/{groupID}/invitations)
+	InviteToGroup(ctx context.Context, request InviteToGroupRequestObject) (InviteToGroupResponseObject, error)
+	// Join group
+	// (POST /groups/{groupID}/join)
+	JoinGroup(ctx context.Context, request JoinGroupRequestObject) (JoinGroupResponseObject, error)
+	// Leave group
+	// (DELETE /groups/{groupID}/leave)
+	LeaveGroup(ctx context.Context, request LeaveGroupRequestObject) (LeaveGroupResponseObject, error)
+	// List group members
+	// (GET /groups/{groupID}/members)
+	ListGroupMembers(ctx context.Context, request ListGroupMembersRequestObject) (ListGroupMembersResponseObject, error)
+	// Remove member
+	// (DELETE /groups/{groupID}/members/{userID})
+	RemoveMember(ctx context.Context, request RemoveMemberRequestObject) (RemoveMemberResponseObject, error)
+	// Ban member
+	// (POST /groups/{groupID}/members/{userID}/ban)
+	BanMember(ctx context.Context, request BanMemberRequestObject) (BanMemberResponseObject, error)
+	// Update member role
+	// (PUT /groups/{groupID}/members/{userID}/role)
+	UpdateMemberRole(ctx context.Context, request UpdateMemberRoleRequestObject) (UpdateMemberRoleResponseObject, error)
+	// Claim guest upload
+	// (POST /guest/images/{imageId}/claim)
+	ClaimGuestImage(ctx context.Context, request ClaimGuestImageRequestObject) (ClaimGuestImageResponseObject, error)
 	// Liveness check
 	// (GET /health)
 	HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error)
 	// Readiness check
 	// (GET /health/ready)
-	ReadinessCheck(ctx context.Context, request ReadinessCheckRequestObject) (ReadinessCheckResponseObject, error)
+	HealthReadiness(ctx context.Context, request HealthReadinessRequestObject) (HealthReadinessResponseObject, error)
 	// List images
 	// (GET /images)
 	ListImages(ctx context.Context, request ListImagesRequestObject) (ListImagesResponseObject, error)
 	// Upload image
 	// (POST /images)
 	UploadImage(ctx context.Context, request UploadImageRequestObject) (UploadImageResponseObject, error)
+	// Search images
+	// (GET /images/search)
+	SearchImages(ctx context.Context, request SearchImagesRequestObject) (SearchImagesResponseObject, error)
 	// Delete image
 	// (DELETE /images/{id})
 	DeleteImage(ctx context.Context, request DeleteImageRequestObject) (DeleteImageResponseObject, error)
@@ -4236,36 +13291,99 @@ type StrictServerInterface interface {
 	// Add comment
 	// (POST /images/{id}/comments)
 	AddComment(ctx context.Context, request AddCommentRequestObject) (AddCommentResponseObject, error)
+	// Unpin image from IPFS
+	// (DELETE /images/{id}/ipfs)
+	UnpinImageFromIPFS(ctx context.Context, request UnpinImageFromIPFSRequestObject) (UnpinImageFromIPFSResponseObject, error)
+	// Get image IPFS status
+	// (GET /images/{id}/ipfs)
+	GetImageIPFSStatus(ctx context.Context, request GetImageIPFSStatusRequestObject) (GetImageIPFSStatusResponseObject, error)
+	// Pin image to IPFS
+	// (POST /images/{id}/ipfs)
+	PinImageToIPFS(ctx context.Context, request PinImageToIPFSRequestObject) (PinImageToIPFSResponseObject, error)
 	// Unlike image
 	// (DELETE /images/{id}/like)
 	UnlikeImage(ctx context.Context, request UnlikeImageRequestObject) (UnlikeImageResponseObject, error)
 	// Like image
 	// (POST /images/{id}/like)
 	LikeImage(ctx context.Context, request LikeImageRequestObject) (LikeImageResponseObject, error)
-	// List users who liked image
-	// (GET /images/{id}/likes)
-	ListImageLikes(ctx context.Context, request ListImageLikesRequestObject) (ListImageLikesResponseObject, error)
+	// Get image preview page
+	// (GET /images/{id}/preview)
+	GetImagePreview(ctx context.Context, request GetImagePreviewRequestObject) (GetImagePreviewResponseObject, error)
+	// Get image share QR code
+	// (GET /images/{id}/qr)
+	GetImageQRCode(ctx context.Context, request GetImageQRCodeRequestObject) (GetImageQRCodeResponseObject, error)
+	// Generate custom variant
+	// (POST /images/{id}/variants)
+	GenerateCustomVariant(ctx context.Context, request GenerateCustomVariantRequestObject) (GenerateCustomVariantResponseObject, error)
 	// Get image variant
 	// (GET /images/{id}/variants/{size})
 	GetImageVariant(ctx context.Context, request GetImageVariantRequestObject) (GetImageVariantResponseObject, error)
+	// List NSFW scans for an image
+	// (GET /images/{imageId}/nsfw-scans)
+	ListNSFWScansByImage(ctx context.Context, request ListNSFWScansByImageRequestObject) (ListNSFWScansByImageResponseObject, error)
+	// List current user's groups
+	// (GET /me/groups)
+	ListUserGroups(ctx context.Context, request ListUserGroupsRequestObject) (ListUserGroupsResponseObject, error)
+	// Prometheus metrics
+	// (GET /metrics)
+	Metrics(ctx context.Context, request MetricsRequestObject) (MetricsResponseObject, error)
+	// List active bans
+	// (GET /moderation/bans)
+	ListBans(ctx context.Context, request ListBansRequestObject) (ListBansResponseObject, error)
+	// Feature an image (Admin only)
+	// (POST /moderation/featured)
+	FeatureImage(ctx context.Context, request FeatureImageRequestObject) (FeatureImageResponseObject, error)
+	// Unfeature an image (Admin only)
+	// (DELETE /moderation/featured/{imageID})
+	UnfeatureImage(ctx context.Context, request UnfeatureImageRequestObject) (UnfeatureImageResponseObject, error)
+	// List NSFW flagged images
+	// (GET /moderation/nsfw/flagged)
+	ListNSFWFlagged(ctx context.Context, request ListNSFWFlaggedRequestObject) (ListNSFWFlaggedResponseObject, error)
+	// Initiate NSFW scan
+	// (POST /moderation/nsfw/scan)
+	ScanImageNSFW(ctx context.Context, request ScanImageNSFWRequestObject) (ScanImageNSFWResponseObject, error)
+	// Get NSFW scan details
+	// (GET /moderation/nsfw/scans/{scanId})
+	GetNSFWScan(ctx context.Context, request GetNSFWScanRequestObject) (GetNSFWScanResponseObject, error)
 	// List reports
 	// (GET /moderation/reports)
 	ListReports(ctx context.Context, request ListReportsRequestObject) (ListReportsResponseObject, error)
 	// Get report details
 	// (GET /moderation/reports/{id})
 	GetReport(ctx context.Context, request GetReportRequestObject) (GetReportResponseObject, error)
+	// Dismiss report
+	// (POST /moderation/reports/{id}/dismiss)
+	DismissReport(ctx context.Context, request DismissReportRequestObject) (DismissReportResponseObject, error)
 	// Resolve report
 	// (POST /moderation/reports/{id}/resolve)
 	ResolveReport(ctx context.Context, request ResolveReportRequestObject) (ResolveReportResponseObject, error)
+	// Start report review
+	// (POST /moderation/reports/{id}/review)
+	StartReportReview(ctx context.Context, request StartReportReviewRequestObject) (StartReportReviewResponseObject, error)
+	// Get notifications
+	// (GET /notifications)
+	GetNotifications(ctx context.Context, request GetNotificationsRequestObject) (GetNotificationsResponseObject, error)
+	// Get unread notification count
+	// (GET /notifications/count)
+	GetUnreadNotificationCount(ctx context.Context, request GetUnreadNotificationCountRequestObject) (GetUnreadNotificationCountResponseObject, error)
+	// Mark notifications as read
+	// (POST /notifications/read)
+	MarkNotificationsAsRead(ctx context.Context, request MarkNotificationsAsReadRequestObject) (MarkNotificationsAsReadResponseObject, error)
+	// Get oEmbed response for image
+	// (GET /oembed)
+	GetOEmbed(ctx context.Context, request GetOEmbedRequestObject) (GetOEmbedResponseObject, error)
 	// Create abuse report
 	// (POST /reports)
 	CreateReport(ctx context.Context, request CreateReportRequestObject) (CreateReportResponseObject, error)
 	// List popular tags
-	// (GET /tags)
+	// (GET /tags/popular)
 	ListPopularTags(ctx context.Context, request ListPopularTagsRequestObject) (ListPopularTagsResponseObject, error)
 	// Search tags
 	// (GET /tags/search)
 	SearchTags(ctx context.Context, request SearchTagsRequestObject) (SearchTagsResponseObject, error)
+	// List trending tags
+	// (GET /tags/trending)
+	ListTrendingTags(ctx context.Context, request ListTrendingTagsRequestObject) (ListTrendingTagsResponseObject, error)
 	// List images by tag
 	// (GET /tags/{tag}/images)
 	ListImagesByTag(ctx context.Context, request ListImagesByTagRequestObject) (ListImagesByTagResponseObject, error)
@@ -4281,9 +13399,48 @@ type StrictServerInterface interface {
 	// Unban user
 	// (DELETE /users/{id}/ban)
 	UnbanUser(ctx context.Context, request UnbanUserRequestObject) (UnbanUserResponseObject, error)
+	// Check ban status
+	// (GET /users/{id}/ban)
+	GetBanStatus(ctx context.Context, request GetBanStatusRequestObject) (GetBanStatusResponseObject, error)
 	// Ban user
 	// (POST /users/{id}/ban)
 	BanUser(ctx context.Context, request BanUserRequestObject) (BanUserResponseObject, error)
+	// Unfollow user
+	// (DELETE /users/{id}/follow)
+	UnfollowUser(ctx context.Context, request UnfollowUserRequestObject) (UnfollowUserResponseObject, error)
+	// Follow user
+	// (POST /users/{id}/follow)
+	FollowUser(ctx context.Context, request FollowUserRequestObject) (FollowUserResponseObject, error)
+	// List user followers
+	// (GET /users/{id}/followers)
+	GetUserFollowers(ctx context.Context, request GetUserFollowersRequestObject) (GetUserFollowersResponseObject, error)
+	// List users being followed
+	// (GET /users/{id}/following)
+	GetUserFollowing(ctx context.Context, request GetUserFollowingRequestObject) (GetUserFollowingResponseObject, error)
+	// Get user's liked images
+	// (GET /users/{id}/likes)
+	GetUserLikedImages(ctx context.Context, request GetUserLikedImagesRequestObject) (GetUserLikedImagesResponseObject, error)
+	// List user sessions
+	// (GET /users/{id}/sessions)
+	ListUserSessions(ctx context.Context, request ListUserSessionsRequestObject) (ListUserSessionsResponseObject, error)
+	// List user's variant configs
+	// (GET /variant-configs)
+	ListVariantConfigs(ctx context.Context, request ListVariantConfigsRequestObject) (ListVariantConfigsResponseObject, error)
+	// Create custom variant config
+	// (POST /variant-configs)
+	CreateVariantConfig(ctx context.Context, request CreateVariantConfigRequestObject) (CreateVariantConfigResponseObject, error)
+	// List system presets
+	// (GET /variant-configs/presets)
+	ListVariantConfigPresets(ctx context.Context, request ListVariantConfigPresetsRequestObject) (ListVariantConfigPresetsResponseObject, error)
+	// Delete variant config
+	// (DELETE /variant-configs/{id})
+	DeleteVariantConfig(ctx context.Context, request DeleteVariantConfigRequestObject) (DeleteVariantConfigResponseObject, error)
+	// Get variant config
+	// (GET /variant-configs/{id})
+	GetVariantConfig(ctx context.Context, request GetVariantConfigRequestObject) (GetVariantConfigResponseObject, error)
+	// Update variant config
+	// (PUT /variant-configs/{id})
+	UpdateVariantConfig(ctx context.Context, request UpdateVariantConfigRequestObject) (UpdateVariantConfigResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -4399,11 +13556,10 @@ func (sh *strictHandler) DeleteAlbum(w http.ResponseWriter, r *http.Request, id 
 }
 
 // GetAlbum operation middleware
-func (sh *strictHandler) GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumParams) {
+func (sh *strictHandler) GetAlbum(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
 	var request GetAlbumRequestObject
 
 	request.Id = id
-	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		return sh.ssi.GetAlbum(ctx, request.(GetAlbumRequestObject))
@@ -4451,6 +13607,85 @@ func (sh *strictHandler) UpdateAlbum(w http.ResponseWriter, r *http.Request, id 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateAlbumResponseObject); ok {
 		if err := validResponse.VisitUpdateAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAlbumBreadcrumb operation middleware
+func (sh *strictHandler) GetAlbumBreadcrumb(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
+	var request GetAlbumBreadcrumbRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAlbumBreadcrumb(ctx, request.(GetAlbumBreadcrumbRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAlbumBreadcrumb")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAlbumBreadcrumbResponseObject); ok {
+		if err := validResponse.VisitGetAlbumBreadcrumbResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAlbumChildren operation middleware
+func (sh *strictHandler) GetAlbumChildren(w http.ResponseWriter, r *http.Request, id AlbumIdParam) {
+	var request GetAlbumChildrenRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAlbumChildren(ctx, request.(GetAlbumChildrenRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAlbumChildren")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAlbumChildrenResponseObject); ok {
+		if err := validResponse.VisitGetAlbumChildrenResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAlbumImages operation middleware
+func (sh *strictHandler) GetAlbumImages(w http.ResponseWriter, r *http.Request, id AlbumIdParam, params GetAlbumImagesParams) {
+	var request GetAlbumImagesRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAlbumImages(ctx, request.(GetAlbumImagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAlbumImages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAlbumImagesResponseObject); ok {
+		if err := validResponse.VisitGetAlbumImagesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4518,6 +13753,209 @@ func (sh *strictHandler) RemoveImageFromAlbum(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// RegenerateBackupCodes operation middleware
+func (sh *strictHandler) RegenerateBackupCodes(w http.ResponseWriter, r *http.Request) {
+	var request RegenerateBackupCodesRequestObject
+
+	var body RegenerateBackupCodesJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RegenerateBackupCodes(ctx, request.(RegenerateBackupCodesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RegenerateBackupCodes")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RegenerateBackupCodesResponseObject); ok {
+		if err := validResponse.VisitRegenerateBackupCodesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Disable2FA operation middleware
+func (sh *strictHandler) Disable2FA(w http.ResponseWriter, r *http.Request) {
+	var request Disable2FARequestObject
+
+	var body Disable2FAJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Disable2FA(ctx, request.(Disable2FARequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Disable2FA")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(Disable2FAResponseObject); ok {
+		if err := validResponse.VisitDisable2FAResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Verify2FALogin operation middleware
+func (sh *strictHandler) Verify2FALogin(w http.ResponseWriter, r *http.Request) {
+	var request Verify2FALoginRequestObject
+
+	var body Verify2FALoginJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Verify2FALogin(ctx, request.(Verify2FALoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Verify2FALogin")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(Verify2FALoginResponseObject); ok {
+		if err := validResponse.VisitVerify2FALoginResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Setup2FA operation middleware
+func (sh *strictHandler) Setup2FA(w http.ResponseWriter, r *http.Request) {
+	var request Setup2FARequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Setup2FA(ctx, request.(Setup2FARequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Setup2FA")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(Setup2FAResponseObject); ok {
+		if err := validResponse.VisitSetup2FAResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Get2FAStatus operation middleware
+func (sh *strictHandler) Get2FAStatus(w http.ResponseWriter, r *http.Request) {
+	var request Get2FAStatusRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Get2FAStatus(ctx, request.(Get2FAStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Get2FAStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(Get2FAStatusResponseObject); ok {
+		if err := validResponse.VisitGet2FAStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Verify2FA operation middleware
+func (sh *strictHandler) Verify2FA(w http.ResponseWriter, r *http.Request) {
+	var request Verify2FARequestObject
+
+	var body Verify2FAJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Verify2FA(ctx, request.(Verify2FARequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Verify2FA")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(Verify2FAResponseObject); ok {
+		if err := validResponse.VisitVerify2FAResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGuestSession operation middleware
+func (sh *strictHandler) CreateGuestSession(w http.ResponseWriter, r *http.Request) {
+	var request CreateGuestSessionRequestObject
+
+	var body CreateGuestSessionJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGuestSession(ctx, request.(CreateGuestSessionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGuestSession")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGuestSessionResponseObject); ok {
+		if err := validResponse.VisitCreateGuestSessionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // LoginUser operation middleware
 func (sh *strictHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var request LoginUserRequestObject
@@ -4566,6 +14004,166 @@ func (sh *strictHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(LogoutUserResponseObject); ok {
 		if err := validResponse.VisitLogoutUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListLinkedOAuthAccounts operation middleware
+func (sh *strictHandler) ListLinkedOAuthAccounts(w http.ResponseWriter, r *http.Request) {
+	var request ListLinkedOAuthAccountsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListLinkedOAuthAccounts(ctx, request.(ListLinkedOAuthAccountsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListLinkedOAuthAccounts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListLinkedOAuthAccountsResponseObject); ok {
+		if err := validResponse.VisitListLinkedOAuthAccountsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnlinkOAuthAccount operation middleware
+func (sh *strictHandler) UnlinkOAuthAccount(w http.ResponseWriter, r *http.Request, params UnlinkOAuthAccountParams) {
+	var request UnlinkOAuthAccountRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnlinkOAuthAccount(ctx, request.(UnlinkOAuthAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnlinkOAuthAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnlinkOAuthAccountResponseObject); ok {
+		if err := validResponse.VisitUnlinkOAuthAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LinkOAuthAccount operation middleware
+func (sh *strictHandler) LinkOAuthAccount(w http.ResponseWriter, r *http.Request) {
+	var request LinkOAuthAccountRequestObject
+
+	var body LinkOAuthAccountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LinkOAuthAccount(ctx, request.(LinkOAuthAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LinkOAuthAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LinkOAuthAccountResponseObject); ok {
+		if err := validResponse.VisitLinkOAuthAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnlinkOAuthAccountByProvider operation middleware
+func (sh *strictHandler) UnlinkOAuthAccountByProvider(w http.ResponseWriter, r *http.Request, provider UnlinkOAuthAccountByProviderParamsProvider) {
+	var request UnlinkOAuthAccountByProviderRequestObject
+
+	request.Provider = provider
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnlinkOAuthAccountByProvider(ctx, request.(UnlinkOAuthAccountByProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnlinkOAuthAccountByProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnlinkOAuthAccountByProviderResponseObject); ok {
+		if err := validResponse.VisitUnlinkOAuthAccountByProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InitiateOAuthFlow operation middleware
+func (sh *strictHandler) InitiateOAuthFlow(w http.ResponseWriter, r *http.Request, provider InitiateOAuthFlowParamsProvider) {
+	var request InitiateOAuthFlowRequestObject
+
+	request.Provider = provider
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.InitiateOAuthFlow(ctx, request.(InitiateOAuthFlowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InitiateOAuthFlow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(InitiateOAuthFlowResponseObject); ok {
+		if err := validResponse.VisitInitiateOAuthFlowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// HandleOAuthCallback operation middleware
+func (sh *strictHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, provider HandleOAuthCallbackParamsProvider, params HandleOAuthCallbackParams) {
+	var request HandleOAuthCallbackRequestObject
+
+	request.Provider = provider
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.HandleOAuthCallback(ctx, request.(HandleOAuthCallbackRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HandleOAuthCallback")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(HandleOAuthCallbackResponseObject); ok {
+		if err := validResponse.VisitHandleOAuthCallbackResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4661,6 +14259,32 @@ func (sh *strictHandler) DeleteComment(w http.ResponseWriter, r *http.Request, i
 	}
 }
 
+// ExploreFeatured operation middleware
+func (sh *strictHandler) ExploreFeatured(w http.ResponseWriter, r *http.Request, params ExploreFeaturedParams) {
+	var request ExploreFeaturedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ExploreFeatured(ctx, request.(ExploreFeaturedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ExploreFeatured")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ExploreFeaturedResponseObject); ok {
+		if err := validResponse.VisitExploreFeaturedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ExplorePopular operation middleware
 func (sh *strictHandler) ExplorePopular(w http.ResponseWriter, r *http.Request, params ExplorePopularParams) {
 	var request ExplorePopularRequestObject
@@ -4713,6 +14337,755 @@ func (sh *strictHandler) ExploreRecent(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
+// GetActivityFeed operation middleware
+func (sh *strictHandler) GetActivityFeed(w http.ResponseWriter, r *http.Request, params GetActivityFeedParams) {
+	var request GetActivityFeedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetActivityFeed(ctx, request.(GetActivityFeedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetActivityFeed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetActivityFeedResponseObject); ok {
+		if err := validResponse.VisitGetActivityFeedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroups operation middleware
+func (sh *strictHandler) ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams) {
+	var request ListGroupsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroups(ctx, request.(ListGroupsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroups")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupsResponseObject); ok {
+		if err := validResponse.VisitListGroupsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGroup operation middleware
+func (sh *strictHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	var request CreateGroupRequestObject
+
+	var body CreateGroupJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGroup(ctx, request.(CreateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGroupResponseObject); ok {
+		if err := validResponse.VisitCreateGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetGroupBySlug operation middleware
+func (sh *strictHandler) GetGroupBySlug(w http.ResponseWriter, r *http.Request, slug string) {
+	var request GetGroupBySlugRequestObject
+
+	request.Slug = slug
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetGroupBySlug(ctx, request.(GetGroupBySlugRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetGroupBySlug")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetGroupBySlugResponseObject); ok {
+		if err := validResponse.VisitGetGroupBySlugResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptInvitation operation middleware
+func (sh *strictHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	var request AcceptInvitationRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptInvitation(ctx, request.(AcceptInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptInvitationResponseObject); ok {
+		if err := validResponse.VisitAcceptInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeclineInvitation operation middleware
+func (sh *strictHandler) DeclineInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	var request DeclineInvitationRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeclineInvitation(ctx, request.(DeclineInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeclineInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeclineInvitationResponseObject); ok {
+		if err := validResponse.VisitDeclineInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SearchGroups operation middleware
+func (sh *strictHandler) SearchGroups(w http.ResponseWriter, r *http.Request, params SearchGroupsParams) {
+	var request SearchGroupsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SearchGroups(ctx, request.(SearchGroupsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SearchGroups")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SearchGroupsResponseObject); ok {
+		if err := validResponse.VisitSearchGroupsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteGroup operation middleware
+func (sh *strictHandler) DeleteGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request DeleteGroupRequestObject
+
+	request.GroupID = groupID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteGroup(ctx, request.(DeleteGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteGroupResponseObject); ok {
+		if err := validResponse.VisitDeleteGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetGroupByID operation middleware
+func (sh *strictHandler) GetGroupByID(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request GetGroupByIDRequestObject
+
+	request.GroupID = groupID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetGroupByID(ctx, request.(GetGroupByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetGroupByID")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetGroupByIDResponseObject); ok {
+		if err := validResponse.VisitGetGroupByIDResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateGroup operation middleware
+func (sh *strictHandler) UpdateGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request UpdateGroupRequestObject
+
+	request.GroupID = groupID
+
+	var body UpdateGroupJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateGroup(ctx, request.(UpdateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateGroupResponseObject); ok {
+		if err := validResponse.VisitUpdateGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroupAlbums operation middleware
+func (sh *strictHandler) ListGroupAlbums(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupAlbumsParams) {
+	var request ListGroupAlbumsRequestObject
+
+	request.GroupID = groupID
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroupAlbums(ctx, request.(ListGroupAlbumsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroupAlbums")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupAlbumsResponseObject); ok {
+		if err := validResponse.VisitListGroupAlbumsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGroupAlbum operation middleware
+func (sh *strictHandler) CreateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request CreateGroupAlbumRequestObject
+
+	request.GroupID = groupID
+
+	var body CreateGroupAlbumJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGroupAlbum(ctx, request.(CreateGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitCreateGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteGroupAlbum operation middleware
+func (sh *strictHandler) DeleteGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	var request DeleteGroupAlbumRequestObject
+
+	request.GroupID = groupID
+	request.AlbumID = albumID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteGroupAlbum(ctx, request.(DeleteGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitDeleteGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetGroupAlbum operation middleware
+func (sh *strictHandler) GetGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	var request GetGroupAlbumRequestObject
+
+	request.GroupID = groupID
+	request.AlbumID = albumID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetGroupAlbum(ctx, request.(GetGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitGetGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateGroupAlbum operation middleware
+func (sh *strictHandler) UpdateGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	var request UpdateGroupAlbumRequestObject
+
+	request.GroupID = groupID
+	request.AlbumID = albumID
+
+	var body UpdateGroupAlbumJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateGroupAlbum(ctx, request.(UpdateGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitUpdateGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AddImageToGroupAlbum operation middleware
+func (sh *strictHandler) AddImageToGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID) {
+	var request AddImageToGroupAlbumRequestObject
+
+	request.GroupID = groupID
+	request.AlbumID = albumID
+
+	var body AddImageToGroupAlbumJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AddImageToGroupAlbum(ctx, request.(AddImageToGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AddImageToGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AddImageToGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitAddImageToGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveImageFromGroupAlbum operation middleware
+func (sh *strictHandler) RemoveImageFromGroupAlbum(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, albumID openapi_types.UUID, imageID openapi_types.UUID) {
+	var request RemoveImageFromGroupAlbumRequestObject
+
+	request.GroupID = groupID
+	request.AlbumID = albumID
+	request.ImageID = imageID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveImageFromGroupAlbum(ctx, request.(RemoveImageFromGroupAlbumRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveImageFromGroupAlbum")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveImageFromGroupAlbumResponseObject); ok {
+		if err := validResponse.VisitRemoveImageFromGroupAlbumResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroupInvitations operation middleware
+func (sh *strictHandler) ListGroupInvitations(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupInvitationsParams) {
+	var request ListGroupInvitationsRequestObject
+
+	request.GroupID = groupID
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroupInvitations(ctx, request.(ListGroupInvitationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroupInvitations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupInvitationsResponseObject); ok {
+		if err := validResponse.VisitListGroupInvitationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InviteToGroup operation middleware
+func (sh *strictHandler) InviteToGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request InviteToGroupRequestObject
+
+	request.GroupID = groupID
+
+	var body InviteToGroupJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.InviteToGroup(ctx, request.(InviteToGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InviteToGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(InviteToGroupResponseObject); ok {
+		if err := validResponse.VisitInviteToGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// JoinGroup operation middleware
+func (sh *strictHandler) JoinGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request JoinGroupRequestObject
+
+	request.GroupID = groupID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.JoinGroup(ctx, request.(JoinGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "JoinGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(JoinGroupResponseObject); ok {
+		if err := validResponse.VisitJoinGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LeaveGroup operation middleware
+func (sh *strictHandler) LeaveGroup(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID) {
+	var request LeaveGroupRequestObject
+
+	request.GroupID = groupID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LeaveGroup(ctx, request.(LeaveGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LeaveGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LeaveGroupResponseObject); ok {
+		if err := validResponse.VisitLeaveGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroupMembers operation middleware
+func (sh *strictHandler) ListGroupMembers(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, params ListGroupMembersParams) {
+	var request ListGroupMembersRequestObject
+
+	request.GroupID = groupID
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroupMembers(ctx, request.(ListGroupMembersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroupMembers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupMembersResponseObject); ok {
+		if err := validResponse.VisitListGroupMembersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveMember operation middleware
+func (sh *strictHandler) RemoveMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	var request RemoveMemberRequestObject
+
+	request.GroupID = groupID
+	request.UserID = userID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveMember(ctx, request.(RemoveMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveMemberResponseObject); ok {
+		if err := validResponse.VisitRemoveMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// BanMember operation middleware
+func (sh *strictHandler) BanMember(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	var request BanMemberRequestObject
+
+	request.GroupID = groupID
+	request.UserID = userID
+
+	var body BanMemberJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.BanMember(ctx, request.(BanMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "BanMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(BanMemberResponseObject); ok {
+		if err := validResponse.VisitBanMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMemberRole operation middleware
+func (sh *strictHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request, groupID openapi_types.UUID, userID openapi_types.UUID) {
+	var request UpdateMemberRoleRequestObject
+
+	request.GroupID = groupID
+	request.UserID = userID
+
+	var body UpdateMemberRoleJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMemberRole(ctx, request.(UpdateMemberRoleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMemberRole")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateMemberRoleResponseObject); ok {
+		if err := validResponse.VisitUpdateMemberRoleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ClaimGuestImage operation middleware
+func (sh *strictHandler) ClaimGuestImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID) {
+	var request ClaimGuestImageRequestObject
+
+	request.ImageId = imageId
+
+	var body ClaimGuestImageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ClaimGuestImage(ctx, request.(ClaimGuestImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ClaimGuestImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ClaimGuestImageResponseObject); ok {
+		if err := validResponse.VisitClaimGuestImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // HealthCheck operation middleware
 func (sh *strictHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	var request HealthCheckRequestObject
@@ -4737,23 +15110,23 @@ func (sh *strictHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ReadinessCheck operation middleware
-func (sh *strictHandler) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
-	var request ReadinessCheckRequestObject
+// HealthReadiness operation middleware
+func (sh *strictHandler) HealthReadiness(w http.ResponseWriter, r *http.Request) {
+	var request HealthReadinessRequestObject
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.ReadinessCheck(ctx, request.(ReadinessCheckRequestObject))
+		return sh.ssi.HealthReadiness(ctx, request.(HealthReadinessRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "ReadinessCheck")
+		handler = middleware(handler, "HealthReadiness")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(ReadinessCheckResponseObject); ok {
-		if err := validResponse.VisitReadinessCheckResponse(w); err != nil {
+	} else if validResponse, ok := response.(HealthReadinessResponseObject); ok {
+		if err := validResponse.VisitHealthReadinessResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4811,6 +15184,32 @@ func (sh *strictHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UploadImageResponseObject); ok {
 		if err := validResponse.VisitUploadImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SearchImages operation middleware
+func (sh *strictHandler) SearchImages(w http.ResponseWriter, r *http.Request, params SearchImagesParams) {
+	var request SearchImagesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SearchImages(ctx, request.(SearchImagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SearchImages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SearchImagesResponseObject); ok {
+		if err := validResponse.VisitSearchImagesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4963,6 +15362,84 @@ func (sh *strictHandler) AddComment(w http.ResponseWriter, r *http.Request, id I
 	}
 }
 
+// UnpinImageFromIPFS operation middleware
+func (sh *strictHandler) UnpinImageFromIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	var request UnpinImageFromIPFSRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnpinImageFromIPFS(ctx, request.(UnpinImageFromIPFSRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnpinImageFromIPFS")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnpinImageFromIPFSResponseObject); ok {
+		if err := validResponse.VisitUnpinImageFromIPFSResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetImageIPFSStatus operation middleware
+func (sh *strictHandler) GetImageIPFSStatus(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	var request GetImageIPFSStatusRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetImageIPFSStatus(ctx, request.(GetImageIPFSStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetImageIPFSStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetImageIPFSStatusResponseObject); ok {
+		if err := validResponse.VisitGetImageIPFSStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PinImageToIPFS operation middleware
+func (sh *strictHandler) PinImageToIPFS(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	var request PinImageToIPFSRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PinImageToIPFS(ctx, request.(PinImageToIPFSRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PinImageToIPFS")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PinImageToIPFSResponseObject); ok {
+		if err := validResponse.VisitPinImageToIPFSResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // UnlikeImage operation middleware
 func (sh *strictHandler) UnlikeImage(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
 	var request UnlikeImageRequestObject
@@ -5015,26 +15492,85 @@ func (sh *strictHandler) LikeImage(w http.ResponseWriter, r *http.Request, id Im
 	}
 }
 
-// ListImageLikes operation middleware
-func (sh *strictHandler) ListImageLikes(w http.ResponseWriter, r *http.Request, id ImageIdParam, params ListImageLikesParams) {
-	var request ListImageLikesRequestObject
+// GetImagePreview operation middleware
+func (sh *strictHandler) GetImagePreview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetImagePreviewRequestObject
 
 	request.Id = id
-	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.ListImageLikes(ctx, request.(ListImageLikesRequestObject))
+		return sh.ssi.GetImagePreview(ctx, request.(GetImagePreviewRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "ListImageLikes")
+		handler = middleware(handler, "GetImagePreview")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(ListImageLikesResponseObject); ok {
-		if err := validResponse.VisitListImageLikesResponse(w); err != nil {
+	} else if validResponse, ok := response.(GetImagePreviewResponseObject); ok {
+		if err := validResponse.VisitGetImagePreviewResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetImageQRCode operation middleware
+func (sh *strictHandler) GetImageQRCode(w http.ResponseWriter, r *http.Request, id ImageIdParam, params GetImageQRCodeParams) {
+	var request GetImageQRCodeRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetImageQRCode(ctx, request.(GetImageQRCodeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetImageQRCode")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetImageQRCodeResponseObject); ok {
+		if err := validResponse.VisitGetImageQRCodeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GenerateCustomVariant operation middleware
+func (sh *strictHandler) GenerateCustomVariant(w http.ResponseWriter, r *http.Request, id ImageIdParam) {
+	var request GenerateCustomVariantRequestObject
+
+	request.Id = id
+
+	var body GenerateCustomVariantJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GenerateCustomVariant(ctx, request.(GenerateCustomVariantRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GenerateCustomVariant")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GenerateCustomVariantResponseObject); ok {
+		if err := validResponse.VisitGenerateCustomVariantResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5062,6 +15598,248 @@ func (sh *strictHandler) GetImageVariant(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetImageVariantResponseObject); ok {
 		if err := validResponse.VisitGetImageVariantResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListNSFWScansByImage operation middleware
+func (sh *strictHandler) ListNSFWScansByImage(w http.ResponseWriter, r *http.Request, imageId openapi_types.UUID) {
+	var request ListNSFWScansByImageRequestObject
+
+	request.ImageId = imageId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListNSFWScansByImage(ctx, request.(ListNSFWScansByImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListNSFWScansByImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListNSFWScansByImageResponseObject); ok {
+		if err := validResponse.VisitListNSFWScansByImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListUserGroups operation middleware
+func (sh *strictHandler) ListUserGroups(w http.ResponseWriter, r *http.Request, params ListUserGroupsParams) {
+	var request ListUserGroupsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListUserGroups(ctx, request.(ListUserGroupsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUserGroups")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListUserGroupsResponseObject); ok {
+		if err := validResponse.VisitListUserGroupsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Metrics operation middleware
+func (sh *strictHandler) Metrics(w http.ResponseWriter, r *http.Request) {
+	var request MetricsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Metrics(ctx, request.(MetricsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Metrics")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MetricsResponseObject); ok {
+		if err := validResponse.VisitMetricsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListBans operation middleware
+func (sh *strictHandler) ListBans(w http.ResponseWriter, r *http.Request, params ListBansParams) {
+	var request ListBansRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListBans(ctx, request.(ListBansRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListBans")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListBansResponseObject); ok {
+		if err := validResponse.VisitListBansResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// FeatureImage operation middleware
+func (sh *strictHandler) FeatureImage(w http.ResponseWriter, r *http.Request) {
+	var request FeatureImageRequestObject
+
+	var body FeatureImageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.FeatureImage(ctx, request.(FeatureImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FeatureImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(FeatureImageResponseObject); ok {
+		if err := validResponse.VisitFeatureImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UnfeatureImage operation middleware
+func (sh *strictHandler) UnfeatureImage(w http.ResponseWriter, r *http.Request, imageID openapi_types.UUID) {
+	var request UnfeatureImageRequestObject
+
+	request.ImageID = imageID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnfeatureImage(ctx, request.(UnfeatureImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnfeatureImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnfeatureImageResponseObject); ok {
+		if err := validResponse.VisitUnfeatureImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListNSFWFlagged operation middleware
+func (sh *strictHandler) ListNSFWFlagged(w http.ResponseWriter, r *http.Request, params ListNSFWFlaggedParams) {
+	var request ListNSFWFlaggedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListNSFWFlagged(ctx, request.(ListNSFWFlaggedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListNSFWFlagged")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListNSFWFlaggedResponseObject); ok {
+		if err := validResponse.VisitListNSFWFlaggedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ScanImageNSFW operation middleware
+func (sh *strictHandler) ScanImageNSFW(w http.ResponseWriter, r *http.Request) {
+	var request ScanImageNSFWRequestObject
+
+	var body ScanImageNSFWJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ScanImageNSFW(ctx, request.(ScanImageNSFWRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ScanImageNSFW")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ScanImageNSFWResponseObject); ok {
+		if err := validResponse.VisitScanImageNSFWResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetNSFWScan operation middleware
+func (sh *strictHandler) GetNSFWScan(w http.ResponseWriter, r *http.Request, scanId openapi_types.UUID) {
+	var request GetNSFWScanRequestObject
+
+	request.ScanId = scanId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetNSFWScan(ctx, request.(GetNSFWScanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetNSFWScan")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetNSFWScanResponseObject); ok {
+		if err := validResponse.VisitGetNSFWScanResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5121,6 +15899,32 @@ func (sh *strictHandler) GetReport(w http.ResponseWriter, r *http.Request, id op
 	}
 }
 
+// DismissReport operation middleware
+func (sh *strictHandler) DismissReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request DismissReportRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DismissReport(ctx, request.(DismissReportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DismissReport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DismissReportResponseObject); ok {
+		if err := validResponse.VisitDismissReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ResolveReport operation middleware
 func (sh *strictHandler) ResolveReport(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	var request ResolveReportRequestObject
@@ -5147,6 +15951,139 @@ func (sh *strictHandler) ResolveReport(w http.ResponseWriter, r *http.Request, i
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ResolveReportResponseObject); ok {
 		if err := validResponse.VisitResolveReportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StartReportReview operation middleware
+func (sh *strictHandler) StartReportReview(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request StartReportReviewRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartReportReview(ctx, request.(StartReportReviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartReportReview")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartReportReviewResponseObject); ok {
+		if err := validResponse.VisitStartReportReviewResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetNotifications operation middleware
+func (sh *strictHandler) GetNotifications(w http.ResponseWriter, r *http.Request, params GetNotificationsParams) {
+	var request GetNotificationsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetNotifications(ctx, request.(GetNotificationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetNotifications")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetNotificationsResponseObject); ok {
+		if err := validResponse.VisitGetNotificationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUnreadNotificationCount operation middleware
+func (sh *strictHandler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
+	var request GetUnreadNotificationCountRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUnreadNotificationCount(ctx, request.(GetUnreadNotificationCountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUnreadNotificationCount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUnreadNotificationCountResponseObject); ok {
+		if err := validResponse.VisitGetUnreadNotificationCountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MarkNotificationsAsRead operation middleware
+func (sh *strictHandler) MarkNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
+	var request MarkNotificationsAsReadRequestObject
+
+	var body MarkNotificationsAsReadJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MarkNotificationsAsRead(ctx, request.(MarkNotificationsAsReadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MarkNotificationsAsRead")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MarkNotificationsAsReadResponseObject); ok {
+		if err := validResponse.VisitMarkNotificationsAsReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetOEmbed operation middleware
+func (sh *strictHandler) GetOEmbed(w http.ResponseWriter, r *http.Request, params GetOEmbedParams) {
+	var request GetOEmbedRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetOEmbed(ctx, request.(GetOEmbedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetOEmbed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetOEmbedResponseObject); ok {
+		if err := validResponse.VisitGetOEmbedResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5230,6 +16167,32 @@ func (sh *strictHandler) SearchTags(w http.ResponseWriter, r *http.Request, para
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(SearchTagsResponseObject); ok {
 		if err := validResponse.VisitSearchTagsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListTrendingTags operation middleware
+func (sh *strictHandler) ListTrendingTags(w http.ResponseWriter, r *http.Request, params ListTrendingTagsParams) {
+	var request ListTrendingTagsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListTrendingTags(ctx, request.(ListTrendingTagsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListTrendingTags")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListTrendingTagsResponseObject); ok {
+		if err := validResponse.VisitListTrendingTagsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5375,6 +16338,32 @@ func (sh *strictHandler) UnbanUser(w http.ResponseWriter, r *http.Request, id Us
 	}
 }
 
+// GetBanStatus operation middleware
+func (sh *strictHandler) GetBanStatus(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	var request GetBanStatusRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetBanStatus(ctx, request.(GetBanStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBanStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetBanStatusResponseObject); ok {
+		if err := validResponse.VisitGetBanStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // BanUser operation middleware
 func (sh *strictHandler) BanUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
 	var request BanUserRequestObject
@@ -5408,133 +16397,816 @@ func (sh *strictHandler) BanUser(w http.ResponseWriter, r *http.Request, id User
 	}
 }
 
+// UnfollowUser operation middleware
+func (sh *strictHandler) UnfollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	var request UnfollowUserRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UnfollowUser(ctx, request.(UnfollowUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UnfollowUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UnfollowUserResponseObject); ok {
+		if err := validResponse.VisitUnfollowUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// FollowUser operation middleware
+func (sh *strictHandler) FollowUser(w http.ResponseWriter, r *http.Request, id UserIdParam) {
+	var request FollowUserRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.FollowUser(ctx, request.(FollowUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "FollowUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(FollowUserResponseObject); ok {
+		if err := validResponse.VisitFollowUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserFollowers operation middleware
+func (sh *strictHandler) GetUserFollowers(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowersParams) {
+	var request GetUserFollowersRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserFollowers(ctx, request.(GetUserFollowersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserFollowers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserFollowersResponseObject); ok {
+		if err := validResponse.VisitGetUserFollowersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserFollowing operation middleware
+func (sh *strictHandler) GetUserFollowing(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserFollowingParams) {
+	var request GetUserFollowingRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserFollowing(ctx, request.(GetUserFollowingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserFollowing")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserFollowingResponseObject); ok {
+		if err := validResponse.VisitGetUserFollowingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserLikedImages operation middleware
+func (sh *strictHandler) GetUserLikedImages(w http.ResponseWriter, r *http.Request, id UserIdParam, params GetUserLikedImagesParams) {
+	var request GetUserLikedImagesRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserLikedImages(ctx, request.(GetUserLikedImagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserLikedImages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserLikedImagesResponseObject); ok {
+		if err := validResponse.VisitGetUserLikedImagesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListUserSessions operation middleware
+func (sh *strictHandler) ListUserSessions(w http.ResponseWriter, r *http.Request, id UserIdParam, params ListUserSessionsParams) {
+	var request ListUserSessionsRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListUserSessions(ctx, request.(ListUserSessionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUserSessions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListUserSessionsResponseObject); ok {
+		if err := validResponse.VisitListUserSessionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListVariantConfigs operation middleware
+func (sh *strictHandler) ListVariantConfigs(w http.ResponseWriter, r *http.Request) {
+	var request ListVariantConfigsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListVariantConfigs(ctx, request.(ListVariantConfigsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListVariantConfigs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListVariantConfigsResponseObject); ok {
+		if err := validResponse.VisitListVariantConfigsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateVariantConfig operation middleware
+func (sh *strictHandler) CreateVariantConfig(w http.ResponseWriter, r *http.Request) {
+	var request CreateVariantConfigRequestObject
+
+	var body CreateVariantConfigJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateVariantConfig(ctx, request.(CreateVariantConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateVariantConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateVariantConfigResponseObject); ok {
+		if err := validResponse.VisitCreateVariantConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListVariantConfigPresets operation middleware
+func (sh *strictHandler) ListVariantConfigPresets(w http.ResponseWriter, r *http.Request) {
+	var request ListVariantConfigPresetsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListVariantConfigPresets(ctx, request.(ListVariantConfigPresetsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListVariantConfigPresets")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListVariantConfigPresetsResponseObject); ok {
+		if err := validResponse.VisitListVariantConfigPresetsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteVariantConfig operation middleware
+func (sh *strictHandler) DeleteVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request DeleteVariantConfigRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteVariantConfig(ctx, request.(DeleteVariantConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteVariantConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteVariantConfigResponseObject); ok {
+		if err := validResponse.VisitDeleteVariantConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetVariantConfig operation middleware
+func (sh *strictHandler) GetVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetVariantConfigRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVariantConfig(ctx, request.(GetVariantConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVariantConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetVariantConfigResponseObject); ok {
+		if err := validResponse.VisitGetVariantConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateVariantConfig operation middleware
+func (sh *strictHandler) UpdateVariantConfig(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request UpdateVariantConfigRequestObject
+
+	request.Id = id
+
+	var body UpdateVariantConfigJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateVariantConfig(ctx, request.(UpdateVariantConfigRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateVariantConfig")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateVariantConfigResponseObject); ok {
+		if err := validResponse.VisitUpdateVariantConfigResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"//+LNjAeJsQAAA==",
+	"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",
+	"Pn37bwAAAP//ZNsBu0fHAgA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
