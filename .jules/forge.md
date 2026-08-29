@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-04-14 - PostgreSQL Health Check Failure
+**Issue:** Integration tests and E2E tests in CI failed due to PostgreSQL initialization errors.
+**Root Cause:** The PostgreSQL service health checks used `pg_isready` without specifying the database user, which caused "role does not exist" errors and caused the health check to fail.
+**Fix:** Added the `-U <username>` flag to the `pg_isready` command in the health check (e.g. `--health-cmd "pg_isready -U goimg_test"`).
