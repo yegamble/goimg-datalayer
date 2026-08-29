@@ -12,3 +12,18 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-01-23 - PostgreSQL Health Check User
+**Issue:** `ci.yml` was using `pg_isready` without a specified user for the `postgres` service health check, causing 'role root does not exist' fatal errors during database initialization.
+**Root Cause:** The health check command was running as the root user instead of the expected `goimg_test` user.
+**Fix:** Explicitly specified the user using `pg_isready -U goimg_test` in the health check command within the `options` block of the `postgres` service in `.github/workflows/ci.yml`.
+
+## 2026-01-23 - Trivy Action Version Resolution
+**Issue:** `security.yml` was failing to resolve `aquasecurity/trivy-action` due to an incompatible action version (`0.28.0`) combined with a removed upstream binary version (`v0.55.2`).
+**Root Cause:** The Trivy action was using a deprecated binary version and a commit hash that no longer reliably resolved the action dependencies.
+**Fix:** Pinned `aquasecurity/trivy-action` to a stable commit hash (`c1824fd6edce30d7ab345a9989de00bbd46ef284` -> `v0.34.0`) and updated the `version` field to explicitly use a working Trivy binary release (`v0.69.3`) to ensure stable execution.
+
+## 2026-04-09 - Go Version Shadowing in CI
+**Issue:** Several CI jobs (Unit Tests, Domain Tests, etc) failed to build or collect coverage with errors like `go: no such tool "covdata"` and `not enough arguments in call to identity.ReconstructUser`, pointing to compilation issues.
+**Root Cause:** In the `.github/actions/setup-go-env` composite action, the step that appends system paths (`/usr/local/bin`, `/usr/bin`) to `$GITHUB_PATH` was running *after* `actions/setup-go`. Because system Go is often older than the required 1.25.5 (e.g., 1.24 on Ubuntu 24.04 runners), this setup caused the system Go binary to shadow the freshly downloaded Go 1.25 binary.
+**Fix:** Moved the `Ensure node and system binary paths (Linux)` step to run *before* the `actions/setup-go` step in `.github/actions/setup-go-env/action.yml`, ensuring the downloaded Go path takes precedence.
