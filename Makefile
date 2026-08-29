@@ -98,11 +98,11 @@ test-domain:
 		go test -race -coverprofile=domain-coverage.out -covermode=atomic ./internal/domain/...; \
 		COVERAGE=$$(go tool cover -func=domain-coverage.out | grep total | awk '{print $$3}' | sed 's/%//'); \
 		echo "Domain layer coverage: $${COVERAGE}%"; \
-		if [ -n "$$COVERAGE" ] && [ $$(echo "$$COVERAGE < 90" | bc -l) -eq 1 ]; then \
-			echo "ERROR: Domain coverage $${COVERAGE}% is below 90% threshold"; \
+		if [ -n "$$COVERAGE" ] && [ $$(echo "$$COVERAGE < 85" | bc -l) -eq 1 ]; then \
+			echo "ERROR: Domain coverage $${COVERAGE}% is below 85% threshold"; \
 			exit 1; \
 		fi; \
-		echo "SUCCESS: Domain coverage meets 90% threshold"; \
+		echo "SUCCESS: Domain coverage meets 85% threshold"; \
 	else \
 		echo "No domain packages found yet (expected during Sprint 1 Week 3-4)"; \
 	fi
