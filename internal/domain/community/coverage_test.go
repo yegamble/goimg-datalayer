@@ -382,10 +382,22 @@ func TestInvitationToken(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, token.Equals(parsed))
 
+	// Test Equals false
+	otherToken, err := community.NewInvitationToken()
+	require.NoError(t, err)
+	assert.False(t, token.Equals(otherToken))
+
+	// Test empty
+	var emptyToken community.InvitationToken
+	assert.True(t, emptyToken.IsEmpty())
+
 	_, err = community.ParseInvitationToken("")
 	assert.Error(t, err)
 
 	_, err = community.ParseInvitationToken("short")
+	assert.Error(t, err)
+
+	_, err = community.ParseInvitationToken("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
 	assert.Error(t, err)
 }
 
@@ -411,6 +423,62 @@ func TestMembershipID(t *testing.T) {
 
 	_, err = community.ParseMembershipID("invalid")
 	assert.Error(t, err)
+}
+
+func TestGroupImageID(t *testing.T) {
+	t.Parallel()
+
+	id := community.NewGroupImageID()
+	assert.False(t, id.IsZero())
+
+	str := id.String()
+	assert.NotEmpty(t, str)
+
+	parsed, err := community.ParseGroupImageID(str)
+	require.NoError(t, err)
+	assert.True(t, id.Equals(parsed))
+
+	assert.Equal(t, id.UUID(), parsed.UUID())
+
+	// Test invalid parsing
+	_, err = community.ParseGroupImageID("invalid")
+	assert.Error(t, err)
+
+	// Test zero ID
+	var zeroID community.GroupImageID
+	assert.True(t, zeroID.IsZero())
+}
+
+func TestGroupImageStatus(t *testing.T) {
+	t.Parallel()
+
+	status := community.GroupImageStatusPending
+	assert.True(t, status.IsValid())
+	assert.True(t, status.IsPending())
+	assert.False(t, status.IsApproved())
+	assert.False(t, status.IsRejected())
+	assert.Equal(t, "pending", status.String())
+
+	status = community.GroupImageStatusApproved
+	assert.True(t, status.IsValid())
+	assert.False(t, status.IsPending())
+	assert.True(t, status.IsApproved())
+	assert.False(t, status.IsRejected())
+	assert.Equal(t, "approved", status.String())
+
+	status = community.GroupImageStatusRejected
+	assert.True(t, status.IsValid())
+	assert.False(t, status.IsPending())
+	assert.False(t, status.IsApproved())
+	assert.True(t, status.IsRejected())
+	assert.Equal(t, "rejected", status.String())
+
+	status = community.GroupImageStatus("invalid")
+	assert.False(t, status.IsValid())
+	assert.Equal(t, "invalid", status.String())
+
+	statuses := community.AllGroupImageStatuses()
+	assert.Len(t, statuses, 3)
 }
 
 func TestGroupRole(t *testing.T) {
