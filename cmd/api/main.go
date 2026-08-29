@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -222,7 +223,8 @@ func main() {
 		jwtConfig.PublicKeyPath = "certs/public.pem"
 	}
 
-	if _, err := os.Stat(jwtConfig.PrivateKeyPath); os.IsNotExist(err) {
+	// #nosec G304 // Path is securely provided by application configuration
+	if _, err := os.Stat(filepath.Clean(jwtConfig.PrivateKeyPath)); os.IsNotExist(err) {
 		log.Warn().Msg("JWT keys not found, auth will fail")
 	}
 

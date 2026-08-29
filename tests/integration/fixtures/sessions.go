@@ -27,6 +27,7 @@ func ValidSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	now := time.Now().UTC()
 	expiresAt := now.Add(7 * 24 * time.Hour) // 7 days from now
 
+	// #nosec G101 // Test credentials
 	return &SessionFixture{
 		ID:               uuid.New(),
 		UserID:           userID,
@@ -47,6 +48,7 @@ func ExpiredSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	now := time.Now().UTC()
 	expiresAt := now.Add(-24 * time.Hour) // Expired 24 hours ago
 
+	// #nosec G101 // Test credentials
 	return &SessionFixture{
 		ID:               uuid.New(),
 		UserID:           userID,
@@ -68,6 +70,7 @@ func RevokedSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	revokedAt := now.Add(-1 * time.Hour)
 	expiresAt := now.Add(6 * 24 * time.Hour)
 
+	// #nosec G101 // Test credentials
 	return &SessionFixture{
 		ID:               uuid.New(),
 		UserID:           userID,
@@ -109,6 +112,7 @@ func UniqueSession(t *testing.T, userID uuid.UUID) *SessionFixture {
 	now := time.Now().UTC()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
+	// #nosec G101 // Test credentials
 	return &SessionFixture{
 		ID:               uuid.New(),
 		UserID:           userID,

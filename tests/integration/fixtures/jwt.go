@@ -8,6 +8,7 @@ const (
 	// TestPrivateKeyPEM is a 2048-bit RSA private key for JWT signing in tests.
 	// DO NOT USE IN PRODUCTION!
 	//nolint:gosec // G101: This is a test fixture, not production credentials
+	// #nosec G101 // Test private key
 	TestPrivateKeyPEM = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/vLBnJ7RG8tJRY7iIBn5nU0AHGN0HtqOV
 /aWqhFr7Np2lNb/b6TJNF3LAeqJm7qEqbh5fqiQWdqTJXI1l0b8mR2nV6KQVT1Yo
