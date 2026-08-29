@@ -50,3 +50,17 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+# Affects moby daemon, not used...
+# Added: 2026-04-30
+# Review: When updating docker
+CVE-2026-34040
+
+# moby: docker: github.com/moby/moby: Moby: Privilege validation bypass during plugin installation
+# Added: 2026-04-30
+# Review: When updating docker
+CVE-2026-33997
+
+# Denial of Service due to Panic in AWS SDK for Go v2
+# Added: 2026-04-30
+# Review: When updating aws sdk
+GHSA-xmrv-pmrh-hhx2
