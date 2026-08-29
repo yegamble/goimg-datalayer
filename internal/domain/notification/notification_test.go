@@ -162,3 +162,70 @@ func TestNotification_Lifecycle(t *testing.T) {
 	// we can't test event generation directly without reflection or exposing it,
 	// but ClearEvents is tested.
 }
+
+func TestNotification_AddEvent_And_MetadataRaw(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	metadata := map[string]string{"key1": "value1"}
+	n, _ := NewNotification(recipientID, TypeNewFollower, "Alert", "System message", metadata)
+
+	raw := n.MetadataRaw()
+	assert.Contains(t, string(raw), "key1")
+	assert.Contains(t, string(raw), "value1")
+
+	assert.Equal(t, "value1", n.GetMetadata("key1"))
+
+	// Create one without metadata
+	n2, _ := NewNotification(recipientID, TypeNewFollower, "Alert", "System message", nil)
+	raw2 := n2.MetadataRaw()
+	assert.Equal(t, []byte("{}"), raw2)
+
+	assert.Equal(t, "", n2.GetMetadata("key1"))
+
+	// Add an event manually to test addEvent
+	n2.addEvent(nil)
+	assert.Len(t, n2.events, 1)
+}
+
+func TestNotification_GetMetadata_Nil(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	n, _ := NewNotification(recipientID, TypeNewFollower, "Title", "Body", nil)
+	assert.Equal(t, "", n.GetMetadata("key"))
+}
+
+func TestNotification_MetadataRaw_FromReconstruct(t *testing.T) {
+	t.Parallel()
+
+	recipientID := identity.NewUserID()
+	now := time.Now()
+
+	// Create from Reconstruct where we already have raw bytes but no map
+	n := ReconstructNotification(
+		NewNotificationID(),
+		recipientID,
+		TypeNewFollower,
+		"Title",
+		"Body",
+		[]byte(`{"key":"value"}`),
+		nil,
+		now,
+	)
+
+	// Metadata should lazily parse
+	m := n.Metadata()
+	assert.Equal(t, "value", m["key"])
+
+	// MetadataRaw should just return the bytes
+	assert.Equal(t, []byte(`{"key":"value"}`), n.MetadataRaw())
+}
+
+func TestNotification_MetadataRaw_Fallback(t *testing.T) {
+	t.Parallel()
+
+	n := &Notification{}
+	raw := n.MetadataRaw()
+	assert.Equal(t, []byte("{}"), raw)
+}
