@@ -498,6 +498,13 @@ jobs:
         with:
           file_glob: api/openapi/openapi.yaml
 
+      - name: Set up Go Environment
+        if: steps.check_openapi.outputs.exists == 'true'
+        uses: ./.github/actions/setup-go-env
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          install-libvips: 'false'
+
       - name: Check for OpenAPI spec drift
         if: steps.check_openapi.outputs.exists == 'true'
         run: |
@@ -506,7 +513,8 @@ jobs:
           if [ -f "Makefile" ]; then
             if grep -q "generate" Makefile; then
               echo "Checking for OpenAPI drift..."
-              make generate || echo "No generate target or generation not required"
+              go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.1
+              make generate
 
               # Check if any files were modified
               if ! git diff --quiet; then

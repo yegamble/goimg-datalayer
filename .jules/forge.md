@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-10 - Silent OpenAPI Drift Failures
+**Issue:** The `openapi-validation` job in `.github/workflows/ci.yml` was failing silently because `make generate` requires the `oapi-codegen` tool, which wasn't installed. The `make generate || echo ...` suppressed the error, failing to detect OpenAPI drift.
+**Root Cause:** The job lacked the Go environment setup (`setup-go-env`) and the installation step for `oapi-codegen@v2.5.1`.
+**Fix:** Added the Go environment setup, explicitly installed `oapi-codegen@v2.5.1`, and removed the error suppression on `make generate` to correctly fail the job when generated code drifts from the spec.
