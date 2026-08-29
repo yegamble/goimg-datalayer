@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-06-04 - Trivy Ignore File Not Respected
+**Issue:** The project had a `.trivyignore` file, but vulnerabilities listed in it were still failing the CI pipeline.
+**Root Cause:** The `trivyignores: '.trivyignore'` input parameter was missing from the `aquasecurity/trivy-action` configuration in `security.yml`, so Trivy ignored the ignore file.
+**Fix:** Added `trivyignores: '.trivyignore'` to the action inputs and updated the action and Trivy versions to secure pinned versions.
