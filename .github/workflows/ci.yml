@@ -494,7 +494,7 @@ jobs:
 
       - name: Validate OpenAPI spec with Spectral
         if: steps.check_openapi.outputs.exists == 'true'
-        uses: stoplightio/spectral-action@a8cf48e40dfe41c9cb9e34ad1395262ee1e797ca # v0.8.10
+        uses: stoplightio/spectral-action@6416fd018ae38e60136775066eb3e98172143141 # v0.8.13
         with:
           file_glob: api/openapi/openapi.yaml
 
