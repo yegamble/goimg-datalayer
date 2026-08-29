@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-02-10 - Trivy Scan Failures
+**Issue:** Trivy vulnerability scans were failing in `security.yml` with fatal git errors and failing to install Trivy.
+**Root Cause:** `actions/checkout` lacked `fetch-depth: 0`, preventing Trivy from accessing git history for scans. Furthermore, `aquasecurity/trivy-action@0.28.0` requires `version: 'v0.55.2'` (not `trivy-version` which causes a failure for undefined input).
+**Fix:** Added `fetch-depth: 0` to `actions/checkout` in the `trivy` job. Added `version: 'v0.55.2'` to both `aquasecurity/trivy-action` invocations.
