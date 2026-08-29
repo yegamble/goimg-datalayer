@@ -12,3 +12,18 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-06-26 - Golangci-Lint Version Mismatch
+**Issue:** The CI pipeline was failing during the `golangci-lint` step with the error 'the Go language version used to build golangci-lint is lower than the targeted Go version'.
+**Root Cause:** The `GOLANGCI_LINT_VERSION` environment variable was set to a non-existent `v2.6.2` version, causing the action to fallback to an invalid build.
+**Fix:** Pinned `GOLANGCI_LINT_VERSION` to `v1.64.5` to ensure the correct, compatible version of `golangci-lint` is installed.
+
+## 2026-06-26 - Trivy Action Resolution Failure
+**Issue:** The CI pipeline was failing during the `trivy` step with the error 'Unable to resolve action aquasecurity/setup-trivy'.
+**Root Cause:** The `aquasecurity/trivy-action` was pinned to an older version (`0.28.0`) that referenced an invalid or deleted `setup-trivy` tag.
+**Fix:** Updated `aquasecurity/trivy-action` to a verified stable commit hash for `v0.34.0` (`c1824fd6edce30d7ab345a9989de00bbd46ef284`).
+
+## 2026-06-26 - Node.js 20 Deprecation Warnings
+**Issue:** Multiple CI pipelines were showing warnings about Node.js 20 deprecation, which can potentially lead to 'Cache service responded with 400' errors.
+**Root Cause:** Older versions of standard GitHub Actions relied on deprecated Node.js versions.
+**Fix:** Updated all standard GitHub Actions to their modern versions (e.g., `checkout@v4.2.2`, `setup-go@v5.3.0`, `upload-artifact@v4.6.0`, `codeql-action/upload-sarif@v4.36.2`) and securely pinned them to their verified stable commit hashes to ensure compatibility with Node 24 and prevent cache failures.
