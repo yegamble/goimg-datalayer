@@ -12,14 +12,15 @@ import (
 	"github.com/yegamble/goimg-datalayer/internal/domain/identity"
 )
 
-const (
-	sqlCreateEmailVerificationToken = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlCreateEmailVerificationToken = `
 		INSERT INTO email_verification_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
-	sqlFindValidEmailVerificationToken = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlFindValidEmailVerificationToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM email_verification_tokens
 		WHERE token = $1
@@ -27,19 +28,22 @@ const (
 		  AND expires_at > NOW()
 	`
 
-	sqlMarkEmailVerificationTokenUsed = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlMarkEmailVerificationTokenUsed = `
 		UPDATE email_verification_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
-	sqlCreatePasswordResetToken = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlCreatePasswordResetToken = `
 		INSERT INTO password_reset_tokens (user_id, expires_at)
 		VALUES ($1, $2)
 		RETURNING token
 	`
 
-	sqlFindValidPasswordResetToken = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlFindValidPasswordResetToken = `
 		SELECT id, user_id, token, expires_at, used_at, created_at
 		FROM password_reset_tokens
 		WHERE token = $1
@@ -47,19 +51,20 @@ const (
 		  AND expires_at > NOW()
 	`
 
-	sqlMarkPasswordResetTokenUsed = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlMarkPasswordResetTokenUsed = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE token = $1
 	`
 
-	sqlInvalidateAllPasswordResetTokens = `
+// #nosec G101 // Token is part of the query parameter name, not a hardcoded credential
+const sqlInvalidateAllPasswordResetTokens = `
 		UPDATE password_reset_tokens
 		SET used_at = NOW()
 		WHERE user_id = $1
 		  AND used_at IS NULL
 	`
-)
 
 type passwordResetTokenRow struct {
 	ID        string       `db:"id"`
