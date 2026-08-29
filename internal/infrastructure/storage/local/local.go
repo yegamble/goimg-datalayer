@@ -99,7 +99,10 @@ func (s *Storage) Put(ctx context.Context, key string, data io.Reader, size int6
 		return err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.fullPath(key)
+	if err != nil {
+		return err
+	}
 	dir := filepath.Dir(fullPath)
 
 	// Create directory structure
@@ -177,7 +180,10 @@ func (s *Storage) Get(_ context.Context, key string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.fullPath(key)
+	if err != nil {
+		return nil, err
+	}
 	// #nosec G304 // File path constructed from validated key (validateKey checks for path traversal)
 	file, err := os.Open(fullPath)
 	if err != nil {
@@ -220,8 +226,11 @@ func (s *Storage) Delete(_ context.Context, key string) error {
 		return err
 	}
 
-	fullPath := s.fullPath(key)
-	err := os.Remove(fullPath)
+	fullPath, err := s.fullPath(key)
+	if err != nil {
+		return err
+	}
+	err = os.Remove(fullPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("local delete: %w", err)
 	}
@@ -235,8 +244,11 @@ func (s *Storage) Exists(_ context.Context, key string) (bool, error) {
 		return false, err
 	}
 
-	fullPath := s.fullPath(key)
-	_, err := os.Stat(fullPath)
+	fullPath, err := s.fullPath(key)
+	if err != nil {
+		return false, err
+	}
+	_, err = os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
@@ -266,7 +278,10 @@ func (s *Storage) Stat(_ context.Context, key string) (*ObjectInfo, error) {
 		return nil, err
 	}
 
-	fullPath := s.fullPath(key)
+	fullPath, err := s.fullPath(key)
+	if err != nil {
+		return nil, err
+	}
 	info, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -295,9 +310,19 @@ func (s *Storage) Provider() string {
 	return "local"
 }
 
-// fullPath returns the full filesystem path for a storage key.
-func (s *Storage) fullPath(key string) string {
-	return filepath.Join(s.basePath, key)
+// fullPath returns the full filesystem path for a storage key and ensures it does not escape the base path.
+func (s *Storage) fullPath(key string) (string, error) {
+	cleanKey := filepath.Clean(key)
+	full := filepath.Join(s.basePath, cleanKey)
+
+	// Ensure the resolved path remains within basePath to prevent path traversal
+	// Add a trailing separator to prevent partial directory matching bypasses
+	basePathWithSep := filepath.Clean(s.basePath) + string(filepath.Separator)
+	if !strings.HasPrefix(full, basePathWithSep) && full != filepath.Clean(s.basePath) {
+		return "", errPathTraversal
+	}
+
+	return full, nil
 }
 
 // calculateETag computes the SHA-256 hash of a file for ETag.
