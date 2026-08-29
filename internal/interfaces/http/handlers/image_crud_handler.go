@@ -14,7 +14,8 @@ func (h *ImageHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -56,7 +57,8 @@ func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in update handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -66,7 +68,8 @@ func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",
@@ -78,7 +81,8 @@ func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid update image request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid image update data",
@@ -110,7 +114,8 @@ func (h *ImageHandler) Update(w http.ResponseWriter, r *http.Request) {
 	image, err := h.getImage.Handle(ctx, getQuery)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to fetch updated image")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Image updated but failed to retrieve",
@@ -134,7 +139,8 @@ func (h *ImageHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in delete handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -144,7 +150,8 @@ func (h *ImageHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	imageID := GetPathParam(r, "imageID")
 	if imageID == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing image ID",

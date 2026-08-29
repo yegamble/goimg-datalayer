@@ -109,7 +109,8 @@ func (h *OAuthHandler) InitiateOAuth(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("provider", providerStr).
 			Msg("invalid OAuth provider")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			fmt.Sprintf("Invalid OAuth provider: %s", providerStr),
@@ -121,7 +122,8 @@ func (h *OAuthHandler) InitiateOAuth(w http.ResponseWriter, r *http.Request) {
 	state, err := h.generateCSRFState()
 	if err != nil {
 		h.logger.Error().Err(err).Msg("failed to generate CSRF state")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to initiate OAuth flow",
@@ -137,7 +139,8 @@ func (h *OAuthHandler) InitiateOAuth(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("state", state).
 			Msg("failed to store OAuth state in Redis")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to initiate OAuth flow",
@@ -152,7 +155,8 @@ func (h *OAuthHandler) InitiateOAuth(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("provider", provider.String()).
 			Msg("failed to create OAuth provider")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to initiate OAuth flow",
@@ -197,7 +201,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("provider", providerStr).
 			Msg("invalid OAuth provider in callback")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			fmt.Sprintf("Invalid OAuth provider: %s", providerStr),
@@ -213,7 +218,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn().
 			Str("provider", provider.String()).
 			Msg("OAuth callback missing authorization code")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing authorization code",
@@ -225,7 +231,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn().
 			Str("provider", provider.String()).
 			Msg("OAuth callback missing state parameter")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing state parameter",
@@ -242,7 +249,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 				Str("state", state).
 				Str("provider", provider.String()).
 				Msg("OAuth state not found or expired")
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusBadRequest,
 				"Bad Request",
 				"Invalid or expired state parameter",
@@ -254,7 +262,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("state", state).
 			Msg("failed to retrieve OAuth state from Redis")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to validate OAuth state",
@@ -269,7 +278,8 @@ func (h *OAuthHandler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 			Str("expected_provider", storedProvider).
 			Str("actual_provider", provider.String()).
 			Msg("OAuth state provider mismatch")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"State parameter mismatch",
@@ -338,7 +348,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in OAuth link handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -351,7 +362,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid OAuth link request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid OAuth link data",
@@ -367,7 +379,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("provider", req.Provider).
 			Msg("invalid OAuth provider in link request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			fmt.Sprintf("Invalid OAuth provider: %s", req.Provider),
@@ -384,7 +397,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 				Str("state", req.State).
 				Str("user_id", userCtx.UserID.String()).
 				Msg("OAuth state not found or expired for link")
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusBadRequest,
 				"Bad Request",
 				"Invalid or expired state parameter",
@@ -396,7 +410,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("state", req.State).
 			Msg("failed to retrieve OAuth state from Redis for link")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to validate OAuth state",
@@ -410,7 +425,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 			Str("expected_provider", storedProvider).
 			Str("actual_provider", provider.String()).
 			Msg("OAuth state provider mismatch for link")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"State parameter mismatch",
@@ -428,7 +444,8 @@ func (h *OAuthHandler) LinkAccount(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("user_id", userCtx.UserID.String()).
 			Msg("failed to parse user ID in OAuth link handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user ID",
@@ -483,7 +500,8 @@ func (h *OAuthHandler) UnlinkAccount(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in OAuth unlink handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -499,7 +517,8 @@ func (h *OAuthHandler) UnlinkAccount(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("provider", providerStr).
 			Msg("invalid OAuth provider in unlink request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			fmt.Sprintf("Invalid OAuth provider: %s", providerStr),
@@ -514,7 +533,8 @@ func (h *OAuthHandler) UnlinkAccount(w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("user_id", userCtx.UserID.String()).
 			Msg("failed to parse user ID in OAuth unlink handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Invalid user ID",
@@ -561,7 +581,8 @@ func (h *OAuthHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in OAuth list accounts handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -607,49 +628,56 @@ func (h *OAuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	// Map specific application/domain errors to HTTP status codes
 	switch {
 	case errors.Is(err, domainidentity.ErrOAuthAccountNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"OAuth account not found",
 		)
 
 	case errors.Is(err, domainidentity.ErrOAuthAccountExists):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"OAuth account is already linked to another user",
 		)
 
 	case errors.Is(err, domainidentity.ErrOAuthProviderNotLinked):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"OAuth provider is not linked to your account",
 		)
 
 	case errors.Is(err, domainidentity.ErrUserNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User not found",
 		)
 
 	case errors.Is(err, appidentity.ErrAccountSuspended):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Account has been suspended. Please contact support.",
 		)
 
 	case errors.Is(err, appidentity.ErrAccountDeleted):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Account has been deleted",
 		)
 
 	case errors.Is(err, appidentity.ErrInvalidCredentials):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"OAuth authentication failed",
@@ -658,7 +686,8 @@ func (h *OAuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	// Check for error messages indicating last auth method
 	case err != nil && (err.Error() == "cannot unlink last authentication method" ||
 		err.Error() == "user account is not active"):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			err.Error(),
@@ -666,7 +695,8 @@ func (h *OAuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 
 	default:
 		// Unknown error - return generic 500 without exposing internal details
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",

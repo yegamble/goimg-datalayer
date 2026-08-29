@@ -73,7 +73,8 @@ func Recovery(logger zerolog.Logger) func(http.Handler) http.Handler {
 					// Return generic error to client (DO NOT leak stack trace)
 					// Check if response has already been written
 					if !isResponseWritten(w) {
-						WriteError(w, r,
+						WriteError(
+							w, r,
 							http.StatusInternalServerError,
 							"Internal Server Error",
 							"An unexpected error occurred. Please try again later.",

@@ -35,7 +35,8 @@ func setupTestDB(t *testing.T) *sqlx.DB {
 func createTestUser(t *testing.T, db *sqlx.DB, userID identity.UserID) {
 	t.Helper()
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO users (id, email, username, password_hash, role, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`,
@@ -55,7 +56,8 @@ func createTestUser(t *testing.T, db *sqlx.DB, userID identity.UserID) {
 func createTestImage(t *testing.T, db *sqlx.DB, imageID gallery.ImageID, ownerID identity.UserID) {
 	t.Helper()
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO images (
 			id, owner_id, title, description, storage_provider, storage_key,
 			original_filename, mime_type, file_size, width, height,

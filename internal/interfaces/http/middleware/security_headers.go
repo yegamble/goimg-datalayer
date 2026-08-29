@@ -93,7 +93,8 @@ func SecurityHeaders(cfg SecurityHeadersConfig) func(http.Handler) http.Handler 
 			// Permissions-Policy: Restricts access to browser features and APIs
 			// Disables dangerous features like geolocation, camera, microphone
 			// () = feature disabled for all origins (including same-origin)
-			w.Header().Set("Permissions-Policy",
+			w.Header().Set(
+				"Permissions-Policy",
 				"geolocation=(), microphone=(), camera=(), payment=(), usb=(), "+
 					"magnetometer=(), gyroscope=(), accelerometer=()",
 			)

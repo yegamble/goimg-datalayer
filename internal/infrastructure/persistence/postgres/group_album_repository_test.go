@@ -28,7 +28,8 @@ func createTestGroupAlbum(
 ) {
 	t.Helper()
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO group_albums (
 			id, group_id, created_by, title, description, cover_image_id,
 			image_count, is_public, created_at, updated_at
@@ -221,7 +222,8 @@ func TestGroupAlbumRepository_FindByID(t *testing.T) {
 		createTestImage(t, db, imageID, creatorID)
 
 		// Insert album with cover image
-		_, err := db.Exec(`
+		_, err := db.Exec(
+			`
 			INSERT INTO group_albums (
 				id, group_id, created_by, title, description, cover_image_id,
 				image_count, is_public, created_at, updated_at
