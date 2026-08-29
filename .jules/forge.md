@@ -12,3 +12,8 @@
 **Issue:** `ci.yml` was installing `newman` and `newman-reporter-htmlextra` using `npm install -g ...` without version constraints, leading to potential breakage if new major versions are released (e.g., Newman v7).
 **Root Cause:** CI pipeline configuration used default `latest` behavior for npm packages.
 **Fix:** Pinned versions to `newman@6.2.2` and `newman-reporter-htmlextra@1.23.1` in `ci.yml` and updated `Makefile` guidance to match.
+
+## 2026-04-25 - Path Shadowing in GitHub Actions
+**Issue:** Setup scripts appending system paths (`/usr/bin`) to `$GITHUB_PATH` after language setup actions (`actions/setup-go`) shadowed downloaded toolchains with older system binaries.
+**Root Cause:** `$GITHUB_PATH` prepends entries, so adding system paths later places them higher in the resolution order than previously added toolchain paths.
+**Fix:** Move steps that append system paths to run before the language setup steps in composite actions to preserve the intended precedence.
