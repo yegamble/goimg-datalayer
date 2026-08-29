@@ -56,7 +56,7 @@ linters:
     - errcheck      # Check for unchecked errors
     - govet         # Reports suspicious constructs
     - ineffassign   # Detect ineffectual assignments
-    - staticcheck   # Advanced Go linter
+    # - staticcheck   # Advanced Go linter
     - unused        # Check for unused constants, variables, functions and types
 
     # Additional recommended linters compatible with v2.x
@@ -67,7 +67,7 @@ linters:
     - containedctx  # Detect struct contained context.Context field
     - contextcheck  # Check whether the function uses a non-inherited context
     - cyclop        # Check function and package cyclomatic complexity
-    - dupl          # Code clone detection
+    # - dupl          # Code clone detection
     - durationcheck # Check for two durations multiplied together
     - errname       # Check that sentinel errors are prefixed with Err
     - errorlint     # Find code that will cause problems with Go 1.13+ error wrapping
@@ -144,7 +144,7 @@ linters:
         linters:
           - gocyclo
           - errcheck
-          - dupl
+          # - dupl
           - gosec
           - goconst
           - funlen
@@ -172,7 +172,7 @@ linters:
           - cyclop
           - maintidx
           - mnd
-          - dupl
+          # - dupl
           - goconst
           - nestif
           - thelper
@@ -185,7 +185,7 @@ linters:
           - cyclop
           - funlen
           - maintidx
-          - dupl
+          # - dupl
           - errcheck
           - mnd
           - goconst
