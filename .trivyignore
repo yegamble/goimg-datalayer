@@ -50,3 +50,50 @@
 # # Added: 2025-12-04
 # # Review: When updating to Go 1.26
 # CVE-2024-12345
+# GHSA-xmrv-pmrh-hhx2 - github.com/aws/aws-sdk-go-v2
+# Affects EventStream payload handling; we only use S3 basic functionality (put/get)
+# Added: 2026-06-09
+# Review: When updating to Go 1.26
+GHSA-xmrv-pmrh-hhx2
+
+# CVE-2026-34040 - github.com/docker/docker
+# Docker client library used only in testcontainers for local integration tests
+# Not shipped in production
+# Added: 2026-06-09
+# Review: When updating testcontainers-go
+CVE-2026-34040
+
+# CVE-2026-41567 - github.com/docker/docker
+# Docker client library used only in testcontainers for local integration tests
+# Not shipped in production
+# Added: 2026-06-09
+# Review: When updating testcontainers-go
+CVE-2026-41567
+
+# CVE-2026-42306 - github.com/docker/docker
+# Docker client library used only in testcontainers for local integration tests
+# Not shipped in production
+# Added: 2026-06-09
+# Review: When updating testcontainers-go
+CVE-2026-42306
+
+# CVE-2026-33997 - github.com/docker/docker
+# Docker client library used only in testcontainers for local integration tests
+# Not shipped in production
+# Added: 2026-06-09
+# Review: When updating testcontainers-go
+CVE-2026-33997
+
+# CVE-2026-41568 - github.com/docker/docker
+# Docker client library used only in testcontainers for local integration tests
+# Not shipped in production
+# Added: 2026-06-09
+# Review: When updating testcontainers-go
+CVE-2026-41568
+
+# CVE-2026-29181 - go.opentelemetry.io/otel
+# Otel metrics used only internally in backend services behind reverse proxy
+# Does not process untrusted external multi-value baggage headers directly
+# Added: 2026-06-09
+# Review: When bumping opentelemetry major version
+CVE-2026-29181
