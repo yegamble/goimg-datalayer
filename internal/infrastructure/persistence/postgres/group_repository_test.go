@@ -19,7 +19,8 @@ import (
 func createTestGroup(t *testing.T, db *sqlx.DB, groupID community.GroupID, ownerID identity.UserID, slug string) {
 	t.Helper()
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO groups (
 			id, name, slug, description, group_type, owner_id,
 			require_approval, allow_member_invites, allow_member_albums, max_members,
@@ -215,7 +216,8 @@ func TestGroupRepository_FindPublicGroups(t *testing.T) {
 	createTestGroup(t, db, publicGroup2, ownerID, "public-group-2")
 
 	// Create private group
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO groups (
 			id, name, slug, description, group_type, owner_id,
 			require_approval, allow_member_invites, allow_member_albums, max_members,
@@ -326,7 +328,8 @@ func TestGroupRepository_SearchGroups(t *testing.T) {
 
 	createTestGroup(t, db, photographyGroup, ownerID, "photography-lovers")
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO groups (
 			id, name, slug, description, group_type, owner_id,
 			require_approval, allow_member_invites, allow_member_albums, max_members,

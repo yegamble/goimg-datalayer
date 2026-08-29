@@ -100,7 +100,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("ownership check called without user context")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusUnauthorized,
 					"Unauthorized",
 					"User authentication required",
@@ -119,7 +120,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("missing resource ID in URL")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusBadRequest,
 					"Bad Request",
 					fmt.Sprintf("Missing %s in URL", cfg.URLParam),
@@ -138,7 +140,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("invalid resource ID format")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusBadRequest,
 					"Bad Request",
 					fmt.Sprintf("Invalid %s format", cfg.ResourceType),
@@ -157,7 +160,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("failed to check resource existence")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusInternalServerError,
 					"Internal Server Error",
 					"Failed to verify resource",
@@ -175,7 +179,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("resource not found")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusNotFound,
 					"Not Found",
 					fmt.Sprintf("%s not found", cfg.ResourceType),
@@ -224,7 +229,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("failed to check ownership")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusInternalServerError,
 					"Internal Server Error",
 					"Failed to verify ownership",
@@ -242,7 +248,8 @@ func RequireOwnership(cfg OwnershipConfig) func(http.Handler) http.Handler {
 					Str("request_id", requestID).
 					Msg("ownership check failed - access denied")
 
-				WriteError(w, r,
+				WriteError(
+					w, r,
 					http.StatusForbidden,
 					"Forbidden",
 					fmt.Sprintf("You do not have permission to access this %s", cfg.ResourceType),

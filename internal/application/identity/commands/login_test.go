@@ -45,7 +45,8 @@ func TestLoginHandler_Handle(t *testing.T) {
 					Return(user, nil).Once()
 
 				// JWT generation succeeds
-				suite.JWTService.On("GenerateAccessToken",
+				suite.JWTService.On(
+					"GenerateAccessToken",
 					user.ID().String(),
 					user.Email().String(),
 					string(user.Role()),
@@ -55,7 +56,8 @@ func TestLoginHandler_Handle(t *testing.T) {
 				// Refresh token generation
 				metadata := testhelpers.ValidRefreshTokenMetadata()
 				metadata.SessionID = sessionID
-				suite.RefreshTokenService.On("GenerateToken",
+				suite.RefreshTokenService.On(
+					"GenerateToken",
 					mock.Anything,
 					user.ID().String(),
 					mock.AnythingOfType("string"), // sessionID

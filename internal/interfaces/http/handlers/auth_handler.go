@@ -75,7 +75,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid register request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid registration data",
@@ -121,7 +122,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid login request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid login data",
@@ -164,7 +166,8 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid refresh request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid refresh token data",
@@ -203,7 +206,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in logout handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -214,7 +218,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	var req LogoutRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil && err != io.EOF {
 		h.logger.Debug().Err(err).Msg("invalid logout request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid request body",
@@ -264,84 +269,96 @@ func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 
 	switch {
 	case errors.Is(err, appidentity.ErrEmailAlreadyExists):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Email address is already registered",
 		)
 
 	case errors.Is(err, appidentity.ErrUsernameAlreadyExists):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Username is already taken",
 		)
 
 	case errors.Is(err, appidentity.ErrInvalidCredentials):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Invalid email or password",
 		)
 
 	case errors.Is(err, appidentity.ErrAccountSuspended):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Account has been suspended. Please contact support.",
 		)
 
 	case errors.Is(err, appidentity.ErrAccountLocked):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Account temporarily locked due to multiple failed login attempts. Please try again later.",
 		)
 
 	case errors.Is(err, appidentity.ErrAccountDeleted):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Account has been deleted",
 		)
 
 	case errors.Is(err, appidentity.ErrInvalidToken):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Invalid or expired token",
 		)
 
 	case errors.Is(err, appidentity.ErrTokenExpired):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Token has expired",
 		)
 
 	case errors.Is(err, appidentity.ErrTokenRevoked):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Token has been revoked. Please log in again.",
 		)
 
 	case errors.Is(err, appidentity.ErrTokenReplayDetected):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Security Alert",
 			"Token replay detected. All sessions have been revoked for security. Please log in again.",
 		)
 
 	case errors.Is(err, appidentity.ErrSessionNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Session not found or expired",
 		)
 
 	case errors.Is(err, identity.ErrPasswordCompromised):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Password Compromised",
 			"This password has been found in a data breach and cannot be used. Please choose a different, stronger password.",
@@ -350,7 +367,8 @@ func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 	case errors.Is(err, appidentity.ErrPasswordResetTokenInvalid),
 		errors.Is(err, appidentity.ErrPasswordResetTokenUsed),
 		errors.Is(err, identity.ErrTokenNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid or expired password reset token",
@@ -367,14 +385,16 @@ func (h *AuthHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 		errors.Is(err, identity.ErrPasswordTooShort),
 		errors.Is(err, identity.ErrPasswordTooLong),
 		errors.Is(err, identity.ErrPasswordWeak):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			err.Error(),
 		)
 
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",
@@ -405,7 +425,8 @@ func (h *AuthHandler) CreateGuestSession(w http.ResponseWriter, r *http.Request)
 			Str("ip_address", ipAddress).
 			Msg("guest session creation failed")
 
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to create guest session. Please try again later.",
@@ -430,7 +451,8 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid forgot-password request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid request data",
@@ -441,7 +463,8 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.forgotPasswordHandler.Handle(ctx, commands.RequestPasswordResetCommand{Email: req.Email}); err != nil {
 		h.logger.Error().Err(err).Msg("forgot-password handler failed")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",
@@ -459,7 +482,8 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid reset-password request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid request data",

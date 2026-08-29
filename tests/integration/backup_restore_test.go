@@ -381,7 +381,8 @@ func createBackup(ctx context.Context, pgContainer testcontainers.Container, con
 	}
 
 	// Use pg_dump from inside the running postgres container to guarantee version match.
-	cmd := exec.CommandContext(ctx, "docker", "exec",
+	cmd := exec.CommandContext(
+		ctx, "docker", "exec",
 		"-e", "PGPASSWORD="+connCfg.password,
 		pgContainer.GetContainerID(),
 		"pg_dump",
@@ -425,7 +426,8 @@ func restoreBackup(ctx context.Context, pgContainer testcontainers.Container, co
 		return fmt.Errorf("failed to read backup file: %w", err)
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", "exec",
+	cmd := exec.CommandContext(
+		ctx, "docker", "exec",
 		"-i",
 		"-e", "PGPASSWORD="+connCfg.password,
 		pgContainer.GetContainerID(),

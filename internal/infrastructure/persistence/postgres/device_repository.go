@@ -124,7 +124,6 @@ func (r *DeviceRepository) Track(ctx context.Context, userID identity.UserID, de
 		now, // last_seen_at
 		now, // created_at
 	).Scan(&resultID, &firstSeenAt)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to track device: %w", err)
 	}
