@@ -89,7 +89,8 @@ func (h *TagHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 	// Validate period
 	validPeriods := map[string]bool{"day": true, "week": true, "month": true, "all": true}
 	if !validPeriods[period] {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid period. Must be one of: day, week, month, all",
@@ -110,7 +111,8 @@ func (h *TagHandler) ListPopular(w http.ResponseWriter, r *http.Request) {
 			Str("period", period).
 			Int("limit", limit).
 			Msg("failed to list popular tags")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve popular tags",
@@ -167,7 +169,8 @@ func (h *TagHandler) ListTrending(w http.ResponseWriter, r *http.Request) {
 	// Validate period (all time doesn't make sense for trending)
 	validPeriods := map[string]bool{"day": true, "week": true, "month": true}
 	if !validPeriods[period] {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid period. Must be one of: day, week, month",
@@ -188,7 +191,8 @@ func (h *TagHandler) ListTrending(w http.ResponseWriter, r *http.Request) {
 			Str("period", period).
 			Int("limit", limit).
 			Msg("failed to list trending tags")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve trending tags",
@@ -230,7 +234,8 @@ func (h *TagHandler) Search(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameter (required)
 	q := r.URL.Query().Get("q")
 	if len(q) < 2 {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Query parameter 'q' must be at least 2 characters",
@@ -260,7 +265,8 @@ func (h *TagHandler) Search(w http.ResponseWriter, r *http.Request) {
 			Str("query", q).
 			Int("limit", limit).
 			Msg("failed to search tags")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to search tags",
@@ -304,7 +310,8 @@ func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
 	tag := chi.URLParam(r, "tag")
 
 	if tag == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Tag parameter is required",
@@ -329,7 +336,8 @@ func (h *TagHandler) ListImagesByTag(w http.ResponseWriter, r *http.Request) {
 			Str("tag", tag).
 			Int("page", page).
 			Msg("failed to list images by tag")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to retrieve images",

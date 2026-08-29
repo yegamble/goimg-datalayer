@@ -51,7 +51,8 @@ func (h *ActivityHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in activity feed handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -64,7 +65,8 @@ func (h *ActivityHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 	limit, err := parseLimit(query.Get("limit"), 20, 100)
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid limit parameter")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid limit parameter",
@@ -75,7 +77,8 @@ func (h *ActivityHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 	offset, err := parseOffset(query.Get("offset"))
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid offset parameter")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid offset parameter",
@@ -115,14 +118,16 @@ func (h *ActivityHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Requ
 
 	switch {
 	case errors.Is(err, identity.ErrUserNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User not found",
 		)
 
 	default:
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred",

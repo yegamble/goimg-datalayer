@@ -63,7 +63,8 @@ func (h *FollowHandler) FollowUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in follow handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -75,7 +76,8 @@ func (h *FollowHandler) FollowUser(w http.ResponseWriter, r *http.Request) {
 	targetUserID := GetPathParam(r, "id")
 	if targetUserID == "" {
 		h.logger.Debug().Msg("missing user ID in follow request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -124,7 +126,8 @@ func (h *FollowHandler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in unfollow handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -136,7 +139,8 @@ func (h *FollowHandler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 	targetUserID := GetPathParam(r, "id")
 	if targetUserID == "" {
 		h.logger.Debug().Msg("missing user ID in unfollow request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -187,7 +191,8 @@ func (h *FollowHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
 	userID := GetPathParam(r, "id")
 	if userID == "" {
 		h.logger.Debug().Msg("missing user ID in get followers request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -239,7 +244,8 @@ func (h *FollowHandler) GetFollowing(w http.ResponseWriter, r *http.Request) {
 	userID := GetPathParam(r, "id")
 	if userID == "" {
 		h.logger.Debug().Msg("missing user ID in get following request")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Missing user ID",
@@ -321,28 +327,32 @@ func (h *FollowHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Reques
 	// Map specific domain errors to HTTP status codes
 	switch {
 	case errors.Is(err, identity.ErrUserNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User not found",
 		)
 
 	case errors.Is(err, identity.ErrCannotFollowSelf):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Cannot follow yourself",
 		)
 
 	case errors.Is(err, identity.ErrFollowAlreadyExists):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"You are already following this user",
 		)
 
 	case errors.Is(err, identity.ErrFollowNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Follow relationship not found",
@@ -350,7 +360,8 @@ func (h *FollowHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Reques
 
 	// Check for error messages from command handlers
 	case err != nil && err.Error() == "cannot follow inactive user":
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Cannot follow inactive user",
@@ -358,7 +369,8 @@ func (h *FollowHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Reques
 
 	default:
 		// Unknown error - return generic 500 without exposing internal details
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",

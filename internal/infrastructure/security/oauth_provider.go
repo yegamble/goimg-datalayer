@@ -109,7 +109,8 @@ func NewGoogleOAuthProvider(cfg OAuthProviderConfig) *GoogleOAuthProvider {
 
 // GetAuthorizationURL generates the Google OAuth authorization URL.
 func (p *GoogleOAuthProvider) GetAuthorizationURL(state string) string {
-	return p.config.AuthCodeURL(state,
+	return p.config.AuthCodeURL(
+		state,
 		oauth2.AccessTypeOffline, // Request refresh token
 		oauth2.ApprovalForce,     // Force approval prompt to get refresh token
 	)

@@ -88,7 +88,8 @@ func (h *TwoFAHandler) Setup(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in 2FA setup handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -136,7 +137,8 @@ func (h *TwoFAHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in 2FA verify handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -149,7 +151,8 @@ func (h *TwoFAHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid 2FA verify request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid verification data",
@@ -200,7 +203,8 @@ func (h *TwoFAHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in 2FA disable handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -213,7 +217,8 @@ func (h *TwoFAHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid 2FA disable request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid request data",
@@ -262,7 +267,8 @@ func (h *TwoFAHandler) Status(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in 2FA status handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -304,7 +310,8 @@ func (h *TwoFAHandler) RegenerateBackupCodes(w http.ResponseWriter, r *http.Requ
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in regenerate backup codes handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -317,7 +324,8 @@ func (h *TwoFAHandler) RegenerateBackupCodes(w http.ResponseWriter, r *http.Requ
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid regenerate backup codes request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid request data",
@@ -370,7 +378,8 @@ func (h *TwoFAHandler) VerifyLogin(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in 2FA login verification handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -383,7 +392,8 @@ func (h *TwoFAHandler) VerifyLogin(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid 2FA login verification request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid 2FA code data",
@@ -435,63 +445,72 @@ func (h *TwoFAHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 	// Map specific application errors to HTTP status codes
 	switch {
 	case errors.Is(err, appidentity.Err2FAAlreadyEnabled):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusConflict,
 			"Conflict",
 			"Two-factor authentication is already enabled",
 		)
 
 	case errors.Is(err, appidentity.Err2FANotEnabled):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"Two-factor authentication is not enabled",
 		)
 
 	case errors.Is(err, appidentity.Err2FASetupPending):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Two-factor authentication setup is pending verification",
 		)
 
 	case errors.Is(err, appidentity.Err2FAInvalidCode):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid verification code",
 		)
 
 	case errors.Is(err, appidentity.Err2FARequired):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Two-factor authentication verification required",
 		)
 
 	case errors.Is(err, appidentity.ErrBackupCodeInvalid):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid or already used backup code",
 		)
 
 	case errors.Is(err, appidentity.ErrBackupCodesExhausted):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"All backup codes have been used. Please regenerate new codes.",
 		)
 
 	case errors.Is(err, appidentity.ErrInvalidCredentials):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Invalid password",
 		)
 
 	case errors.Is(err, appidentity.ErrPasswordRequired):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Password confirmation is required for this operation",
@@ -499,7 +518,8 @@ func (h *TwoFAHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request
 
 	default:
 		// Unknown error - return generic 500 without exposing internal details
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",

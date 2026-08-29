@@ -81,7 +81,8 @@ func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -123,7 +124,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := GetPathParamUUID(r, "id")
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid user id in path")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid user ID format",
@@ -135,7 +137,8 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -183,7 +186,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := GetPathParamUUID(r, "id")
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid user id in path")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid user ID format",
@@ -195,7 +199,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -209,7 +214,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 			Str("requestor_id", userCtx.UserID.String()).
 			Str("target_user_id", userID.String()).
 			Msg("unauthorized user update attempt")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to update this user",
@@ -222,7 +228,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid update user request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Invalid update data",
@@ -279,7 +286,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := GetPathParamUUID(r, "id")
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid user id in path")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid user ID format",
@@ -291,7 +299,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -305,7 +314,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 			Str("requestor_id", userCtx.UserID.String()).
 			Str("target_user_id", userID.String()).
 			Msg("unauthorized user delete attempt")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to delete this user",
@@ -318,7 +328,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err := DecodeJSON(r, &req); err != nil {
 		h.logger.Debug().Err(err).Msg("invalid delete user request")
 		validationErrors := FormatValidationErrors(err)
-		middleware.WriteErrorWithExtensions(w, r,
+		middleware.WriteErrorWithExtensions(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			"Password confirmation is required",
@@ -340,7 +351,8 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 			h.logger.Warn().
 				Str("user_id", userID.String()).
 				Msg("delete user failed - invalid password")
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusUnauthorized,
 				"Unauthorized",
 				"Invalid password",
@@ -380,7 +392,8 @@ func (h *UserHandler) GetUserSessions(w http.ResponseWriter, r *http.Request) {
 	userID, err := GetPathParamUUID(r, "id")
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("invalid user id in path")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid user ID format",
@@ -392,7 +405,8 @@ func (h *UserHandler) GetUserSessions(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -406,7 +420,8 @@ func (h *UserHandler) GetUserSessions(w http.ResponseWriter, r *http.Request) {
 			Str("requestor_id", userCtx.UserID.String()).
 			Str("target_user_id", userID.String()).
 			Msg("unauthorized sessions access attempt")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"You do not have permission to view sessions for this user",
@@ -450,14 +465,16 @@ func (h *UserHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 	// Map specific domain/application errors to HTTP status codes
 	switch {
 	case errors.Is(err, identity.ErrUserNotFound):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusNotFound,
 			"Not Found",
 			"User not found",
 		)
 
 	case errors.Is(err, identity.ErrInvalidCredentials):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Invalid password",
@@ -470,7 +487,8 @@ func (h *UserHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 		errors.Is(err, identity.ErrUsernameEmpty),
 		errors.Is(err, identity.ErrUsernameTooShort),
 		errors.Is(err, identity.ErrUsernameTooLong):
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Validation Failed",
 			err.Error(),
@@ -482,7 +500,8 @@ func (h *UserHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 			(err != nil && (err.Error() == "unauthorized: cannot update another user's profile" ||
 				err.Error() == "unauthorized: cannot delete another user's account" ||
 				err.Error() == "unauthorized: cannot view sessions for another user")) {
-			middleware.WriteError(w, r,
+			middleware.WriteError(
+				w, r,
 				http.StatusForbidden,
 				"Forbidden",
 				"You do not have permission to perform this action",
@@ -491,7 +510,8 @@ func (h *UserHandler) mapErrorAndRespond(w http.ResponseWriter, r *http.Request,
 		}
 
 		// Unknown error - return generic 500 without exposing internal details
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"An unexpected error occurred. Please try again later.",

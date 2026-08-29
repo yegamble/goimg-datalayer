@@ -27,7 +27,8 @@ func createTestMembership(
 ) {
 	t.Helper()
 
-	_, err := db.Exec(`
+	_, err := db.Exec(
+		`
 		INSERT INTO group_memberships (
 			id, group_id, user_id, role, status, joined_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7)

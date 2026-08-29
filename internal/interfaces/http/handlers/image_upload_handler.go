@@ -20,7 +20,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	userCtx, err := GetUserFromContext(ctx)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("user context not found in upload handler")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusUnauthorized,
 			"Unauthorized",
 			"Authentication required",
@@ -29,7 +30,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !userCtx.EmailVerified {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusForbidden,
 			"Forbidden",
 			"Email verification required to upload images",
@@ -39,7 +41,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseMultipartForm(maxUploadSizeMB << megabyteShift); err != nil {
 		h.logger.Debug().Err(err).Msg("failed to parse multipart form")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Invalid multipart form data",
@@ -50,7 +53,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("image")
 	if err != nil {
 		h.logger.Debug().Err(err).Msg("image file not found in form")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Image file is required",
@@ -70,7 +74,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	n, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		h.logger.Error().Err(err).Msg("failed to read file header for mime detection")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to process image file",
@@ -80,7 +85,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := file.Seek(0, 0); err != nil {
 		h.logger.Error().Err(err).Msg("failed to reset file pointer")
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusInternalServerError,
 			"Internal Server Error",
 			"Failed to process image file",
@@ -96,7 +102,8 @@ func (h *ImageHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 	if title == "" {
-		middleware.WriteError(w, r,
+		middleware.WriteError(
+			w, r,
 			http.StatusBadRequest,
 			"Bad Request",
 			"Title is required",
