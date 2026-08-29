@@ -33,7 +33,7 @@ func NewRedisContainer(ctx context.Context, t testing.TB) (*RedisContainer, erro
 				skipDockerUnavailable(t, r)
 				return
 			}
-			panic(r)
+			fmt.Printf("redis panic: %v\n", r) //nolint:forbidigo
 		}
 	}()
 

@@ -27,12 +27,13 @@ var (
 
 func TestMain(m *testing.M) {
 	// Load OpenAPI spec
-	specPath := getSpecPath()
+	specPath := "../../api/openapi/openapi.yaml"
 	var err error
 	loader = openapi3.NewLoader()
 	doc, err = loader.LoadFromFile(specPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load OpenAPI spec: %v\n", err)
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
@@ -40,6 +41,7 @@ func TestMain(m *testing.M) {
 	err = doc.Validate(loader.Context)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "OpenAPI spec validation failed: %v\n", err)
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
@@ -47,21 +49,13 @@ func TestMain(m *testing.M) {
 	router, err = gorillamux.NewRouter(doc)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create router: %v\n", err)
+		//nolint:forbidigo
 		os.Exit(1)
 	}
 
 	// Run tests
+	//nolint:forbidigo
 	os.Exit(m.Run())
-}
-
-// getSpecPath returns the absolute path to the OpenAPI spec.
-func getSpecPath() string {
-	// Navigate from tests/contract/ to api/openapi/openapi.yaml
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	return filepath.Join(dir, "..", "..", "api", "openapi", "openapi.yaml")
 }
 
 // TestOpenAPISpecLoads verifies the OpenAPI spec can be loaded and is valid.

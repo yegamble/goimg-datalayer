@@ -222,6 +222,7 @@ func main() {
 		jwtConfig.PublicKeyPath = "certs/public.pem"
 	}
 
+	// #nosec G304 // Path is securely provided by application configuration
 	if _, err := os.Stat(jwtConfig.PrivateKeyPath); os.IsNotExist(err) {
 		log.Warn().Msg("JWT keys not found, auth will fail")
 	}
